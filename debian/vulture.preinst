@@ -1,0 +1,25 @@
+#! /bin/sh
+# preinst script for vulture
+#
+# see: dh_installdeb(1)
+
+set -e
+if grep -E "^apache:" /etc/passwd > /dev/null ; then
+	echo "L'utilisateur apache existe."
+else
+	useradd www-data
+	groupadd www-data
+fi
+if grep -E "^apache:" /etc/group > /dev/null ; then
+	echo "Le groupe apache existe."
+else
+	groupadd apache
+fi
+if [ -f /var/www/vulture/conf ] ; then
+    echo "Moving old conf"
+    mv /var/www/vulture/conf/ /var/www/vulture/old
+    mv /var/www/vulture/old/ /var/www/vulture/conf/old
+fi
+exit 0
+
+
