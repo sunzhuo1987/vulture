@@ -1,0 +1,718 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2009-09-18 17:14+0200\n"
+"PO-Revision-Date: 2006-08-02 22:21-0700\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: base.html:5 vulture/acl_form.html:12 vulture/app_form.html:19
+#, fuzzy
+msgid "Authentication"
+msgstr "Applications"
+
+#: base.html:9
+msgid "Logout"
+msgstr "Déconnexion"
+
+#: base.html:37 vulture/cert_form.html:21 vulture/cert_list.html:20
+#: vulture/keygen.html:21 vulture/o_form.html:21 vulture/o_list.html:21
+#: vulture/token.html:23
+msgid "Admin"
+msgstr "Admin"
+
+#: base.html:39 vulture/cert_form.html:23 vulture/cert_list.html:22
+#: vulture/keygen.html:23 vulture/o_form.html:23 vulture/o_list.html:6
+#: vulture/o_list.html.py:23 vulture/token.html:25
+msgid "Organizations"
+msgstr "Organisations"
+
+#: logon.html:11
+msgid "Logon"
+msgstr "Connexion"
+
+#: vulture/acl_confirm_delete.html:4 vulture/acl_list.html:5
+msgid "ACL"
+msgstr "ACL"
+
+#: vulture/acl_confirm_delete.html:9
+msgid "Delete ACL "
+msgstr "Effacer ACL"
+
+#: vulture/acl_confirm_delete.html:11 vulture/app_confirm_delete.html:11
+#: vulture/cert_confirm_delete.html:11
+#: vulture/certprofile_confirm_delete.html:11
+#: vulture/intf_confirm_delete.html:11 vulture/ldap_confirm_delete.html:11
+#: vulture/o_confirm_delete.html:14 vulture/sql_confirm_delete.html:11
+#: vulture/ssl_confirm_delete.html:11 vulture/user_confirm_delete.html:11
+msgid "no"
+msgstr "non"
+
+#: vulture/acl_confirm_delete.html:11 vulture/app_confirm_delete.html:11
+#: vulture/cert_confirm_delete.html:11
+#: vulture/certprofile_confirm_delete.html:11
+#: vulture/intf_confirm_delete.html:11 vulture/ldap_confirm_delete.html:11
+#: vulture/o_confirm_delete.html:14 vulture/sql_confirm_delete.html:11
+#: vulture/ssl_confirm_delete.html:11 vulture/user_confirm_delete.html:11
+msgid "yes"
+msgstr "yes"
+
+#: vulture/acl_form.html:5
+msgid "ACL add"
+msgstr "Ajouter ACL"
+
+#: vulture/acl_form.html:5
+msgid "ACL edit"
+msgstr "Editer ACL"
+
+#: vulture/acl_form.html:11 vulture/app_form.html:20 vulture/intf_form.html:14
+#: vulture/intf_list.html:15 vulture/ldap_list.html:11
+#: vulture/radius_list.html:11 vulture/sql_form.html:20
+#: vulture/sql_list.html:11 vulture/ssl_form.html:12 vulture/ssl_list.html:11
+msgid "Description"
+msgstr "Description"
+
+#: vulture/acl_list.html:11 vulture/certprofile_form.html:12
+#: vulture/ldap_form.html:13
+msgid "Name"
+msgstr "Nom"
+
+#: vulture/acl_list.html:12
+msgid "Authentication method"
+msgstr "Methode d'authentification"
+
+#: vulture/acl_list.html:23 vulture/app_list.html:29 vulture/cert_list.html:65
+#: vulture/certprofile_list.html:23 vulture/intf_form.html:38
+#: vulture/intf_list.html:28 vulture/ldap_list.html:23
+#: vulture/radius_list.html:23 vulture/sql_list.html:23
+#: vulture/ssl_list.html:22 vulture/user_list.html:27
+#, fuzzy
+msgid "Action"
+msgstr "Action"
+
+#: vulture/acl_list.html:25 vulture/app_list.html:31 vulture/cert_list.html:67
+#: vulture/certprofile_list.html:25 vulture/intf_list.html:30
+#: vulture/ldap_list.html:25 vulture/o_form.html:40
+#: vulture/radius_list.html:25 vulture/sql_list.html:25
+#: vulture/ssl_list.html:24 vulture/user_list.html:29
+msgid "Add"
+msgstr "Ajouter"
+
+#: vulture/app_confirm_delete.html:4 vulture/app_list.html:5
+#: vulture/cert_confirm_delete.html:4
+#: vulture/certprofile_confirm_delete.html:4
+#: vulture/user_confirm_delete.html:4
+msgid "Applications"
+msgstr "Applications"
+
+#: vulture/app_confirm_delete.html:9
+msgid "Delete the application"
+msgstr "Effacer l'application"
+
+#: vulture/app_detail.html:5
+msgid "Add application"
+msgstr "Ajouter une application"
+
+#: vulture/app_form.html:5
+#, fuzzy
+msgid "Application add"
+msgstr "Applications"
+
+#: vulture/app_form.html:5
+msgid "Application edit"
+msgstr "Editer application"
+
+#: vulture/app_form.html:14 vulture/app_list.html:14
+msgid "Internet name"
+msgstr "Nom internet"
+
+#: vulture/app_form.html:15
+msgid "Alias"
+msgstr "Alias"
+
+#: vulture/app_form.html:15 vulture/app_form.html.py:19
+#: vulture/app_form.html:20 vulture/sql_form.html:36
+#: vulture/sql_form.html.py:37
+msgid "optional"
+msgstr "optionel"
+
+#: vulture/app_form.html:16 vulture/intf_confirm_delete.html:4
+msgid "Interface"
+msgstr "Interface"
+
+#: vulture/app_form.html:17 vulture/app_list.html:15
+msgid "Private URL"
+msgstr "URL privée"
+
+#: vulture/app_form.html:18 vulture/intf_form.html:17
+msgid "Log"
+msgstr "Log"
+
+#: vulture/app_list.html:16
+msgid "Authentication Methods"
+msgstr "Méthode d'authentification"
+
+#: vulture/app_list.html:17
+msgid "Network interface"
+msgstr "Interface réseau"
+
+#: vulture/app_list.html:18 vulture/intf_list.html:17
+msgid "Status"
+msgstr "Status"
+
+#: vulture/cert_confirm_delete.html:9
+msgid "Delete certificat for "
+msgstr "Effacer le certificat pour"
+
+#: vulture/cert_form.html:5 vulture/edit_form.html:5 vulture/keygen.html:5
+#: vulture/token.html:5
+msgid "Create certificat"
+msgstr "Créer un certificat"
+
+#: vulture/cert_list.html:5
+msgid "Certificats"
+msgstr "Certificats"
+
+#: vulture/cert_list.html:41 vulture/certprofile_list.html:13
+#: vulture/edit_form.html:17
+msgid "Nom"
+msgstr "Nom"
+
+#: vulture/cert_list.html:42 vulture/edit_form.html:18
+#: vulture/mail_export.html:29 vulture/send_p12.html:29
+msgid "Email"
+msgstr "Email"
+
+#: vulture/cert_list.html:43 vulture/edit_form.html:16
+msgid "Profil"
+msgstr "Profile"
+
+#: vulture/cert_list.html:44 vulture/keygen.html:42
+msgid "Token"
+msgstr "Token S/N"
+
+#: vulture/cert_list.html:45
+msgid "Valid until"
+msgstr "Valide jusque"
+
+#: vulture/cert_list.html:50
+msgid "Renew"
+msgstr "Renouveller"
+
+#: vulture/cert_list.html:50
+msgid "Are you sure you want to renew"
+msgstr "Êtes-vous sur de vouloir renouveller le certificat"
+
+#: vulture/cert_list.html:50
+msgid "Are you sure you want to cancel revocation of"
+msgstr "Êtes-vous sur de vouloir annuler la révocation du certificat"
+
+#: vulture/cert_list.html:50
+msgid "Are you sure you want to revoke"
+msgstr "Êtes-vous sur de vouloir révoquer"
+
+#: vulture/cert_list.html:68
+msgid "Export selection"
+msgstr "Exporter la sélection"
+
+#: vulture/cert_list.html:69
+msgid "Export selection and mail"
+msgstr "Exporter la sélection par mail"
+
+#: vulture/cert_list.html:70
+msgid "Export all"
+msgstr "Exporter tout"
+
+#: vulture/cert_list.html:71
+msgid "Export all and mail"
+msgstr "Exporter tout par mail"
+
+#: vulture/cert_list.html:75
+msgid "Search"
+msgstr "Chercher"
+
+#: vulture/cert_list.html:96
+msgid "week"
+msgstr "semaine"
+
+#: vulture/cert_list.html:97
+msgid "weeks"
+msgstr "semaines"
+
+#: vulture/cert_list.html:98
+msgid "month"
+msgstr "mois"
+
+#: vulture/cert_list.html:99 vulture/cert_list.html.py:100
+msgid "months"
+msgstr "mois"
+
+#: vulture/cert_list.html:105
+msgid "Cancel"
+msgstr "Annuler"
+
+#: vulture/cert_update_form.html:5
+msgid "Update certificat"
+msgstr "Mettre à jour le certificat"
+
+#: vulture/certprofile_confirm_delete.html:9
+msgid "Delete certificat profile for "
+msgstr "Effacer le profil de certificat"
+
+#: vulture/certprofile_form.html:4
+msgid "Add certificat profile"
+msgstr "Ajouter un profil"
+
+#: vulture/certprofile_form.html:13
+msgid "Decentralized"
+msgstr ""
+
+#: vulture/certprofile_form.html:14
+msgid "CA certificat"
+msgstr "Certificat d'AC"
+
+#: vulture/certprofile_form.html:15
+msgid "CA key"
+msgstr "Clé de certificat"
+
+#: vulture/certprofile_form.html:16
+msgid "Validity"
+msgstr "Validité"
+
+#: vulture/certprofile_form.html:17
+msgid "Key type"
+msgstr "Type de clé"
+
+#: vulture/certprofile_form.html:18 vulture/keygen.html:43
+msgid "Key size"
+msgstr "Taille de clé"
+
+#: vulture/certprofile_form.html:19
+msgid "Digest"
+msgstr "Digest"
+
+#: vulture/certprofile_form.html:20
+msgid "Smtp server"
+msgstr "Serveur SMTP"
+
+#: vulture/certprofile_form.html:21
+msgid "CRL file path"
+msgstr "Chemin du fichier CRL"
+
+#: vulture/certprofile_form.html:22
+msgid "Mail from"
+msgstr "Mail de la part de"
+
+#: vulture/certprofile_form.html:23
+msgid "Mail subject"
+msgstr "Sujet du mail"
+
+#: vulture/certprofile_form.html:24
+msgid "Mail header"
+msgstr "Début du mail"
+
+#: vulture/certprofile_form.html:25
+msgid "Mail password"
+msgstr "Envoyer le mot de passe"
+
+#: vulture/certprofile_form.html:26
+msgid "Mail footer"
+msgstr "Fin du mail"
+
+#: vulture/certprofile_list.html:5
+msgid "Certificates' profiles"
+msgstr "Profil de certificat"
+
+#: vulture/download_p12.html:5
+msgid "Download certificat"
+msgstr "Télécharger le certificat"
+
+#: vulture/download_p12.html:30 vulture/send_p12.html:30
+msgid "Passphrase"
+msgstr "Mot de passe"
+
+#: vulture/edit_form.html:14
+msgid "PKCS12 password"
+msgstr "Mot de passe PKCS12"
+
+#: vulture/edit_form.html:21
+msgid "Download PKCS12"
+msgstr "Télécharger le PKCS12"
+
+#: vulture/intf_confirm_delete.html:9
+msgid "Delete the interface"
+msgstr "Effacer l'interface"
+
+#: vulture/intf_form.html:5
+msgid "Interface add"
+msgstr "Ajouter une interface"
+
+#: vulture/intf_form.html:5
+msgid "Interface edit"
+msgstr "Editer une interface"
+
+#: vulture/intf_form.html:15 vulture/intf_list.html:16
+msgid "IP"
+msgstr "IP"
+
+#: vulture/intf_form.html:16 vulture/ldap_form.html:15
+msgid "Port"
+msgstr "Port"
+
+#: vulture/intf_form.html:21
+msgid "SSO portal"
+msgstr "Portail SSO"
+
+#: vulture/intf_form.html:27
+msgid "SSL engine"
+msgstr "Moteur SSL"
+
+#: vulture/intf_form.html:28
+msgid "PEM certificat"
+msgstr "Certificat au format PEM"
+
+#: vulture/intf_form.html:29
+msgid "PEM key"
+msgstr "Clé du certificat au format PEM"
+
+#: vulture/intf_form.html:30
+msgid "PEM certification chain"
+msgstr "Chaine de certification au format PEM"
+
+#: vulture/intf_list.html:5
+msgid "Interfaces"
+msgstr "Interfaces"
+
+#: vulture/ldap_confirm_delete.html:4
+msgid "LDAP database authentication"
+msgstr "Authentification LDAP"
+
+#: vulture/ldap_confirm_delete.html:9
+msgid "Delete LDAP authentication methode"
+msgstr ""
+
+#: vulture/ldap_form.html:5 vulture/ldap_list.html:5
+msgid "LDAP directory authentication"
+msgstr ""
+
+#: vulture/ldap_form.html:14 vulture/sql_form.html:28
+msgid "Host"
+msgstr ""
+
+#: vulture/ldap_form.html:16
+msgid "Protocol"
+msgstr ""
+
+#: vulture/ldap_form.html:17
+msgid "Encryption scheme"
+msgstr ""
+
+#: vulture/ldap_form.html:18
+msgid "Connection DN"
+msgstr ""
+
+#: vulture/ldap_form.html:19
+msgid "Connection DN associated password"
+msgstr ""
+
+#: vulture/ldap_form.html:20
+msgid "Searching suffix in LDAP directory"
+msgstr ""
+
+#: vulture/ldap_form.html:37
+msgid "User attribute"
+msgstr ""
+
+#: vulture/ldap_form.html:41
+msgid "LDAP filter for users"
+msgstr ""
+
+#: vulture/ldap_form.html:42
+msgid "Searching scope for users"
+msgstr ""
+
+#: vulture/ldap_form.html:43
+msgid "Url attribut"
+msgstr ""
+
+#: vulture/ldap_form.html:62
+msgid "Group attribute"
+msgstr ""
+
+#: vulture/ldap_form.html:66
+msgid "LDAP filter for groups"
+msgstr ""
+
+#: vulture/ldap_form.html:67
+msgid "Searching scope for groups"
+msgstr ""
+
+#: vulture/ldap_form.html:72
+msgid "Searching attribute in groups"
+msgstr ""
+
+#: vulture/ldap_form.html:73
+msgid "Searching attribute is a DN"
+msgstr ""
+
+#: vulture/ldap_form.html:74 vulture/sql_form.html:37
+msgid "Display portal"
+msgstr ""
+
+#: vulture/ldap_list.html:12 vulture/radius_list.html:12
+msgid "LDAP server"
+msgstr ""
+
+#: vulture/mail_export.html:5
+msgid "Send export"
+msgstr ""
+
+#: vulture/models.py:221
+msgid "cn"
+msgstr ""
+
+#: vulture/models.py:235
+msgid "login"
+msgstr ""
+
+#: vulture/models.py:236
+msgid "password"
+msgstr ""
+
+#: vulture/models.py:237
+msgid "active"
+msgstr ""
+
+#: vulture/models.py:238
+msgid "departement"
+msgstr ""
+
+#: vulture/models.py:241
+msgid "lastname"
+msgstr ""
+
+#: vulture/models.py:242
+msgid "firstname"
+msgstr ""
+
+#: vulture/models.py:243 vulture/views.py:261 vulture/views.py:265
+msgid "mail"
+msgstr ""
+
+#: vulture/models.py:244
+msgid "businessCategory"
+msgstr ""
+
+#: vulture/models.py:245
+msgid "businessCategory2"
+msgstr ""
+
+#: vulture/models.py:246 vulture/o_confirm_delete.html:6
+msgid "organization"
+msgstr "organisation"
+
+#: vulture/models.py:248
+msgid "personalTitle"
+msgstr ""
+
+#: vulture/models.py:249
+msgid "personalTitle2"
+msgstr ""
+
+#: vulture/models.py:250
+msgid "title"
+msgstr ""
+
+#: vulture/models.py:251
+msgid "phone"
+msgstr ""
+
+#: vulture/models.py:252
+msgid "fax"
+msgstr ""
+
+#: vulture/models.py:253
+msgid "mobile"
+msgstr ""
+
+#: vulture/models.py:254
+msgid "postalAddress"
+msgstr ""
+
+#: vulture/models.py:255
+msgid "postalAddress2"
+msgstr ""
+
+#: vulture/models.py:256
+msgid "postalCode"
+msgstr ""
+
+#: vulture/models.py:257
+msgid "city"
+msgstr ""
+
+#: vulture/models.py:258
+msgid "ou"
+msgstr ""
+
+#: vulture/models.py:261
+msgid "pager"
+msgstr ""
+
+#: vulture/models.py:262
+msgid "modifyDate"
+msgstr ""
+
+#: vulture/models.py:263
+msgid "createDate"
+msgstr ""
+
+#: vulture/models.py:264
+msgid "connectDate"
+msgstr ""
+
+#: vulture/o_confirm_delete.html:12
+msgid "Delete organization "
+msgstr ""
+
+#: vulture/o_form.html:6
+msgid "Organization"
+msgstr "Organisation"
+
+#: vulture/o_list.html:35
+msgid "name"
+msgstr "Nom"
+
+#: vulture/o_list.html:49
+msgid "Actions"
+msgstr "Actions"
+
+#: vulture/o_list.html:51
+msgid "add"
+msgstr "Ajouter"
+
+#: vulture/radius_list.html:5
+msgid "Radius authentication"
+msgstr ""
+
+#: vulture/send_p12.html:5
+msgid "Send certificat"
+msgstr ""
+
+#: vulture/sql_confirm_delete.html:4 vulture/sql_form.html:5
+#: vulture/sql_list.html:5
+msgid "SQL database authentication"
+msgstr ""
+
+#: vulture/sql_confirm_delete.html:9
+msgid "Delete SQL authentication methode"
+msgstr ""
+
+#: vulture/sql_form.html:21
+msgid "Type"
+msgstr ""
+
+#: vulture/sql_form.html:22 vulture/sql_list.html:12
+msgid "Database"
+msgstr ""
+
+#: vulture/sql_form.html:26
+msgid "User"
+msgstr ""
+
+#: vulture/sql_form.html:27 vulture/user_form.html:15
+msgid "Password"
+msgstr ""
+
+#: vulture/sql_form.html:32
+msgid "SQL table name"
+msgstr ""
+
+#: vulture/sql_form.html:33
+msgid "User column"
+msgstr ""
+
+#: vulture/sql_form.html:34
+msgid "Password column"
+msgstr ""
+
+#: vulture/sql_form.html:35
+msgid "Password algorithm"
+msgstr ""
+
+#: vulture/sql_form.html:36
+msgid "Url field"
+msgstr ""
+
+#: vulture/ssl_confirm_delete.html:4
+msgid "SSL database authentication"
+msgstr ""
+
+#: vulture/ssl_confirm_delete.html:9
+msgid "Delete SSL authentication methode"
+msgstr ""
+
+#: vulture/ssl_form.html:5
+msgid "SSL client authentication"
+msgstr ""
+
+#: vulture/ssl_form.html:13
+msgid "Require"
+msgstr ""
+
+#: vulture/ssl_form.html:14
+msgid "Certificat"
+msgstr ""
+
+#: vulture/ssl_list.html:5
+msgid "SSL authentication"
+msgstr ""
+
+#: vulture/token.html:7
+msgid "Insert token now and click on submit"
+msgstr "Inserez le token, renseignez son numéro de série et cliquez sur Envoyer"
+
+#: vulture/user_confirm_delete.html:9
+msgid "Delete the user"
+msgstr ""
+
+#: vulture/user_form.html:5
+msgid "Add user"
+msgstr ""
+
+#: vulture/user_form.html:14 vulture/user_list.html:15
+msgid "Login"
+msgstr ""
+
+#: vulture/user_form.html:16
+msgid "Administrator"
+msgstr ""
+
+#: vulture/user_form.html:17
+msgid "PKI operator"
+msgstr ""
+
+#: vulture/user_list.html:5
+msgid "Users"
+msgstr ""
+
+#: vulture/user_list.html:16
+msgid "Attributs"
+msgstr ""
+
+#: vulture/views.py:237 vulture/views.py:262
+msgid "passphrase"
+msgstr ""
+
+#~ msgid "to"
+#~ msgstr "test"

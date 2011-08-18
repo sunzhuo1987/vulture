@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}
+	<img src="/img/icon-security-lock.png"> {% trans "mod_security" %}
+{% endblock %}
+
+{% block display_auth_menu %}none{% endblock %}
+{% block display_components_menu %}{% endblock %}
+
+{% block content %}
+
+ 	{% if k_output %}<div style="border: 1px dashed black; width: 60%; padding: 1em; margin: 3em"><code style="color: red">{{ k_output }}</code></div><a href="/security">Click here to return to list</a>{% else %}
+	<a href="/security/update"><img src="/img/reload.png"> - <b>Click here to download/update security rules from modsecurity.org</b></a><br><br>
+	<table class="list">
+	<tr>
+	<th>{% trans "Name" %}</th>
+	<th colspan=2 style="width: 32px"></th>
+	</tr>
+{% for object in object_list %}
+	<tr><td>{{ object.name }}</td><td><a href="/security/{{ object.id }}/del/"><img src="/img/editdelete.png"></td><td><a href="/security/{{ object.id }}"><img src="/img/edit.png"></a></tr>
+{% endfor %}
+	</td>
+	</table>
+	{% endif %}
+
+{% endblock %}
+
+{% block action %}
+<fieldset id='fieldset'><legend><img src='/img/goto.png'>{% trans "Action" %}</legend>
+<ul>
+		<li><a href="/security/new/">{% trans "Add" %}</a></li>
+</ul>
+</fieldset>
+{% endblock %}

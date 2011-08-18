@@ -1,0 +1,51 @@
+#! /bin/sh
+#
+# Vulture
+#
+# chkconfig:   345 90 15
+# description: Vulture
+
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+Vulture_HOME=/var/www
+NAME=vulture
+RETVAL=0
+APACHE=/usr/sbin/apache2
+MEMCACHED=/usr/bin/memcached
+
+case "$1" in
+  start)
+	echo -n "Starting $NAME: ";
+	for i in `ls $Vulture_HOME/$NAME/conf/*.conf 2> /dev/null`; do 
+		$APACHE -f $i;
+	done
+	$MEMCACHED -d -m 512 -l 127.0.0.1 -p 9091 -u apache
+	echo "." 
+	;;
+  stop)
+	echo -n "Stopping $NAME: ";
+	for i in `ls $Vulture_HOME/$NAME/conf/*.pid 2> /dev/null`; do 
+		kill `cat $i` 
+	done;
+	kill -12 `pidof $MEMCACHED`
+	echo "." 
+	;;
+  restart|force-reload)
+	$0 stop
+	sleep 2
+	$0 start
+	;;
+  reload)
+	echo -n "Reloading ${NAME}: "
+	for i in `ls $Vulture_HOME/$NAME/conf/*.conf 2> /dev/null`; do
+		$APACHE -f $i -k graceful;
+	done
+	echo ".";
+	;;
+*)
+	N=/etc/init.d/$NAME
+	echo "Usage: $N {start|stop|restart|force-reload|reload}" >&2
+	exit 1
+	;;
+esac
+
+exit 0

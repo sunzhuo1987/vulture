@@ -1,0 +1,45 @@
+#! /bin/sh
+# postinst script for vultureng
+#
+# see: dh_installdeb(1)
+
+set -e
+if [ -f /var/www/vulture/conf/server.crt ] ; then
+	echo "certificat present"
+else
+openssl req -x509 -newkey rsa:1024 -batch -out /var/www/vulture/conf/server.crt -keyout /var/www/vulture/conf/server.key -nodes -config /var/www/vulture/conf/openssl.cnf
+fi
+chown -R apache /var/www/vulture
+chgrp -R apache /var/www/vulture
+if [ -f /var/www/vulture/www/db ] ; then
+	echo "Database is here"
+    echo "Backup your old database"
+    mv /var/www/vulture/www/db /var/www/vulture/www/db_old
+    cd /var/www/vulture/www && ./manage.py syncdb --noinput
+else
+cd /var/www/vulture/www && ./manage.py syncdb --noinput
+fi
+chown apache.apache /var/www/vulture/www/db
+chown root.root /var/www/vulture/conf/httpd.conf
+chown -R apache. /var/www/vulture/www/
+chmod -R 777 /var/www/vulture/conf/
+chmod 600 /var/www/vulture/conf/httpd.conf
+
+#insert data into database
+if [ -f /var/www/vulture/www/vulture/sql/log.sql ] ; then
+	sqlite3 /var/www/vulture/www/db < /var/www/vulture/www/vulture/sql/log.sql
+fi
+
+if [ -f /var/www/vulture/www/vulture/sql/modsecurity.sql ] ; then
+	sqlite3 /var/www/vulture/www/db < /var/www/vulture/www/vulture/sql/modsecurity.sql
+fi
+
+if grep -E "^apache ALL=NOPASSWD:/usr/sbin/apache2" /etc/sudoers > /dev/null ; then
+	echo "sudo active"
+else
+	echo "apache ALL=NOPASSWD:/usr/sbin/apache2" >> /etc/sudoers
+fi
+update-rc.d -f vulture start 90 2 3 4 5 . stop 90 0 1 6 .
+echo "Attention apache2 est maintenant installé et écoute sur le port 80"
+invoke-rc.d vulture start
+exit 0

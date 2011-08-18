@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% load i18n %}
+
+{% block title %}
+	<img src="/img/crystalsvg/icon-user.png"> {% trans "Organization" %}
+{% endblock %}
+
+{% block display_auth_menu %}none{% endblock %}
+{% block display_components_menu %}{% endblock %}
+
+{% block content %}
+
+<form action="." method="POST">
+<table>
+    {% for field in form %}
+	<tr><td>{{ field.label_tag }}</td><td width='70%' {% if field.errors %}class="error"{% else %}{% endif %}>{{ field }}</td></tr>
+    {% endfor %}
+</table>
+<div style="width: 75%; text-align: right"><input type="submit" value="{% trans "Add" %}" style="width: 100px;"/></div>
+</form>
+
+
+{% endblock %}
+
+{% block action %}
+{% endblock %}
+
