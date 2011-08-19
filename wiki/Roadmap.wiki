@@ -21,15 +21,15 @@ Roadmap en cours d'élaboration via la ML Vulture.
 || Authentification || Statistiques et tableaux de bord || - || 0% ||
 || Authentification || interface d’administration dédiée à la répartition de charge afin de centraliser toute la configuration depuis une interface centralisée    fonctionnalité d’import / export de la configuration depuis l’interface d’administration || - || 0% ||
 || Authentification || fonctionnalités de recherches multicritères et d’exportation des journaux depuis l’interface d’administration || - || 0% ||
-|| Authentification || Edition du logo de la mire depuis l'interface || - || 20% ||
-|| Authentification || Gestion des erreurs d'authentification dans la mire vulture (affichage du texte : Mauvais password, etc) || - || 20% ||
+|| Authentification || Edition du logo de la mire depuis l'interface || - || 90% ||
+|| Authentification || Gestion des erreurs d'authentification dans la mire vulture (affichage du texte : Mauvais password, etc) || - || 90% ||
 || Administration || gestion de la haute disponibilité sera disponible dans l’interface d’administration de Vulture (Affichage du texte « une nouvelle version est disponible » sur la page d’administration, Mise à jour de Vulture directement depuis l’interface d’administration, sans connexion au système Linux) || - || 0% ||
 || Administration || Possibilité de déléguer une partie de l'administration à certains utilisateurs (gestion des accès utilisateurs sur une appli..) || - || 0% ||
 || Documentation || Ecriture de la documentation utilisateur || 20-août || 100% ||
 || Documentation || Ecriture de la documentation développeur || 20-août || 80% ||
 || Journalisation || Interface : Tableau de bord, rapports, journaux || - || 0% ||
 || Moteur Vulture || Protection contre l'usurpation de requête par insertion d'un token pseudo aléatoire dans les formulaires protégés. || - || 0% ||
-|| Moteur Vulture || Edition du texte des mires d'authentification par langue, par interface, par application, par méthode d'authentification et édition des messages d'erreurs. || - || 20% ||
+|| Moteur Vulture || Edition du texte des mires d'authentification par langue, par interface, par application, par méthode d'authentification et édition des messages d'erreurs. || - || 90% ||
 || Authentification || OATH (Facebook, Symantec VIP, etc)  || - || 0% ||
 || Authentification || SAML || - || 30% ||
 || Authentification || REST || - || 0% ||
