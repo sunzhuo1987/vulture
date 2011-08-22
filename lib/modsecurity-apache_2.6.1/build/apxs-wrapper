@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 WRAPPED_OPTS=""
 for opt in "$@"; do

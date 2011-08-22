@@ -116,19 +116,19 @@ ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 pkglibdir = $(prefix)/lib
-ACLOCAL = ${SHELL} /home/jjourdin/vulture2/trunk/lib/modsecurity-apache_2.6.1/build/missing --run aclocal-1.11
-AMTAR = ${SHELL} /home/jjourdin/vulture2/trunk/lib/modsecurity-apache_2.6.1/build/missing --run tar
+ACLOCAL = ${SHELL} /root/vulture/lib/modsecurity-apache_2.6.1/build/missing --run aclocal-1.11
+AMTAR = ${SHELL} /root/vulture/lib/modsecurity-apache_2.6.1/build/missing --run tar
 APR_CFLAGS =  -I/usr/include/apr-1.0 
 APR_CONFIG = /usr/bin/apr-1-config
 APR_CPPFLAGS =  -DLINUX=2 -D_REENTRANT -D_GNU_SOURCE -D_LARGEFILE64_SOURCE
 APR_LDADD =  /usr/lib/libapr-1.la
-APR_LDFLAGS =  -luuid -lrt -lcrypt  -lpthread -ldl
-APR_VERSION = 1.2.12
-APU_CFLAGS =  -I/usr/include/apr-1.0 -I/usr/include/postgresql -I/usr/include/mysql
+APR_LDFLAGS =  
+APR_VERSION = 1.4.2
+APU_CFLAGS =  -I/usr/include/apr-1.0 
 APU_CONFIG = /usr/bin/apu-1-config
 APU_LDADD =  /usr/lib/libaprutil-1.la
-APU_LDFLAGS =  
-APU_VERSION = 1.2.12
+APU_LDFLAGS =   -ldb    
+APU_VERSION = 1.3.9
 APXS = /usr/bin/apxs2
 APXS_BINDIR = /usr/bin
 APXS_CC = i486-linux-gnu-gcc
@@ -136,7 +136,7 @@ APXS_CFLAGS = -I/usr/include/apache2
 APXS_EXTRA_CFLAGS =  -Wc,-O2 -Wc,-g -Wc,-Wall
 APXS_HTTPD = /usr/sbin/apache2
 APXS_INCLUDEDIR = /usr/include/apache2
-APXS_INCLUDES = -I/usr/include/apache2  -I/usr/include/apache2 -I. -I/usr/include/apr-1.0 -I/usr/include/postgresql -I/usr/include/mysql
+APXS_INCLUDES = -I/usr/include/apache2  -I/usr/include/apache2 -I. -I/usr/include/apr-1.0
 APXS_LDFLAGS = 
 APXS_LIBDIR = /usr/lib
 APXS_LIBEXECDIR = /usr/lib/apache2/modules
@@ -147,9 +147,9 @@ APXS_PROGNAME = apache2
 APXS_SBINDIR = /usr/sbin
 APXS_WRAPPER = build/apxs-wrapper
 AR = ar
-AUTOCONF = ${SHELL} /home/jjourdin/vulture2/trunk/lib/modsecurity-apache_2.6.1/build/missing --run autoconf
-AUTOHEADER = ${SHELL} /home/jjourdin/vulture2/trunk/lib/modsecurity-apache_2.6.1/build/missing --run autoheader
-AUTOMAKE = ${SHELL} /home/jjourdin/vulture2/trunk/lib/modsecurity-apache_2.6.1/build/missing --run automake-1.11
+AUTOCONF = ${SHELL} /root/vulture/lib/modsecurity-apache_2.6.1/build/missing --run autoconf
+AUTOHEADER = ${SHELL} /root/vulture/lib/modsecurity-apache_2.6.1/build/missing --run autoheader
+AUTOMAKE = ${SHELL} /root/vulture/lib/modsecurity-apache_2.6.1/build/missing --run automake-1.11
 AWK = mawk
 CC = gcc
 CCDEPMODE = depmode=gcc3
@@ -192,25 +192,25 @@ LIBXML2_CONFIG = /usr/bin/xml2-config
 LIBXML2_CPPFLAGS = 
 LIBXML2_LDADD = -lxml2
 LIBXML2_LDFLAGS = 
-LIBXML2_VERSION = 2.6.32
+LIBXML2_VERSION = 2.7.8
 LIPO = 
 LN_S = ln -s
 LTLIBOBJS = 
 LUA_CFLAGS = 
 LUA_LDADD = 
 LUA_LDFLAGS = 
-MAKEINFO = ${SHELL} /home/jjourdin/vulture2/trunk/lib/modsecurity-apache_2.6.1/build/missing --run makeinfo
+MAKEINFO = ${SHELL} /root/vulture/lib/modsecurity-apache_2.6.1/build/missing --run makeinfo
 MKDIR_P = /bin/mkdir -p
 MODSEC_APXS_EXTRA_CFLAGS = 
 MODSEC_EXTRA_CFLAGS = 
-MSC_BASE_DIR = /home/jjourdin/vulture2/trunk/lib/modsecurity-apache_2.6.1
-MSC_PKGBASE_DIR = /home/jjourdin/vulture2/trunk/lib/modsecurity-apache_2.6.1/..
-MSC_REGRESSION_CONF_DIR = /home/jjourdin/vulture2/trunk/lib/modsecurity-apache_2.6.1/tests/regression/server_root/conf
-MSC_REGRESSION_DIR = /home/jjourdin/vulture2/trunk/lib/modsecurity-apache_2.6.1/tests/regression
-MSC_REGRESSION_DOCROOT_DIR = /home/jjourdin/vulture2/trunk/lib/modsecurity-apache_2.6.1/tests/regression/server_root/htdocs
-MSC_REGRESSION_LOGS_DIR = /home/jjourdin/vulture2/trunk/lib/modsecurity-apache_2.6.1/tests/regression/server_root/logs
-MSC_REGRESSION_SERVERROOT_DIR = /home/jjourdin/vulture2/trunk/lib/modsecurity-apache_2.6.1/tests/regression/server_root
-MSC_TEST_DIR = /home/jjourdin/vulture2/trunk/lib/modsecurity-apache_2.6.1/tests
+MSC_BASE_DIR = /root/vulture/lib/modsecurity-apache_2.6.1
+MSC_PKGBASE_DIR = /root/vulture/lib/modsecurity-apache_2.6.1/..
+MSC_REGRESSION_CONF_DIR = /root/vulture/lib/modsecurity-apache_2.6.1/tests/regression/server_root/conf
+MSC_REGRESSION_DIR = /root/vulture/lib/modsecurity-apache_2.6.1/tests/regression
+MSC_REGRESSION_DOCROOT_DIR = /root/vulture/lib/modsecurity-apache_2.6.1/tests/regression/server_root/htdocs
+MSC_REGRESSION_LOGS_DIR = /root/vulture/lib/modsecurity-apache_2.6.1/tests/regression/server_root/logs
+MSC_REGRESSION_SERVERROOT_DIR = /root/vulture/lib/modsecurity-apache_2.6.1/tests/regression/server_root
+MSC_TEST_DIR = /root/vulture/lib/modsecurity-apache_2.6.1/tests
 NM = /usr/bin/nm -B
 NMEDIT = 
 OBJDUMP = objdump
@@ -230,20 +230,20 @@ PCRE_CONFIG = /usr/bin/pcre-config
 PCRE_CPPFLAGS = 
 PCRE_LDADD = -L/usr/lib -lpcre
 PCRE_LDFLAGS = 
-PCRE_VERSION = 7.6
+PCRE_VERSION = 8.02
 PERL = /usr/bin/perl
 PKG_CONFIG = 
 RANLIB = ranlib
 SED = /bin/sed
 SET_MAKE = 
-SHELL = /bin/sh
+SHELL = /bin/bash
 STRIP = strip
 TOPLEVEL_SUBDIRS = tools apache2 mlogc
 VERSION = 2.6
-abs_builddir = /home/jjourdin/vulture2/trunk/lib/modsecurity-apache_2.6.1/apache2
-abs_srcdir = /home/jjourdin/vulture2/trunk/lib/modsecurity-apache_2.6.1/apache2
-abs_top_builddir = /home/jjourdin/vulture2/trunk/lib/modsecurity-apache_2.6.1
-abs_top_srcdir = /home/jjourdin/vulture2/trunk/lib/modsecurity-apache_2.6.1
+abs_builddir = /root/vulture/lib/modsecurity-apache_2.6.1/apache2
+abs_srcdir = /root/vulture/lib/modsecurity-apache_2.6.1/apache2
+abs_top_builddir = /root/vulture/lib/modsecurity-apache_2.6.1
+abs_top_srcdir = /root/vulture/lib/modsecurity-apache_2.6.1
 ac_ct_CC = gcc
 ac_ct_DUMPBIN = 
 am__include = include
@@ -271,7 +271,7 @@ host_vendor = pc
 htmldir = ${docdir}
 includedir = ${prefix}/include
 infodir = ${datarootdir}/info
-install_sh = ${SHELL} /home/jjourdin/vulture2/trunk/lib/modsecurity-apache_2.6.1/build/install-sh
+install_sh = ${SHELL} /root/vulture/lib/modsecurity-apache_2.6.1/build/install-sh
 libdir = ${exec_prefix}/lib
 libexecdir = ${exec_prefix}/libexec
 localedir = ${datarootdir}/locale
@@ -305,41 +305,41 @@ mod_security2_la_SOURCES = mod_security2.c \
                            msc_util.c msc_pcre.c persist_dbm.c msc_reqbody.c \
                            msc_geo.c msc_gsb.c msc_unicode.c acmp.c msc_lua.c msc_release.c
 
-mod_security2_la_CFLAGS = -I/usr/include/apache2  -I/usr/include/apr-1.0   -I/usr/include/apr-1.0 -I/usr/include/postgresql -I/usr/include/mysql \
+mod_security2_la_CFLAGS = -I/usr/include/apache2  -I/usr/include/apr-1.0   -I/usr/include/apr-1.0  \
                           -I/usr/include/libxml2  
 
 mod_security2_la_CPPFLAGS =  -DLINUX=2 -D_REENTRANT -D_GNU_SOURCE -D_LARGEFILE64_SOURCE 
 mod_security2_la_LIBADD =  /usr/lib/libapr-1.la  /usr/lib/libaprutil-1.la -lxml2 
 #mod_security2_la_LDFLAGS = -module -avoid-version \
-#                            -luuid -lrt -lcrypt  -lpthread -ldl    \
+#                               -ldb      \
 #                            
 
 #mod_security2_la_LDFLAGS = -no-undefined -module -avoid-version \
-#                            -luuid -lrt -lcrypt  -lpthread -ldl    \
+#                               -ldb      \
 #                            
 
 #mod_security2_la_LDFLAGS = -module -avoid-version \
-#                            -luuid -lrt -lcrypt  -lpthread -ldl    \
+#                               -ldb      \
 #                            
 
 mod_security2_la_LDFLAGS = -no-undefined -module -avoid-version \
-                            -luuid -lrt -lcrypt  -lpthread -ldl    \
+                               -ldb      \
                             
 
 #mod_security2_la_LDFLAGS = -module -avoid-version \
-#                            -luuid -lrt -lcrypt  -lpthread -ldl    \
+#                               -ldb      \
 #                            
 
 #mod_security2_la_LDFLAGS = -no-undefined -module -avoid-version \
-#                            -luuid -lrt -lcrypt  -lpthread -ldl    \
+#                               -ldb      \
 #                            
 
 #mod_security2_la_LDFLAGS = -no-undefined -module -avoid-version \
-#                            -luuid -lrt -lcrypt  -lpthread -ldl    \
+#                               -ldb      \
 #                            
 
 #mod_security2_la_LDFLAGS = -module -avoid-version \
-#                            -luuid -lrt -lcrypt  -lpthread -ldl    \
+#                               -ldb      \
 #                            
 
 all: modsecurity_config_auto.h
