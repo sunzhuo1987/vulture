@@ -9,8 +9,8 @@ if [ -f /var/www/vulture/conf/server.crt ] ; then
 else
 openssl req -x509 -newkey rsa:1024 -batch -out /var/www/vulture/conf/server.crt -keyout /var/www/vulture/conf/server.key -nodes -config /var/www/vulture/conf/openssl.cnf
 fi
-chown -R apache /var/www/vulture
-chgrp -R apache /var/www/vulture
+chown -R www-data /var/www/vulture
+chgrp -R www-data /var/www/vulture
 if [ -f /var/www/vulture/www/db ] ; then
 	echo "Database is here"
     echo "Backup your old database"
@@ -19,9 +19,9 @@ if [ -f /var/www/vulture/www/db ] ; then
 else
 cd /var/www/vulture/www && ./manage.py syncdb --noinput
 fi
-chown apache.apache /var/www/vulture/www/db
+chown www-data.www-data /var/www/vulture/www/db
 chown root.root /var/www/vulture/conf/httpd.conf
-chown -R apache. /var/www/vulture/www/
+chown -R www-data. /var/www/vulture/www/
 chmod -R 777 /var/www/vulture/conf/
 chmod 600 /var/www/vulture/conf/httpd.conf
 
@@ -34,10 +34,10 @@ if [ -f /var/www/vulture/www/vulture/sql/modsecurity.sql ] ; then
 	sqlite3 /var/www/vulture/www/db < /var/www/vulture/www/vulture/sql/modsecurity.sql
 fi
 
-if grep -E "^apache ALL=NOPASSWD:/usr/sbin/apache2" /etc/sudoers > /dev/null ; then
+if grep -E "^www-data ALL=NOPASSWD:/usr/sbin/apache2" /etc/sudoers > /dev/null ; then
 	echo "sudo active"
 else
-	echo "apache ALL=NOPASSWD:/usr/sbin/apache2" >> /etc/sudoers
+	echo "www-data ALL=NOPASSWD:/usr/sbin/apache2" >> /etc/sudoers
 fi
 update-rc.d -f vulture start 90 2 3 4 5 . stop 90 0 1 6 .
 echo "Attention apache2 est maintenant installé et écoute sur le port 80"

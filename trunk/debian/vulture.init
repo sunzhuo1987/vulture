@@ -18,7 +18,7 @@ case "$1" in
 	for i in `ls $Vulture_HOME/$NAME/conf/*.conf 2> /dev/null`; do 
 		$APACHE -f $i;
 	done
-	$MEMCACHED -d -m 512 -l 127.0.0.1 -p 9091 -u apache
+	$MEMCACHED -d -m 512 -l 127.0.0.1 -p 9091 -u www-data
 	echo "." 
 	;;
   stop)
