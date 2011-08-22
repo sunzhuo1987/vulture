@@ -4,16 +4,15 @@
 # see: dh_installdeb(1)
 
 set -e
-if grep -E "^apache:" /etc/passwd > /dev/null ; then
+if grep -E "^www-data:" /etc/passwd > /dev/null ; then
 	echo "L'utilisateur apache existe."
 else
 	useradd www-data
-	groupadd www-data
 fi
-if grep -E "^apache:" /etc/group > /dev/null ; then
+if grep -E "^www-data:" /etc/group > /dev/null ; then
 	echo "Le groupe apache existe."
 else
-	groupadd apache
+	groupadd www-data
 fi
 if [ -f /var/www/vulture/conf ] ; then
     echo "Moving old conf"
