@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% load i18n %}
+
+{% block title %}
+	<img src="/img/crystalsvg/icon-user.png"> {% trans "Organizations" %}
+{% endblock %}
+
+{% block display_auth_menu %}none{% endblock %}
+{% block display_components_menu %}{% endblock %}
+
+
+{% block content %}
+	<table class="list">
+	<tr>
+	<th>{% trans "name" %}</th>
+	<th colspan=2 style="width: 32px"></th>
+	</tr>
+ {% if contacts.has_previous %}
+            <a href="?page={{ contacts.previous_page_number }}">previous</a>
+    {% endif %}
+
+{% for object in object_list|dictsort:"name" %}
+	<tr><td>{{ object }}</td><td><a href="/o/{{ object.id }}/del/"><img src="/img/editdelete.png"></a></td><td><a href="/o/{{ object.id }}/edit/"><img src="/img/edit.png"></a></td></tr>
+{% endfor %}
+        </table>
+{% endblock %}
+
+{% block action %}
+<fieldset id='fieldset'><legend><img src='/img/goto.png'>{% trans "Actions" %}</legend>
+<ul>
+		<li><a href="/o/new/">{% trans "add" %}</a></li>
+</ul>
+</fieldset>
+{% endblock %}

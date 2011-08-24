@@ -1,0 +1,29 @@
+# this is here instead of t/response/TestLive/01api.pm
+# because we need _something_ under t/conf/ssl to hold
+# it open so our CA foo is created, since 'make dist'
+# won't roll up an empty directory
+
+# this is _critical_
+# without preloading the module the optional functions
+# are not defined
+PerlModule Apache::SSLLookup
+
+<IfModule @ssl_module@>
+  <VirtualHost TestLive>
+    SSLEngine on
+    SSLCertificateFile @SSLCA@/asf/certs/server.crt
+    SSLCertificateKeyFile @SSLCA@/asf/keys/server.pem
+
+    <Location /TestLive__01api>
+      SetHandler modperl
+      PerlResponseHandler TestLive::01api
+    </Location>
+  </VirtualHost>
+</IfModule>
+
+# Devel::Cover integration
+
+# pass these to modperl_extra.pl
+PerlPassEnv HARNESS_PERL_SWITCHES
+PerlPassEnv APACHE_TEST_NO_STICKY_PREFERENCES
+
