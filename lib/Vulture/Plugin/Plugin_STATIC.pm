@@ -5,7 +5,6 @@ package Plugin::Plugin_STATIC;
 use Apache2::Log;
 use Apache2::Reload;
 
-use Apache2::Request;
 
 use Apache2::Const -compile => qw(OK FORBIDDEN);
 

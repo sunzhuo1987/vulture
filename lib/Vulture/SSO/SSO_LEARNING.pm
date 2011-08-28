@@ -4,7 +4,6 @@ package SSO::SSO_LEARNING;
 
 use Apache2::RequestRec ();
 use Apache2::RequestIO ();
-use Apache2::Request;
 
 use Apache2::Log;
 use Apache2::Reload;

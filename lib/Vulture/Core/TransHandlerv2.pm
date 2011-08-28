@@ -4,7 +4,6 @@ package Core::TransHandlerv2;
 
 use Apache2::RequestRec ();
 use Apache2::RequestIO ();
-use Apache2::Request;
 
 use Apache2::Reload;
 use Apache2::Log;
@@ -17,8 +16,6 @@ use Core::Log;
 use Apache::SSLLookup;
 
 use DBI;
-
-use Module::Load;
 
 sub handler {
 	my $r = Apache::SSLLookup->new(shift);
