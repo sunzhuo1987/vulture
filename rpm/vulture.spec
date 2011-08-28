@@ -1,4 +1,4 @@
-Requires: httpd mod_python openssl mod_ssl python-ldap vulture-common
+Requires: openssl python-ldap vulture-common
 %define serverroot /opt
 Vendor: Advens
 %define release 1
@@ -53,7 +53,7 @@ Vulture Reverse Proxy
 
 %install
      cd %{name}-%{version} &&\
-     make PREFIX=$RPM_BUILD_ROOT%{serverroot}/%{name} UID= GID= install
+     make PREFIX=$RPM_BUILD_ROOT%{serverroot} PREFIXLIB=$RPM_BUILD_ROOT%{serverroot} UID='-o apache' GID='-g apache' install
      rm -f $RPM_BUILD_ROOT%{serverroot}/%{name}/lib/x86_64-linux-thread-multi/perllocal.pod
      rm -f $RPM_BUILD_ROOT%{serverroot}/%{name}/lib/i386-linux-thread-multi/perllocal.pod
      install -d -m0700 $RPM_BUILD_ROOT/etc/init.d
@@ -118,6 +118,7 @@ Vulture Reverse Proxy
 %config(noreplace) %{serverroot}/%{name}/conf
 %config(noreplace) %{serverroot}/%{name}/sql
 %{serverroot}/%{name}/www
+%{serverroot}/%{name}/bin
 %defattr(-,root,root)
 %{serverroot}/%{name}/lib
 /etc/init.d/%{name}
