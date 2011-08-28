@@ -60,6 +60,8 @@ Vulture Reverse Proxy
      install -m0755 rpm/vulture $RPM_BUILD_ROOT/etc/init.d/vulture
      install -d -m0755 $RPM_BUILD_ROOT%{serverroot}/%{name}
      cp -r www $RPM_BUILD_ROOT%{serverroot}/%{name}
+     install -m0644 rpm/settings.py\
+	$RPM_BUILD_ROOT%{serverroot}/%{name}/www/settings.py
      install -d -m0755 $RPM_BUILD_ROOT%{serverroot}/%{name}/conf
      install -m0644 rpm/httpd.conf\
 	$RPM_BUILD_ROOT%{serverroot}/%{name}/conf/httpd.conf

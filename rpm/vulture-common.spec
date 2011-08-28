@@ -52,6 +52,8 @@ Source41: http://search.cpan.org/CPAN/authors/id/D/DP/DPARIS/Crypt-DES-2.05.tar.
 Source42: http://search.cpan.org/CPAN/authors/id/M/ME/MEWP/DBD-Sybase-1.09.tar.gz
 Source43: http://freefr.dl.sourceforge.net/project/mod-qos/mod_qos-9.68.tar.gz
 Source44: http://search.cpan.org/CPAN/authors/id/B/BI/BINGOS/Module-Load-0.20.tar.gz
+Source45: http://search.cpan.org/CPAN/authors/id/C/CH/CHANSEN/Authen-Simple-Kerberos-0.1.tar.gz
+Source46: http://search.cpan.org/CPAN/authors/id/P/PM/PMKANE/Authen-Smb-0.91.tar.gz
 Patch0: Apache-SSLLookup-2.00_04.patch
 Patch1: httpd_mod_rewrite.patch
 Patch2: freetds.patch
@@ -86,7 +88,7 @@ BuildRoot: %{_tmppath}/%{name}-root
 vulture common
 
 %prep
-%setup -c -a 0 -a 1 -a 2 -a 3 -a 4 -a 5 -a 6 -a 7 -a 8 -a 9 -a 10 -a 11 -a 12 -a 13 -a 14 -a 15 -a 16 -a 17 -a 18 -a 20 -a 21 -a 22 -a 23 -a 24 -a 25 -a 26 -a 29 -a 30 -a 31 -a 32 -a 33 -a 34 -a 35 -a 36 -a 37 -a 38 -a 39 -a 40 -a 41 -a 42 -a 43 -a 44
+%setup -c -a 0 -a 1 -a 2 -a 3 -a 4 -a 5 -a 6 -a 7 -a 8 -a 9 -a 10 -a 11 -a 12 -a 13 -a 14 -a 15 -a 16 -a 17 -a 18 -a 20 -a 21 -a 22 -a 23 -a 24 -a 25 -a 26 -a 29 -a 30 -a 31 -a 32 -a 33 -a 34 -a 35 -a 36 -a 37 -a 38 -a 39 -a 40 -a 41 -a 42 -a 43 -a 44 -a 45 -a 46
 %patch0 -p0 -b .old
 %patch1 -p0 -b .old
 %patch2 -p0 -b .old
@@ -371,6 +373,18 @@ vulture common
 	make DESTDIR=$RPM_BUILD_ROOT/opt/vulture SITEPREFIX= PERLPREFIX= install &&\
 	make clean  &&\
 	cd ../Module-Load-0.20 &&\
+	perl -I ../ExtUtils-MakeMaker-6.42/lib -I $RPM_BUILD_ROOT/opt/vulture/lib \
+		Makefile.PL LIB=/lib &&\
+	make &&\
+	make DESTDIR=$RPM_BUILD_ROOT/opt/vulture SITEPREFIX= PERLPREFIX= install &&\
+	make clean  &&\
+	cd ../Authen-Simple-Kerberos-0.1 &&\
+	perl -I ../ExtUtils-MakeMaker-6.42/lib -I $RPM_BUILD_ROOT/opt/vulture/lib \
+		Makefile.PL LIB=/lib &&\
+	make &&\
+	make DESTDIR=$RPM_BUILD_ROOT/opt/vulture SITEPREFIX= PERLPREFIX= install &&\
+	make clean  &&\
+	cd ../Authen-Smb-0.91 &&\
 	perl -I ../ExtUtils-MakeMaker-6.42/lib -I $RPM_BUILD_ROOT/opt/vulture/lib \
 		Makefile.PL LIB=/lib &&\
 	make &&\
