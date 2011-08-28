@@ -5,8 +5,6 @@ package Plugin::Plugin_SAML;
 use Apache2::Log;
 use Apache2::Reload;
 
-use Apache2::Request;
-
 use Core::VultureUtils qw(&session &get_memcached &set_memcached);
 
 use Apache2::Const -compile => qw(OK FORBIDDEN);
