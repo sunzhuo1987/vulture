@@ -4,7 +4,7 @@ mod_security2_la-acmp.lo: acmp.c acmp.h /usr/include/apr-1.0/apr.h \
  /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h \
  /usr/include/gnu/stubs-32.h /usr/include/bits/types.h \
  /usr/include/bits/typesizes.h /usr/include/time.h \
- /usr/lib/gcc/i486-linux-gnu/4.4.5/include/stddef.h /usr/include/endian.h \
+ /usr/lib/gcc/i686-linux-gnu/4.4.5/include/stddef.h /usr/include/endian.h \
  /usr/include/bits/endian.h /usr/include/bits/byteswap.h \
  /usr/include/sys/select.h /usr/include/bits/select.h \
  /usr/include/bits/sigset.h /usr/include/bits/time.h \
@@ -13,15 +13,16 @@ mod_security2_la-acmp.lo: acmp.c acmp.h /usr/include/apr-1.0/apr.h \
  /usr/include/bits/socket.h /usr/include/bits/sockaddr.h \
  /usr/include/asm/socket.h /usr/include/asm-generic/socket.h \
  /usr/include/asm/sockios.h /usr/include/asm-generic/sockios.h \
- /usr/include/stdint.h /usr/include/bits/wchar.h /usr/include/sys/wait.h \
- /usr/include/signal.h /usr/include/bits/signum.h \
- /usr/include/bits/siginfo.h /usr/include/bits/sigaction.h \
- /usr/include/bits/sigcontext.h /usr/include/bits/sigstack.h \
- /usr/include/sys/ucontext.h /usr/include/bits/sigthread.h \
- /usr/include/sys/resource.h /usr/include/bits/resource.h \
- /usr/include/bits/waitflags.h /usr/include/bits/waitstatus.h \
- /usr/lib/gcc/i486-linux-gnu/4.4.5/include-fixed/limits.h \
- /usr/lib/gcc/i486-linux-gnu/4.4.5/include-fixed/syslimits.h \
+ /usr/include/bits/socket2.h /usr/include/stdint.h \
+ /usr/include/bits/wchar.h /usr/include/sys/wait.h /usr/include/signal.h \
+ /usr/include/bits/signum.h /usr/include/bits/siginfo.h \
+ /usr/include/bits/sigaction.h /usr/include/bits/sigcontext.h \
+ /usr/include/bits/sigstack.h /usr/include/sys/ucontext.h \
+ /usr/include/bits/sigthread.h /usr/include/sys/resource.h \
+ /usr/include/bits/resource.h /usr/include/bits/waitflags.h \
+ /usr/include/bits/waitstatus.h \
+ /usr/lib/gcc/i686-linux-gnu/4.4.5/include-fixed/limits.h \
+ /usr/lib/gcc/i686-linux-gnu/4.4.5/include-fixed/syslimits.h \
  /usr/include/limits.h /usr/include/bits/posix1_lim.h \
  /usr/include/bits/local_lim.h /usr/include/linux/limits.h \
  /usr/include/bits/posix2_lim.h /usr/include/bits/xopen_lim.h \
@@ -34,12 +35,13 @@ mod_security2_la-acmp.lo: acmp.c acmp.h /usr/include/apr-1.0/apr.h \
  /usr/include/apr-1.0/apr_want.h /usr/include/string.h \
  /usr/include/xlocale.h /usr/include/bits/string.h \
  /usr/include/bits/string2.h /usr/include/stdlib.h \
- /usr/include/apr-1.0/apr_allocator.h \
+ /usr/include/bits/string3.h /usr/include/apr-1.0/apr_allocator.h \
  /usr/include/apr-1.0/apr_thread_mutex.h /usr/include/apr-1.0/apr_lib.h \
- /usr/include/ctype.h /usr/lib/gcc/i486-linux-gnu/4.4.5/include/stdarg.h \
+ /usr/include/ctype.h /usr/lib/gcc/i686-linux-gnu/4.4.5/include/stdarg.h \
  /usr/include/apr-1.0/apr_tables.h /usr/include/stdio.h \
  /usr/include/libio.h /usr/include/_G_config.h /usr/include/wchar.h \
- /usr/include/bits/sys_errlist.h /usr/include/bits/stdio.h
+ /usr/include/bits/sys_errlist.h /usr/include/bits/stdio.h \
+ /usr/include/bits/stdio2.h
 
 acmp.h:
 
@@ -65,7 +67,7 @@ acmp.h:
 
 /usr/include/time.h:
 
-/usr/lib/gcc/i486-linux-gnu/4.4.5/include/stddef.h:
+/usr/lib/gcc/i686-linux-gnu/4.4.5/include/stddef.h:
 
 /usr/include/endian.h:
 
@@ -103,6 +105,8 @@ acmp.h:
 
 /usr/include/asm-generic/sockios.h:
 
+/usr/include/bits/socket2.h:
+
 /usr/include/stdint.h:
 
 /usr/include/bits/wchar.h:
@@ -133,9 +137,9 @@ acmp.h:
 
 /usr/include/bits/waitstatus.h:
 
-/usr/lib/gcc/i486-linux-gnu/4.4.5/include-fixed/limits.h:
+/usr/lib/gcc/i686-linux-gnu/4.4.5/include-fixed/limits.h:
 
-/usr/lib/gcc/i486-linux-gnu/4.4.5/include-fixed/syslimits.h:
+/usr/lib/gcc/i686-linux-gnu/4.4.5/include-fixed/syslimits.h:
 
 /usr/include/limits.h:
 
@@ -185,6 +189,8 @@ acmp.h:
 
 /usr/include/stdlib.h:
 
+/usr/include/bits/string3.h:
+
 /usr/include/apr-1.0/apr_allocator.h:
 
 /usr/include/apr-1.0/apr_thread_mutex.h:
@@ -193,7 +199,7 @@ acmp.h:
 
 /usr/include/ctype.h:
 
-/usr/lib/gcc/i486-linux-gnu/4.4.5/include/stdarg.h:
+/usr/lib/gcc/i686-linux-gnu/4.4.5/include/stdarg.h:
 
 /usr/include/apr-1.0/apr_tables.h:
 
@@ -208,3 +214,5 @@ acmp.h:
 /usr/include/bits/sys_errlist.h:
 
 /usr/include/bits/stdio.h:
+
+/usr/include/bits/stdio2.h:

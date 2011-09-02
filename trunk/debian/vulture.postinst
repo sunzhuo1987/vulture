@@ -26,13 +26,13 @@ chmod -R 777 /var/www/vulture/conf/
 chmod 600 /var/www/vulture/conf/httpd.conf
 
 #insert data into database
-if [ -f /var/www/vulture/www/vulture/sql/log.sql ] ; then
-	sqlite3 /var/www/vulture/www/db < /var/www/vulture/www/vulture/sql/log.sql
-fi
-
-if [ -f /var/www/vulture/www/vulture/sql/modsecurity.sql ] ; then
-	sqlite3 /var/www/vulture/www/db < /var/www/vulture/www/vulture/sql/modsecurity.sql
-fi
+#if [ -f /var/www/vulture/www/vulture/sql/log.sql ] ; then
+#	sqlite3 /var/www/vulture/www/db < /var/www/vulture/www/vulture/sql/log.sql
+#fi
+#
+#if [ -f /var/www/vulture/www/vulture/sql/modsecurity.sql ] ; then
+#	sqlite3 /var/www/vulture/www/db < /var/www/vulture/www/vulture/sql/modsecurity.sql
+#fi
 
 if grep -E "^www-data ALL=NOPASSWD:/usr/sbin/apache2" /etc/sudoers > /dev/null ; then
 	echo "sudo active"

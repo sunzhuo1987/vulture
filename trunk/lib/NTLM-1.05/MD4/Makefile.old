@@ -6,7 +6,7 @@
 #
 #       ANY CHANGES MADE HERE WILL BE LOST!
 #
-#   MakeMaker ARGV: (q[INSTALLDIRS=site], q[INSTALLSITELIB=/opt//vulture/lib/i386-linux-thread-multi], q[INSTALLSITEARCH=/opt//vulture/lib/i386-linux-thread-multi], q[PREFIX=/opt//vulture], q[LIB=/opt//vulture/lib])
+#   MakeMaker ARGV: (q[INSTALLDIRS=site], q[INSTALLSITELIB=/opt/vulture/lib/i386-linux-thread-multi], q[INSTALLSITEARCH=/opt/vulture/lib/i386-linux-thread-multi], q[PREFIX=/opt/vulture], q[LIB=/opt/vulture/lib])
 #
 
 #   MakeMaker Parameters:
@@ -35,11 +35,11 @@ FULL_AR = /usr/bin/ar
 LD = cc
 LDDLFLAGS = -shared -O2 -g -L/usr/local/lib -fstack-protector
 LDFLAGS =  -fstack-protector -L/usr/local/lib
-LIBC = /lib/libc-2.11.2.so
+LIBC = /lib/libc-2.12.1.so
 LIB_EXT = .a
 OBJ_EXT = .o
 OSNAME = linux
-OSVERS = 2.6.32-5-686
+OSVERS = 2.6.24-28-server
 RANLIB = :
 SITELIBEXP = /usr/local/share/perl/5.10.1
 SITEARCHEXP = /usr/local/lib/perl/5.10.1
@@ -527,7 +527,7 @@ $(FIRST_MAKEFILE) : Makefile.PL $(CONFIGDEP)
 	-$(NOECHO) $(RM_F) $(MAKEFILE_OLD)
 	-$(NOECHO) $(MV)   $(FIRST_MAKEFILE) $(MAKEFILE_OLD)
 	- $(MAKE) $(USEMAKEFILE) $(MAKEFILE_OLD) clean $(DEV_NULL)
-	$(PERLRUN) Makefile.PL "INSTALLDIRS=site" "INSTALLSITELIB=/opt//vulture/lib/i386-linux-thread-multi" "INSTALLSITEARCH=/opt//vulture/lib/i386-linux-thread-multi" "PREFIX=/opt//vulture" "LIB=/opt//vulture/lib"
+	$(PERLRUN) Makefile.PL "INSTALLDIRS=site" "INSTALLSITELIB=/opt/vulture/lib/i386-linux-thread-multi" "INSTALLSITEARCH=/opt/vulture/lib/i386-linux-thread-multi" "PREFIX=/opt/vulture" "LIB=/opt/vulture/lib"
 	$(NOECHO) $(ECHO) "==> Your Makefile has been rebuilt. <=="
 	$(NOECHO) $(ECHO) "==> Please rerun the $(MAKE) command.  <=="
 	$(FALSE)
@@ -576,7 +576,7 @@ ppd :
 	$(NOECHO) $(ECHO) '    <ABSTRACT></ABSTRACT>' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '    <AUTHOR>David (Buzz) Bussenschutt &lt;davidbuzz@gmail.com&gt;, Mark Bush &lt;Mark.Bush@bushnet.demon.co.uk&gt;</AUTHOR>' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '    <IMPLEMENTATION>' >> $(DISTNAME).ppd
-	$(NOECHO) $(ECHO) '        <ARCHITECTURE NAME="i486-linux-gnu-thread-multi-5.10" />' >> $(DISTNAME).ppd
+	$(NOECHO) $(ECHO) '        <ARCHITECTURE NAME="i686-linux-gnu-thread-multi-5.10" />' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '        <CODEBASE HREF="" />' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '    </IMPLEMENTATION>' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '</SOFTPKG>' >> $(DISTNAME).ppd

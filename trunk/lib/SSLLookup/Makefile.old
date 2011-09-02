@@ -6,7 +6,7 @@
 #
 #       ANY CHANGES MADE HERE WILL BE LOST!
 #
-#   MakeMaker ARGV: (q[INSTALLDIRS=site], q[INSTALLSITELIB=/opt//vulture/lib/i386-linux-thread-multi], q[INSTALLSITEARCH=/opt//vulture/lib/i386-linux-thread-multi], q[PREFIX=/opt//vulture], q[LIB=/opt//vulture/lib], q[CCFLAGS=-I/usr/include/apr-1.0])
+#   MakeMaker ARGV: (q[INSTALLDIRS=site], q[INSTALLSITELIB=/opt/vulture/lib/i386-linux-thread-multi], q[INSTALLSITEARCH=/opt/vulture/lib/i386-linux-thread-multi], q[PREFIX=/opt/vulture], q[LIB=/opt/vulture/lib], q[CCFLAGS=-I/usr/include/apr-1.0])
 #
 
 #   MakeMaker Parameters:
@@ -42,11 +42,11 @@ FULL_AR = /usr/bin/ar
 LD = cc
 LDDLFLAGS = -shared -O2 -g -L/usr/local/lib -fstack-protector
 LDFLAGS =  -fstack-protector -L/usr/local/lib
-LIBC = /lib/libc-2.11.2.so
+LIBC = /lib/libc-2.12.1.so
 LIB_EXT = .a
 OBJ_EXT = .o
 OSNAME = linux
-OSVERS = 2.6.32-5-686
+OSVERS = 2.6.24-28-server
 RANLIB = :
 SITELIBEXP = /usr/local/share/perl/5.10.1
 SITEARCHEXP = /usr/local/lib/perl/5.10.1
@@ -78,21 +78,21 @@ MAN1EXT = 1p
 MAN3EXT = 3pm
 INSTALLDIRS = site
 DESTDIR = 
-PREFIX = /opt//vulture
+PREFIX = /opt/vulture
 PERLPREFIX = $(PREFIX)
 SITEPREFIX = $(PREFIX)
 VENDORPREFIX = $(PREFIX)
-INSTALLPRIVLIB = /opt//vulture/lib
+INSTALLPRIVLIB = /opt/vulture/lib
 DESTINSTALLPRIVLIB = $(DESTDIR)$(INSTALLPRIVLIB)
-INSTALLSITELIB = /opt//vulture/lib/i386-linux-thread-multi
+INSTALLSITELIB = /opt/vulture/lib/i386-linux-thread-multi
 DESTINSTALLSITELIB = $(DESTDIR)$(INSTALLSITELIB)
-INSTALLVENDORLIB = /opt//vulture/lib
+INSTALLVENDORLIB = /opt/vulture/lib
 DESTINSTALLVENDORLIB = $(DESTDIR)$(INSTALLVENDORLIB)
-INSTALLARCHLIB = /opt/vulture/lib/i486-linux-gnu-thread-multi
+INSTALLARCHLIB = /opt/vulture/lib/i686-linux-gnu-thread-multi
 DESTINSTALLARCHLIB = $(DESTDIR)$(INSTALLARCHLIB)
-INSTALLSITEARCH = /opt//vulture/lib/i386-linux-thread-multi
+INSTALLSITEARCH = /opt/vulture/lib/i386-linux-thread-multi
 DESTINSTALLSITEARCH = $(DESTDIR)$(INSTALLSITEARCH)
-INSTALLVENDORARCH = /opt/vulture/lib/i486-linux-gnu-thread-multi
+INSTALLVENDORARCH = /opt/vulture/lib/i686-linux-gnu-thread-multi
 DESTINSTALLVENDORARCH = $(DESTDIR)$(INSTALLVENDORARCH)
 INSTALLBIN = $(PERLPREFIX)/bin
 DESTINSTALLBIN = $(DESTDIR)$(INSTALLBIN)
@@ -665,7 +665,7 @@ distdir : create_distdir distmeta
 
 # --- MakeMaker dist_test section:
 disttest : distdir
-	cd $(DISTVNAME) && $(ABSPERLRUN) Makefile.PL "INSTALLDIRS=site" "INSTALLSITELIB=/opt//vulture/lib/i386-linux-thread-multi" "INSTALLSITEARCH=/opt//vulture/lib/i386-linux-thread-multi" "PREFIX=/opt//vulture" "LIB=/opt//vulture/lib" "CCFLAGS=-I/usr/include/apr-1.0"
+	cd $(DISTVNAME) && $(ABSPERLRUN) Makefile.PL "INSTALLDIRS=site" "INSTALLSITELIB=/opt/vulture/lib/i386-linux-thread-multi" "INSTALLSITEARCH=/opt/vulture/lib/i386-linux-thread-multi" "PREFIX=/opt/vulture" "LIB=/opt/vulture/lib" "CCFLAGS=-I/usr/include/apr-1.0"
 	cd $(DISTVNAME) && $(MAKE) $(PASTHRU)
 	cd $(DISTVNAME) && $(MAKE) test $(PASTHRU)
 
@@ -852,7 +852,7 @@ $(FIRST_MAKEFILE) : Makefile.PL $(CONFIGDEP)
 	-$(NOECHO) $(RM_F) $(MAKEFILE_OLD)
 	-$(NOECHO) $(MV)   $(FIRST_MAKEFILE) $(MAKEFILE_OLD)
 	- $(MAKE) $(USEMAKEFILE) $(MAKEFILE_OLD) clean $(DEV_NULL)
-	$(PERLRUN) Makefile.PL "INSTALLDIRS=site" "INSTALLSITELIB=/opt//vulture/lib/i386-linux-thread-multi" "INSTALLSITEARCH=/opt//vulture/lib/i386-linux-thread-multi" "PREFIX=/opt//vulture" "LIB=/opt//vulture/lib" "CCFLAGS=-I/usr/include/apr-1.0"
+	$(PERLRUN) Makefile.PL "INSTALLDIRS=site" "INSTALLSITELIB=/opt/vulture/lib/i386-linux-thread-multi" "INSTALLSITEARCH=/opt/vulture/lib/i386-linux-thread-multi" "PREFIX=/opt/vulture" "LIB=/opt/vulture/lib" "CCFLAGS=-I/usr/include/apr-1.0"
 	$(NOECHO) $(ECHO) "==> Your Makefile has been rebuilt. <=="
 	$(NOECHO) $(ECHO) "==> Please rerun the $(MAKE) command.  <=="
 	$(FALSE)
@@ -875,10 +875,10 @@ $(MAKE_APERL_FILE) : $(FIRST_MAKEFILE) pm_to_blib
 		MAKEFILE=$(MAKE_APERL_FILE) LINKTYPE=static \
 		MAKEAPERL=1 NORECURS=1 CCCDLFLAGS= \
 		INSTALLDIRS=site \
-		INSTALLSITELIB=/opt//vulture/lib/i386-linux-thread-multi \
-		INSTALLSITEARCH=/opt//vulture/lib/i386-linux-thread-multi \
-		PREFIX=/opt//vulture \
-		LIB=/opt//vulture/lib \
+		INSTALLSITELIB=/opt/vulture/lib/i386-linux-thread-multi \
+		INSTALLSITEARCH=/opt/vulture/lib/i386-linux-thread-multi \
+		PREFIX=/opt/vulture \
+		LIB=/opt/vulture/lib \
 		CCFLAGS=-I/usr/include/apr-1.0
 
 
@@ -922,7 +922,7 @@ ppd :
 	$(NOECHO) $(ECHO) '    <AUTHOR></AUTHOR>' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '    <IMPLEMENTATION>' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '        <REQUIRE NAME="mod_perl2::" />' >> $(DISTNAME).ppd
-	$(NOECHO) $(ECHO) '        <ARCHITECTURE NAME="i486-linux-gnu-thread-multi-5.10" />' >> $(DISTNAME).ppd
+	$(NOECHO) $(ECHO) '        <ARCHITECTURE NAME="i686-linux-gnu-thread-multi-5.10" />' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '        <CODEBASE HREF="" />' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '    </IMPLEMENTATION>' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '</SOFTPKG>' >> $(DISTNAME).ppd
