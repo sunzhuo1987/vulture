@@ -1,4 +1,4 @@
-Requires: openssl python-ldap vulture-common
+Requires: openssl python-ldap vulture-common >= 3.0
 %define serverroot /opt
 Vendor: Advens
 %define release 1
