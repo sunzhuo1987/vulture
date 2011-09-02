@@ -40,7 +40,7 @@ class AppForm(forms.ModelForm):
         model = App
 
 class ACLForm(forms.ModelForm):
-    auth = forms.ModelChoiceField(queryset=Auth.objects.all().exclude(auth_type = 'ssl',auth_type = 'ntlm',auth_type = 'kerberos'))
+    auth = forms.ModelChoiceField(queryset=Auth.objects.all().exclude(auth_type = 'ssl').exclude(auth_type = 'ntlm').exclude(auth_type = 'kerberos').exclude(auth_type = 'radius'))
     class Meta:
         model = ACL
 
