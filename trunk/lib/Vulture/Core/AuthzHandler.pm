@@ -22,7 +22,7 @@ sub handler {
 
 	$log->debug("########## AuthzHandler ##########");
 
-	#If an user is set and if he is authorized, then give him an app cookie
+	#If an user was set and if he is authorized, then give him a cookie for this app
 	my $user = $r->pnotes('username') || $r->user ;
 	my $password = $r->pnotes('password');
 	my $dbh = $r->pnotes('dbh');
@@ -60,12 +60,12 @@ sub handler {
 				load $module_name;
 				
 				#Get return
-				$ret = $module_name->checkACL($r, $log, $dbh, $app, $user);
+				$ret = $module_name->checkACL($r, $log, $dbh, $app, $user, $app->{'acl'}->{'id_method'});
 	
 				#Debug for eval				
 				$log->debug($@) if $@;
 				
-				if (defined $ret and $ret == Apache2::Const::OK){
+				if (defined $ret and $ret == scalar Apache2::Const::OK){
 					$log->debug("User $user has credentials for this app regarding ACL. Validate app session");
 
 					#Setting app session
@@ -90,6 +90,7 @@ sub handler {
 					return Apache2::Const::HTTP_UNAUTHORIZED;
 				}
 			}
+			return Apache2::Const::HTTP_UNAUTHORIZED;
 		} else {
 			$log->debug("No ACL in this app. Validate app session for user $user");
 			

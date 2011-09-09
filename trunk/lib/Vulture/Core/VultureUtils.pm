@@ -6,7 +6,7 @@ our $VERSION = '2.0';
 BEGIN {
     use Exporter ();
     @ISA = qw(Exporter);
-    @EXPORT_OK = qw(&version_check &get_app &get_intf &session &get_cookie &get_memcached &set_memcached);
+    @EXPORT_OK = qw(&version_check &get_app &get_intf &session &get_cookie &get_memcached &set_memcached &getDB_object &getLDAP_object);
 }
 
 use Apache::Session::Generate::MD5;
@@ -34,8 +34,7 @@ sub	get_memcached {
 	  servers            => [ "127.0.0.1:9091" ],
 	  debug              => 0,
 	  compress_threshold => 10_000,
-	) if not defined $memd;
-
+	) unless defined $memd;
 	return $memd->get($key);
 }
 
@@ -45,13 +44,12 @@ sub	set_memcached {
 	  servers            => [ "127.0.0.1:9091" ],
 	  debug              => 0,
 	  compress_threshold => 10_000,
-	) if not defined $memd;
+	) unless defined $memd;
 
 	$exptime= $exptime || 6_000;
         if ( $exptime > 6_000 ) {
                 $exptime= 6_000;
         }
-
 
 	return $memd->set($key, $value, $exptime);
 }
@@ -80,7 +78,7 @@ sub	session {
     } or session($session, $timeout, undef, $log, $n + 1);
 
 	#Debug for eval
-	$log->debug ($@) if ($@ and $log);
+	$log->debug ($@) if ($log and $@);
 
 	#$session->{date} = time() if (!$session->{posted});
 	#undef $session->{posted} if ($timeout and time() - $session->{date} > $timeout);
@@ -116,7 +114,7 @@ sub	get_app {
 	my ($log, $host, $dbh, $intf) = @_;
 
     #Getting app
-	my $query = "SELECT app.id,name, url, app.log_id, logon_url, logout_url,intf.remote_proxy, up, auth_basic, display_portal FROM app, intf WHERE app.intf_id='".$intf."' AND app.name = '".$host."' AND intf.id='".$intf."'";
+	my $query = "SELECT app.id,name, url, app.log_id, logon_url, logout_url,intf.port, intf.remote_proxy, up, auth_basic, display_portal, canonicalise_url, sso_forward_id AS sso_forward FROM app, intf WHERE app.intf_id='".$intf."' AND app.name = '".$host."' AND intf.id='".$intf."'";
 	#$log->debug($query);
 	$sth = $dbh->prepare($query);
 	$sth->execute;
@@ -128,7 +126,7 @@ sub	get_app {
     $ref->{'auth'} = $dbh->selectall_arrayref($query);
 
     #Getting ACL
-    $query = "SELECT acl.id, acl.name, auth.auth_type AS acl_type, id_method FROM acl, auth, app WHERE app.id = '".$ref->{id}."' AND acl.id = app.acl_id AND auth.id = acl.auth_id";
+    $query = "SELECT acl.id, acl.name, auth.auth_type AS acl_type, auth.id_method FROM acl, auth, app WHERE app.id = '".$ref->{id}."' AND acl.id = app.acl_id AND auth.id = acl.auth_id";
     $sth = $dbh->prepare($query);
 	$sth->execute;
 	$ref->{'acl'} = $sth->fetchrow_hashref;
@@ -147,5 +145,88 @@ sub	get_intf {
 	my $ref = $sth->fetchrow_hashref;
 	$sth->finish();
 	return $ref;
+}
+
+#Getting DB object
+sub getDB_object{
+    my ($log, $dbh, $id_method) = @_;
+    my $query = "SELECT * FROM sql WHERE id='".$id_method."'";
+    my $sth = $dbh->prepare($query);
+    $log->debug($query);
+    $sth->execute;
+    my $ref = $sth->fetchrow_hashref;
+    $sth->finish();
+
+    #Let's connect to this new database and retrieve all fields
+    if($ref){
+	    #Build a driver like this one "dbi:SQLite:dbname=/var/www/vulture/admin/db"
+	    my $dsn = 'dbi:'.$ref->{'driver'}.':dbname='.$ref->{'database'};
+	    if($ref->{'host'}){
+		    $dsn .=':'.$ref->{'host'};
+		    if($ref->{'port'}){
+			    $dsn .=':'.$ref->{'port'};
+		    }
+	    }
+	    return (DBI->connect($dsn, $ref->{'user'}, $ref->{'password'}), $ref);
+    }
+    $log->error("Can't find DB object");
+    return;
+}
+
+sub getLDAP_object{
+	my ($log, $dbh, $id_method) = @_;
+
+	my $query = "SELECT host, port, scheme, cacert_path, dn, password, base_dn, user_scope, user_attr, user_filter, group_scope, group_attr, group_filter, group_member, are_members_dn, url_attr, protocol FROM ldap WHERE id='".$id_method."'";
+	$log->debug($query);
+	my $sth = $dbh->prepare($query);
+	$sth->execute;
+	my ($ldap_server, $ldap_port, $ldap_encrypt, $ldap_cacert_path, $ldap_bind_dn,
+	    $ldap_bind_password, $ldap_base_dn, $ldap_user_scope, $ldap_uid_attr,
+	    $ldap_user_filter, $ldap_group_scope, $ldap_group_attr,
+	    $ldap_group_filter, $ldap_group_member, $ldap_group_is_dn,
+	    $ldap_url_attr, $ldap_protocol) = $sth->fetchrow;
+
+	$ldap_cacert_path="/var/www/vulture/conf/cacerts" if ($ldap_cacert_path eq '');
+	$ldap_user_filter = "(|(objectclass=posixAccount)(objectclass=inetOrgPerson)(objectclass=person))"
+	  if ($ldap_user_filter eq '');
+	$ldap_group_filter = "(|(objectclass=posixGroup)(objectclass=group)(objectclass=groupofuniquenames))"
+	  if ($ldap_group_filter eq '');
+
+	my @servers;
+	foreach (split(/,\s*/, $ldap_server)) {
+		push @servers, ($ldap_encrypt eq "ldaps" ? "ldaps://" : "") . $_ ;
+	}
+
+	my $ldap;
+	if ( $ldap_encrypt eq "ldaps") {
+		$ldap = Net::LDAP->new(\@servers,
+				       port => $ldap_port,
+				       version => $ldap_protocol,
+				       capath => $ldap_cacert_path
+				      );
+	}
+	else {
+		$ldap = Net::LDAP->new(\@servers,
+				       port => $ldap_port,
+				       version => $ldap_protocol
+				      );
+	}
+	if ($ldap_encrypt eq "start-tls") {
+		$ldap->start_tls(
+				verify => 'require',
+				capath => $ldap_cacert_path
+				);
+	}
+	if (!$ldap) {
+		$log->error("LDAP connection to $ldap_server failed");
+		return ;
+	}
+	my $mesg = $ldap->bind($ldap_bind_dn, password => $ldap_bind_password);
+
+	if ($mesg->code) {
+		$log->error("Unable to bind with $ldap_bind_dn on $ldap_server");
+		return ;
+	}
+	return ($ldap, $ldap_url_attr, $ldap_uid_attr, $ldap_user_filter, $ldap_group_filter, $ldap_user_scope, $ldap_group_scope, $ldap_base_dn, $ldap_group_member, $ldap_group_is_dn, $ldap_group_attr);
 }
 1;

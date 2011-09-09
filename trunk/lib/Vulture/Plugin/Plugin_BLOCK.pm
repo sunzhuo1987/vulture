@@ -5,21 +5,16 @@ package Plugin::Plugin_BLOCK;
 use Apache2::Log;
 use Apache2::Reload;
 
-use Apache2::Const -compile => qw(DECLINED);
+use Apache2::Const -compile => qw(FORBIDDEN);
 
 sub plugin{
-	my ($package_name, $r, $log, $dbh, $options) = @_;
+	my ($package_name, $r, $log, $dbh, $app, $options) = @_;
 	
 	$log->debug("########## Plugin_BLOCK ##########");
 
-	#Destroy useless handlers
-	$r->set_handlers(PerlAccessHandler => undef);
-	$r->set_handlers(PerlAuthenHandler => undef);
-	$r->set_handlers(PerlAuthzHandler => undef);
-	$r->set_handlers(PerlFixupHandler => undef);
-	$r->set_handlers(PerlResponseHandler => undef);
+	$r->set_handlers(PerlResponseHandler => Apache2::Const::FORBIDDEN);
 
-	return Apache2::Const::DECLINED;
+	return Apache2::Const::FORBIDDEN;
 }
 
 1;

@@ -4,6 +4,7 @@ package Core::TransHandlerv2;
 
 use Apache2::RequestRec ();
 use Apache2::RequestIO ();
+use Apache2::Request;
 
 use Apache2::Reload;
 use Apache2::Log;
@@ -17,6 +18,8 @@ use Apache::SSLLookup;
 
 use DBI;
 
+use Module::Load;
+
 sub handler {
 	my $r = Apache::SSLLookup->new(shift);
 	my $uri = $r->uri;
@@ -24,12 +27,9 @@ sub handler {
 	my $full_uri = $r->hostname.$unparsed_uri;
 	my $protocol = $r->protocol();
 	my $dbh = DBI->connect($r->dir_config('VultureDSNv3'));
-	#my $log = $r->server->log;
 
+    #Calling log functions
 	my $log = Core::Log->new($r);
-
-    #Block favicon request
-    return Apache2::Const::FORBIDDEN if ($r->uri =~ /favicon.ico$/);
 
 	#Sending db handler to next Apache Handlers
 	$r->pnotes('dbh' => $dbh);
@@ -47,77 +47,83 @@ sub handler {
 
 	#If protocol is different from HTTP or HTTPS, reject the connexion
 	if ($protocol !~ /HTTP/ and $protocol !~ /HTTPS/){
-		$log->error("Rejecting bad protocol $protocol");
+	    $log->error("Rejecting bad protocol $protocol");
 		return Apache2::Const::FORBIDDEN;	
 	}
 
-	
 	#If URI matches with app adress, get app and interface
 	my $app = get_app($log, $r->hostname, $dbh, $r->dir_config('VultureID')) if ($r->unparsed_uri !~ /vulture_app/ and $r->unparsed_uri !~ /vulture_logout/);
-	my $intf = get_intf($log, $dbh, $r->dir_config('VultureID'));
+	$r->pnotes('app' => $app) if defined $app;
 
 	#Plugin or Rewrite (according to URI)
-	#my $query = "SELECT uri_pattern, type, options FROM map_uri WHERE app_id = ? OR app_id IS NULL";
-	#my $all = $dbh->selectall_arrayref($query, undef, $app->{id});
-	#foreach my $row (@$all) {
-	#	my $module_name;
-	#	my $options;
-	#	my @result;
-	#	my $exp = @$row[0];
+	my $plugins = $dbh->selectall_arrayref("SELECT uri_pattern, type, options FROM map_uri WHERE app_id = ? OR app_id IS NULL ORDER BY type", undef, $app->{id});
+	foreach my $row (@$plugins) {
+		if((@result) = ($uri =~ /$exp/)){
+		    my $module_name;
+	        my $options;
+	        my @result;
+	        my $exp = @$row[0];
+	        
+			$log->debug("Pattern ".$exp." matches with URI");
+			if(@$row[1] eq 'Plugin'){
+				$module_name = 'Plugin::Plugin_'.uc(@$row[2]);
+				$options = \@result;
+			} elsif (@$row[1] eq 'Rewrite'){
+				$module_name = 'Plugin::Plugin_REWRITE';
+			    $log->debug(@$row[2]);
+				$options = @$row[2];
+			}
 
-	#	if((@result) = ($full_uri =~ /$exp/)){
-	#		$log->debug("Pattern ".$exp." matches with URI");
-	#		if(@$row[1] eq 'Plugin'){
-	#			$module_name = 'Plugin::Plugin_'.uc(@$row[2]);
-	#			$options = \@result;
-	#		} elsif (@$row[1] eq 'Rewrite'){
-	#			$module_name = 'Plugin::Plugin_REWRITE';
-	#			$options = @$row[2];	
-	#		}
-
-	#		$log->debug($module_name);
-    #
-	#		load $module_name;
-				
+			$log->debug($module_name);
+    
+            #Calling associated plugin
+			load $module_name;
+			
 			#Get return
-	#		$ret = $module_name->plugin($r, $log, $dbh, $options);
-
-			#Debug for eval				
-	#		$log->debug($@) if $@;
-	#	}
-	#}
+			$ret = $module_name->plugin($r, $log, $dbh, $app, $options);
+			
+            return $ret if($ret or uc(@$row[2]) eq "STATIC")
+		}
+	}
 
 	#If application exists and is not down, check auth
 	if($app and $app->{'up'}){
-		my ($id_app) = get_cookie($r->headers_in->{Cookie}, 'vulture_app=([^;]*)');
+		
+		#No authentication is needed
+    	my $auths = $app->{'auth'};
+    	if(not defined @$auths or not @$auths){
+    		#Destroy useless handlers
+    		$r->set_handlers(PerlAuthenHandler => undef);
+    		$r->set_handlers(PerlAuthzHandler => undef);
+		    $log->debug("Setting pnotes 'url_to_mod_proxy' to " .$app->{'url'}.$unparsed_uri) unless $r->pnotes('url_to_mod_proxy');
+		    $r->pnotes('url_to_mod_proxy' => $app->{'url'}.$unparsed_uri) unless $r->pnotes('url_to_mod_proxy');
+
+		    return Apache2::Const::OK;
+    	}
+    	
+    	#Getting session app if exists. If not, creating one
+        my ($id_app) = get_cookie($r->headers_in->{Cookie}, 'vulture_app=([^;]*)');
 		my (%session_app);
 		session(\%session_app, $app->{timeout}, $id_app, $log);
 		$r->pnotes('id_session_app' => $id_app);
+		
+		# We have authorization for this app so let's go with mod_proxy
+		if(defined $session_app{is_auth} and $session_app{is_auth} == 1){
 
-		#No authentication is needed
-        	my $auths = $app->{'auth'};
-        	if(not defined @$auths or not @$auths){
-            		#Destroy useless handlers
-	    		$r->set_handlers(PerlAuthenHandler => undef);
-	    		$r->set_handlers(PerlAuthzHandler => undef);
-			$log->debug("Setting pnotes 'url_to_mod_proxy' to " . $app->{'url'}.$unparsed_uri);
-			$r->pnotes('url_to_mod_proxy' => $app->{'url'}.$unparsed_uri);
-			return Apache2::Const::OK;
-        	}
-		#We have authorization for this app so let's go with mod_proxy
-		elsif(defined $session_app{is_auth} and $session_app{is_auth} == 1){
-
-			#Setting app for FixupHandler and ResponseHandler
-			$r->pnotes('app' => $app);
+			#Setting username && password for FixupHandler and ResponseHandler
 			$r->pnotes('username' => $session_app{username});
 			$r->pnotes('password' => $session_app{password});
 			
 			$log->debug("This app : ".$r->hostname." is secured or display portal is on. User has a valid cookie for this app / is logged in the SSO Portal");
+			
+			#Destroy useless handlers
+    		$r->set_handlers(PerlAuthenHandler => undef);
+    		$r->set_handlers(PerlAuthzHandler => undef);
 
 			#Mod_proxy with apache : user will not see anything
 			if(not defined $session_app{SSO_Forwarding}){
-				$log->debug("Setting pnotes 'url_to_mod_proxy' to " . $app->{'url'}.$unparsed_uri);
-				$r->pnotes('url_to_mod_proxy' => $app->{'url'}.$unparsed_uri);
+				$log->debug("Setting pnotes 'url_to_mod_proxy' to " . $app->{'url'}.$unparsed_uri) unless $r->pnotes('url_to_mod_proxy');
+				$r->pnotes('url_to_mod_proxy' => $app->{'url'}.$unparsed_uri) unless $r->pnotes('url_to_mod_proxy');
 			}
 			return Apache2::Const::OK;
 		
@@ -125,24 +131,42 @@ sub handler {
 		}else{
 			$log->debug("App ".$r->hostname." is secured and user is not authentified in app. Let's have fun with AuthenHandler / redirect to SSO Portal ".$intf->{'sso_portal'});
 			$r->status(200);
-			$r->err_headers_out->add('Set-Cookie' => "vulture_app=".$session_app{_session_id}."; path=/; domain=".$r->hostname);
+			$r->err_headers_out->add('Set-Cookie' => $r->dir_config('VultureAppCookieName')."=".$session_app{_session_id}."; path=/; domain=".$r->hostname);
 			
 			#Fill session for SSO Portal
 			$session_app{app_name} = $r->hostname;
-			#$session_app{url_to_redirect} = $unparsed_uri;
+			$session_app{url_to_redirect} = $unparsed_uri;
 
-			#Redirect to SSO Portal
-			$r->err_headers_out->set('Location' => $intf->{'sso_portal'}.':'.$r->get_server_port.'/?vulture_app='.$session_app{_session_id});
-			return Apache2::Const::REDIRECT;
+			#Redirect to SSO Portal if $r->pnotes('url_to_mod_proxy') is not set by Rewrite engine
+            if(not $r->pnotes('url_to_mod_proxy')){
+                my $intf = get_intf($log, $dbh, $r->dir_config('VultureID'));
+                my $url_to_redirect = '';
+                if ($intf->{'sso_portal'}){
+                    $url_to_redirect = $intf->{'sso_portal'}.':'.$r->get_server_port;
+                } else {
+                    $url_to_redirect = $r->is_https ? 'https://' : 'http://';
+                    $url_to_redirect .= $app->{name}.':'.$app->{port};
+
+                }
+                $url_to_redirect .= '/?vulture_app='.$session_app{_session_id};
+			    $r->err_headers_out->set('Location' => $url_to_redirect);
+			    return Apache2::Const::REDIRECT;
+            } else {
+                #Destroy useless handlers
+        		$r->set_handlers(PerlAuthenHandler => undef);
+        		$r->set_handlers(PerlAuthzHandler => undef);
+                return Apache2::Const::OK;
+            }
 		}
 	
 	#SSO Portal
 	} elsif ($unparsed_uri =~ /vulture_app=([^;]*)/){
-		
-		$log->debug('Entering SSO Portal mode.');
 
-		my $SSO_cookie_name = get_cookie($r->headers_in->{Cookie}, 'vulture_proxy=([^;]*)');
+		$log->debug('Entering SSO Portal mode.');
+        
+        #Getting previous app session
 		my $app_cookie_name = $1;
+		my $SSO_cookie_name = get_cookie($r->headers_in->{Cookie}, 'vulture_proxy=([^;]*)');
 
 		my (%session_SSO);
 		my (%session_app);
@@ -157,8 +181,9 @@ sub handler {
 		#Get app
 		session(\%session_app, $app->{timeout}, $app_cookie_name);
 		my $app = get_app($log, $session_app{app_name}, $dbh, $r->dir_config('VultureID'));
-
+		
 		$r->pnotes('app' => $app);
+
 		$r->pnotes('id_session_app' => $app_cookie_name);
 		$r->pnotes('id_session_SSO' => $SSO_cookie_name);
 		

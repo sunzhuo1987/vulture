@@ -18,7 +18,7 @@ use Apache::SSLLookup;
 use Data::Dumper;
 
 sub plugin{
-	my ($package_name, $r, $log, $dbh, $options) = @_;
+	my ($package_name, $r, $log, $dbh, $app, $options) = @_;
 
 	my $r = Apache::SSLLookup->new($r);
 	

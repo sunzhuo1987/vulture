@@ -17,30 +17,15 @@ use DBI;
 
 use Apache2::Const -compile => qw(OK FORBIDDEN);
 
+use Core::VultureUtils qw(&getDB_object);
+
 sub checkAuth{
 	my ($package_name, $r, $log, $dbh, $app, $user, $password, $id_method) = @_;	
 
 	$log->debug("########## Auth_SQL ##########");
 
-	my $query = "SELECT * FROM sql WHERE id='".$id_method."'";
-	my $sth = $dbh->prepare($query);
-	$log->debug($query);
-	$sth->execute;
-	my $ref = $sth->fetchrow_hashref;
-	$sth->finish();
-	
-	#We know where to select user to check credentials. Let's connect to this new database and check if user exists
-	if($ref){
-		#Build a driver like this one dbi:SQLite:dbname=/home/pquetelart/vulture2/trunk/www/db
-		my $dsn = 'dbi:'.$ref->{'driver'}.':dbname='.$ref->{'database'};
-		if($ref->{'host'}){
-			$dsn .=':'.$ref->{'host'};
-			if($ref->{'port'}){
-				$dsn .=':'.$ref->{'port'};
-			}
-		}
-		my $new_dbh = DBI->connect($dsn, $ref->{'user'}, $ref->{'password'});
-		
+	my ($new_dbh, $ref) = getDB_object($log, $dbh, $id_method);
+    if($new_dbh and $ref){		
 		#Password encryption
 		if ($ref->{'pass_algo'} eq "plain") {
 			#Nothing to do

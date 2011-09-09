@@ -4,7 +4,7 @@ PREFIX		= /var/www
 PREFIXLIB	= /opt
 UID		= -o www-data
 GID		= -g www-data
-DIRS		= www conf bin
+DIRS		= admin conf bin
 DIRSLIB		= ACL Auth Core Plugin SSO
 INSTALL		= /usr/bin/install -c -D -m0644
 TAR    		= $(NAME)-$(VERSION).tar
@@ -35,13 +35,20 @@ all:
 				LIB=$(PREFIXLIB)/$(NAME)/lib && cd ../../;\
 		fi; \
 		make -C lib/Vulture/; \
-		if [ ! -f lib/Crypt-CBC-2.19/Makefile ]; then \
-			cd lib/Crypt-CBC-2.19 && perl -I ../lib/mod_perl/lib -I $(PREFIXLIB)/$(NAME)/lib Makefile.PL INSTALLDIRS=site \
+		if [ ! -f lib/Crypt-CBC-2.30/Makefile ]; then \
+			cd lib/Crypt-CBC-2.30 && perl -I ../lib/mod_perl/lib -I $(PREFIXLIB)/$(NAME)/lib Makefile.PL INSTALLDIRS=site \
 				INSTALLSITELIB=$(PREFIXLIB)/$(NAME)/lib/i386-linux-thread-multi \
 				INSTALLSITEARCH=$(PREFIXLIB)/$(NAME)/lib/i386-linux-thread-multi PREFIX=$(PREFIXLIB)/$(NAME) \
 				LIB=$(PREFIXLIB)/$(NAME)/lib && cd ../../;\
 		fi; \
-		make -C lib/Crypt-CBC-2.19/; \
+		make -C lib/Crypt-CBC-2.30/; \
+		if [ ! -f lib/Crypt-OpenSSL-AES-0.01/Makefile ]; then \
+			cd lib/Crypt-OpenSSL-AES-0.01 && perl -I ../lib/mod_perl/lib -I $(PREFIXLIB)/$(NAME)/lib Makefile.PL INSTALLDIRS=site \
+				INSTALLSITELIB=$(PREFIXLIB)/$(NAME)/lib/i386-linux-thread-multi \
+				INSTALLSITEARCH=$(PREFIXLIB)/$(NAME)/lib/i386-linux-thread-multi PREFIX=$(PREFIXLIB)/$(NAME) \
+				LIB=$(PREFIXLIB)/$(NAME)/lib && cd ../../;\
+		fi; \
+		make -C lib/Crypt-OpenSSL-AES-0.01/; \
 		if [ ! -f lib/Apache-Session-Memcached-0.03/Makefile ]; then \
                         cd lib/Apache-Session-Memcached-0.03 && perl -I $(PREFIXLIB)/$(NAME)/lib Makefile.PL INSTALLDIRS=site \
                                 INSTALLSITELIB=$(PREFIXLIB)/$(NAME)/lib/i386-linux-thread-multi \
@@ -63,7 +70,7 @@ all:
 dist: clean $(GZ)
 
 $(TAR):
-	for j in `find . ! -type l ! -name '*~'  ! -name '#*' ! -name 'db' ! -path '*/.svn/*'`; do \
+	for j in `find . ! -type l ! -name '*~'  ! -name '#*' ! -name 'db' ! -path 'ebuild/Manifest' ! -path 'ebuild/files' ! -path '*/.svn/*'`; do \
 		if [ -f $$j ]; then \
 			$(INSTALL) $$j $(NAME)-$(VERSION)/$$j; \
 		fi; \
@@ -81,7 +88,7 @@ $(BZ2): $(TAR)
 
 clean:
 	rm -rf $(GZ) $(TAR) $(BZ2) $(NAME)-$(VERSION)
-	for d in Apache2 Authen-Radius-0.12 Crypt-CBC-2.19 Data-HexDump-0.02 SSLLookup Apache-Session-Memcached-0.03 Vulture NTLM-1.05; do \
+	for d in Apache2 Authen-Radius-0.12 Crypt-CBC-2.30 Crypt-OpenSSL-AES-0.01 Data-HexDump-0.02 SSLLookup Apache-Session-Memcached-0.03 Vulture NTLM-1.05; do \
 		if  [ -f lib/$$d/Makefile ]; then \
 			make -C lib/$$d clean; \
 		fi; \
@@ -108,16 +115,17 @@ install:
 	if [ -e /etc/debian_version ]; then \
 		make -C lib/SSLLookup  install && \
 		make -C lib/Apache2 install && \
-		make -C lib/Crypt-CBC-2.19 install && \
+		make -C lib/Crypt-CBC-2.30 install && \
+		make -C lib/Crypt-OpenSSL-AES-0.01 install && \
 		make -C lib/Apache-Session-Memcached-0.03 install && \
 		make -C lib/NTLM-1.05 install && \
 		cd lib/modsecurity-apache_2.6.1 && ./configure --prefix=$(PREFIXLIB)/$(NAME)/ --exec-prefix=$(PREFIXLIB)/$(NAME)/ && \
 		cd apache2 && make clean && make install && \
 		cd ../../../ &&  \
-		rm -f $(DESTDIR)$(PREFIX)/$(NAME)/www/db && \
 		install -m0600 debian/httpd.conf $(DESTDIR)$(PREFIX)/$(NAME)/conf/httpd.conf && \
-		install -m0600 debian/settings.py $(DESTDIR)$(PREFIX)/$(NAME)/www/settings.py && \
-		chmod 744 $(DESTDIR)$(PREFIX)/$(NAME)/www/manage.py; \
+		install -m0600 debian/aes-encrypt-key.key $(DESTDIR)$(PREFIX)/$(NAME)/conf/aes-encrypt-key.key && \
+		install -m0600 debian/settings.py $(DESTDIR)$(PREFIX)/$(NAME)/admin/settings.py && \
+		chmod 744 $(DESTDIR)$(PREFIX)/$(NAME)/admin/manage.py; \
 	fi; \
 
 rpm:	clean $(TAR)

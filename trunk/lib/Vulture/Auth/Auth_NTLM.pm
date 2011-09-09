@@ -20,13 +20,11 @@ sub checkAuth{
 	$log->debug("########## Auth_NTLM ##########");
 
 	my $query = "SELECT * FROM ntlm WHERE id='".$id_method."'";
-        my $sth = $dbh->prepare($query);
-        $log->debug($query);
-        $sth->execute;
-        my $ref = $sth->fetchrow_hashref;
-        $sth->finish();
-
-	$log->debug("########## Auth_NTLM -> ".$ref->{'name'}." ##########");
+    my $sth = $dbh->prepare($query);
+    $log->debug($query);
+    $sth->execute;
+    my $ref = $sth->fetchrow_hashref;
+    $sth->finish();
 
 	my $domain      = $ref->{'domain'};
 	my $pdc         = $ref->{'primary_dc'};
@@ -36,12 +34,10 @@ sub checkAuth{
 	my $authResult = Authen::Smb::authen($user, $password, $pdc, $bdc, $domain);
 
 	if ( $authResult == Authen::Smb::NO_ERROR ) {
-		$log->debug("User is ok for Auth_NTLM;");
 		$r->user($user);
  		return Apache2::Const::OK;
 	}
 	else {
-		$log->debug("User is bad for Auth_NTLM;");
 		return Apache2::Const::FORBIDDEN;
 	}
 }

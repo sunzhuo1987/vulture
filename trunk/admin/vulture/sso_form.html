@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}
+	<img src="/img/icon-configuration.png"> {% trans "SSO Forward" %}
+{% endblock %}
+
+{% block display_auth_menu %}none{% endblock %}
+{% block display_components_menu %}{% endblock %}
+{% block display_style_menu %}none{% endblock %}
+
+
+{% block content %}
+
+<form method="post" action="." name="sso">
+<table style="padding: 0">
+<tr><td class="input">{% trans "Description" %}</td><td>{{ form.desc }}{% if form.desc.errors %}<div class="error">{{ form.desc.errors|join:", " }}</div>{% endif %}</td></tr>
+<tr><td class="input">{% trans "Auth" %}</td><td>{{ form.auth }}{% if form.auth.errors %}<div class="error">{{ form.auth.errors|join:", " }}</div>{% endif %}</td></tr>
+</table>
+
+<br />
+<fieldset>
+<legend>SQL :</legend>
+<table style="padding: 0">
+<tr><td class="input">{% trans "Table" %} ({% trans "optional" %})</td><td>{{ form.table_mapped }}{% if form.table_mapped.errors %}<div class="error">{{ form.table_mapped.errors|join:", " }}</div>{% endif %}</td></tr>
+<tr><td class="input">{% trans "App" %} ({% trans "optional" %})</td><td>{{ form.app_mapped }}{% if form.app_mapped.errors %}<div class="error">{{ form.app_mapped.errors|join:", " }}</div>{% endif %}</td></tr>
+<tr><td class="input">{% trans "User" %} ({% trans "optional" %})</td><td>{{ form.user_mapped }}{% if form.user_mapped.errors %}<div class="error">{{ form.user_mapped.errors|join:", " }}</div>{% endif %}</td></tr>
+</table>
+</fieldset>
+
+<br />
+<fieldset>
+<legend>LDAP :</legend>
+<table style="padding: 0">
+<tr><td class="input">{% trans "Base DN" %} ({% trans "optional" %})</td><td>{{ form.base_dn_mapped }}{% if form.base_dn_mapped.errors %}<div class="error">{{ form.base_dn_mapped.errors|join:", " }}</div>{% endif %}</td></tr>
+</table>
+</fieldset>
+<br/>
+<table id="tbl1" border='0' class=gene>
+	<tbody id="tbl1body">
+	    <tr>
+					<th>{% trans "Field desc" %}</th>
+                    <th>{% trans "Field name (unique)" %}</th>
+                    <th>{% trans "Mapped" %}</th>
+					<th>{% trans "Field type" %}</th>
+				    <th>{% trans "Encrypted" %}</th>
+                    <th>{% trans "Field value (optional)" %}</th>
+                    <th>{% trans "Field prefix (optional)" %}</th>
+                    <th>{% trans "Field suffix (optional)" %}</th>
+					<th><a id= "champremove" href="#" onClick="addRowTo('tbl1body')"><img border=0 src="/img/dndCopy.png"></th>
+				{% for post in form.post %}
+				<tr id="table.{{forloop.counter}}">
+                    <input type="hidden" name="post_id-{{forloop.counter}}" value="{{ forloop.counter }}" />
+                    <input type="hidden" name="field_desc-{{forloop.counter}}" value="{{ post.field_desc }}" />
+                    <input type="hidden" name="field_var-{{forloop.counter}}" value="{{ post.field_var }}" />
+                    <input type="hidden" name="field_mapped-{{forloop.counter}}" value="{{ post.field_mapped }}" />
+                    <input type="hidden" name="field_type-{{forloop.counter}}" value="{{ post.field_type }}" />
+                    <input type="hidden" name="field_encrypted-{{forloop.counter}}" value="{{ post.field_encrypted }}" />
+                    <input type="hidden" name="field_value-{{forloop.counter}}" value="{{ post.field_value }}" />
+                    <input type="hidden" name="field_prefix-{{forloop.counter}}" value="{{ post.field_prefix }}" />
+                    <input type="hidden" name="field_suffix-{{forloop.counter}}" value="{{ post.field_suffix }}" />
+					<td>{{ post.field_desc }}{% if post.field_desc.errors %}<div class="error">{{ post.field_desc.errors|join:", " }}</div>{% endif %}</td>
+					<td>{{ post.field_var }}{% if post.field_var.errors %}<div class="error">{{ post.field_var.errors|join:", " }}</div>{% endif %}</td>
+					<td>{{ post.field_mapped }}{% if post.field_mapped.errors %}<div class="error">{{ post.field_mapped.errors|join:", " }}</div>{% endif %}</td>
+                    <td>{{ post.field_type }}{% if post.field_type.errors %}<div class="error">{{ post.field_type.errors|join:", " }}</div>{% endif %}</td>
+                    <td align = center>{% if post.field_encrypted %}<img src="/img/button_ok.png">{% else %}<img src="/img/button_cancel.png">{% endif %}{% if post.field_encrypted.errors %}<div class="error">{{ post.field_encrypted.errors|join:", " }}</div>{% endif %}</td>
+                    <td>{{ post.field_value }}{% if post.field_value.errors %}<div class="error">{{ post.field_value.errors|join:", " }}</div>{% endif %}</td>
+                    <td>{{ post.field_prefix }}{% if post.field_prefix.errors %}<div class="error">{{ post.field_prefix.errors|join:", " }}</div>{% endif %}</td>
+                    <td>{{ post.field_suffix }}{% if post.field_suffix.errors %}<div class="error">{{ post.field_suffix.errors|join:", " }}</div>{% endif %}</td>
+					<td><a onclick="delRowTo('tbl1body','table.{{forloop.counter}}')" href="#"><img src="/img/editdelete.png"></a></td>
+				</tr>
+				{% endfor %}
+	</tbody>
+</table>
+<script type='text/javascript'>
+    var nbfields = {{ form.post|length }};
+	function addRowTo(table) {
+        nbfields++;
+		var name = 'table.' + nbfields;
+        var d = document.getElementById(table);
+        var newdiv = document.createElement('tr');
+        newdiv.setAttribute('id',name);
+        newdiv.innerHTML = '<input type="hidden" name="post_id-' + nbfields +'"" value="' + nbfields +'" />';
+
+        var col1 = document.createElement('td');
+        col1.innerHTML = '<input id="id_field_desc-' + nbfields +'" type="text" name="field_desc-' + nbfields +'" maxlength="128" />';
+        
+        var col2 = document.createElement('td');
+        col2.innerHTML = '<input id="id_field_var-' + nbfields +'" type="text" name="field_var-' + nbfields +'" maxlength="100" />';
+        
+        var col3 = document.createElement('td');
+        col3.innerHTML = '<input id="id_field_mapped-' + nbfields +'" type="text" name="field_mapped-' + nbfields +'" maxlength="128" />';
+
+        var col4 = document.createElement('td');
+        col4.innerHTML = '<select name="field_type-' + nbfields +'"" id="id_field_type-' + nbfields +'">';
+        
+        var col5 = document.createElement('td');
+        col5.setAttribute("align","center");
+        col5.innerHTML = '<input id="id_field_encrypted-' + nbfields +'" type="checkbox" name="field_encrypted-' + nbfields +'" /></td>';
+
+        var col6 = document.createElement('td');
+        col6.innerHTML = '<input id="id_field_value-' + nbfields +'" type="text" name="field_value-' + nbfields +'" maxlength="100" /></td>';
+
+        var col7 = document.createElement('td');
+        col7.innerHTML = '<input id="id_field_prefix-' + nbfields +'" type="text" name="field_prefix-' + nbfields +'" maxlength="50" />';
+
+        var col8 = document.createElement('td');
+        col8.innerHTML = '<input id="id_field_suffix-' + nbfields +'" type="text" name="field_suffix-' + nbfields +'" maxlength="50" />';
+
+        var col9 = document.createElement('td');
+        col9.innerHTML = '<a onclick="delRowTo(\'tbl1body\',\'' + name +'\')" href="#"><img src="/img/editdelete.png"></a>';
+
+        newdiv.appendChild(col1);
+        newdiv.appendChild(col2);
+        newdiv.appendChild(col3);
+        newdiv.appendChild(col4);  
+        newdiv.appendChild(col5);  
+        newdiv.appendChild(col6);
+        newdiv.appendChild(col7);
+        newdiv.appendChild(col8); 
+        newdiv.appendChild(col9);              
+        d.appendChild(newdiv);             
+        populateList('id_field_type-'+ nbfields,['text','hidden','password','submit','checkbox','radio','autologon_user', 'autologon_password']);
+        changeHiddenField(nbfields);
+	}
+
+    function populateList(div, array) {
+    var arLen=array.length;
+    for(var i=0; i<arLen; i++){
+        document.getElementById(div).options[i]=new Option(array[i], array[i]);
+        }
+    }
+
+    function changeHiddenField(value) {
+        var d = document.getElementById('nbfields');
+        d.setAttribute('value',value);
+    }
+
+    function delRowTo(table, row) {
+          var d = document.getElementById(table);
+          var olddiv = document.getElementById(row);
+          d.removeChild(olddiv);
+    }
+</script>
+<br>
+<input type="hidden" name="nbfields" id="nbfields" value={{ form.post|length }} />
+<div style="width: 75%; text-align: right"><input type="submit" style="width: 100px;"/></div>
+</form>
+
+
+{% endblock %}
+
+{% block action %}
+
+{% endblock %}
+
