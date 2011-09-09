@@ -10,7 +10,7 @@ use Core::VultureUtils qw(&session &get_memcached &set_memcached);
 use Apache2::Const -compile => qw(OK FORBIDDEN);
 
 sub plugin{
-	my ($package_name, $r, $log, $dbh, $options) = @_;
+	my ($package_name, $r, $log, $dbh, $app, $options) = @_;
 	
 	$log->debug("########## Plugin_SAML ##########");
 

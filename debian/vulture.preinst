@@ -5,19 +5,21 @@
 
 set -e
 if grep -E "^www-data:" /etc/passwd > /dev/null ; then
-	echo "L'utilisateur apache existe."
+	echo "L'utilisateur www-data existe."
 else
 	useradd www-data
 fi
 if grep -E "^www-data:" /etc/group > /dev/null ; then
-	echo "Le groupe apache existe."
+	echo "Le groupe www-data existe."
 else
 	groupadd www-data
 fi
-if [ -f /var/www/vulture/conf ] ; then
+if [ -d /var/www/vulture/conf ] ; then
+    if [ -d /var/www/vulture/old/conf ] ; then
+        rm -r /var/www/vulture/old/conf/
     echo "Moving old conf"
-    mv /var/www/vulture/conf/ /var/www/vulture/old
-    mv /var/www/vulture/old/ /var/www/vulture/conf/old
+    mv /var/www/vulture/conf/ /var/www/vulture/old/conf/
+    fi
 fi
 exit 0
 

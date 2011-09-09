@@ -11,21 +11,24 @@ openssl req -x509 -newkey rsa:1024 -batch -out /var/www/vulture/conf/server.crt 
 fi
 chown -R www-data /var/www/vulture
 chgrp -R www-data /var/www/vulture
-if [ -f /var/www/vulture/www/db ] ; then
+if [ -f /var/www/vulture/admin/db ] ; then
 	echo "Database is here"
     echo "Backup your old database"
-    mv /var/www/vulture/www/db /var/www/vulture/www/db_old
-    cd /var/www/vulture/www && ./manage.py syncdb --noinput
-else
-cd /var/www/vulture/www && ./manage.py syncdb --noinput
+    mv /var/www/vulture/admin/db /var/www/vulture/admin/db_old
 fi
-chown www-data.www-data /var/www/vulture/www/db
+cd /var/www/vulture/admin && ./manage.py syncdb --noinput
+chown www-data.www-data /var/www/vulture/admin/db
 chown root.root /var/www/vulture/conf/httpd.conf
-chown -R www-data. /var/www/vulture/www/
+chown -R www-data. /var/www/vulture/admin/
 chmod -R 777 /var/www/vulture/conf/
 chmod 600 /var/www/vulture/conf/httpd.conf
 
 #insert data into database
+<<<<<<< .mine
+#if [ -f /var/www/vulture/admin/vulture/sql/modsecurity.sql ] ; then
+#	sqlite3 /var/www/vulture/admin/db < /var/www/vulture/admin/vulture/sql/modsecurity.sql
+#fi
+=======
 #if [ -f /var/www/vulture/www/vulture/sql/log.sql ] ; then
 #	sqlite3 /var/www/vulture/www/db < /var/www/vulture/www/vulture/sql/log.sql
 #fi
@@ -34,12 +37,13 @@ chmod 600 /var/www/vulture/conf/httpd.conf
 #	sqlite3 /var/www/vulture/www/db < /var/www/vulture/www/vulture/sql/modsecurity.sql
 #fi
 
+>>>>>>> .r15
 if grep -E "^www-data ALL=NOPASSWD:/usr/sbin/apache2" /etc/sudoers > /dev/null ; then
 	echo "sudo active"
 else
 	echo "www-data ALL=NOPASSWD:/usr/sbin/apache2" >> /etc/sudoers
 fi
 update-rc.d -f vulture start 90 2 3 4 5 . stop 90 0 1 6 .
-echo "Attention apache2 est maintenant installé et écoute sur le port 80"
+echo "Attention vulture est maintenant installé et écoute sur le port 9090"
 invoke-rc.d vulture start
 exit 0

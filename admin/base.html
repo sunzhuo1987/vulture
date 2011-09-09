@@ -1,0 +1,60 @@
+{% extends "layout.html" %}
+{% load i18n %}
+
+{% block auth %}
+<fieldset id='fieldset' class='logon'><legend><img src='/img/connect_established.png'>&nbsp;{% trans "Authentication" %}</legend>
+<form action='/logon/' method='GET'/>
+<center>{{ user }}</center>
+<!--<center>{% trans "Last login" %} : {{ user.last_login|date:"m/d/Y H:i:s" }}</center>-->
+<input type='submit' class='inputbutton' value='{% trans "Logout" %}'>
+</form>
+</fieldset>
+{% endblock %}
+
+{% block _action %}
+	{% block action %}{% endblock %}
+{% endblock %}
+
+{% block main %}
+	<h1>{% block title %}{% endblock %}</h1>
+<br>&nbsp;<br>
+	{% block content %}{% endblock %}
+{% endblock %}
+
+
+{% block menu %}
+<ul>
+{% if user.is_staff %}
+<li><a href='/user/'>{% trans "Users" %}</a></li>
+<li><a href='/intf/'>{% trans "Interfaces" %}</a></li>
+<li><a href='/app/'>{% trans "Applications" %}</a></li>
+<li><a onClick="switchDisplay('auth_menu')">{% trans "Authentications" %}</a></li>
+<ul id='auth_menu' style='display: {% block display_auth_menu %}{% endblock %}'>
+    <li><a href='/kerberos/'> &raquo; Kerberos</a></li>
+    <li><a href='/ldap/'> &raquo; LDAP</a></li>
+    <li><a href='/ntlm/'> &raquo; NTLM</a></li>
+    <li><a href='/sql/'> &raquo; SQL</a></li>
+    <li><a href='/ssl/'> &raquo; SSL</a></li>
+    <li><a href='/radius/'> &raquo; RADIUS</a></li>
+</ul>
+<li><a href='/acl/'>{% trans "ACL" %}</a></li>
+<li><a onClick="switchDisplay('components_menu')">{% trans "Components" %}</a></li>
+<ul id='components_menu' style='display: {% block display_components_menu %}{% endblock %}'>
+    <li><a href='/sso/'> &raquo; {% trans "SSO Forward" %}</a></li>
+    <li><a href='/log/'> &raquo; {% trans "mod_log" %}</a></li>
+    <li><a href='/security/'> &raquo; {% trans "mod_security" %}</a></li>
+    <li><a href='/map_uri/'> &raquo; {% trans "Plugins" %}</a></li>
+    <!--<li><a href='/o/'> &raquo; {% trans "Organizations" %}</a></li>-->
+</ul>
+<li><a onClick="switchDisplay('style_menu')">{% trans "Style" %}</a></li>
+<ul id='style_menu' style='display: {% block display_style_menu %}{% endblock %}'>
+    <li><a href='/style_style/'> &raquo; {%trans "Styles" %}</a></li>
+    <li><a href='/style_css/'> &raquo; {%trans "CSS" %}</a></li>
+    <li><a href='/style_tpl/'> &raquo; {%trans "Templates" %}</a></li>
+    <li><a href='/style_images/'> &raquo; {%trans "Images" %}</a></li>
+    <li><a href='/style_translation/'> &raquo; {%trans "Translations" %}</a></li>
+</ul>
+{% endif %}
+
+</ul>
+{% endblock %}

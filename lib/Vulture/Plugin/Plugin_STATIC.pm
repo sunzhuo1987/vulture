@@ -9,7 +9,7 @@ use Apache2::Reload;
 use Apache2::Const -compile => qw(OK FORBIDDEN);
 
 sub plugin{
-	my ($package_name, $r, $log, $dbh, $options) = @_;
+	my ($package_name, $r, $log, $dbh, $app, $options) = @_;
 
 	my @captured = @{$options};
 	
@@ -19,9 +19,15 @@ sub plugin{
 	$r->set_handlers(PerlAccessHandler => undef);
 	$r->set_handlers(PerlAuthenHandler => undef);
 	$r->set_handlers(PerlAuthzHandler => undef);
+	$r->set_handlers(PerlFixupHandler => undef);
+	#$r->set_handlers(PerlResponseHandler => sub { return });
 
 	$log->debug("Serving ".$captured[0]);
-	$r->filename($r->dir_config('VultureStaticPath').$1) or $r->status(404);
+	$log->debug($r->dir_config('VultureStaticPath').$1);
+	$r->filename($r->dir_config('VultureStaticPath').$1);
+	# or $r->status(404);
+	$r->content_type('image/jpeg');
+	$r->pnotes('static' => 1);
 	return Apache2::Const::OK;
 }
 

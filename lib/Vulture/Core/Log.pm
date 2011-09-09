@@ -67,7 +67,7 @@ sub handle_log {
 }
 
 sub emerg {
-		my ($self, @args) = @_;
+	my ($self, @args) = @_;
 	my ($desc, $type, $user) = @args;
 
 	my $log_level = $EMERG;

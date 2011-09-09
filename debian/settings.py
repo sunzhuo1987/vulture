@@ -10,15 +10,20 @@ ADMINS = (
 MANAGERS = ADMINS
 
 DATABASE_ENGINE = 'sqlite3'           # 'postgresql', 'mysql', 'sqlite3' or 'ado_mssql'.
-DATABASE_NAME = '/var/www/vulture/www/db'              # Or path to database file if using sqlite3.
+DATABASE_NAME = '/var/www/vulture/admin/db'              # Or path to database file if using sqlite3.
+
 DATABASE_USER = ''             # Not used with sqlite3.
 DATABASE_PASSWORD = ''         # Not used with sqlite3.
 DATABASE_HOST = ''             # Set to empty string for localhost. Not used with sqlite3.
 DATABASE_PORT = ''             # Set to empty string for default. Not used with sqlite3.
 
 HTTPD_PATH = 'sudo /usr/sbin/apache2'
+VULTURE_PATH = '/var/www/vulture/'
+CONF_PATH = '/var/www/vulture/conf/'
+WWW_PATH = '/var/www/vulture/admin/'
+DATABASE_PATH = '/var/www/vulture/admin/'
 BIN_PATH = '/var/www/vulture/bin/'
-PATH = '/var/www/vulture/conf/'
+
 PERL_SWITCHES = '-I/opt/vulture/lib/i386-linux-thread-multi -I/opt/vulture/lib/i386-linux-thread-multi/Vulture -I/opt/vulture/lib/i486-linux-thread-multi -I/opt/vulture/lib/i486-linux-gnu-thread-multi'
 
 
@@ -36,11 +41,11 @@ SITE_ID = 1
 
 # Absolute path to the directory that holds media.
 # Example: "/home/media/media.lawrence.com/"
-MEDIA_ROOT = ''
+MEDIA_ROOT = '/var/www/vulture/static/'
 
 # URL that handles the media served from MEDIA_ROOT.
 # Example: "http://media.lawrence.com"
-MEDIA_URL = ''
+MEDIA_URL = '/static/'
 
 # URL prefix for admin media -- CSS, JavaScript and images. Make sure to use a
 # trailing slash.
@@ -64,17 +69,17 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.doc.XViewMiddleware',
 )
 
-ROOT_URLCONF = 'www.urls'
+ROOT_URLCONF = 'admin.urls'
 
 TEMPLATE_DIRS = (
-        '/var/www/vulture/www',
+        '/var/www/vulture/admin',
 )
 
 INSTALLED_APPS = (
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.auth',
-    'www.vulture',
+    'admin.vulture',
 )
 
 AUTHENTICATION_BACKENDS = (

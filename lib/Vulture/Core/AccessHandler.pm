@@ -10,8 +10,6 @@ use DBI;
 
 use Apache2::Const -compile => qw(FORBIDDEN OK);
 
-use Data::Dumper;
-
 #Particular IP blacklisting (in Application) (different from PreConnectionHandler (global blacklisting))
 sub handler {
 	my $r = shift;
@@ -20,16 +18,21 @@ sub handler {
 	$log->debug("########## AccessHandler ##########");
 
 	my $c = $r->connection(); 
-	my $ip = $c->remote_ip if defined($c);
+	
+	unless (defined $c and $c->remote_ip){
+	    warn "Can't read remote ip\n";
+	    return Apache2::Const::FORBIDDEN;
+	}
+	
 	my $dbh = $r->pnotes('dbh');
 	my $app_id = $r->pnotes('app')->{'id'} if defined($r->pnotes('app'));
 
 	my $query = "SELECT count(*) FROM blackip WHERE ip=? AND app_id=?";
-	if ($dbh->selectrow_array(($query, undef, $ip, $app_id))){
-		$log->error("IP $ip is blocked\n");
+	if (not $dbh or not $app_id or $dbh->selectrow_array(($query, undef, $c->remote_ip, $app_id))){
+		$log->error('IP '.$c->remote_ip.' is blocked\n');
 	 	return Apache2::Const::FORBIDDEN;	
 	} else {
-		$log->debug("White IP $ip");
+		$log->debug('White IP '.$c->remote_ip);
 		$r->status(200);
 		return Apache2::Const::OK;
 	}

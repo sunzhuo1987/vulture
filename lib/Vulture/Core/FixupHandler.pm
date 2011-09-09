@@ -25,15 +25,21 @@ sub handler {
 
 sub proxy_redirect {
 	my ($r, $log, $url) = @_;
-
+	
 	my $app = $r->pnotes('app');
 
 	$log->debug("Mod_proxy is working. Redirecting to ".$url);
 
 	$r->err_headers_out->set('Host' => $app->{'url'});
 	
+	#Not canonicalising url (i.e : not escaping chars)
+	if(not $app->{'canonicalise_url'}){
+	    $log->debug("Skipping url canonicalising");
+	    my $n = $r->notes();
+	    $n->add("proxy-nocanon" => "1");
+	}
+	
 	$r->proxyreq(2);
-	#$r->uri($url);
 	$r->filename("proxy:".$url);
 	$r->handler('proxy-server');
 	return Apache2::Const::OK;

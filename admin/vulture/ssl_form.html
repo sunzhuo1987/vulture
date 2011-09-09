@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}
+	<img src="/img/unused-security-keys.png"> {% trans "SSL client authentication" %}
+{% endblock %}
+
+{% block display_auth_menu %}{% endblock %}
+{% block display_components_menu %}none{% endblock %}
+{% block display_style_menu %}none{% endblock %}
+
+
+{% block content %}
+
+<form method="post" action="." name="ssl">
+<table style="padding: 0">
+<tr><td class="input">{% trans "Description" %}</td><td>{{ form.name }}{% if form.name.errors %}<div class="error">{{ form.name.errors|join:", " }}</div>{% endif %}</td></tr>
+<tr><td class="input">{% trans "Require" %}</td><td>{{ form.require }}{% if form.require.errors %}<div class="error">{{ form.require.errors|join:", " }}</div>{% endif %}</td></tr>
+<tr><td class="input">{% trans "CA Certificate" %}</td><td>{{ form.crt }}{% if form.crt.errors %}<div class="error">{{ form.crt.errors|join:", " }}</div>{% endif %}</td></tr>
+<tr><td class="input">{% trans "Constraint" %}</td><td>{{ form.constraint }}{% if form.constraint.errors %}<div class="error">{{ form.constraint.errors|join:", " }}</div>{% endif %}</td></tr>
+</table>
+<br>
+<div style="width: 75%; text-align: right"><input type="submit" style="width: 100px;"/></div>
+</form>
+
+
+{% endblock %}
+
+{% block action %}
+
+{% endblock %}
+

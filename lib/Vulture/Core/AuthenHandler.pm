@@ -7,6 +7,7 @@ use Apache2::RequestIO ();
 use Apache2::Connection ();
 use Apache2::Log;
 use Apache2::Reload;
+use Apache2::Request;
 use Apache2::Access;
 
 use Module::Load;
@@ -43,6 +44,7 @@ sub handler {
 	} elsif($r->method eq "GET"){
 		($user, $password) = getGETdata($r);
 	} else {
+	    return Apache2::Const::HTTP_UNAUTHORIZED;
 	}
 
 	#Check if credentials are good. If they are, give a vulture_proxy cookie and go to AuthzHandler for a vulture_app cookie		
@@ -63,7 +65,7 @@ sub handler {
 			#Check type and use good auth module
 			my $ret = Apache2::Const::HTTP_UNAUTHORIZED;
 
-			$ret = multipleAuth($r, $log, $dbh, $app, $user, $password, $app->{auth_id_method}) if ($user);
+			$ret = multipleAuth($r, $log, $dbh, $app, $user, $password) if ($user);
 
 			if(defined $ret and $ret == scalar Apache2::Const::OK){
 				$log->debug("Good user/password");
@@ -72,7 +74,7 @@ sub handler {
 				$r->pnotes('username' => $user);
 				$r->pnotes('password' => $password);
 
-				$r->err_headers_out->add('Set-Cookie' => "vulture_proxy=".$r->pnotes('id_session_SSO')."; path=/; domain=".$r->hostname);
+				$r->err_headers_out->add('Set-Cookie' => $r->dir_config('VultureProxyCookieName')."=".$r->pnotes('id_session_SSO')."; path=/; domain=".$r->hostname);
 				$log->debug('Set-Cookie' => "vulture_proxy=".$r->pnotes('id_session_SSO')."; path=/; domain=".$r->hostname);
 		
 				$log->debug('Validate SSO session');
@@ -90,7 +92,11 @@ sub handler {
 			} else {
 				$r->user(undef);
 				$log->debug("Wrong user/password") if ($password and $user);
-				$r->pnotes('auth_message' => 'L\'authentification a échouée') if ($password and $user);
+                
+                #Create error message
+                $r->pnotes('auth_message' => "WRONG_USER") if $user;
+                $r->pnotes('auth_message' => "WRONG_PASSWORD") if $password;
+				$r->pnotes('auth_message' => "LOGIN_FAILED") if ($password and $user);
 				
 				#Unfinite loop for basic auth
 				if($app and $app->{'auth_basic'}){
@@ -125,7 +131,7 @@ sub getPOSTdata {
 }
 
 sub multipleAuth {
-    my ($r, $log, $dbh, $app, $user, $password, $id_method) = @_;
+    my ($r, $log, $dbh, $app, $user, $password) = @_;
     
     my $ret = Apache2::Const::FORBIDDEN;
 	my $auths = $app->{'auth'};

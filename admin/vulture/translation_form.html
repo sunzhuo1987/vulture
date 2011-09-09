@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}<img src="/img/winprops.png"> {% trans "Translation" %}{% endblock %}
+
+{% block display_auth_menu %}none{% endblock %}
+{% block display_components_menu %}none{% endblock %}
+{% block display_style_menu %}{% endblock %}
+
+{% block content %}
+
+<form method="post" action="." name="language">
+<table style="padding: 0">
+<tr><td class="input">{% trans "Country" %}</td><td>{{ form.country }}{% if form.country.errors %}<div class="error">{{ form.country.errors|join:", " }}</div>{% endif %}</td></tr>
+<tr><td class="input">{% trans "Message" %}</td><td>{{ form.message }}{% if form.message.errors %}<div class="error">{{ form.message.errors|join:", " }}</div>{% endif %}</td></tr>
+<tr><td class="input">{% trans "Translation" %}</td><td>{{ form.translation }}{% if form.translation.errors %}<div class="error">{{ form.translation.errors|join:", " }}</div>{% endif %}</td></tr>
+</table>
+<br>
+<div style="width: 75%; text-align: right"><input type="submit" style="width: 100px;"/></div>
+</form>
+
+
+{% endblock %}
+
+{% block action %}
+
+{% endblock %}
+
