@@ -24,7 +24,6 @@ sub handler {
 	my $r = Apache::SSLLookup->new(shift);
 	my $uri = $r->uri;
 	my $unparsed_uri = $r->unparsed_uri;
-	my $full_uri = $r->hostname.$unparsed_uri;
 	my $protocol = $r->protocol();
 	my $dbh = DBI->connect($r->dir_config('VultureDSNv3'));
 
@@ -84,19 +83,27 @@ sub handler {
 			
             return $ret if($ret or uc(@$row[2]) eq "STATIC")
 		}
-	}
+	}	
 
 	#If application exists and is not down, check auth
 	if($app and $app->{'up'}){
-		
+		my $proxy_url;
+	    if ($uri =~ /^(http|https|ftp):\/\//) {
+            	$proxy_url = $uri;
+	    }
+	    else {
+		    $proxy_url = $app->{'url'}.$uri;
+	    }
+	    
 		#No authentication is needed
     	my $auths = $app->{'auth'};
     	if(not defined @$auths or not @$auths){
     		#Destroy useless handlers
     		$r->set_handlers(PerlAuthenHandler => undef);
     		$r->set_handlers(PerlAuthzHandler => undef);
-		    $log->debug("Setting pnotes 'url_to_mod_proxy' to " .$app->{'url'}.$unparsed_uri) unless $r->pnotes('url_to_mod_proxy');
-		    $r->pnotes('url_to_mod_proxy' => $app->{'url'}.$unparsed_uri) unless $r->pnotes('url_to_mod_proxy');
+		    $log->debug("Setting pnotes 'url_to_mod_proxy' to " .$proxy_url) unless $r->pnotes('url_to_mod_proxy');
+		    $r->filename("proxy:".$proxy_url);
+		    $r->pnotes('url_to_mod_proxy' => $proxy_url) unless $r->pnotes('url_to_mod_proxy');
 
 		    return Apache2::Const::OK;
     	}
@@ -122,8 +129,9 @@ sub handler {
 
 			#Mod_proxy with apache : user will not see anything
 			if(not defined $session_app{SSO_Forwarding}){
-				$log->debug("Setting pnotes 'url_to_mod_proxy' to " . $app->{'url'}.$unparsed_uri) unless $r->pnotes('url_to_mod_proxy');
-				$r->pnotes('url_to_mod_proxy' => $app->{'url'}.$unparsed_uri) unless $r->pnotes('url_to_mod_proxy');
+				$log->debug("Setting pnotes 'url_to_mod_proxy' to ".$proxy_url) unless $r->pnotes('url_to_mod_proxy');
+				$r->filename("proxy:".$proxy_url);
+				$r->pnotes('url_to_mod_proxy' => $proxy_url) unless $r->pnotes('url_to_mod_proxy');
 			}
 			return Apache2::Const::OK;
 		

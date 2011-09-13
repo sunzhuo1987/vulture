@@ -20,7 +20,11 @@
 	<th style="width: 64px"></th>
 	</tr>
 {% for object in object_list %}
-	<tr><td>{{ object.desc }}</td><td>{{ object.ip }}:{{ object.port }}</td><td>{% if object.sso_portal %}{{ object.sso_portal }}{% else %}{% trans "None" %}{% endif %}</td><td style="text-align: center">{% if object.pid and object.checkIfEqual %}<img src="/img/button_ok.png">{% else %}<img src="/img/button_cancel.png">{% endif %}</td><td>{% if object.pid %}<a href="/intf/{{ object.id }}/stop"><img src="/img/stop.png"></a>{% endif %}{% if not object.checkIfEqual or object.need_restart %}<a href="/intf/{{ object.id }}/reload/"><img src="/img/reload.png"></a>{% endif %}{% if not object.pid %}<a href="/intf/{{ object.id }}/start/"><img src="/img/forward.png"></a>{% endif %}<a href="/intf/{{ object.id }}/del/"><img src="/img/editdelete.png"><a href="/intf/{{ object.id }}"><img src="/img/edit.png"></a></tr>
+	<tr><td>{{ object.desc }}</td><td>{{ object.ip }}:{{ object.port }}</td><td>{% if object.sso_portal %}{{ object.sso_portal }}{% else %}{% trans "None" %}{% endif %}</td>
+	<td style="text-align: center">{% if object.pid %}<img src="/img/button_ok.png">{% else %}<img src="/img/button_cancel.png">{% endif %}</td>
+	<td>{% if object.pid %}<a href="/intf/{{ object.id }}/stop"><img src="/img/stop.png"></a>{% if not object.checkIfEqual and object.need_restart %}<a href="/intf/{{ object.id }}/reload/"><img src="/img/reload.png"></a>{% endif %}{% else %}<a href="/intf/{{ object.id }}/start/"><img src="/img/forward.png"></a>{% endif %}
+
+<a href="/intf/{{ object.id }}/del/"><img src="/img/editdelete.png"><a href="/intf/{{ object.id }}"><img src="/img/edit.png"></a></tr>
 {% endfor %}
 	</td>
 	</table>
