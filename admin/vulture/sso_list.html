@@ -14,11 +14,10 @@
 	<table class="list">
 	<tr>
 	<th>{% trans "Name" %}</th>
-	<th>{% trans "Type" %}</th>
 	<th style="width: 32px"></th>
 	</tr>
 {% for object in object_list %}
-	<tr><td>{{ object.desc }}</td><td>{{ object.type }}</td><td>{% ifequal object.type "sso_forward" %}<a href="/sso/{{ object.id }}/del/"><img src="/img/editdelete.png"><a href="/sso/{{ object.id }}"><img src="/img/edit.png"></a>{% endifequal %}</td></tr>
+	<tr><td>{{ object.desc }}</td><td>{% ifequal object.type "sso_forward" %}<a href="/sso/{{ object.id }}/del/"><img src="/img/editdelete.png"><a href="/sso/{{ object.id }}"><img src="/img/edit.png"></a>{% endifequal %}</td></tr>
 {% endfor %}
 	</table>
 {% endblock %}
