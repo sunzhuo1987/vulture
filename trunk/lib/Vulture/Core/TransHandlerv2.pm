@@ -57,12 +57,11 @@ sub handler {
 	#Plugin or Rewrite (according to URI)
 	my $plugins = $dbh->selectall_arrayref("SELECT uri_pattern, type, options FROM map_uri WHERE app_id = ? OR app_id IS NULL ORDER BY type", undef, $app->{id});
 	foreach my $row (@$plugins) {
+		my $module_name;
+                my $options;
+                my @result;
+                my $exp = @$row[0];
 		if((@result) = ($uri =~ /$exp/)){
-		    my $module_name;
-	        my $options;
-	        my @result;
-	        my $exp = @$row[0];
-	        
 			$log->debug("Pattern ".$exp." matches with URI");
 			if(@$row[1] eq 'Plugin'){
 				$module_name = 'Plugin::Plugin_'.uc(@$row[2]);
@@ -148,11 +147,10 @@ sub handler {
 			#Redirect to SSO Portal if $r->pnotes('url_to_mod_proxy') is not set by Rewrite engine
             if(not $r->pnotes('url_to_mod_proxy')){
                 my $intf = get_intf($log, $dbh, $r->dir_config('VultureID'));
-                my $url_to_redirect = '';
+                my $url_to_redirect = $r->is_https ? 'https://' : 'http://';
                 if ($intf->{'sso_portal'}){
-                    $url_to_redirect = $intf->{'sso_portal'}.':'.$r->get_server_port;
+                    $url_to_redirect .= $intf->{'sso_portal'}.':'.$r->get_server_port;
                 } else {
-                    $url_to_redirect = $r->is_https ? 'https://' : 'http://';
                     $url_to_redirect .= $app->{name}.':'.$app->{port};
 
                 }
