@@ -38,9 +38,8 @@ sub proxy_redirect {
 	    my $n = $r->notes();
 	    $n->add("proxy-nocanon" => "1");
 	}
-	
-	$r->proxyreq(2);
 	$r->filename("proxy:".$url);
+	$r->proxyreq(2);
 	$r->handler('proxy-server');
 	return Apache2::Const::OK;
 }
