@@ -16,7 +16,12 @@ FETCH_SCRIPT=$BASEDIR/bin/rules-updater.pl
 mkdir /tmp/vulture$$ || exit
 
 echo "Fetching rules... "
-perl $FETCH_SCRIPT -x$PROXY -rhttp://www.modsecurity.org/autoupdate/repository/ -p/tmp/vulture$$ -Smodsecurity-crs 2> /dev/null || exit 
+if [ -n "$PROXY" ]; then
+	perl $FETCH_SCRIPT -x$PROXY -rhttp://www.modsecurity.org/autoupdate/repository/ -p/tmp/vulture$$ -Smodsecurity-crs 2> /dev/null || exit 
+else
+	perl $FETCH_SCRIPT -rhttp://www.modsecurity.org/autoupdate/repository/ -p/tmp/vulture$$ -Smodsecurity-crs 2> /dev/null || exit 
+fi
+
 
 echo "Deflate... "
 cd /tmp/vulture$$/modsecurity-crs/
@@ -31,10 +36,12 @@ cp -rf slr_rules $CONFDIR/security-rules/
 cp -rf experimental_rules $CONFDIR/security-rules/
 
 echo "Dumping rules into database... "
+rm -f /tmp/.vulture-rules
 #WE ARE IGNORING inbound and outbound blocking rules 'cause they are managed trough Vulture
 for i in `find $CONFDIR/security-rules/base_rules/ -name *.conf |grep -v bound_blocking`; do
-	data=${data}"Include $i"`echo "\r\n\r\n"`
+	echo "Include $i" >> /tmp/.vulture-rules
 done
+data=`cat /tmp/.vulture-rules`
 BASE_RULE=`sqlite3 $BASEDIR/admin/db "SELECT count(*) from modsecurity where name='RULES: OWASP ModSecurity Core - BASE'"`
 if [ $BASE_RULE = 0 ]; then
 	CMD="INSERT INTO modsecurity (name, rules) VALUES ('RULES: OWASP ModSecurity Core - BASE','$data')";
@@ -43,10 +50,11 @@ else
 fi
 sqlite3 $BASEDIR/admin/db "$CMD" || exit
 
-data=""
+rm -f /tmp/.vulture-rules
 for i in `find $CONFDIR/security-rules/optional_rules/ -name *.conf`; do
-	data=${data}"Include $i"`echo "\r\n\r\n"`
+	echo "Include $i" >> /tmp/.vulture-rules
 done
+data=`cat /tmp/.vulture-rules`
 OPT_RULE=`sqlite3 $BASEDIR/admin/db "SELECT count(*) from modsecurity where name='RULES: OWASP ModSecurity Core - OPTIONAL'"`
 if [ $BASE_RULE = 0 ]; then
 	CMD="INSERT INTO modsecurity (name, rules) VALUES ('RULES: OWASP ModSecurity Core - OPTIONAL','$data')";
@@ -55,10 +63,11 @@ else
 fi
 sqlite3 $BASEDIR/admin/db "$CMD" || exit
 
-data=""
+rm -f /tmp/.vulture-rules
 for i in `find $CONFDIR/security-rules/slr_rules/ -name *.conf`; do
-	data=${data}"Include $i"`echo "\r\n\r\n"`
+	echo "Include $i" >> /tmp/.vulture-rules
 done
+data=`cat /tmp/.vulture-rules`
 SLR_RULE=`sqlite3 $BASEDIR/admin/db "SELECT count(*) from modsecurity where name='RULES: OWASP ModSecurity Core - SpiderLabs Research'"`
 if [ $SLR_RULE = 0 ]; then
 	CMD="INSERT INTO modsecurity (name, rules) VALUES ('RULES: OWASP ModSecurity Core - SpiderLabs Research','$data')";
@@ -67,10 +76,11 @@ else
 fi
 sqlite3 $BASEDIR/admin/db "$CMD" || exit
 
-data=""
+rm -f /tmp/.vulture-rules
 for i in `find $CONFDIR/security-rules/experimental_rules/ -name *.conf`; do
-	data=${data}"Include $i"`echo "\r\n\r\n"`
+	echo "Include $i" >> /tmp/.vulture-rules
 done
+data=`cat /tmp/.vulture-rules`
 EXP_RULE=`sqlite3 $BASEDIR/admin/db "SELECT count(*) from modsecurity where name='RULES: OWASP ModSecurity Core - EXPERIMENTAL'"`
 if [ $EXP_RULE = 0 ]; then
 	CMD="INSERT INTO modsecurity (name, rules) VALUES ('RULES: OWASP ModSecurity Core - EXPERIMENTAL','$data')";
@@ -80,6 +90,7 @@ fi
 sqlite3 $BASEDIR/admin/db "$CMD" || exit
 
 rm -rf /tmp/vulture$$
+rm -f /tmp/.vulture-rules
 
 echo "Ok !"
 
