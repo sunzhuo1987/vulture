@@ -4,7 +4,7 @@ PREFIX		= /var/www
 PREFIXLIB	= /opt
 UID		= -o www-data
 GID		= -g www-data
-DIRS		= admin conf bin
+DIRS		= admin conf bin static
 DIRSLIB		= ACL Auth Core Plugin SSO
 INSTALL		= /usr/bin/install -c -D -m0644
 TAR    		= $(NAME)-$(VERSION).tar
@@ -20,14 +20,22 @@ all:
 				LIB=$(PREFIXLIB)/$(NAME)/lib CCFLAGS="-I/usr/include/apr-1.0" && cd ../../; \
 		fi; \
 		make -C lib/SSLLookup/; \
-		if [ ! -f lib/Apache2/Makefile ]; then \
-			cd lib/Apache2 && perl -I $(PREFIXLIB)/$(NAME)/lib \
+		#if [ ! -f lib/Apache2/Makefile ]; then \
+		#	cd lib/Apache2 && perl -I $(PREFIXLIB)/$(NAME)/lib \
+		#		-I $(PREFIXLIB)/$(NAME)/lib/i386-linux-thread-multi Makefile.PL LIB=$(PREFIXLIB)/$(NAME)/lib \
+		#		INSTALLSITELIB=$(PREFIXLIB)/$(NAME)/lib/i386-linux-thread-multi \
+		#		INSTALLSITEARCH=$(PREFIXLIB)/$(NAME)/lib/i386-linux-thread-multi \
+		#		PREFIX=$(PREFIXLIB)/$(NAME) SITEPREFIX=$(PREFIXLIB)/$(NAME) && cd ../../; \
+		#fi; \
+		#make -C lib/Apache2/; \
+		if [ ! -f lib/Apache2-ModProxyPerlHtml-3.0/Makefile ]; then \
+			cd lib/Apache2-ModProxyPerlHtml-3.0 && perl -I $(PREFIXLIB)/$(NAME)/lib \
 				-I $(PREFIXLIB)/$(NAME)/lib/i386-linux-thread-multi Makefile.PL LIB=$(PREFIXLIB)/$(NAME)/lib \
 				INSTALLSITELIB=$(PREFIXLIB)/$(NAME)/lib/i386-linux-thread-multi \
 				INSTALLSITEARCH=$(PREFIXLIB)/$(NAME)/lib/i386-linux-thread-multi \
 				PREFIX=$(PREFIXLIB)/$(NAME) SITEPREFIX=$(PREFIXLIB)/$(NAME) && cd ../../; \
 		fi; \
-		make -C lib/Apache2/; \
+		make -C lib/Apache2-ModProxyPerlHtml-3.0/; \
 		if [ ! -f lib/Vulture/Makefile ]; then \
 			cd lib/Vulture && perl -I $(PREFIXLIB)/$(NAME)/lib Makefile.PL INSTALLDIRS=site \
 				INSTALLSITELIB=$(PREFIXLIB)/$(NAME)/lib/i386-linux-thread-multi \
@@ -88,7 +96,8 @@ $(BZ2): $(TAR)
 
 clean:
 	rm -rf $(GZ) $(TAR) $(BZ2) $(NAME)-$(VERSION)
-	for d in Apache2 Authen-Radius-0.12 Crypt-CBC-2.30 Crypt-OpenSSL-AES-0.01 Data-HexDump-0.02 SSLLookup Apache-Session-Memcached-0.03 Vulture NTLM-1.05; do \
+	#for d in Apache2-ModProxyPerlHtml-3.0 Authen-Radius-0.12 Crypt-CBC-2.30 Crypt-OpenSSL-AES-0.01 Data-HexDump-0.02 SSLLookup Apache-Session-Memcached-0.03 Vulture NTLM-1.05; do \
+	for d in Apache2-ModProxyPerlHtml-3.0 Authen-Radius-0.12 Crypt-CBC-2.30 Crypt-OpenSSL-AES-0.01 Data-HexDump-0.02 SSLLookup Apache-Session-Memcached-0.03 Vulture NTLM-1.05; do \
 		if  [ -f lib/$$d/Makefile ]; then \
 			make -C lib/$$d clean; \
 		fi; \
@@ -114,7 +123,8 @@ install:
 	done
 	if [ -e /etc/debian_version ]; then \
 		make -C lib/SSLLookup  install && \
-		make -C lib/Apache2 install && \
+		#make -C lib/Apache2 install && \
+		make -C lib/Apache2-ModProxyPerlHtml-3.0 install && \
 		make -C lib/Crypt-CBC-2.30 install && \
 		make -C lib/Crypt-OpenSSL-AES-0.01 install && \
 		make -C lib/Apache-Session-Memcached-0.03 install && \
