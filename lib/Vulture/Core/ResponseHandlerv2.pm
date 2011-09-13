@@ -215,7 +215,33 @@ sub display_auth_form {
 	$sth->finish();
 	
     #Including css
-    $html .= "<style type=\"text/css\">".$ref->{css}."</style>" if defined $ref->{css};
+    if (defined $ref->{css}){
+        $html .= "<style type=\"text/css\">".$ref->{css}."</style>";
+    } else {
+        $html .= <<BAR
+    <STYLE type="text/css">
+
+body,th,td,p,div,span,a,ul,ol,dl,li,select,input,textarea,blockquote{text-align: center;font-size:11px;}
+
+
+input {
+         border-bottom: solid 1px #cccccc;
+         border-right: solid 1px #cccccc;
+         margin: 5px;
+         padding: 2px;
+}
+
+#custom {
+          width: 502px;
+          height: 217px;
+          background-repeat: no-repeat;
+          background-image: url('/static/img/logo.jpg');
+}
+
+</STYLE>
+BAR
+;
+    }
     
     $form = <<FOO
 <div id="form_vulture">
@@ -253,6 +279,7 @@ FOO
     
     #Template was undefined
     } else {
+        $html .= "<img id=\"logo\" src=\"/static/img/vulture.png\"";
         $html .= "<h2><font color=\"red\">$translations{$message}{'translation'}</font></h2>" if defined $translations{$message}{'translation'};
         $html .= $form ;
     }
