@@ -222,7 +222,7 @@ sub display_auth_form {
     <STYLE type="text/css">
 
 body,th,td,p,div,span,a,ul,ol,dl,li,select,input,textarea,blockquote{text-align: center;font-size:11px;}
-
+table { margin : 10px auto auto auto; }
 
 input {
          border-bottom: solid 1px #cccccc;
