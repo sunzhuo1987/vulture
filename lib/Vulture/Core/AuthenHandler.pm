@@ -16,8 +16,36 @@ use Apache2::Const -compile => qw(OK HTTP_UNAUTHORIZED);
 
 use Core::VultureUtils qw(&session &get_memcached &set_memcached);
 
-sub handler {
-	my $r = shift;
+
+#USED FOR NTLM
+sub get_nonce
+{
+        my ($self,$r,$log,$pdc,$bdc,$domain) = @_ ;
+
+        if ($self -> {nonce})
+        {
+                 $log->debug("Auth_NTLM: get_nonce -> Reuse " . $self -> {nonce});
+                return $self -> {nonce};
+        }
+
+        my $nonce = '12345678' ;
+        $log->debug("Auth_NTLM: Connect to pdc = $pdc bdc = $bdc domain = $domain");
+        my $smbhandle = Authen::Smb::Valid_User_Connect ($pdc, $bdc, $domain, $nonce) ;
+        if (!$smbhandle)
+        {
+                 $log->debug("Auth_NTLM: Connect to SMB Server failed (pdc = $pdc bdc = $bdc domain = $domain error = "
+                                . Authen::Smb::SMBlib_errno . '/' . Authen::Smb::SMBlib_SMB_Error . ") for " . $r -> uri) ;
+                return undef;
+        }
+        $log->debug("Auth_NTLM: get_nonce() -> $nonce");
+        $self -> {smbhandle} = $smbhandle;
+        return $self -> {nonce} = $nonce ;
+}
+
+
+sub handler:method 
+{
+	my ($class, $r) = @_ ;
 
 	my $log = $r->pnotes('log');
 	my $dbh = $r->pnotes('dbh');
@@ -33,7 +61,7 @@ sub handler {
 
 
 	#Basic authentification
-    if($app and $app->{'auth_basic'}){
+    	if($app and $app->{'auth_basic'}){
            $log->debug('Basic mode');
            ($status, $password) = $r->get_basic_auth_pw;
            $user = $r->user;
@@ -64,9 +92,19 @@ sub handler {
 			
 			#Check type and use good auth module
 			my $ret = Apache2::Const::HTTP_UNAUTHORIZED;
+			
+			$ret = multipleAuth($r, $log, $dbh, $app, $user, $password, 0, 0) if ($user);
 
-			$ret = multipleAuth($r, $log, $dbh, $app, $user, $password) if ($user);
+			my $ntlm = undef;
+			foreach my $row (@$auths) {
+				if (uc(@$row[1]) eq "NTLM" ) {
+					$ret = multipleAuth($r, $log, $dbh, $app, $user, $password, $class, 1);
+					$ntlm = 1;
+					break;
+				}
+			}
 
+				
 			if(defined $ret and $ret == scalar Apache2::Const::OK){
 				$log->debug("Good user/password");
 				
@@ -90,19 +128,26 @@ sub handler {
 			
 				return Apache2::Const::OK;	
 			} else {
-				$r->user(undef);
-				$log->debug("Wrong user/password") if ($password and $user);
+
+				unless ($ntlm) {
+					$r->user(undef);
+					$log->debug("Wrong user/password") if ($password and $user);
                 
-                #Create error message
-                $r->pnotes('auth_message' => "WRONG_USER") if $user;
-                $r->pnotes('auth_message' => "WRONG_PASSWORD") if $password;
-				$r->pnotes('auth_message' => "LOGIN_FAILED") if ($password and $user);
-				
+                			#Create error message
+                			$r->pnotes('auth_message' => "WRONG_USER") if $user;
+                			$r->pnotes('auth_message' => "WRONG_PASSWORD") if $password;
+					$r->pnotes('auth_message' => "LOGIN_FAILED") if ($password and $user);
+				}
+
 				#Unfinite loop for basic auth
 				if($app and $app->{'auth_basic'}){
 					$r->note_basic_auth_failure;
 					return Apache2::Const::HTTP_UNAUTHORIZED; 
 				} else {
+
+					#IF NTLM is used, we immediatly return the results of MultipleAuth();
+					return $ret if ($ntlm);
+
 					$log->debug("No user / password... ask response handler to display the logon form");
 					return Apache2::Const::OK;
 				}
@@ -131,23 +176,33 @@ sub getPOSTdata {
 }
 
 sub multipleAuth {
-    my ($r, $log, $dbh, $app, $user, $password) = @_;
+    my ($r, $log, $dbh, $app, $user, $password, $class, $is_transparent) = @_;
     
     my $ret = Apache2::Const::FORBIDDEN;
 	my $auths = $app->{'auth'};
 	foreach my $row (@$auths) {
 		my $module_name = "Auth::Auth_".uc(@$row[1]);
 
-        $log->debug($module_name);
-
+        	$log->debug($module_name);
 		load $module_name;
 				
 		#Get return
-		$ret = $module_name->checkAuth($r, $log, $dbh, $app, $user, $password, @$row[2]);
+		if ($is_transparent==0) {
+			$log-> debug ("multipleAuth: Classic Authentication");
+			$ret = $module_name->checkAuth($r, $log, $dbh, $app, $user, $password, @$row[2]);
+		}
+		else {
+			$log-> debug ("multipleAuth: Transparent Authentication");
+			$ret = $module_name->checkAuth($r, $class, $log, $dbh, $app, $user, $password, @$row[2]);
+		}
 
-		return Apache2::Const::OK if $ret == Apache2::Const::OK;
+		#Auth module said "The authentication is successful" -- User has been authentified
+		return Apache2::Const::OK 			if $ret == Apache2::Const::OK;
+
+		#Auth module said "The authentication is not authorized for the moment" -- It may be authorized after... ex: NTLM PROCESS
+		return Apache2::Const::HTTP_UNAUTHORIZED 	if $ret == Apache2::Const::HTTP_UNAUTHORIZED;
 	}
-	#No auth found
+	#Auth module said "Authentication failed"  -- User is not authentified
 	return Apache2::Const::FORBIDDEN;
 }
 
