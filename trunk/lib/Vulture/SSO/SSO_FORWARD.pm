@@ -23,6 +23,10 @@ use MIME::Base64;
 
 use Data::Dumper;
 
+use APR::URI;
+use APR::Table;
+use APR::SockAddr;
+
 sub forward{
 	my ($package_name, $r, $log, $dbh, $app, $user, $password) = @_;
 
@@ -119,10 +123,8 @@ sub forward{
 	$request->push_header('Cookie' => $r->headers_in->{'Cookie'});
 	$request->push_header('User-Agent' => $r->headers_in->{'User-Agent'});
 	
-	my $host = $app->{url};
-	
-	#Delete protocol
-	$host =~ s/^https?:\/\///i;
+	my $parsed_uri = APR::URI->parse($r->pool, $app->{'url'});
+    my $host = $parsed_uri->hostname ;
     $request->push_header('Host' => $host);
 	#$request->push_header('Host' => $app->{url}.':'.$app->{port});
 	

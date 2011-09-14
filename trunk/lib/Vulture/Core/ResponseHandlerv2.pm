@@ -199,7 +199,7 @@ sub display_auth_form {
     }
 
     my %translations = %$translated_messages;
-    my $html = '<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><title>Vulture auth</title></head><body>';
+    my $html = '<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><title>Please authenticate</title>';
     
     #
     # ONLY FOR SQLITE3
@@ -221,7 +221,7 @@ sub display_auth_form {
         $html .= <<BAR
     <STYLE type="text/css">
 
-body,th,td,p,div,span,a,ul,ol,dl,li,select,input,textarea,blockquote{text-align: center;font-size:11px;}
+body,th,td,p,div,span,a,ul,ol,dl,li,select,input,textarea,blockquote{font-size:11px;}
 table { margin : 10px auto auto auto; }
 
 input {
@@ -235,7 +235,7 @@ input {
           width: 502px;
           height: 217px;
           background-repeat: no-repeat;
-          background-image: url('/static/img/logo.jpg');
+          background-image: url('/static/img/bg.png');
 }
 
 </STYLE>
@@ -243,10 +243,12 @@ BAR
 ;
     }
     
+    $html .= "</head><body>";
+    
     $form = <<FOO
 <div id="form_vulture">
 <form method="POST" name="auth_form" action="$raw">
-<input type=hidden name=vulture_app value="$uri">
+<input type=hidden name="vulture_app" value="$uri">
 <table>
 <tr class="row"><td class="input">$translations{'USER'}{'translation'}</td><td><input type="text" name="vulture_login"></td></tr>
 <tr class="row"><td class="input">$translations{'PASSWORD'}{'translation'}</td><td><input type="password" autocomplete="off" name="vulture_password"></td></tr>
@@ -279,9 +281,8 @@ FOO
     
     #Template was undefined
     } else {
-        $html .= "<img id=\"logo\" src=\"/static/img/vulture.png\"";
         $html .= "<h2><font color=\"red\">$translations{$message}{'translation'}</font></h2>" if defined $translations{$message}{'translation'};
-        $html .= $form ;
+        $html .= "<center><div style = \"position: absolute; top:25%; left:25%;\"><div id=\"custom\" style=\"margin: 0; padding: 60 30;\">".$form."</div>";
     }
     $html .= '</body></html>';
 	return $html;
