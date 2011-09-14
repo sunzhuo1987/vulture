@@ -237,9 +237,9 @@ def edit_sso(request,object_id=None):
     if request.method == 'POST' and form.is_valid():
         dataPosted = request.POST
         sso = form.save(commit=False)
-        sso.type = 'sso_forward'
-        sso.save()
-	    
+	sso.type = 'sso_forward'
+	sso.save()
+
         #Delete old posts
         posts = Post.objects.filter(sso=object_id)
         posts.delete()
@@ -247,23 +247,23 @@ def edit_sso(request,object_id=None):
         #nbfields = dataPosted['nbfields']
         #print request.POST
         #Writing new ones
-        for id in range((int(str(dataPosted['nbfields']))+1)):
-            try:
-                desc = dataPosted['field_desc-' + str(id)]
-                var = dataPosted['field_var-' + str(id)]
-                type = dataPosted['field_type-' + str(id)]
-                if dataPosted.has_key('field_encrypted-' + str(id)):
-                    if dataPosted['field_encrypted-' + str(id)] == "True" or dataPosted['field_encrypted-' + str(id)] == "on":
+        for data in dataPosted:
+            m = re.match('post_id-(\d+)',data)
+            if m != None:
+                id = m.group(1)
+                desc = dataPosted['field_desc-' + id]
+                var = dataPosted['field_var-' + id]
+                type = dataPosted['field_type-' + id]
+                if dataPosted.has_key('field_encrypted-' + id):
+                    if dataPosted['field_encrypted-' + id] == "True" or dataPosted['field_encrypted-' + id] == "on":
                         encryption = True
                     else:
                         encryption = False
                 else:
                     encryption = False
                 if desc and var and type:
-                    instance = Post(sso=sso, field_desc = desc, field_var = var, field_mapped = dataPosted['field_mapped-' + str(id)], field_type = type, field_encrypted = encryption,field_value = dataPosted['field_value-' + str(id)], field_prefix = dataPosted['field_prefix-' + str(id)], field_suffix = dataPosted['field_suffix-' + str(id)])
+                    instance = Post(sso=sso, field_desc = desc, field_var = var, field_mapped = dataPosted['field_mapped-' + id], field_type = type, field_encrypted = encryption,field_value = dataPosted['field_value-' + id], field_prefix = dataPosted['field_prefix-' + id], field_suffix = dataPosted['field_suffix-' + id])
                     instance.save()
-            except:
-                pass
         return HttpResponseRedirect('/sso/')
     return render_to_response('vulture/sso_form.html', {'form': form, 'user' : request.user})
 
