@@ -119,7 +119,7 @@ sub forward{
 	$request->push_header('Cookie' => $r->headers_in->{'Cookie'});
 	$request->push_header('User-Agent' => $r->headers_in->{'User-Agent'});
 	
-	my $host = $app->{url}.':'.$app->{port};
+	my $host = $app->{url};
 	
 	#Delete protocol
 	$host =~ s/^https?:\/\///i;
