@@ -16,9 +16,34 @@ use Core::VultureUtils qw(&get_app &get_intf &version_check &get_cookie &session
 use Core::Log;
 use Apache::SSLLookup;
 
+use APR::URI;
+use APR::Table;
+use APR::SockAddr;
+
 use DBI;
 
 use Module::Load;
+
+my %headers_vars = (
+		    2 => 'SSL_CLIENT_I_DN',
+		    3 => 'SSL_CLIENT_M_SERIAL',
+		    4 => 'SSL_CLIENT_S_DN',
+		    5 => 'SSL_CLIENT_V_START',
+		    6 => 'SSL_CLIENT_V_END',
+		    7 => 'SSL_CLIENT_S_DN_C',
+		    8 => 'SSL_CLIENT_S_DN_ST',
+		    9 => 'SSL_CLIENT_S_DN_Email',
+		    10 => 'SSL_CLIENT_S_DN_L',
+		    11 => 'SSL_CLIENT_S_DN_O',
+		    12 => 'SSL_CLIENT_S_DN_OU',
+		    13 => 'SSL_CLIENT_S_DN_CN',
+		    14 => 'SSL_CLIENT_S_DN_T',
+		    15 => 'SSL_CLIENT_S_DN_I',
+		    16 => 'SSL_CLIENT_S_DN_G',
+		    17 => 'SSL_CLIENT_S_DN_S',
+		    18 => 'SSL_CLIENT_S_DN_D',
+		    19 => 'SSL_CLIENT_S_DN_UID',
+		   );
 
 sub handler {
 	my $r = Apache::SSLLookup->new(shift);
@@ -103,6 +128,27 @@ sub handler {
 		    $log->debug("Setting pnotes 'url_to_mod_proxy' to " .$proxy_url) unless $r->pnotes('url_to_mod_proxy');
 		    $r->filename("proxy:".$proxy_url);
 		    $r->pnotes('url_to_mod_proxy' => $proxy_url) unless $r->pnotes('url_to_mod_proxy');
+		    
+		    #Getting headers to forward
+			my $sth = $dbh->prepare("SELECT name, type, value FROM header WHERE app_id='".$app->{id}."'");
+			my $parsed_uri = APR::URI->parse($r->pool, $app->{'url'});
+			my $host = $parsed_uri->hostname ;
+	
+	        	#Delete protocol
+			$r->headers_in->set("Host" => $host);
+
+            $sth->execute;
+            while (my ($name, $type, $value) = $sth->fetchrow) {
+                if ($type eq "REMOTE_ADDR"){
+	                $value = $r->connection->remote_ip;
+                } elsif ($type eq "CUSTOM"){
+                } else {
+                    $value = $r->ssl_lookup($headers_vars{$type}) if (exists $headers_vars{$type});
+                }
+                $log->debug("Pushing custom header $name => $value");
+                $request->push_header($name => $value);
+	        }
+            $sth->finish();
 
 		    return Apache2::Const::OK;
     	}
@@ -132,6 +178,26 @@ sub handler {
 				$r->filename("proxy:".$proxy_url);
 				$r->pnotes('url_to_mod_proxy' => $proxy_url) unless $r->pnotes('url_to_mod_proxy');
 			}
+			
+			#Getting headers to forward
+		    my $sth = $dbh->prepare("SELECT name, type, value FROM header WHERE app_id='".$app->{id}."'");
+			my $parsed_uri = APR::URI->parse($r->pool, $app->{'url'});
+            my $host = $parsed_uri->hostname ;
+
+			$r->headers_in->set("Host" => $host);
+            $sth->execute;
+            while (my ($name, $type, $value) = $sth->fetchrow) {
+                if ($type eq "REMOTE_ADDR"){
+	                $value = $r->connection->remote_ip;
+                } elsif ($type eq "CUSTOM"){
+                } else {
+                    $value = $r->ssl_lookup($headers_vars{$type}) if (exists $headers_vars{$type});
+                }
+                $log->debug("Pushing custom header $name => $value");
+                $request->push_header($name => $value);
+	        }
+            $sth->finish();
+			
 			return Apache2::Const::OK;
 		
 		#Not authentified in this app. Setting cookie for app. Redirecting to SSO Portal.
