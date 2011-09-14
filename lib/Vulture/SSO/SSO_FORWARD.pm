@@ -5,6 +5,7 @@ package SSO::SSO_FORWARD;
 use Apache2::RequestRec ();
 use Apache2::RequestIO ();
 use Apache2::Request;
+use Apache2::Connection ();
 
 use Apache2::Log;
 use Apache2::Reload;
@@ -117,7 +118,28 @@ sub forward{
 	$request->push_header('Content-Type' => 'application/x-www-form-urlencoded');
 	$request->push_header('Cookie' => $r->headers_in->{'Cookie'});
 	$request->push_header('User-Agent' => $r->headers_in->{'User-Agent'});
-	$request->push_header('Host' => $r->headers_in->{'Host'});
+	
+	my $host = $app->{url}.':'.$app->{port};
+	
+	#Delete protocol
+	$host =~ s/^https?:\/\///i;
+    $request->push_header('Host' => $host);
+	#$request->push_header('Host' => $app->{url}.':'.$app->{port});
+	
+    if (defined($r->headers_in->{'Max-Forwards'})) {
+        $request->push_header('Max-Forwards' => $r->headers_in->{'Max-Forwards'} - 1);
+    } else {
+        $request->push_header('Max-Forwards' => '10');
+    }
+    if (defined($r->headers_in->{'X-Forwarded-For'})) {
+        $request->push_header('X-Forwarded-For' => $r->headers_in->{'X-Forwarded-For'}.", ".$r->connection->remote_ip);
+    } else {
+        $request->push_header('X-Forwarded-For' => $r->connection->remote_ip);
+    }
+
+    $request->push_header('X-Forwarded-Host' => $r->hostname());
+    $request->push_header('X-Forwarded-Server' => $r->hostname());
+			       
 
     #Getting custom headers defined in admin
     my $sth = $dbh->prepare("SELECT name, type, value FROM header WHERE app_id='".$app->{id}."'");
@@ -186,28 +208,34 @@ sub forward{
         return Apache2::Const::REDIRECT;
     
     #Response was successful
-	#} elsif ($response->is_success()) {
-    #    $log->debug("SSO was a success but we don't know what to do right now");	
-    #    $r->pnotes('SSO_Forwarding' => undef);
-    #    return Apache2::Const::OK;
+	} elsif ($response->is_success()) {
+        $log->debug("SSO was a success but we don't know what to do right now");	
+        $r->pnotes('SSO_Forwarding' => undef);
+        $r->headers_out->add('Location' => $r->unparsed_uri);
+        $r->status(302);
+        return Apache2::Const::REDIRECT;
 
     #Fail. Redirecting to SSO Learning
     } else {
         $log->debug("SSO fails. Delete old profile values. Redirecting to SSO Learning");
-        $r->pnotes('SSO_Forwarding' => 'LEARNING');
+        $r->pnotes('SSO_Forwarding' => undef);
+        $r->headers_out->add('Location' => $r->unparsed_uri);
+        $r->status(302);
+        return Apache2::Const::REDIRECT;
+    #    $r->pnotes('SSO_Forwarding' => 'LEARNING');
 
         #Delete old values which don't work
-        deleteProfile($r, $log, $dbh, $app, $user);
+#        deleteProfile($r, $log, $dbh, $app, $user);
         
         #Redirecting to SSO Learning
-        $r->content_type('text/html');
+ #       $r->content_type('text/html');
 
-		$r->headers_out->add('Location' => $r->unparsed_uri);	
+	#	$r->headers_out->add('Location' => $r->unparsed_uri);	
 
 		#Set status
-		$r->status(302);
+	#	$r->status(302);
 
-	    return Apache2::Const::REDIRECT;
+	 #   return Apache2::Const::REDIRECT;
     }	
 }
 
