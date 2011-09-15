@@ -21,8 +21,6 @@ use SSO::ProfileManager qw(&getProfile &deleteProfile);
 use Apache::SSLLookup;
 use MIME::Base64;
 
-use Data::Dumper;
-
 use APR::URI;
 use APR::Table;
 use APR::SockAddr;
