@@ -33,7 +33,6 @@ sub proxy_redirect {
 	$r->err_headers_out->set('Host' => $app->{'url'});
 	
 	#Cleaning up cookies
-    $log->debug(Dumper($r->headers_in->{Cookie}));
     $cookies = $r->headers_in->{Cookie};
     my $cleaned_cookies;
     foreach (split(';', $cookies)) {
