@@ -368,8 +368,8 @@ class Post(models.Model):
 class Profile(models.Model):
     app = models.ForeignKey('App')
     user = models.TextField()
-    field_var = models.CharField(max_length=50,null=1)
-    value = models.CharField(max_length=100,null=1, blank=1)
+    login = models.CharField(max_length=50,null=1)
+    password = models.CharField(max_length=100,null=1, blank=1)
     class Meta:
         db_table = 'profile'
 
