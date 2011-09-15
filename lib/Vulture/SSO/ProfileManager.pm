@@ -19,8 +19,6 @@ use Core::VultureUtils qw(&getDB_object &getLDAP_object);
 use Net::LDAP;
 use DBI;
 
-use Data::Dumper;
-
 BEGIN {
     use Exporter ();
     @ISA = qw(Exporter);
@@ -43,7 +41,6 @@ sub getProfile{
 	my $sth = $dbh->prepare($sql);
 	$sth->execute($app->{id});
 	my @fields =  @{$sth->fetchall_arrayref};
-    $log->debug(Dumper(\@fields));
     
     #If fields exists (i.e. not just autologon_ or hidden fields)
     if (@fields) {
