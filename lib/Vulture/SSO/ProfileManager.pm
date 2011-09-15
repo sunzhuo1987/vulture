@@ -102,7 +102,6 @@ sub getProfile{
                     $return_hash{$var} = $entry->get_value($mapping);
                 }
             }
-            $log->debug(Dumper(\%return_hash));
             return \%return_hash;
         } else {
         
