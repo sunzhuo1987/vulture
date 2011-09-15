@@ -76,7 +76,6 @@ sub forward{
 	if (%results){
 	    while (($key, $value) = each(%results)){
 	        $post .= $key."=".$value."&";
-		    $log->debug($post);
 	    }
     }
 
@@ -87,7 +86,6 @@ sub forward{
 
 	#Adding data to post variable
 	my $ref = $sth->fetchall_arrayref;
-	$log->debug(Dumper($ref));
 	foreach my $row (@{$ref}) {
         my ($var, $type, $need_decryption, $value) = @$row;
 		if($type eq 'autologon_user'){
@@ -153,8 +151,12 @@ sub forward{
         } else {
             $value = $r->ssl_lookup($headers_vars{$type}) if (exists $headers_vars{$type});
         }
-        $log->debug("Pushing custom header $name => $value");
-        $request->push_header($name => $value);
+        
+        #Try to push custom headers
+        eval {
+            $request->push_header($name => $value);
+            $log->debug("Pushing custom header $name => $value");
+        };
 	}
     $sth->finish();
 

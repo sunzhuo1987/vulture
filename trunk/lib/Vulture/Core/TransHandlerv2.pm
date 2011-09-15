@@ -145,8 +145,12 @@ sub handler {
                 } else {
                     $value = $r->ssl_lookup($headers_vars{$type}) if (exists $headers_vars{$type});
                 }
-                $log->debug("Pushing custom header $name => $value");
-                $request->push_header($name => $value);
+                
+                #Try to push custom headers
+                eval {
+                    $r->headers_in->set($name => $value);
+                    $log->debug("Pushing custom header $name => $value");
+                };
 	        }
             $sth->finish();
 
@@ -193,8 +197,12 @@ sub handler {
                 } else {
                     $value = $r->ssl_lookup($headers_vars{$type}) if (exists $headers_vars{$type});
                 }
-                $log->debug("Pushing custom header $name => $value");
-                $request->push_header($name => $value);
+                
+                #Try to push custom headers
+                eval {
+                    $r->headers_in->set($name => $value);
+                    $log->debug("Pushing custom header $name => $value");
+                };
 	        }
             $sth->finish();
 			
