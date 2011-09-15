@@ -20,26 +20,26 @@ use Core::VultureUtils qw(&session &get_memcached &set_memcached);
 #USED FOR NTLM
 sub get_nonce
 {
-        my ($self,$r,$log,$pdc,$bdc,$domain) = @_ ;
+    my ($self,$r,$log,$pdc,$bdc,$domain) = @_ ;
 
-        if ($self -> {nonce})
-        {
-                 $log->debug("Auth_NTLM: get_nonce -> Reuse " . $self -> {nonce});
-                return $self -> {nonce};
-        }
+    if ($self -> {nonce})
+    {
+        $log->debug("Auth_NTLM: get_nonce -> Reuse " . $self -> {nonce});
+        return $self -> {nonce};
+    }
 
-        my $nonce = '12345678' ;
-        $log->debug("Auth_NTLM: Connect to pdc = $pdc bdc = $bdc domain = $domain");
-        my $smbhandle = Authen::Smb::Valid_User_Connect ($pdc, $bdc, $domain, $nonce) ;
-        if (!$smbhandle)
-        {
-                 $log->debug("Auth_NTLM: Connect to SMB Server failed (pdc = $pdc bdc = $bdc domain = $domain error = "
-                                . Authen::Smb::SMBlib_errno . '/' . Authen::Smb::SMBlib_SMB_Error . ") for " . $r -> uri) ;
-                return undef;
-        }
-        $log->debug("Auth_NTLM: get_nonce() -> $nonce");
-        $self -> {smbhandle} = $smbhandle;
-        return $self -> {nonce} = $nonce ;
+    my $nonce = '12345678' ;
+    $log->debug("Auth_NTLM: Connect to pdc = $pdc bdc = $bdc domain = $domain");
+    my $smbhandle = Authen::Smb::Valid_User_Connect ($pdc, $bdc, $domain, $nonce) ;
+    if (!$smbhandle)
+    {
+        $log->debug("Auth_NTLM: Connect to SMB Server failed (pdc = $pdc bdc = $bdc domain = $domain error = "
+        . Authen::Smb::SMBlib_errno . '/' . Authen::Smb::SMBlib_SMB_Error . ") for " . $r -> uri) ;
+        return undef;
+    }
+    $log->debug("Auth_NTLM: get_nonce() -> $nonce");
+    $self -> {smbhandle} = $smbhandle;
+    return $self -> {nonce} = $nonce ;
 }
 
 
@@ -61,10 +61,10 @@ sub handler:method
 
 
 	#Basic authentification
-    	if($app and $app->{'auth_basic'}){
-           $log->debug('Basic mode');
-           ($status, $password) = $r->get_basic_auth_pw;
-           $user = $r->user;
+	if($app and $app->{'auth_basic'}){
+       $log->debug('Basic mode');
+       ($status, $password) = $r->get_basic_auth_pw;
+       $user = $r->user;
 	}
 	#Get user/password from URL or POST method
 	elsif($r->method eq "POST"){
@@ -128,29 +128,28 @@ sub handler:method
 			
 				return Apache2::Const::OK;	
 			} else {
+                unless ($ntlm) {
+                    $r->user(undef);
+                    $log->debug("Wrong user/password") if ($password and $user);
 
-				unless ($ntlm) {
-					$r->user(undef);
-					$log->debug("Wrong user/password") if ($password and $user);
-                
-                			#Create error message
-                			$r->pnotes('auth_message' => "WRONG_USER") if $user;
-                			$r->pnotes('auth_message' => "WRONG_PASSWORD") if $password;
-					$r->pnotes('auth_message' => "LOGIN_FAILED") if ($password and $user);
-				}
+                    #Create error message
+                    $r->pnotes('auth_message' => "WRONG_USER") if $user;
+                    $r->pnotes('auth_message' => "WRONG_PASSWORD") if $password;
+                    $r->pnotes('auth_message' => "LOGIN_FAILED") if ($password and $user);
+                }
 
-				#Unfinite loop for basic auth
-				if($app and $app->{'auth_basic'}){
-					$r->note_basic_auth_failure;
-					return Apache2::Const::HTTP_UNAUTHORIZED; 
-				} else {
+                #Unfinite loop for basic auth
+                if($app and $app->{'auth_basic'}){
+                $r->note_basic_auth_failure;
+                return Apache2::Const::HTTP_UNAUTHORIZED; 
+                } else {
 
-					#IF NTLM is used, we immediatly return the results of MultipleAuth();
-					return $ret if ($ntlm);
+                #IF NTLM is used, we immediatly return the results of MultipleAuth();
+                return $ret if ($ntlm);
 
-					$log->debug("No user / password... ask response handler to display the logon form");
-					return Apache2::Const::OK;
-				}
+                $log->debug("No user / password... ask response handler to display the logon form");
+                return Apache2::Const::OK;
+                }
 			}
 		}	
 	}

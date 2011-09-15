@@ -67,7 +67,7 @@ sub substr_unicode
     my $result = '' ;
     for ($i = $off ; $i < $end ; $i += 2)
     {# for now we simply ignore high order byte
-	 $result .=  substr ($data, $i,  1) ;
+	    $result .=  substr ($data, $i,  1) ;
     }
 
     return $result ;
@@ -92,21 +92,21 @@ sub get_msg1
     {
         my @flag1str;
         foreach my $i ( sort keys %msgflags1 ) 
-	{
+        {
             push @flag1str, $msgflags1{ $i } if $flags1 & $i;
-	}
+        }
         my $flag1str = join( ",", @flag1str );
 
         my @flag2str;
         foreach my $i ( sort keys %msgflags2 ) 
-	{
+        {
             push @flag2str, $msgflags2{ $i } if $flags2 & $i;
-	}
-	my $flag2str = join( ",", @flag2str );
-    
+        }
+        my $flag2str = join( ",", @flag2str );
+
         print STDERR "[$$] AuthenNTLM: protocol=$protocol, type=$type, flags1=$flags1($flag1str), " 
-	    . "flags2=$flags2($flag2str), domain length=$dom_len, domain offset=$dom_off, "
-	    . "host length=$host_len, host offset=$host_off, host=$host, domain=$domain\n" ;
+        . "flags2=$flags2($flag2str), domain length=$dom_len, domain offset=$dom_off, "
+        . "host length=$host_len, host offset=$host_off, host=$host, domain=$domain\n" ;
     }
 
     return ($type,$accept_unicode) ;
@@ -115,16 +115,16 @@ sub get_msg1
 
 sub set_msg2
 {
-    	my ($r, $log, $nonce, $accept_unicode) = @_ ;
+    my ($r, $log, $nonce, $accept_unicode) = @_ ;
 
-    	my $charencoding = $accept_unicode ? $invflags1{ NEGOTIATE_UNICODE } : $invflags1{ NEGOTIATE_OEM };
-    	my $flags2 = $invflags2{ NEGOTIATE_ALWAYS_SIGN } | $invflags2{ NEGOTIATE_NTLM };
-    	my $data = pack ('Z8Ca7vvCCa2a8a8', 'NTLMSSP', 2, '', 40, 0, $charencoding,  $flags2, '', $nonce, '') ;
-    	my $header = 'NTLM '. MIME::Base64::encode($data, '') ;
-	
-	$log -> debug ("Auth_NTLM: set_msg2 charencoding = $charencoding flags2 = $flags2 nonce=$nonce Send header: $header:'NTLM' ...");
+    my $charencoding = $accept_unicode ? $invflags1{ NEGOTIATE_UNICODE } : $invflags1{ NEGOTIATE_OEM };
+    my $flags2 = $invflags2{ NEGOTIATE_ALWAYS_SIGN } | $invflags2{ NEGOTIATE_NTLM };
+    my $data = pack ('Z8Ca7vvCCa2a8a8', 'NTLMSSP', 2, '', 40, 0, $charencoding,  $flags2, '', $nonce, '') ;
+    my $header = 'NTLM '. MIME::Base64::encode($data, '') ;
 
-    	return $header;
+    $log -> debug ("Auth_NTLM: set_msg2 charencoding = $charencoding flags2 = $flags2 nonce=$nonce Send header: $header:'NTLM' ...");
+
+    return $header;
 }
 
 
@@ -141,18 +141,18 @@ sub get_msg3
         $msg_len
         ) = unpack ('Z8Ca3vvVvvVvvVvvVvvVv', $data) ;
     
-    	my $lm     = $lm_off  ? substr ($data, $lm_off,   $lm_len):'' ;
-    	my $nt     = $nt_off  ? substr ($data, $nt_off,   $nt_len):'' ;
-    	my $user   = $user_off ? substr_unicode ($data, $user_off, $user_len) :'' ;
-    	my $host   = $host_off ? substr_unicode ($data, $host_off, $host_len) :'' ;
-    	my $domain = $dom_off ? substr_unicode ($data, $dom_off,  $dom_len) :'' ;
+	my $lm     = $lm_off  ? substr ($data, $lm_off,   $lm_len):'' ;
+	my $nt     = $nt_off  ? substr ($data, $nt_off,   $nt_len):'' ;
+	my $user   = $user_off ? substr_unicode ($data, $user_off, $user_len) :'' ;
+	my $host   = $host_off ? substr_unicode ($data, $host_off, $host_len) :'' ;
+	my $domain = $dom_off ? substr_unicode ($data, $dom_off,  $dom_len) :'' ;
 
-    	my $userdomain = $dom_len?$domain:$defaultdomain ;
-    	my $usernthash = $nt_len ? $nt : $lm;
+	my $userdomain = $dom_len?$domain:$defaultdomain ;
+	my $usernthash = $nt_len ? $nt : $lm;
 
 	$log->debug ("Auth_NTLM: get_msg3 protocol=$protocol, type=$type, user=$user, host=$host, domain=$userdomain, msg_len=$msg_len, user_nthash=$usernthash");
 
-    	return ($type,$user,$usernthash,$userdomain) ;
+	return ($type,$user,$usernthash,$userdomain) ;
 }
 
 
@@ -160,119 +160,119 @@ sub get_msg3
 sub checkAuth{
 	my ($package_name, $r, $class, $log, $dbh, $app, $user, $password, $id_method) = @_;	
 
-	$log->debug("########## Auth_NTLM ##########");
+    $log->debug("########## Auth_NTLM ##########");
 
-	my $table;
-    	my $self ;
-	my $conn = $r -> connection ;
-    	my $connhdr = $r -> headers_in -> {'Connection'} ;
+    my $table;
+    my $self ;
+    my $conn = $r -> connection ;
+    my $connhdr = $r -> headers_in -> {'Connection'} ;
 
-    	$table = $conn->notes();
-    	if (ref ($cache) ne $class || $$conn != $cache->{connectionid})
-    	{
-        	$conn->notes($table);
-        	$self = {connectionid => $$conn } ;
-        	bless $self, $class ;
-        	$cache = $self ;
-		$log->debug("Auth_NTLM: New connexion");
-    	}
-    	else
-    	{
-        	$self = $cache ;
-		$log->debug("Auth_NTLM: Reusing connexion");
+    $table = $conn->notes();
+    if (ref ($cache) ne $class || $$conn != $cache->{connectionid})
+    {
+        $conn->notes($table);
+        $self = {connectionid => $$conn } ;
+        bless $self, $class ;
+        $cache = $self ;
+        $log->debug("Auth_NTLM: New connexion");
+    }
+    else
+    {
+        $self = $cache ;
+        $log->debug("Auth_NTLM: Reusing connexion");
+    }
+
+    my $query = "SELECT * FROM ntlm WHERE id='".$id_method."'";
+    my $sth = $dbh->prepare($query);
+    $log->debug($query);
+    $sth->execute;
+    my $ref = $sth->fetchrow_hashref;
+    $sth->finish();
+
+    my $domain      = $ref->{'domain'};
+    my $pdc         = $ref->{'primary_dc'};
+    my $bdc         = $ref->{'secondary_dc'};
+    my $protocol    = $ref->{'protocol'};
+
+    my $auth_line 	=  $r->headers_in->{'Authorization'} ;
+    my $data	= undef;
+    if ($auth_line =~ /^NTLM\s+(.*?)$/i) {
+        $data 	= MIME::Base64::decode($1) ;
+    }
+
+	if (!$data)
+	{
+        $log->debug('Bad/Missing NTLM Authorization Header for ' . $r->uri);
+        my $hdr = $r -> err_headers_out ;
+        $hdr -> add ('WWW-Authenticate', 'NTLM') ;
+        return Apache2::Const::HTTP_UNAUTHORIZED ;
 	}
-
-	my $query = "SELECT * FROM ntlm WHERE id='".$id_method."'";
-    	my $sth = $dbh->prepare($query);
-    	$log->debug($query);
-    	$sth->execute;
-    	my $ref = $sth->fetchrow_hashref;
-    	$sth->finish();
-
-	my $domain      = $ref->{'domain'};
-	my $pdc         = $ref->{'primary_dc'};
-	my $bdc         = $ref->{'secondary_dc'};
-	my $protocol    = $ref->{'protocol'};
-
-    	my $auth_line 	=  $r->headers_in->{'Authorization'} ;
-	my $data	= undef;
-	if ($auth_line =~ /^NTLM\s+(.*?)$/i) {
-    		$data 	= MIME::Base64::decode($1) ;
-	}
-
-    	if (!$data)
-    	{
-		$log->debug('Bad/Missing NTLM Authorization Header for ' . $r->uri);
-		my $hdr = $r -> err_headers_out ;
-        	$hdr -> add ('WWW-Authenticate', 'NTLM') ;
-        	return Apache2::Const::HTTP_UNAUTHORIZED ;
-    	}
 
 	my ($protocol, $t) = unpack ('Z8C', $data) ;
 	my ($type, $accept_unicode, $username, $usernthash, $userdomain) = undef;
 	if ($t == 1) {
-		($type,$accept_unicode) = get_msg1 ($r, $log, $data, $domain);
+        ($type,$accept_unicode) = get_msg1 ($r, $log, $data, $domain);
 	}
 	elsif ($t == 3) {
-    		($type,$username,$usernthash,$userdomain) = get_msg3 ($r, $log, $data,$domain);
+        ($type,$username,$usernthash,$userdomain) = get_msg3 ($r, $log, $data,$domain);
 	}
 
-    	if ($type == 1)
-    	{
-		$log->debug('Auth_NTLM: handler type == 1');
-        	my $nonce = $self -> get_nonce ($r,$log,$pdc,$bdc,$domain) ;
-        	if (!$nonce)
-		{
-			$log->debug('Cannot get nonce');
-			return Apache2::Const::FORBIDDEN ;
-		}
+    if ($type == 1)
+    {
+        $log->debug('Auth_NTLM: handler type == 1');
+        my $nonce = $self -> get_nonce ($r,$log,$pdc,$bdc,$domain) ;
+        if (!$nonce)
+        {
+            $log->debug('Cannot get nonce');
+            return Apache2::Const::FORBIDDEN ;
+        }
 
-		$log->debug('Auth_NTLM: verify handle = 1 smbhandle == $self->{smbhandle} nonce == $nonce ');
-		$log->debug('Auth_NTLM: Sending type 2 message ');
-        	my $header1 = set_msg2 ($r, $log, $nonce, $accept_unicode) ;
-		my $hdr = $r -> err_headers_out ;
-        	$hdr -> add ('WWW-Authenticate', $header1);
-		return Apache2::Const::HTTP_UNAUTHORIZED ;
-    	}
-	elsif ($type == 3)
-    	{
-		$log->debug('Auth_NTLM: handler type == 3');
-        	my $nonce = $self -> get_nonce ($r,$log,$pdc,$bdc,$domain) ;
+        $log->debug('Auth_NTLM: verify handle = 1 smbhandle == $self->{smbhandle} nonce == $nonce ');
+        $log->debug('Auth_NTLM: Sending type 2 message ');
+        my $header1 = set_msg2 ($r, $log, $nonce, $accept_unicode) ;
+        my $hdr = $r -> err_headers_out ;
+        $hdr -> add ('WWW-Authenticate', $header1);
+        return Apache2::Const::HTTP_UNAUTHORIZED ;
+    }
+    elsif ($type == 3)
+    {
+        $log->debug('Auth_NTLM: handler type == 3');
+        my $nonce = $self -> get_nonce ($r,$log,$pdc,$bdc,$domain) ;
 
-		$log->debug("Auth_NTLM: Authen::Smb::Valid_User_Auth --> Call with smbhandle=$self->{smbhandle}, username=$username, nt_hash=$usernthash, 1, domain=$userdomain");
-    		my $rc = Authen::Smb::Valid_User_Auth ($self->{smbhandle}, $username, $usernthash, 1, $userdomain) ;
-		$log->debug('Auth_NTLM: Authen::Smb::Valid_User_Auth --> Ok !');
+        $log->debug("Auth_NTLM: Authen::Smb::Valid_User_Auth --> Call with smbhandle=$self->{smbhandle}, username=$username, nt_hash=$usernthash, 1, domain=$userdomain");
+        my $rc = Authen::Smb::Valid_User_Auth ($self->{smbhandle}, $username, $usernthash, 1, $userdomain) ;
+        $log->debug('Auth_NTLM: Authen::Smb::Valid_User_Auth --> Ok !');
 
-    		my $errno  = Authen::Smb::SMBlib_errno ;
-    		my $smberr = Authen::Smb::SMBlib_SMB_Error ;
+        my $errno  = Authen::Smb::SMBlib_errno ;
+        my $smberr = Authen::Smb::SMBlib_SMB_Error ;
 
-		$log->debug('Auth_NTLM: Authen::Smb::Valid_User_Disconnect --> Call');
-    		Authen::Smb::Valid_User_Disconnect ($self->{smbhandle}) if ($self->{smbhandle}) ;
-		$log->debug('Auth_NTLM: Authen::Smb::Valid_User_Disconnect --> Ok !');
+        $log->debug('Auth_NTLM: Authen::Smb::Valid_User_Disconnect --> Call');
+        Authen::Smb::Valid_User_Disconnect ($self->{smbhandle}) if ($self->{smbhandle}) ;
+        $log->debug('Auth_NTLM: Authen::Smb::Valid_User_Disconnect --> Ok !');
 
-    		if ($rc == &Authen::Smb::NTV_LOGON_ERROR)
-    		{
-			$log->debug("Auth_NTLM: Wrong password/user (rc=$rc/$errno/$smberr): $userdomain\\$username for " . $r -> uri) ;
-                	my $hdr = $r -> err_headers_out ;
-                	$hdr -> add ('WWW-Authenticate', 'NTLM');
-			return Apache2::Const::HTTP_UNAUTHORIZED ;
-    		}
-    		if ($rc)
-    		{
-			$log->debug("Auth_NTLM: SMB Server error $rc/$errno/$smberr for " . $r -> uri) ;
-                	my $hdr = $r -> err_headers_out ;
-                	$hdr -> add ('WWW-Authenticate', 'NTLM');
-			return Apache2::Const::HTTP_UNAUTHORIZED ;
-    		}
-    	}
-    	else
-    	{
-		$log->debug('Auth_NTLM: Bad NTLM Authorization Header type $type for '.$r->uri) ;
-		return Apache2::Const::HTTP_UNAUTHORIZED ;
-    	}
+        if ($rc == &Authen::Smb::NTV_LOGON_ERROR)
+        {
+            $log->debug("Auth_NTLM: Wrong password/user (rc=$rc/$errno/$smberr): $userdomain\\$username for " . $r -> uri) ;
+            my $hdr = $r -> err_headers_out ;
+            $hdr -> add ('WWW-Authenticate', 'NTLM');
+            return Apache2::Const::HTTP_UNAUTHORIZED ;
+        }
+        if ($rc)
+        {
+            $log->debug("Auth_NTLM: SMB Server error $rc/$errno/$smberr for " . $r -> uri) ;
+            my $hdr = $r -> err_headers_out ;
+            $hdr -> add ('WWW-Authenticate', 'NTLM');
+            return Apache2::Const::HTTP_UNAUTHORIZED ;
+        }
+    }
+    else
+    {
+        $log->debug('Auth_NTLM: Bad NTLM Authorization Header type $type for '.$r->uri) ;
+        return Apache2::Const::HTTP_UNAUTHORIZED ;
+    }
 
-	$r->user ($username);
-	return Apache2::Const::OK ;
+    $r->user ($username);
+    return Apache2::Const::OK ;
 }
 1;
 
