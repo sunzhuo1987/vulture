@@ -5,8 +5,6 @@ package Core::Log;
 use Apache2::Log;
 use Apache2::Reload;
 
-use Data::Dumper;
-
 use constant {
 	EMERG => "emerg",
 	ALERT => "emerg",

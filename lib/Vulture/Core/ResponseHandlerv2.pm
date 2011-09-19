@@ -11,7 +11,7 @@ use DBI;
 
 use Apache2::Const -compile => qw(OK DECLINED REDIRECT HTTP_UNAUTHORIZED);
 
-use Core::VultureUtils qw(&session);
+use Core::VultureUtils qw(&session &getStyle &getTranslations);
 
 use Apache::SSLLookup;
 
@@ -149,70 +149,13 @@ sub display_auth_form {
 		$uri = $1;
 	}
 
-    #Error message to translate / Form
-    if($r->headers_in->{'Accept-Language'}){
-        #Splitting Accept-Language headers
-        # Prepare the list of client-acceptable languages
-        my @languages = ();
-        foreach my $tag (split(/,/, $r->headers_in->{'Accept-Language'})) {
-            my ($language, $quality) = split(/\;/, $tag);
-            $quality =~ s/^q=//i if $quality;
-            $quality = 1 unless $quality;
-            next if $quality <= 0;
-            # We want to force the wildcard to be last
-            $quality = 0 if ($language eq '*');
-            # Pushing lowercase language here saves processing later
-            push(@languages, { quality => $quality,
-            language => $language,
-            lclanguage => lc($language) });
-        }
-        @languages = sort { $b->{quality} <=> $a->{quality} } @languages;
-
-        my $currentLanguage;
-
-        foreach my $tag (@languages){
-        
-            #Querying data for language accepted by the server
-            my $query = "SELECT count(*) FROM style_translation WHERE country = '".$tag->{lclanguage}."'";
-            if ($tag->{lclanguage} =~ /^([^-]+)-([^-]+)$/){
-                $query .= " OR country = '".$1."' OR country = '".$2."'";
-            }
-            $log->debug($query);
-            if ($dbh->selectrow_array($query)){
-                $currentLanguage = $tag->{lclanguage};
-                last;
-            }
-        }
-        my $language_query = "country = '".$currentLanguage."'";
-        if ($currentLanguage =~ /^([^-]+)-([^-]+)$/){
-            $language_query .= " OR country = '".$1."' OR country = '".$2."'";
-        }
-        
-        #Message translation
-        my $message_query = "message = 'USER' OR message = 'PASSWORD'";
-        $message_query .= " OR message = '".$message."'" if defined $message;
-
-        my $query = "SELECT message, translation FROM style_translation WHERE (".$message_query.") AND (".$language_query.")";        
-        $log->debug($query);
-
-        $translated_messages = $dbh->selectall_hashref($query,'message');
-    }
-
+    #Get translations
+    my $translated_messages = getTranslations($r, $log, $dbh, $message);
     my %translations = %$translated_messages;
     my $html = '<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><title>Please authenticate</title>';
     
-    #
-    # ONLY FOR SQLITE3
-    #
-
-    #Querying database for style
-    my $intf_id = $r->dir_config('VultureID');
-	my $query = "SELECT CASE WHEN app.style_id NOT NULL THEN app.style_id WHEN intf.style_id NOT NULL THEN intf.style_id ELSE '' END AS 'id_style', style_style.name, style_css.value AS css, style_image.image AS image, style_tpl.value AS tpl FROM app,intf, style_tpl_mapping, style_tpl LEFT JOIN style_style ON style_style.id = id_style LEFT JOIN style_css ON style_css.id = style_style.css_id LEFT JOIN style_image ON style_image.id = style_style.image_id WHERE app.id= ".$app->{id}." AND intf.id = ".$intf_id." AND style_tpl_mapping.style_id = id_style AND style_tpl.id = style_tpl_mapping.tpl_id AND style_tpl.type = 'LOGIN'";
-    $log->debug($query);
-    $sth = $dbh->prepare($query);
-	$sth->execute;
-	my $ref = $sth->fetchrow_hashref;
-	$sth->finish();
+    #Get style
+    my $ref = getStyle($r, $log, $dbh, $app, 'LOGIN');
 	
     #Including css
     if (defined $ref->{css}){
@@ -281,8 +224,10 @@ FOO
     
     #Template was undefined
     } else {
+        $html .= "<center><div style = \"position: absolute; top:25%; left:25%;\">";
+        $html .= "<div id=\"custom\" style=\"margin: 0; padding: 60 30;\">"
         $html .= "<h2><font color=\"red\">$translations{$message}{'translation'}</font></h2>" if defined $translations{$message}{'translation'};
-        $html .= "<center><div style = \"position: absolute; top:25%; left:25%;\"><div id=\"custom\" style=\"margin: 0; padding: 60 30;\">".$form."</div>";
+        $html .= $form."</div>";
     }
     $html .= '</body></html>';
 	return $html;
