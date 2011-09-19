@@ -9,8 +9,6 @@ use Apache2::Log;
 use Apache2::Reload;
 use Authen::Simple::Kerberos;
 
-use Data::Dumper;
-
 use Apache2::Const -compile => qw(OK FORBIDDEN);
 
 sub checkAuth{

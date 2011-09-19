@@ -8,8 +8,6 @@ use Apache2::Connection ();
 use Apache2::Log;
 use Apache2::Reload;
 
-use Data::Dumper;
-
 use Digest::MD5 qw(md5_hex md5_base64);
 use Digest::SHA1  qw(sha1_hex sha1_base64);
 

@@ -15,8 +15,6 @@ use LWP::UserAgent;
 
 use Apache::SSLLookup;
 
-use Data::Dumper;
-
 sub plugin{
 	my ($package_name, $r, $log, $dbh, $app, $options) = @_;
 
