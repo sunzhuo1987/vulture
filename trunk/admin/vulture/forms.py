@@ -95,8 +95,11 @@ class TranslationForm(forms.ModelForm):
         country = self.cleaned_data.get('country')
         message = self.cleaned_data.get('message')
 
-        messages = Translation.objects.get(country=country, message=message)
-        messages.delete()
+        try:
+            messages = Translation.objects.get(country=country, message=message)
+            messages.delete()
+        catch Translation.DoesNotExist:
+            pass
         return self.cleaned_data
 
 class MapURIForm(forms.ModelForm):

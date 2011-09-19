@@ -317,8 +317,11 @@ def edit_translation(request,object_id=None):
     # Save new/edited translation
     if request.method == 'POST' and form.is_valid():
         dataPosted = request.POST
-        result = Translation.objects.filter(country=dataPosted['country'], message=dataPosted['message'])
-        result.delete()
+        try:
+            result = Translation.objects.filter(country=dataPosted['country'], message=dataPosted['message'])
+            result.delete()
+        except Translation.DoesNotExist:
+            pass
         form.save()
         return HttpResponseRedirect('/style_translation/')
 

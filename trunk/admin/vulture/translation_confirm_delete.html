@@ -9,10 +9,10 @@
 
 {% block content %}
 <div style="text-align: center; width: 70%">
-<form method="post" action="/style_languages/{{ object.id }}/del/">
+<form method="post" action="/style_translation/{{ object.id }}/del/">
 {% trans "Delete language " %} {{ object }} ?<br>
 <br>
-<input type="button" onclick="document.location='/style_languages/'" value="{% trans "no" %}" style="width: 50px;"/> <input type="submit" value="{% trans "yes" %}" style="width: 50px;"/>
+<input type="button" onclick="document.location='/style_translation/'" value="{% trans "no" %}" style="width: 50px;"/> <input type="submit" value="{% trans "yes" %}" style="width: 50px;"/>
 </form>
 </div>
 {% endblock %}
