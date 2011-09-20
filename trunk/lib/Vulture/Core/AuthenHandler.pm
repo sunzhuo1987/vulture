@@ -121,10 +121,10 @@ sub handler:method
 				$session_SSO{password} = $password;
 
 				#Setting Memcached table (ex: SAML)
-				#my (%users);
-				#%users = %{get_memcached('vulture_users_in')};
-				#$users{$user} = $r->pnotes('id_session_SSO');
-				#set_memcached('vulture_users_in', \%users);
+				my (%users);
+				%users = %{get_memcached('vulture_users_in')};
+				$users{$user} = $r->pnotes('id_session_SSO');
+				set_memcached('vulture_users_in', \%users);
 			
 				return Apache2::Const::OK;	
 			} else {

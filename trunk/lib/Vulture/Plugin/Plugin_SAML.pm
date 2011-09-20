@@ -32,7 +32,7 @@ sub plugin{
 
 	#Check if user is logged in SSO portal
 	if($action eq 'is_logged'){
-		$log->debug("Check if user $user is logged in SSO portal");
+		$log->debug("Check if user $login is logged in SSO portal");
 		my $xml = "<xml><is_logged>";
 		if(exists $users{$login}){
 			$xml .= "true";
@@ -41,10 +41,11 @@ sub plugin{
 		}
 		$xml .= "</is_logged></xml>";
 		$r->pnotes('response_content' => $xml);
+        $r->pnotes('response_content_type' => 'text/xml');
 		
 	#Check if user is logged in application
 	} elsif($action eq 'is_logged_app'){
-		$log->debug("Check if user $user is logged in application $app_name");
+		$log->debug("Check if user $login is logged in application $app_name");
 		my $xml = "<xml><is_logged>";
 		if(not($app_name)){
 			return Apache2::Const::FORBIDDEN;		
@@ -64,10 +65,11 @@ sub plugin{
 		}
 		$xml .= "</is_logged></xml>";
 		$r->pnotes('response_content' => $xml);
+        $r->pnotes('response_content_type' => 'text/xml');
 
 	#Logout user
 	} elsif($action eq 'logout'){
-		$log->debug("Logout user $user from SSO portal");
+		$log->debug("Logout user $login from SSO portal");
 		#If user is currently logged		
 		if(defined $users{$login}){
 			
@@ -82,7 +84,7 @@ sub plugin{
 	
 	#Logout user from application
 	} elsif($action eq 'logout_app'){
-		$log->debug("Logout user $user from application $app_name");
+		$log->debug("Logout user $login from application $app_name");
 		if(not($app_name)){
 			return Apache2::Const::FORBIDDEN;		
 		}
@@ -105,6 +107,11 @@ sub plugin{
 
 	#Commit changes
 	set_memcached('vulture_users_in', \%users);
+    
+    #Destroy useless handlers
+    $r->set_handlers(PerlAuthenHandler => undef);
+    $r->set_handlers(PerlAuthzHandler => undef);
+    $r->set_handlers(PerlFixupHandler => undef);
 	return Apache2::Const::OK;
 }
 
