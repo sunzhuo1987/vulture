@@ -37,13 +37,11 @@ sub proxy_redirect {
     my $cleaned_cookies;
     foreach (split(';', $cookies)) {
         if (/([^,; ]+)=([^,; ]+)/) {
-            $log->debug("Check for cookie $1");
             if ($1 ne $r->dir_config('VultureAppCookieName') and $1 ne $r->dir_config('VultureProxyCookieName')){
                 $cleaned_cookies .= $1."=".$2;
             }
         }
     }
-    $log->debug($cleaned_cookies);
     $r->headers_in->set("Cookie" => $cleaned_cookies);
 	
 	#Not canonicalising url (i.e : not escaping chars)

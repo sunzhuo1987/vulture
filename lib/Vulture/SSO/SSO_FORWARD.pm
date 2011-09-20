@@ -116,7 +116,6 @@ sub forward{
 
 	#Setting headers
 	$request->push_header('Content-Type' => 'application/x-www-form-urlencoded');
-	$request->push_header('Cookie' => $r->headers_in->{'Cookie'});
 	$request->push_header('User-Agent' => $r->headers_in->{'User-Agent'});
 	
 	my $parsed_uri = APR::URI->parse($r->pool, $app->{'url'});

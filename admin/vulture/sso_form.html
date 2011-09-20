@@ -15,7 +15,7 @@
 <form method="post" action="." name="sso">
 <table style="padding: 0">
 <tr><td class="input">{% trans "Description" %}</td><td>{{ form.desc }}{% if form.desc.errors %}<div class="error">{{ form.desc.errors|join:", " }}</div>{% endif %}</td></tr>
-<tr><td class="input">{% trans "Referential" %}</td><td>{{ form.auth }}{% if form.auth.errors %}<div class="error">{{ form.auth.errors|join:", " }}</div>{% endif %}</td></tr>
+<tr><td class="input">{% trans "Referential" %} ({% trans "optional" %})</td><td>{{ form.auth }}{% if form.auth.errors %}<div class="error">{{ form.auth.errors|join:", " }}</div>{% endif %}</td></tr>
 </table>
 
 <br />
