@@ -225,7 +225,7 @@ FOO
     #Template was undefined
     } else {
         $html .= "<center><div style = \"position: absolute; top:25%; left:25%;\">";
-        $html .= "<div id=\"custom\" style=\"margin: 0; padding: 60 30;\">"
+        $html .= "<div id=\"custom\" style=\"margin: 0; padding: 60 30;\">";
         $html .= "<h2><font color=\"red\">$translations{$message}{'translation'}</font></h2>" if defined $translations{$message}{'translation'};
         $html .= $form."</div>";
     }
