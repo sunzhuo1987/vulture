@@ -38,7 +38,7 @@ sub proxy_redirect {
     foreach (split(';', $cookies)) {
         if (/([^,; ]+)=([^,; ]+)/) {
             if ($1 ne $r->dir_config('VultureAppCookieName') and $1 ne $r->dir_config('VultureProxyCookieName')){
-                $cleaned_cookies .= $1."=".$2;
+                $cleaned_cookies .= $1."=".$2.";";
             }
         }
     }
