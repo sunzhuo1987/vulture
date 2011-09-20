@@ -98,7 +98,7 @@ class TranslationForm(forms.ModelForm):
         try:
             messages = Translation.objects.get(country=country, message=message)
             messages.delete()
-        catch Translation.DoesNotExist:
+        except Translation.DoesNotExist:
             pass
         return self.cleaned_data
 
