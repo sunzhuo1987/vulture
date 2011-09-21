@@ -70,6 +70,8 @@
     <tr><td class="input">{% trans "Display portal" %} ({% trans "optional" %})</td><td>{{ form.display_portal }}{% if form.display_portal.errors %}<div class="error">{{ form.display_portal.errors|join:", " }}</div>{% endif %}</td></tr>
     <tr><td class="input">{% trans "Style" %} ({% trans "optional" %})</td><td>{{ form.style }}{% if form.style.errors %}<div class="error">{{ form.style.errors|join:", " }}</div>{% endif %}</td></tr>
     <tr><td class="input">{% trans "Canonicalise URL" %} ({% trans "optional" %})</td><td>{{ form.canonicalise_url }}{% if form.canonicalise_url.errors %}<div class="error">{{ form.canonicalise_url.errors|join:", " }}</div>{% endif %}</td></tr>
+    <tr><td class="input">{% trans "Timeout for user session (leave blank for no timeout)" %} ({% trans "optional" %})</td><td>{{ form.timeout }}{% if form.timeout.errors %}<div class="error">{{ form.timeout.errors|join:", " }}</div>{% endif %}</td></tr>
+    <tr><td class="input">{% trans "Update user session timeout each time he do smth" %} ({% trans "optional" %})</td><td>{{ form.update_access_time }}{% if form.update_access_time.errors %}<div class="error">{{ form.update_access_time.errors|join:", " }}</div>{% endif %}</td></tr>
     <tr><td class="input">{% trans "Add VirtualHost directives" %} ({% trans "optional" %})</td><td>{{ form.virtualhost_directives }}{% if form.virtualhost_directives.errors %}<div class="error">{{ form.virtualhost_directives.errors|join:", " }}</div>{% endif %}</td></tr>
     <tr></td><td>{{ form.up.as_hidden }}</div></td></tr>
 </table>

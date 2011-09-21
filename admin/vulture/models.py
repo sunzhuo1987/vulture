@@ -398,6 +398,8 @@ class App(models.Model):
     style = models.ForeignKey('Style',blank=1,null=1)
     canonicalise_url = models.BooleanField(default=1)
     virtualhost_directives = models.TextField(blank=1,null=1)
+    timeout = models.IntegerField(null=1,blank=1)
+    update_access_time = models.BooleanField(default=0)
     def __str__(self):
         return self.name
     def get_absolute_url(self):
