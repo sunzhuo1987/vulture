@@ -20,7 +20,7 @@ sub forward{
 	my ($package_name, $r, $log, $dbh, $app, $user, $password) = @_;
 
 	my (%session_SSO);
-	session(\%session_SSO, $app->{timeout}, $r->pnotes('id_session_SSO'));
+	session(\%session_SSO, $app->{timeout}, $r->pnotes('id_session_SSO'), $log, $app->{update_access_time});
 
 	$log->debug("########## SSO_Learning ##########");
 

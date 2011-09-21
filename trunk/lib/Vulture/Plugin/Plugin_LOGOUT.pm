@@ -63,7 +63,7 @@ sub plugin{
 					$request->push_header('User-Agent' => $r->headers_in->{'User-Agent'});
 					$request->push_header('Host' => $host);
 
-					$log->debug($request->as_string);	
+					$log->debug($request->as_string);
 
 					#Getting response
 					$response = $ua->request($request);
@@ -92,9 +92,9 @@ sub plugin{
 	$r->set_handlers(PerlAuthenHandler => undef);
 	$r->set_handlers(PerlAuthzHandler => undef);
 	$r->set_handlers(PerlFixupHandler => undef);
-	$r->set_handlers(PerlResponseHandler => undef);
-
-	return Apache2::Const::REDIRECT;
+    $r->pnotes('response_content' => "Disconnected from Vulture");
+    $r->pnotes('response_content_type' => 'text/xml');
+	return Apache2::Const::OK;
 }
 
 1;

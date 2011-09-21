@@ -77,8 +77,8 @@ sub handler {
 
 	#If URI matches with app adress, get app and interface
 	my $app = get_app($log, $r->hostname, $dbh, $r->dir_config('VultureID')) if ($r->unparsed_uri !~ /vulture_app/ and $r->unparsed_uri !~ /vulture_logout/);
-	$r->pnotes('app' => $app) if defined $app;
-
+	$r->pnotes('app' => $app) if defined $app;    
+    
 	#Plugin or Rewrite (according to URI)
 	my $plugins = $dbh->selectall_arrayref("SELECT uri_pattern, type, options FROM map_uri WHERE app_id = ? OR app_id IS NULL ORDER BY type", undef, $app->{id});
 	foreach my $row (@$plugins) {
@@ -104,8 +104,8 @@ sub handler {
 			
 			#Get return
 			$ret = $module_name->plugin($r, $log, $dbh, $app, $options);
-			
-            return $ret if($ret or uc(@$row[2]) eq "STATIC")
+            
+            return $ret if($ret or (uc(@$row[2]) eq "STATIC") or (uc(@$row[2]) eq "SAML") or (uc(@$row[2]) eq "LOGOUT"));
 		}
 	}	
 
@@ -114,8 +114,7 @@ sub handler {
 		my $proxy_url;
 	    if ($uri =~ /^(http|https|ftp):\/\//) {
             	$proxy_url = $uri;
-	    }
-	    else {
+	    } else {
 		    $proxy_url = $app->{'url'}.$uri;
 	    }
 	    
@@ -160,7 +159,7 @@ sub handler {
     	#Getting session app if exists. If not, creating one
         my ($id_app) = get_cookie($r->headers_in->{Cookie}, 'vulture_app=([^;]*)');
 		my (%session_app);
-		session(\%session_app, $app->{timeout}, $id_app, $log);
+		session(\%session_app, $app->{timeout}, $id_app, $log, $app->{update_access_time});
 		$r->pnotes('id_session_app' => $id_app);
 		
 		# We have authorization for this app so let's go with mod_proxy
@@ -250,7 +249,7 @@ sub handler {
 
 		my (%session_SSO);
 		my (%session_app);
-		session(\%session_SSO, $app->{timeout}, $SSO_cookie_name);
+		session(\%session_SSO, $app->{timeout}, $SSO_cookie_name, $log, $app->{update_access_time});
 		
 		#Get session id if not exists
 		if($SSO_cookie_name ne $session_SSO{_session_id}){
@@ -259,7 +258,7 @@ sub handler {
 		}
 
 		#Get app
-		session(\%session_app, $app->{timeout}, $app_cookie_name);
+		session(\%session_app, $app->{timeout}, $app_cookie_name, $log, $app->{update_access_time});
 		my $app = get_app($log, $session_app{app_name}, $dbh, $r->dir_config('VultureID'));
 		
 		$r->pnotes('app' => $app);

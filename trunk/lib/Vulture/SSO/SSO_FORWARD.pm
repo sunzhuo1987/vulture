@@ -31,7 +31,7 @@ sub forward{
     my $r = Apache::SSLLookup->new($r);
 
 	my (%session_app);
-	session(\%session_app, undef, $r->pnotes('id_session_app'));
+	session(\%session_app, undef, $r->pnotes('id_session_app'), $log, $app->{update_access_time});
 
     my %headers_vars = (
 		    2 => 'SSL_CLIENT_I_DN',
@@ -180,12 +180,16 @@ sub forward{
 				
 			}
 		}
+        
+        #Fill session with cookies returned by app (for logout)
 		$session_app{cookie} = $response->headers->header('Set-Cookie');
 	}
 	foreach my $k (keys %cookies_app) {
 		$r->err_headers_out->add('Set-Cookie' => $k."=".$cookies_app{$k}."; domain=".$r->hostname."; path=/");  # Send cookies to browser's client
 		$log->debug("PROPAG ".$k."=".$cookies_app{$k});
 	}
+    
+    # Fill session app with cookies returned by app
 
     # 30x headers
 	if ($response->code =~ /^30(.*)/ ) { 

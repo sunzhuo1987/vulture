@@ -52,7 +52,7 @@ sub handler:method
 	my $app = $r->pnotes('app');
 
 	my (%session_SSO);
-	session(\%session_SSO, $app->{timeout}, $r->pnotes('id_session_SSO'));
+	session(\%session_SSO, $app->{timeout}, $r->pnotes('id_session_SSO'), $log, $app->{update_access_time});
 
 	my ($status, $password);
 	my $user;
