@@ -33,9 +33,9 @@ sub handler {
 	my $password = $r->pnotes('password');
 
 	my (%session_app);
-	session(\%session_app, $app->{timeout}, $r->pnotes('id_session_app'));
+	session(\%session_app, $app->{timeout}, $r->pnotes('id_session_app'), $log, $app->{update_access_time});
 	my (%session_SSO);
-	session(\%session_SSO, $app->{timeout}, $r->pnotes('id_session_SSO'));
+	session(\%session_SSO, $app->{timeout}, $r->pnotes('id_session_SSO'), $log, $app->{update_access_time});
 
 	#Query counter
 	#my $query = "UPDATE stats SET value=value+1 WHERE var='responsehandler_counter'";

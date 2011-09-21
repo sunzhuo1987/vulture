@@ -30,9 +30,9 @@ sub handler {
 
 	#Session data
 	my (%session_app);
-	session(\%session_app, $app->{timeout}, $r->pnotes('id_session_app'));
+	session(\%session_app, $app->{timeout}, $r->pnotes('id_session_app'), $log, $app->{update_access_time});
 	my (%session_SSO);
-	session(\%session_SSO, $app->{timeout}, $r->pnotes('id_session_SSO'));
+	session(\%session_SSO, $app->{timeout}, $r->pnotes('id_session_SSO'), $log, $app->{update_access_time});
 
 	#Bypass for Vulture Auth
 	if(not $session_SSO{is_auth} and not $r->user){

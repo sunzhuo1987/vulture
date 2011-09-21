@@ -55,7 +55,7 @@ sub	set_memcached {
 }
 
 sub	session {
-	my ($session, $timeout, $id, $log, $n) = @_;
+	my ($session, $timeout, $id, $log, $update_access_time, $n) = @_;
 
 	die if ($n and $n > 2); # avoid deep recursion
 #	eval {
@@ -66,7 +66,7 @@ sub	session {
 #							   Serialize => 'Base64',
 #							   DataSource => 'dbi:SQLite2:dbname=/var/www/vulture/sql/sessions',
 #							  }
-#	} or session($session, $timeout, undef, $n + 1);
+#	} or session($session, $timeout, undef, $log, $update_access_time, $n + 1);
     eval {
         tie %{$session}, 'Apache::Session::Flex', $id, {
 				          Store     => 'Memcached',
@@ -75,13 +75,20 @@ sub	session {
 				          Serialize => 'Storable',
 				          Servers => '127.0.0.1:9091',
 				         };
-    } or session($session, $timeout, undef, $log, $n + 1);
-
-	#Debug for eval
-	$log->debug ($@) if ($log and $@);
-
-	#$session->{date} = time() if (!$session->{posted});
-	#undef $session->{posted} if ($timeout and time() - $session->{date} > $timeout);
+    } or session($session, $timeout, undef, $log, $update_access_time, $n + 1);
+    
+    #Session starting this time or previous session connection time was valid
+    if(not defined $id or ($update_access_time == 1 and $timeout and $timeout > 0 and (time() - $session->{last_access_time} < $timeout))){
+        $session->{last_access_time} = time();
+    }
+    
+    #Regenerate session if too old
+    if ($timeout and $timeout > 0 and (time() - $session->{last_access_time} > $timeout)){
+        tied(%{$session})->delete();
+        session($session, $timeout, undef, $log, $update_access_time, $n + 1);
+    }
+    
+    return $session;
 }
 
 sub	get_cookie {
@@ -114,7 +121,7 @@ sub	get_app {
 	my ($log, $host, $dbh, $intf) = @_;
 
     #Getting app
-	my $query = "SELECT app.id,name, url, app.log_id, logon_url, logout_url,intf.port, intf.remote_proxy, up, auth_basic, display_portal, canonicalise_url, sso_forward_id AS sso_forward FROM app, intf WHERE app.intf_id='".$intf."' AND app.name = '".$host."' AND intf.id='".$intf."'";
+	my $query = "SELECT app.id,name, url, app.log_id, logon_url, logout_url,intf.port, intf.remote_proxy, up, auth_basic, display_portal, canonicalise_url, sso_forward_id AS sso_forward, timeout, update_access_time FROM app, intf WHERE app.intf_id='".$intf."' AND app.name = '".$host."' AND intf.id='".$intf."'";
 	#$log->debug($query);
 	$sth = $dbh->prepare($query);
 	$sth->execute;
