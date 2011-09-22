@@ -252,7 +252,7 @@ sub display_portal {
     my $all_apps = $dbh->selectall_arrayref($query);
 	my $html;
 	foreach my $app (@$all_apps) {
-        $html .= "<a href='http://".@$app[0]."'><h3>Application ".@$app[0]."</h3></a>";
+        $html .= "<a href='".$r->is_https ? 'https://' : 'http://'.@$app[0]."'><h3>Application ".@$app[0]."</h3></a>";
 	}
 	return $html;
 }
