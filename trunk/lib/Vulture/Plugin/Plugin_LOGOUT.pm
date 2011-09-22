@@ -33,8 +33,9 @@ sub plugin{
 		my (%session_SSO);
 		session(\%session_SSO, undef, $session_app{SSO});
 
+        #Foreach app where user is currently logged in
 		foreach my $key (keys %session_SSO){
-			if($key ne 'is_auth' and $key ne 'username'){ 
+			if($key ne 'is_auth' and $key ne 'username' and $key ne 'last_access_time'){ 
 				my $id_app = $session_SSO{$key};
 				my (%current_app);
 				session(\%current_app, undef, $id_app);

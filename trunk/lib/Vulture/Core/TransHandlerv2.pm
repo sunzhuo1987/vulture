@@ -257,6 +257,9 @@ sub handler {
 			$SSO_cookie_name = $session_SSO{_session_id};
 		}
 
+        #Set cookie for SSO portal
+		$r->err_headers_out->add('Set-Cookie' => $r->dir_config('VultureProxyCookieName')."=".$session_SSO{_session_id}."; path=/; domain=".$r->hostname);
+
 		#Get app
 		session(\%session_app, $app->{timeout}, $app_cookie_name, $log, $app->{update_access_time});
 		my $app = get_app($log, $session_app{app_name}, $dbh, $r->dir_config('VultureID'));
