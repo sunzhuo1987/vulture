@@ -16,7 +16,6 @@ use Apache2::Const -compile => qw(OK HTTP_UNAUTHORIZED);
 
 use Core::VultureUtils qw(&session &get_memcached &set_memcached);
 
-
 #USED FOR NTLM
 sub get_nonce
 {
@@ -56,6 +55,7 @@ sub handler:method
 
 	my ($status, $password);
 	my $user;
+        my $token;
 
 	$log->debug("########## AuthenHandler ##########");
 
@@ -68,9 +68,9 @@ sub handler:method
 	}
 	#Get user/password from URL or POST method
 	elsif($r->method eq "POST"){
-		($user, $password) = getPOSTdata($r);
+		($user, $password, $token) = getPOSTdata($r);
 	} elsif($r->method eq "GET"){
-		($user, $password) = getGETdata($r);
+		($user, $password, $token) = getGETdata($r);
 	} else {
 	    return Apache2::Const::HTTP_UNAUTHORIZED;
 	}
@@ -92,8 +92,8 @@ sub handler:method
 			
 			#Check type and use good auth module
 			my $ret = Apache2::Const::HTTP_UNAUTHORIZED;
-			
-			$ret = multipleAuth($r, $log, $dbh, $app, $user, $password, 0, 0) if ($user);
+
+			$ret = multipleAuth($r, $log, $dbh, $app, $user, $password, 0, 0) if ($user and $password and ($token eq $session_SSO{random_token} or $app->{'auth_basic'}));
 
 			my $ntlm = undef;
 			foreach my $row (@$auths) {
@@ -104,16 +104,12 @@ sub handler:method
 				}
 			}
 
-				
 			if(defined $ret and $ret == scalar Apache2::Const::OK){
 				$log->debug("Good user/password");
 				
 				#Setting user for AuthzHandler
 				$r->pnotes('username' => $user);
 				$r->pnotes('password' => $password);
-
-				$r->err_headers_out->add('Set-Cookie' => $r->dir_config('VultureProxyCookieName')."=".$r->pnotes('id_session_SSO')."; path=/; domain=".$r->hostname);
-				$log->debug('Set-Cookie' => "vulture_proxy=".$r->pnotes('id_session_SSO')."; path=/; domain=".$r->hostname);
 		
 				$log->debug('Validate SSO session');
 				$session_SSO{is_auth} = 1;
@@ -161,8 +157,9 @@ sub getGETdata {
 	my $req = Apache2::Request->new($r);
 	my $login = $req->param('vulture_login');
 	my $password = $req->param('vulture_password');
+        my $token = $req->param('vulture_token');
 
-	return ($login, $password);
+	return ($login, $password, $token);
 }
 
 sub getPOSTdata {
@@ -170,8 +167,9 @@ sub getPOSTdata {
 	my $req = Apache2::Request->new($r);
 	my $login = $req->param('vulture_login');
 	my $password = $req->param('vulture_password');
+	my $token = $req->param('vulture_token');
 
-	return ($login, $password);
+	return ($login, $password, $token);
 }
 
 sub multipleAuth {

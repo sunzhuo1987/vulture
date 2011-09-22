@@ -6,7 +6,7 @@ our $VERSION = '2.0';
 BEGIN {
     use Exporter ();
     @ISA = qw(Exporter);
-    @EXPORT_OK = qw(&version_check &get_app &get_intf &session &get_cookie &get_memcached &set_memcached &getDB_object &getLDAP_object &getStyle &getTranslations);
+    @EXPORT_OK = qw(&version_check &get_app &get_intf &session &get_cookie &get_memcached &set_memcached &getDB_object &getLDAP_object &getStyle &getTranslations &generate_random_string);
 }
 
 use Apache::Session::Generate::MD5;
@@ -307,4 +307,21 @@ sub getTranslations {
         return $translated_messages;
     }
 }
+
+sub generate_random_string
+{
+	my $length_of_randomstring=shift;# the length of 
+			 # the random string to generate
+
+	my @chars=('a'..'z','A'..'Z','0'..'9','_');
+	my $random_string;
+	foreach (1..$length_of_randomstring) 
+	{
+		# rand @chars will generate a random 
+		# number between 0 and scalar @chars
+		$random_string.=$chars[rand @chars];
+	}
+	return $random_string;
+}
+
 1;

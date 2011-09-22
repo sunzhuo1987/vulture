@@ -11,7 +11,7 @@ use DBI;
 
 use Apache2::Const -compile => qw(OK DECLINED REDIRECT HTTP_UNAUTHORIZED);
 
-use Core::VultureUtils qw(&session &getStyle &getTranslations);
+use Core::VultureUtils qw(&session &getStyle &getTranslations &generate_random_string);
 
 use Apache::SSLLookup;
 
@@ -145,10 +145,15 @@ sub display_auth_form {
 	my $uri = $r->unparsed_uri;
 	my $message = $r->pnotes("auth_message");    
     my $translated_message;
+
+    #Get session SSO for filling random token
+        my (%session_SSO);
+        session(\%session_SSO, $app->{timeout}, $r->pnotes('id_session_SSO'), $log, $app->{update_access_time});
+
 	if($r->unparsed_uri =~ /vulture_app=([^;]*)/){
 		$uri = $1;
 	}
-
+    
     #Get translations
     my $translated_messages = getTranslations($r, $log, $dbh, $message);
     my %translations = %$translated_messages;
@@ -187,14 +192,18 @@ BAR
     }
     
     $html .= "</head><body>";
+
+    #Avoid bot request
+    my $token = generate_random_string(32);
+    $session_SSO{random_token} = $token;
     
     $form = <<FOO
 <div id="form_vulture">
 <form method="POST" name="auth_form" action="$raw">
-<input type=hidden name="vulture_app" value="$uri">
 <table>
 <tr class="row"><td class="input">$translations{'USER'}{'translation'}</td><td><input type="text" name="vulture_login"></td></tr>
 <tr class="row"><td class="input">$translations{'PASSWORD'}{'translation'}</td><td><input type="password" autocomplete="off" name="vulture_password"></td></tr>
+<tr class="row"><td></td><td align="right"><input type="hidden" name="vulture_token" value="$token"></td></tr>
 <tr class="row"><td></td><td align="right"><input type="submit"></td></tr>
 </table>
 </form>
