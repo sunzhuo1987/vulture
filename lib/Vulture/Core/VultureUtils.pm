@@ -121,7 +121,7 @@ sub	get_app {
 	my ($log, $host, $dbh, $intf) = @_;
 
     #Getting app
-	my $query = "SELECT app.id,name, url, app.log_id, logon_url, logout_url,intf.port, intf.remote_proxy, up, auth_basic, display_portal, canonicalise_url, sso_forward_id AS sso_forward, timeout, update_access_time FROM app, intf WHERE app.intf_id='".$intf."' AND app.name = '".$host."' AND intf.id='".$intf."'";
+    my $query = "SELECT app.id,name, url, app.log_id, logon_url, logout_url,intf.port, intf.remote_proxy, up, auth_basic, display_portal, canonicalise_url, sso_forward_id AS sso_forward, timeout, update_access_time FROM app, intf, app_intf WHERE app_intf.intf_id='".$intf."' AND app.id = app_intf.app_id AND app.name = '".$host."' AND intf.id='".$intf."'";
 	#$log->debug($query);
 	$sth = $dbh->prepare($query);
 	$sth->execute;
@@ -313,7 +313,7 @@ sub generate_random_string
 	my $length_of_randomstring=shift;# the length of 
 			 # the random string to generate
 
-	my @chars=('a'..'z','A'..'Z','0'..'9','_');
+	my @chars=('a'..'z','A'..'Z','0'..'9','-');
 	my $random_string;
 	foreach (1..$length_of_randomstring) 
 	{
