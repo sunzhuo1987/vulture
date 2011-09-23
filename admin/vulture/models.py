@@ -377,7 +377,7 @@ class App(models.Model):
     name = models.CharField(max_length=100,unique=1)
     desc = models.CharField(max_length=128,blank=1)
     url = models.CharField(max_length=255)
-    intf = models.ForeignKey(Intf)
+    intf = models.ManyToManyField(Intf,db_table='app_intf')
     alias = models.CharField(max_length=150,blank=1)
     log = models.ForeignKey(Log)
     security = models.ManyToManyField(ModSecurity,null=1,blank=1,db_table='app_security')

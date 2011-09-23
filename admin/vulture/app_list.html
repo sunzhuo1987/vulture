@@ -20,7 +20,7 @@
 	<th colspan=3 style="width: 48px"></th>
 	</tr>
 {% for object in object_list %}
-	<tr><td>{{ object.name }}</td><td>{{ object.url }}</td></td></td><td>{{ object.auth.all|join:", " }}</td><td>{{ object.intf }}</td><td style="text-align: center">{% if object.up %}<img src="/img/button_ok.png">{% else %}<img src="/img/button_cancel.png">{% endif %}</td><td>{% if object.acl %}<img src="/img/stock_standard-filter.png">{% endif %}</td><td>{% if object.up %}<a href="/app/{{ object.id }}/stop/"><img src="/img/stop.png"></a>{% else %}<a href="/app/{{ object.id }}/start/"><img src="/img/reload.png"></a>{% endif %}</td><td><a href="/app/{{ object.id }}/del/"><img src="/img/editdelete.png"></td><td><a href="/app/{{ object.id }}"><img src="/img/edit.png"></a></tr>
+	<tr><td>{{ object.name }}</td><td>{{ object.url }}</td></td></td><td>{{ object.auth.all|join:", " }}</td><td>{{ object.intf.all|join:", " }}</td><td style="text-align: center">{% if object.up %}<img src="/img/button_ok.png">{% else %}<img src="/img/button_cancel.png">{% endif %}</td><td>{% if object.acl %}<img src="/img/stock_standard-filter.png">{% endif %}</td><td>{% if object.up %}<a href="/app/{{ object.id }}/stop/"><img src="/img/stop.png"></a>{% else %}<a href="/app/{{ object.id }}/start/"><img src="/img/reload.png"></a>{% endif %}</td><td><a href="/app/{{ object.id }}/del/"><img src="/img/editdelete.png"></td><td><a href="/app/{{ object.id }}"><img src="/img/edit.png"></a></tr>
 {% endfor %}
 	</td>
 	</table>
