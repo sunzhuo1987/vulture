@@ -1,9 +1,10 @@
-Requires: openssl python-ldap vulture-common >= 3.0
+Requires: openssl python-ldap vulture-common >= 3
 %define serverroot /opt
 Vendor: Advens
 %define release 1
 %define name vulture
 %define version 2.0
+AutoReqProv: no
 
 Summary: Vulture Reverse Proxy
 Name: %name
@@ -14,12 +15,14 @@ Group: System/Servers
 URL: http://www.vultureproject.org
 Buildarch: %{_target_cpu} noarch
 Source0: %{name}-%{version}.tar.bz2
-Source1: http://media.djangoproject.com/releases/1.3/Django-1.3.tar.gz
+Source1: http://media.djangoproject.com/releases/1.3/Django-1.3.1.tar.gz
 Source2: http://ovh.dl.sourceforge.net/sourceforge/pyopenssl/pyOpenSSL-0.6.tar.gz
 Patch0: http://arnaud.desmons.free.fr/pyOpenSSL-0.6-pkcs12.patch
 Patch1: http://arnaud.desmons.free.fr/pyOpenSSL-0.6-pkcs12_cafile.patch
 Patch2: http://arnaud.desmons.free.fr/pyOpenSSL-0.6-crl.patch
-
+Patch3: models_py_rpm.patch
+Patch4: vulture_wsgi.patch
+Patch5: vulture_settings.patch
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildRequires: perl gcc gcc-c++ sqlite
@@ -32,22 +35,32 @@ Vulture Reverse Proxy
 %patch0 -p1 -b .old
 %patch1 -p0 -b .old
 %patch2 -p0 -b .old
+%patch3 -p0 -b .old
+%patch4 -p0 -b .old
+%patch5 -p0 -b .old
 
 %build
 	rm -rf $RPM_BUILD_ROOT
 	cd %name-%{version} &&\
 %if %(test -e /usr/bin/python2.4 && echo 1 || echo 0)
 	install -d -m0755 $RPM_BUILD_ROOT/usr/lib/python2.4/site-packages/
-	cd ../Django-1.3 && PYTHONPATH=$RPM_BUILD_ROOT/usr/lib/python2.4/site-packages/ \
+	cd ../Django-1.3.1 && PYTHONPATH=$RPM_BUILD_ROOT/usr/lib/python2.4/site-packages/ \
 		python setup.py install --prefix=$RPM_BUILD_ROOT/usr
 	cd ../pyOpenSSL-0.6 && PYTHONPATH=$RPM_BUILD_ROOT/usr/lib/python2.4/site-packages/ \
 		python setup.py install --prefix=$RPM_BUILD_ROOT/usr
-%else
+%endif
+%if %(test -e /usr/bin/python2.5 && echo 1 || echo 0)
 	install -d -m0755 $RPM_BUILD_ROOT/usr/lib/python2.5/site-packages/
-	cd ../Django-1.3 && PYTHONPATH=$RPM_BUILD_ROOT/usr/lib/python2.4/site-packages/ \
+	cd ../Django-1.3.1 && PYTHONPATH=$RPM_BUILD_ROOT/usr/lib/python2.5/site-packages/ \
 		python setup.py install --prefix=$RPM_BUILD_ROOT/usr
 	cd ../pyOpenSSL-0.6 && PYTHONPATH=$RPM_BUILD_ROOT/usr/lib/python2.5/site-packages/ \
 		python setup.py install --prefix=$RPM_BUILD_ROOT/usr
+%else
+	install -d -m0755 $RPM_BUILD_ROOT/usr/lib/python2.6/site-packages/
+        cd ../Django-1.3.1 && PYTHONPATH=$RPM_BUILD_ROOT/usr/lib/python2.6/site-packages/ \
+                python setup.py install --prefix=$RPM_BUILD_ROOT/usr
+        cd ../pyOpenSSL-0.6 && PYTHONPATH=$RPM_BUILD_ROOT/usr/lib/python2.6/site-packages/ \
+                python setup.py install --prefix=$RPM_BUILD_ROOT/usr
 %endif
 
 
@@ -59,12 +72,14 @@ Vulture Reverse Proxy
      install -d -m0700 $RPM_BUILD_ROOT/etc/init.d
      install -m0755 rpm/vulture $RPM_BUILD_ROOT/etc/init.d/vulture
      install -d -m0755 $RPM_BUILD_ROOT%{serverroot}/%{name}
-     cp -r www $RPM_BUILD_ROOT%{serverroot}/%{name}
+     cp -r admin $RPM_BUILD_ROOT%{serverroot}/%{name}
      install -m0644 rpm/settings.py\
-	$RPM_BUILD_ROOT%{serverroot}/%{name}/www/settings.py
+	$RPM_BUILD_ROOT%{serverroot}/%{name}/admin/settings.py
      install -d -m0755 $RPM_BUILD_ROOT%{serverroot}/%{name}/conf
      install -m0644 rpm/httpd.conf\
 	$RPM_BUILD_ROOT%{serverroot}/%{name}/conf/httpd.conf
+     install -m0644 rpm/vulture.wsgi\
+        $RPM_BUILD_ROOT%{serverroot}/%{name}/conf/vulture.wsgi
      install -m0644 conf/openssl.cnf\
 	$RPM_BUILD_ROOT%{serverroot}/%{name}/conf/openssl.cnf 
 %clean
@@ -83,8 +98,8 @@ Vulture Reverse Proxy
     /sbin/chkconfig --add vulture
     /etc/init.d/vulture start
 
-    echo no | python %{serverroot}/%{name}/www/manage.py syncdb
-    chown apache. %{serverroot}/%{name}/www/db
+    echo no | python %{serverroot}/%{name}/admin/manage.py syncdb
+    chown apache. %{serverroot}/%{name}/admin/db
     if [ ! -f %{serverroot}/%{name}/conf/cacert.pem ]; then
         openssl req -x509 -days 3650 -newkey rsa:1024 -batch\
         	-out %{serverroot}/%{name}/conf/cacert.pem\
@@ -119,8 +134,9 @@ Vulture Reverse Proxy
 %defattr(-,apache,apache,-)
 %config(noreplace) %{serverroot}/%{name}/conf
 %config(noreplace) %{serverroot}/%{name}/sql
-%{serverroot}/%{name}/www
+%{serverroot}/%{name}/admin
 %{serverroot}/%{name}/bin
+%{serverroot}/%{name}/static
 %defattr(-,root,root)
 %{serverroot}/%{name}/lib
 /etc/init.d/%{name}
@@ -129,10 +145,16 @@ Vulture Reverse Proxy
 %ifarch x86_64
 /usr/lib64/python2.4
 %endif
-%else
+%endif
+%if %(test -e /usr/bin/python2.5 && echo 1 || echo 0)
 /usr/lib/python2.5
 %ifarch x86_64
 /usr/lib64/python2.5
+%endif
+%else
+/usr/lib/python2.6
+%ifarch x86_64
+/usr/lib64/python2.6
 %endif
 %endif
 %defattr(-,apache,apache,-)

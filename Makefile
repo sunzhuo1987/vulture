@@ -135,6 +135,7 @@ install:
 		install -m0600 debian/httpd.conf $(DESTDIR)$(PREFIX)/$(NAME)/conf/httpd.conf && \
 		install -m0600 debian/aes-encrypt-key.key $(DESTDIR)$(PREFIX)/$(NAME)/conf/aes-encrypt-key.key && \
 		install -m0600 debian/settings.py $(DESTDIR)$(PREFIX)/$(NAME)/admin/settings.py && \
+        install -m0600 debian/vulture.wsgi $(DESTDIR)$(PREFIX)/$(NAME)/conf/vulture.wsgi && \
 		chmod 744 $(DESTDIR)$(PREFIX)/$(NAME)/admin/manage.py; \
 	fi; \
 
