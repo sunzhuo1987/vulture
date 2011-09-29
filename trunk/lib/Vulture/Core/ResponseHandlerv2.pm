@@ -246,13 +246,15 @@ sub display_portal {
 	my ($r,$log,$dbh) = @_;
 
     my $intf_id = $r->dir_config('VultureID');
-	my $query = "SELECT app.name FROM app WHERE app.intf_id='".$intf_id."'";
+	my $query = "SELECT app.name FROM app, app_intf WHERE app_intf.intf_id='".$intf_id."' AND app.id = app_intf.app_id";
     $log->debug($query);
 
     my $all_apps = $dbh->selectall_arrayref($query);
 	my $html;
 	foreach my $app (@$all_apps) {
-        $html .= "<a href='".$r->is_https ? 'https://' : 'http://'.@$app[0].':'.$r->get_server_port()."'><h3>Application ".@$app[0]."</h3></a>";
+        $html .= "<a href='";
+        $html .= $r->is_https ? 'https://' : 'http://';
+        $html .= @$app[0].':'.$r->get_server_port()."'><h3>Application ".@$app[0]."</h3></a>";
 	}
 	return $html;
 }
