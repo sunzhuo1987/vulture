@@ -25,7 +25,7 @@ Patch4: vulture_wsgi.patch
 Patch5: vulture_settings.patch
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
-BuildRequires: perl gcc gcc-c++ sqlite
+BuildRequires: perl gcc gcc-c++ sqlite python-devel openssl-devel
 
 %description
 Vulture Reverse Proxy
