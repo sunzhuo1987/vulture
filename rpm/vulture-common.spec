@@ -61,7 +61,7 @@ Patch3: ModProxyPerlHtml.patch
 Patch4: memcached-fix-strict-aliasing.patch
 Patch5: memcached-1.4.5.patch
 
-BuildRequires: gcc postgresql-devel libxml2-devel flex gcc-c++ libidn-devel pcre-devel make autoconf libtool tcl-devel python
+BuildRequires: gcc postgresql-devel libxml2-devel flex gcc-c++ libidn-devel pcre-devel make autoconf libtool tcl-devel python perl-ExtUtils-Embed
 %if %(test -e /etc/mandrake-release && echo 1 || echo 0)
 BuildRequires: perl-devel libldap2-devel libsasl2-devel
 %else
