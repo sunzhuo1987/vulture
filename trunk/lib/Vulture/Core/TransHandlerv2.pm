@@ -133,7 +133,7 @@ sub handler {
 			my $parsed_uri = APR::URI->parse($r->pool, $app->{'url'});
 			my $host = $parsed_uri->hostname ;
 	
-	        	#Delete protocol
+            #Delete protocol
 			$r->headers_in->set("Host" => $host);
 
             $sth->execute;
@@ -220,15 +220,20 @@ sub handler {
 			#Redirect to SSO Portal if $r->pnotes('url_to_mod_proxy') is not set by Rewrite engine
             if(not $r->pnotes('url_to_mod_proxy')){
                 my $intf = get_intf($log, $dbh, $r->dir_config('VultureID'));
-                my $url_to_redirect = $r->is_https ? 'https://' : 'http://';
-                if ($intf->{'sso_portal'}){
-                    $url_to_redirect .= $intf->{'sso_portal'}.':'.$r->get_server_port;
-                } else {
-                    $url_to_redirect .= $app->{name}.':'.$app->{port};
-
+                my $incoming_uri = $app->{name};
+                $incoming_uri = $intf->{'sso_portal'} if $intf->{'sso_portal'};
+                if ($incoming_uri !~ /^(http|https):\/\/(.*)/ ) {
+                    #Fake scheme for making APR::URI parse
+                    $incoming_uri = 'http://'.$incoming_uri;
                 }
-                $url_to_redirect .= '/?vulture_app='.$session_app{_session_id};
-			    $r->err_headers_out->set('Location' => $url_to_redirect);
+                
+                #Rewrite URI with scheme, port, path,...
+                my $rewrite_uri = APR::URI->parse($r->pool, $incoming_uri);
+                $rewrite_uri->scheme('http');
+                $rewrite_uri->scheme('https') if $r->is_https;
+                $rewrite_uri->port($r->get_server_port());
+                $rewrite_uri->path('/?vulture_app='.$session_app{_session_id});
+			    $r->err_headers_out->set('Location' => $rewrite_uri->unparse);
 			    return Apache2::Const::REDIRECT;
             } else {
                 #Destroy useless handlers
