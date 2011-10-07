@@ -6,7 +6,7 @@ from django.db import models
 from django.contrib import admin
 from time import sleep
 import time
-import sqlite3
+import pysqlite2 as sqlite3
 from datetime import date
 import string
 import ldap
@@ -94,12 +94,12 @@ class Intf(models.Model):
     def conf(self):
         t = get_template("vulture_httpd.conf")
         c = Context({"VultureID" : self.id,
-                     "VulturePath" : settings.VULTURE_PATH,
                      "VultureConfPath" : settings.CONF_PATH,
-                     "VultureWWWPath" : settings.WWW_PATH,
                      "VultureStaticPath" : settings.MEDIA_ROOT,
                      "PerlSwitches" : settings.PERL_SWITCHES,
                      "dbname" : settings.DATABASE_NAME,
+                     "serverroot" : settings.SERVERROOT,
+                     "apacheuser" : settings.APACHEUSER,
                      "app_list" : App.objects.filter(intf=self.id),
                      "ip" : self.ip,
                      "log" : self.log,

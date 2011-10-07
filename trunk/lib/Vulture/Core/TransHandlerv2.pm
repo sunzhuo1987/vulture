@@ -2,10 +2,6 @@
 #-------------------------
 package Core::TransHandlerv2;
 
-use Apache2::RequestRec ();
-use Apache2::RequestIO ();
-use Apache2::Request;
-
 use Apache2::Reload;
 use Apache2::Log;
 
@@ -14,6 +10,9 @@ use Apache2::Const -compile => qw(OK DECLINED FORBIDDEN REDIRECT DONE);
 use Core::VultureUtils qw(&get_app &get_intf &version_check &get_cookie &session);
 
 use Core::Log;
+use Apache2::RequestRec ();
+use Apache2::RequestIO ();
+use Apache2::RequestUtil ();
 use Apache::SSLLookup;
 
 use APR::URI;

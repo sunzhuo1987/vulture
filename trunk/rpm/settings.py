@@ -1,6 +1,6 @@
 # Django settings for www project.
 
-DEBUG = False
+DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
@@ -10,7 +10,7 @@ ADMINS = (
 MANAGERS = ADMINS
 
 DATABASE_ENGINE = 'sqlite3'           # 'postgresql', 'mysql', 'sqlite3' or 'ado_mssql'.
-DATABASE_NAME = '/opt/vulture/www/db'              # Or path to database file if using sqlite3.
+DATABASE_NAME = '/opt/vulture/admin/db'              # Or path to database file if using sqlite3.
 DATABASE_USER = ''             # Not used with sqlite3.
 DATABASE_PASSWORD = ''         # Not used with sqlite3.
 DATABASE_HOST = ''             # Set to empty string for localhost. Not used with sqlite3.
@@ -18,8 +18,18 @@ DATABASE_PORT = ''             # Set to empty string for default. Not used with 
 
 HTTPD_PATH = 'sudo /opt/vulture/httpd/bin/httpd'
 BIN_PATH = '/opt/vulture/bin/'
-PATH = '/opt/vulture/conf/'
-PERL_SWITCHES = '-I/opt/vulture/lib/i386-linux-thread-multi -I/opt/vulture/lib/i386-linux-thread-multi/Vulture -I/opt/vulture/lib/i486-linux-thread-multi -I/opt/vulture/lib/i486-linux-gnu-thread-multi'
+
+
+CONF_PATH = '/opt/vulture/conf/'
+DATABASE_PATH = '/opt/vulture/admin/'
+BIN_PATH = '/opt/vulture/bin/'
+SERVERROOT = '/opt/vulture/httpd'
+HTTPD_CUSTOM = "\n\
+"
+
+WWW_USER='apache'
+
+PERL_SWITCHES = '-I/opt/vulture/lib/i386-linux-thread-multi -I/opt/vulture/lib/i386-linux-thread-multi/Vulture -I/opt/vulture/lib/i486-linux-thread-multi -I/opt/vulture/lib/i486-linux-gnu-thread-multi -I/opt/vulture/lib'
 
 
 # Local time zone for this installation. All choices can be found here:
@@ -36,11 +46,11 @@ SITE_ID = 1
 
 # Absolute path to the directory that holds media.
 # Example: "/home/media/media.lawrence.com/"
-MEDIA_ROOT = ''
+MEDIA_ROOT = '/opt/vulture/admin/static/'
 
 # URL that handles the media served from MEDIA_ROOT.
 # Example: "http://media.lawrence.com"
-MEDIA_URL = ''
+MEDIA_URL = '/static/'
 
 # URL prefix for admin media -- CSS, JavaScript and images. Make sure to use a
 # trailing slash.
@@ -64,17 +74,17 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.doc.XViewMiddleware',
 )
 
-ROOT_URLCONF = 'www.urls'
+ROOT_URLCONF = 'admin.urls'
 
 TEMPLATE_DIRS = (
-        '/opt/vulture/www',
+        '/opt/vulture/admin',
 )
 
 INSTALLED_APPS = (
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.auth',
-    'www.vulture',
+    'admin.vulture',
 )
 
 AUTHENTICATION_BACKENDS = (

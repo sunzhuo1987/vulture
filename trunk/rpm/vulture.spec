@@ -3,7 +3,7 @@ Requires: openssl python-ldap vulture-common >= 3
 Vendor: Advens
 %define release 1
 %define name vulture
-%define version 2.0
+%define version 2.1
 AutoReqProv: no
 
 Summary: Vulture Reverse Proxy
@@ -21,8 +21,6 @@ Patch0: http://arnaud.desmons.free.fr/pyOpenSSL-0.6-pkcs12.patch
 Patch1: http://arnaud.desmons.free.fr/pyOpenSSL-0.6-pkcs12_cafile.patch
 Patch2: http://arnaud.desmons.free.fr/pyOpenSSL-0.6-crl.patch
 Patch3: models_py_rpm.patch
-Patch4: vulture_wsgi.patch
-Patch5: vulture_settings.patch
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildRequires: perl gcc gcc-c++ sqlite python-devel openssl-devel
@@ -36,8 +34,6 @@ Vulture Reverse Proxy
 %patch1 -p0 -b .old
 %patch2 -p0 -b .old
 %patch3 -p0 -b .old
-%patch4 -p0 -b .old
-%patch5 -p0 -b .old
 
 %build
 	rm -rf $RPM_BUILD_ROOT
@@ -97,8 +93,19 @@ Vulture Reverse Proxy
     fi
     /sbin/chkconfig --add vulture
     /etc/init.d/vulture start
-
     echo no | python %{serverroot}/%{name}/admin/manage.py syncdb
+    if [ -f %{serverroot}/%{name}/admin/vulture/sql/log.sql ] ; then
+        BASE_RULE=`%{serverroot}/%{name}/sqlite/bin/sqlite3 %{serverroot}/%{name}/admin/db "SELECT count(*) from log"`
+        if [ $BASE_RULE = 0 ]; then
+            %{serverroot}/%{name}/sqlite/bin/sqlite3 %{serverroot}/%{name}/admin/db < %{serverroot}/%{name}/admin/vulture/sql/log.sql
+        fi
+    fi
+    if [ -f %{serverroot}/%{name}/admin/vulture/sql/modsecurity.sql ] ; then
+        BASE_RULE=`%{serverroot}/%{name}/sqlite/bin/sqlite3 %{serverroot}/%{name}/admin/db "SELECT count(*) from modsecurity"`
+        if [ $BASE_RULE = 0 ]; then
+            %{serverroot}/%{name}/sqlite/bin/sqlite3 %{serverroot}/%{name}/admin/db < %{serverroot}/%{name}/admin/vulture/sql/modsecurity.sql
+        fi
+    fi
     chown apache. %{serverroot}/%{name}/admin/db
     if [ ! -f %{serverroot}/%{name}/conf/cacert.pem ]; then
         openssl req -x509 -days 3650 -newkey rsa:1024 -batch\
@@ -161,6 +168,8 @@ Vulture Reverse Proxy
 %exclude /usr/bin
 
 %changelog
+* Fri Oct 7 2011 Arnaud Desmons <logarno@gmail.com> 2.1-1
+- 2.1
 
 * Fri Jul 29 2011 Arnaud Desmons <logarno@gmail.com> 2.0-1
 - admin Django

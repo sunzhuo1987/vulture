@@ -1,6 +1,6 @@
 Summary: vulture common
 Name: vulture-common
-Version: 2.3
+Version: 3.1
 Release: 1
 License: GPL
 Group: System Environment/Daemons
@@ -10,7 +10,7 @@ Conflicts: INTRINsec-common
 Source0: http://www.openssl.org/source/openssl-0.9.8r.tar.gz
 Source1: http://apache.cict.fr/httpd/httpd-2.2.19.tar.bz2
 Source2: http://www.modsecurity.org/download/modsecurity-apache_2.5.13.tar.gz
-Source3: http://be2.php.net/distributions/php-5.2.17.tar.bz2
+Source3: http://modwsgi.googlecode.com/files/mod_wsgi-3.3.tar.gz
 Source4: http://perl.apache.org/dist/mod_perl-2.0.4.tar.gz
 Source5: http://lwp.linpro.no/lwp/libwww-perl-5.805.tar.gz
 Source6: http://search.cpan.org/CPAN/authors/id/G/GB/GBARR/perl-ldap-0.33.tar.gz
@@ -26,7 +26,7 @@ Source15: http://search.cpan.org/CPAN/authors/id/G/GE/GEOFF/Apache-SSLLookup-2.0
 Source16: http://search.cpan.org/CPAN/authors/id/L/LD/LDS/Crypt-CBC-2.18.tar.gz
 Source17: http://belnet.dl.sourceforge.net/sourceforge/mcrypt/libmcrypt-2.5.7.tar.gz
 Source18: http://search.cpan.org/CPAN/authors/id/G/GA/GAAS/Digest-SHA1-2.11.tar.gz
-Source19: php.ini
+Source19: http://effbot.org/downloads/Imaging-1.1.7.tar.gz
 Source20: http://search.cpan.org/CPAN/authors/id/M/MA/MANOWAR/RadiusPerl-0.12.tar.gz
 Source21: http://search.cpan.org/CPAN/authors/id/F/FT/FTASSIN/Data-HexDump-0.02.tar.gz
 Source22: http://search.cpan.org/CPAN/authors/id/D/DP/DPARIS/Crypt-Blowfish-2.10.tar.gz
@@ -54,6 +54,10 @@ Source43: http://freefr.dl.sourceforge.net/project/mod-qos/mod_qos-9.68.tar.gz
 Source44: http://search.cpan.org/CPAN/authors/id/B/BI/BINGOS/Module-Load-0.20.tar.gz
 Source45: http://search.cpan.org/CPAN/authors/id/C/CH/CHANSEN/Authen-Simple-Kerberos-0.1.tar.gz
 Source46: http://search.cpan.org/CPAN/authors/id/P/PM/PMKANE/Authen-Smb-0.91.tar.gz
+Source47: http://pysqlite.googlecode.com/files/pysqlite-2.6.0.tar.gz
+Source48: http://code.krypto.org/python/hashlib/hashlib-20081119.tar.gz
+Source49: http://www.sqlite.org/sqlite-autoconf-3070800.tar.gz
+
 Patch0: Apache-SSLLookup-2.00_04.patch
 Patch1: httpd_mod_rewrite.patch
 Patch2: freetds.patch
@@ -61,13 +65,13 @@ Patch3: ModProxyPerlHtml.patch
 Patch4: memcached-fix-strict-aliasing.patch
 Patch5: memcached-1.4.5.patch
 
-BuildRequires: gcc postgresql-devel libxml2-devel flex gcc-c++ libidn-devel pcre-devel make autoconf libtool tcl-devel python perl-ExtUtils-Embed
-%if %(test -e /etc/mandrake-release && echo 1 || echo 0)
+BuildRequires: gcc postgresql-devel libxml2-devel flex gcc-c++ libidn-devel pcre-devel make autoconf libtool tcl-devel python python-devel sqlite-devel
+%if 0%{?mdkversion}
 BuildRequires: perl-devel libldap2-devel libsasl2-devel
 %else
 BuildRequires: perl cyrus-sasl-devel
 %endif
-%if %(test -e /etc/SuSE-release && echo 1 || echo 0)
+%if 0%{?suse_version}
 %ifarch x86_64
 BuildRequires: openldap2-devel-32bit libmysqlclient16-32bit
 %else
@@ -88,7 +92,7 @@ BuildRoot: %{_tmppath}/%{name}-root
 vulture common
 
 %prep
-%setup -c -a 0 -a 1 -a 2 -a 3 -a 4 -a 5 -a 6 -a 7 -a 8 -a 9 -a 10 -a 11 -a 12 -a 13 -a 14 -a 15 -a 16 -a 17 -a 18 -a 20 -a 21 -a 22 -a 23 -a 24 -a 25 -a 26 -a 29 -a 30 -a 31 -a 32 -a 33 -a 34 -a 35 -a 36 -a 37 -a 38 -a 39 -a 40 -a 41 -a 42 -a 43 -a 44 -a 45 -a 46
+%setup -c -a 0 -a 1 -a 2 -a 3 -a 4 -a 5 -a 6 -a 7 -a 8 -a 9 -a 10 -a 11 -a 12 -a 13 -a 14 -a 15 -a 16 -a 17 -a 18 -a 19 -a 20 -a 21 -a 22 -a 23 -a 24 -a 25 -a 26 -a 29 -a 30 -a 31 -a 32 -a 33 -a 34 -a 35 -a 36 -a 37 -a 38 -a 39 -a 40 -a 41 -a 42 -a 43 -a 44 -a 45 -a 46 -a 47 -a 48 -a 49
 %patch0 -p0 -b .old
 %patch1 -p0 -b .old
 %patch2 -p0 -b .old
@@ -98,7 +102,11 @@ vulture common
 
 %build
 	rm -rf $RPM_BUILD_ROOT
-	cd freetds-0.82 &&\
+	cd sqlite-autoconf-3070800 &&\
+	./configure --prefix=$RPM_BUILD_ROOT/opt/vulture/sqlite &&\
+	make CFLAGS="%{optflags}" &&\
+	make install &&\
+	cd ../freetds-0.82 &&\
 	./configure --prefix=$RPM_BUILD_ROOT/opt/vulture/freetds &&\
 	make CFLAGS="%{optflags}" &&\
 	make install &&\
@@ -132,13 +140,7 @@ vulture common
 	cd .. &&\
 	$RPM_BUILD_ROOT/opt/vulture/httpd/bin/apxs -I./httpd-2.2.4/srclib/pcre/ -cia %{SOURCE27} &&\
 	$RPM_BUILD_ROOT/opt/vulture/httpd/bin/apxs -I/usr/include/libxml2/ -cia %{SOURCE28} &&\
-	cd mod_fcgid.2.1 &&\
-	$RPM_BUILD_ROOT/opt/vulture/httpd/bin/apxs -c -o mod_fcgid.so -Iarch/unix -I. fcgid_bridge.c \
-		fcgid_conf.c fcgid_pm_main.c fcgid_protocol.c fcgid_spawn_ctl.c mod_fcgid.c \
-		arch/unix/fcgid_proctbl_unix.c arch/unix/fcgid_pm_unix.c \
-		arch/unix/fcgid_proc_unix.c fcgid_bucket.c fcgid_filter.c &&\
-	install -m 644 .libs/mod_fcgid.so $RPM_BUILD_ROOT/opt/vulture/httpd/modules/mod_fcgid.so &&\
-	cd ../libmcrypt-2.5.7 &&\
+	cd libmcrypt-2.5.7 &&\
 	./configure --prefix=$RPM_BUILD_ROOT/opt/vulture --disable-posix-threads &&\
 	make &&\
 	make install &&\
@@ -147,34 +149,18 @@ vulture common
         $RPM_BUILD_ROOT/opt/vulture/httpd/bin/apxs -cia mod_evasive20.c &&\
         cd ../mod_qos-9.68 &&\
         $RPM_BUILD_ROOT/opt/vulture/httpd/bin/apxs -cia apache2/mod_qos.c &&\
-	cd ../php-5.2.17 &&\
-%ifarch x86_64
-	export LDFLAGS="-L/usr/lib64 -L$RPM_BUILD_ROOT/opt/vulture/freetds/lib" &&\
-%endif
-	./configure --prefix=/opt/vulture/php --with-pic \
-%ifarch x86_64
-		--libdir=/usr/lib64 --with-libdir=lib64 \
-		--with-openssl \
-		--with-mcrypt \
-%else
-		--with-openssl=$RPM_BUILD_ROOT/opt/vulture/openssl \
-		--with-mcrypt=$RPM_BUILD_ROOT/opt/vulture \
-%endif
-		--disable-cli --enable-cgi --with-config-file-path=/opt/vulture/etc \
-		--with-apxs2=$RPM_BUILD_ROOT/opt/vulture/httpd/bin/apxs \
-		--mandir=/opt/vulture/man \
-		--with-sqlite --with-pgsql --with-mysql --with-zlib-dir=/usr \
-		--with-ldap --enable-fastcgi \
-		--with-curl \
-		--disable-dom --disable-simplexml \
-		--disable-tokenizer --disable-spl \
-		--with-sybase=$RPM_BUILD_ROOT/opt/vulture/freetds \
-		--disable-xmlreader --disable-xmlwriter &&\
-	make DESTDIR=$RPM_BUILD_ROOT CFLAGS="%{optflags}" &&\
+	cd ../mod_wsgi-3.3 &&\
+	./configure --with-apxs=$RPM_BUILD_ROOT/opt/vulture/httpd/bin/apxs
+	make &&\
 	make install &&\
 	make clean &&\
 	install -m 755 -d $RPM_BUILD_ROOT/opt/vulture/etc/ &&\
-	install -m 644 %{SOURCE19} $RPM_BUILD_ROOT/opt/vulture/etc/php.ini &&\
+	cd ../Imaging-1.1.7 &&\
+		python setup.py install --prefix=$RPM_BUILD_ROOT/usr &&\
+	cd ../pysqlite-2.6.0 &&\
+		python setup.py install --prefix=$RPM_BUILD_ROOT/usr &&\
+	cd ../hashlib-20081119 &&\
+		python setup.py install --prefix=$RPM_BUILD_ROOT/usr &&\
 	cd ../modsecurity-apache_2.5.13/apache2 &&\
 	./configure --with-apxs=$RPM_BUILD_ROOT/opt/vulture/httpd/bin/apxs \
 	    --with-httpd-src=../../httpd-2.2.19 --with-apr=$RPM_BUILD_ROOT/opt/vulture/httpd \
@@ -410,13 +396,19 @@ vulture common
 %files
 %defattr(-,root, root)
 /opt/vulture
+/usr
 
 %changelog
-* Sun Aug 28 2011 Arnaud Desmons <arnaud.desmons@advens.fr> - 2.3-1
-- mod_qos
-- Module::Load
-- Authen::Simple::Kerberos
-- Authen::Smb
+* Sun Aug 28 2011 Arnaud Desmons <arnaud.desmons@advens.fr> - 3.0-1
+- removed mod_fcgi
+- added mod_wsgi
+- added PIL
+- added pysqlite2
+- added mod_qos
+- added Module::Load
+- added Authen::Simple::Kerberos
+- added Authen::Smb
+- added python hashlib
 
 * Sun Jul 24 2011 Arnaud Desmons <arnaud.desmons@advens.fr> - 2.2-1
 - httpd 2.2.19
