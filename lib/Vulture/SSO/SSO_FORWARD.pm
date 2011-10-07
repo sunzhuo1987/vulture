@@ -25,6 +25,8 @@ use APR::URI;
 use APR::Table;
 use APR::SockAddr;
 
+use URI::Escape;
+
 sub forward{
 	my ($package_name, $r, $log, $dbh, $app, $user, $password) = @_;
 
@@ -70,10 +72,11 @@ sub forward{
 
 	my $post = '';
 	#Getting fields from profile
+    #URI encoding is needed
 	my %results = %{getProfile($r, $log, $dbh, $app, $user)};
 	if (%results){
 	    while (($key, $value) = each(%results)){
-	        $post .= $key."=".$value."&";
+	        $post .= uri_escape($key)."=".uri_escape($value)."&";
 	    }
     }
 
@@ -83,24 +86,25 @@ sub forward{
 	$sth->execute($app->{id});
 
 	#Adding data to post variable
+    #URI encoding is needed
 	my $ref = $sth->fetchall_arrayref;
 	foreach my $row (@{$ref}) {
         my ($var, $type, $need_decryption, $value) = @$row;
 		if($type eq 'autologon_user'){
-            $post .= $var."=".$user."&";
+            $post .= uri_escape($var)."=".uri_escape($user)."&";
         } elsif($type eq 'autologon_password'){
-            $post .= $var."=".$password."&";
+            $post .= uri_escape($var)."=".uri_escape($password)."&";
         } else {
 		    if($need_decryption){
 		        $log->debug("Decrypting $var");
                 $value = decrypt($value);
 		    }
-            $post .= $var."=".$value."&";        
+            $post .= uri_escape($var)."=".uri_escape($value)."&";        
         }
-		$log->debug($post);
+		#$log->debug($post);
 	}
     $sth->finish();
-    #$log->debug($post);
+    $log->debug($post);
 
 	#Setting browser
 	my ($ua, $response, $request);
@@ -195,12 +199,15 @@ sub forward{
 	if ($response->code =~ /^30(.*)/ ) { 
         $log->debug("Redirecting after SSO");
         $url = $response->headers->header('Location');
+        my $parsed_uri = APR::URI->parse($r->pool, $url);
+        
+        #Rewrite scheme in Location header
         if($r->is_https) {
-            $url =~ s{^http://}{https://}g;
+            $parsed_uri->scheme('https');
         } else {
-            $url =~ s{^https://}{http://}g;
+            $parsed_uri->scheme('http');
         }
-		$r->headers_out->add('Location' => $url);
+		$r->headers_out->add('Location' => $parsed_uri->unparse);
         $r->pnotes('SSO_Forwarding' => undef);
         
         #Redirecting        

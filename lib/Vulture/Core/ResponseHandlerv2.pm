@@ -116,11 +116,20 @@ sub handler {
         } else {
 		#Redirect user
 		    $r->status(200);
-
-		    my $url = $r->is_https ? 'https://' : 'http://';
-		    $url .= $app->{name}.':'.$app->{port}.$session_app{url_to_redirect};
-		    $r->err_headers_out->set('Location' => $url);
-		    $log->debug('Redirecting to '.$url);
+            my $incoming_uri = $app->{name};
+            if ($incoming_uri !~ /^(http|https):\/\/(.*)/ ) {
+                #Fake scheme for making APR::URI parse
+                $incoming_uri = 'http://'.$incoming_uri;
+            }
+            #Rewrite URI with scheme, port, path,...
+            my $rewrite_uri = APR::URI->parse($r->pool, $incoming_uri);
+                
+            $rewrite_uri->scheme('http');
+            $rewrite_uri->scheme('https') if $r->is_https;
+            $rewrite_uri->port($r->get_server_port());
+            $rewrite_uri->path('/'.$session_app{url_to_redirect});
+		    $r->err_headers_out->set('Location' => $rewrite_uri->unparse);
+		    $log->debug('Redirecting to '.$rewrite_uri->unparse);
 
 		    return Apache2::Const::REDIRECT;
         }
@@ -246,15 +255,24 @@ sub display_portal {
 	my ($r,$log,$dbh) = @_;
 
     my $intf_id = $r->dir_config('VultureID');
-	my $query = "SELECT app.name FROM app, app_intf WHERE app_intf.intf_id='".$intf_id."' AND app.id = app_intf.app_id";
+    my $query = "SELECT app.name FROM app, app_intf WHERE app_intf.intf_id='".$intf_id."' AND app.id = app_intf.app_id";
     $log->debug($query);
 
     my $all_apps = $dbh->selectall_arrayref($query);
 	my $html;
 	foreach my $app (@$all_apps) {
-        $html .= "<a href='";
-        $html .= $r->is_https ? 'https://' : 'http://';
-        $html .= @$app[0].':'.$r->get_server_port()."'><h3>Application ".@$app[0]."</h3></a>";
+        my $incoming_uri = @$app[0];
+        if ($incoming_uri !~ /^(http|https):\/\/(.*)/ ) {
+            #Fake scheme for making APR::URI parse
+            $incoming_uri = 'http://'.$incoming_uri;
+        }
+        #Rewrite URI with scheme, port, path,...
+        my $rewrite_uri = APR::URI->parse($r->pool, $incoming_uri);
+            
+        $rewrite_uri->scheme('http');
+        $rewrite_uri->scheme('https') if $r->is_https;
+        $rewrite_uri->port($r->get_server_port());
+        $html .= "<a href='".$rewrite_uri->unparse."'><h3>Application ".@$app[0]."</h3></a>";
 	}
 	return $html;
 }
