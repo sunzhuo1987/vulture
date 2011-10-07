@@ -20,12 +20,32 @@ DATABASE_PORT = ''             # Set to empty string for default. Not used with 
 HTTPD_PATH = 'sudo /usr/sbin/apache2'
 VULTURE_PATH = '/var/www/vulture/'
 CONF_PATH = '/var/www/vulture/conf/'
-WWW_PATH = '/var/www/vulture/admin/'
 DATABASE_PATH = '/var/www/vulture/admin/'
 BIN_PATH = '/var/www/vulture/bin/'
 
+SERVERROOT = '/usr/lib/apache2'
+
 PERL_SWITCHES = '-I/opt/vulture/lib/i386-linux-thread-multi -I/opt/vulture/lib/i386-linux-thread-multi/Vulture -I/opt/vulture/lib/i486-linux-thread-multi -I/opt/vulture/lib/i486-linux-gnu-thread-multi'
 
+HTTPD_CUSTOM = "\n\
+LoadModule apreq_module		/usr/lib/apache2/modules/mod_apreq2.so\n\
+LoadModule perl_module		/usr/lib/apache2/modules/mod_perl.so\n\
+LoadModule ssl_module		/usr/lib/apache2/modules/mod_ssl.so\n\
+LoadModule proxy_module		/usr/lib/apache2/modules/mod_proxy.so\n\
+LoadModule proxy_http_module	/usr/lib/apache2/modules/mod_proxy_http.so\n\
+LoadModule proxy_ftp_module	/usr/lib/apache2/modules/mod_proxy_ftp.so\n\
+LoadModule proxy_connect_module	/usr/lib/apache2/modules/mod_proxy_connect.so\n\
+LoadModule setenvif_module	/usr/lib/apache2/modules/mod_setenvif.so\n\
+LoadModule authz_host_module	/usr/lib/apache2/modules/mod_authz_host.so\n\
+LoadModule unique_id_module	/usr/lib/apache2/modules/mod_unique_id.so\n\
+\n\
+\n\
+<IfModule mod_mime.c>\n\
+        TypesConfig mime.types\n\
+</IfModule>\n\
+"
+
+WWW_USER='apache'
 
 # Local time zone for this installation. All choices can be found here:
 # http://www.postgresql.org/docs/current/static/datetime-keywords.html#DATETIME-TIMEZONE-SET-TABLE

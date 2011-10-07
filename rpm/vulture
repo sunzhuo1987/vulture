@@ -20,9 +20,10 @@ else
 fi
 
 
-export VULTURE_HOME=/opt/vulture
+export VULTURE_HOME=/opt
 export NAME=vulture
 export TMPDIR=/tmp
+export MEMCACHED="${VULTURE_HOME}/${NAME}/bin/memcached"
 
 # Source an auxiliary options file if we have one, and pick up OPTIONS,
 if [ -r /etc/sysconfig/${NAME} ] ; then
@@ -34,20 +35,26 @@ RETVAL=0
 
 function start() {
 	echo -n $"Starting ${NAME}: "
-        daemon "/usr/sbin/httpd -f ${VULTURE_HOME}/${NAME}/conf/httpd.conf 2> /dev/null"
-	echo
+        for i in `ls ${VULTURE_HOME}/${NAME}/conf/*.conf 2> /dev/null`; do
+                daemon "${VULTURE_HOME}/${NAME}/httpd/bin/httpd -f $i"
+        done
+        daemon $MEMCACHED -d -m 512 -l 127.0.0.1 -p 9091 -u apache
+        echo
 	[ $RETVAL -eq 0 ] && touch /var/lock/subsys/${NAME}
 	return $RETVAL
 }
 
 function stop() {
         # Stop daemons.
-	echo -n $"Stopping ${NAME}: "
-        kill `cat ${VULTURE_HOME}/${NAME}/conf/vulture.pid`
-	[ $RETVAL -eq 0 ] && success || failure
-	echo
+        echo -n $"Stopping ${NAME}: "
+        for i in `ls ${VULTURE_HOME}/${NAME}/conf/*.pid 2> /dev/null`; do
+                kill `cat $i`
+        done
+        killproc $MEMCACHED
+        [ $RETVAL -eq 0 ] && success || failure
+        echo
         [ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/${NAME}
-	return $RETVAL
+        return $RETVAL
 }
 
 function status() {
