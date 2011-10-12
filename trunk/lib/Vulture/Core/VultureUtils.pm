@@ -1,7 +1,7 @@
 #file:Core/VultureUtils.pm
 #-------------------------
 package Core::VultureUtils;
-our $VERSION = '2.0';
+our $VERSION = '2.1';
 
 BEGIN {
     use Exporter ();
