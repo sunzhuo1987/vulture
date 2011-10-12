@@ -18,18 +18,18 @@ DATABASE_HOST = ''             # Set to empty string for localhost. Not used wit
 DATABASE_PORT = ''             # Set to empty string for default. Not used with sqlite3.
 
 HTTPD_PATH = 'sudo /usr/sbin/apache2'
-VULTURE_PATH = '/var/www/vulture/'
+
 CONF_PATH = '/var/www/vulture/conf/'
 DATABASE_PATH = '/var/www/vulture/admin/'
 BIN_PATH = '/var/www/vulture/bin/'
 
 SERVERROOT = '/usr/lib/apache2'
+WWW_USER = 'www-data'
 
 PERL_SWITCHES = '-I/opt/vulture/lib/i386-linux-thread-multi -I/opt/vulture/lib/i386-linux-thread-multi/Vulture -I/opt/vulture/lib/i486-linux-thread-multi -I/opt/vulture/lib/i486-linux-gnu-thread-multi'
 
 HTTPD_CUSTOM = "\n\
 LoadModule apreq_module		/usr/lib/apache2/modules/mod_apreq2.so\n\
-LoadModule perl_module		/usr/lib/apache2/modules/mod_perl.so\n\
 LoadModule ssl_module		/usr/lib/apache2/modules/mod_ssl.so\n\
 LoadModule proxy_module		/usr/lib/apache2/modules/mod_proxy.so\n\
 LoadModule proxy_http_module	/usr/lib/apache2/modules/mod_proxy_http.so\n\
