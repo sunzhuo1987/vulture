@@ -45,8 +45,6 @@ LoadModule unique_id_module	/usr/lib/apache2/modules/mod_unique_id.so\n\
 </IfModule>\n\
 "
 
-WWW_USER='apache'
-
 # Local time zone for this installation. All choices can be found here:
 # http://www.postgresql.org/docs/current/static/datetime-keywords.html#DATETIME-TIMEZONE-SET-TABLE
 TIME_ZONE = 'America/Chicago'
