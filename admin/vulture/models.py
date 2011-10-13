@@ -6,7 +6,7 @@ from django.db import models
 from django.contrib import admin
 from time import sleep
 import time
-import pysqlite2 as sqlite3
+from pysqlite2 import dbapi2 as sqlite3
 from datetime import date
 import string
 import ldap
