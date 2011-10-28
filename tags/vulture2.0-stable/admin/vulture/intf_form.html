@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}
+	<img src="/img/proxy.png"> {% if form.desc %} {% trans "Interface add" %} {% else %} {% trans "Interface edit" %} {% endif %}
+{% endblock %}
+
+{% block display_auth_menu %}none{% endblock %}
+{% block display_components_menu %}none{% endblock %}
+{% block display_style_menu %}none{% endblock %}
+
+{% block content %}
+<form method="post" action="." name="intf">
+<table>
+<tr><td class="input">{% trans "Description" %}</td><td>{{ form.desc }}{% if form.desc.errors %}<div class="error">{{ form.desc.errors|join:", " }}</div>{% endif %}</td></tr>
+<tr><td class="input">{% trans "IP" %}</td><td>{{ form.ip }}{% if form.ip.errors %}<div class="error">{{ form.ip.errors|join:", " }}</div>{% endif %}</td></tr>
+<tr><td class="input">{% trans "Port" %}</td><td>{{ form.port }}{% if form.port.errors %}<div class="error">{{ form.port.errors|join:", " }}</div>{% endif %}</td></tr>
+<tr><td class="input">{% trans "Log" %}</td><td>{{ form.log }}{% if form.log.errors %}<div class="error">{{ form.log.errors|join:", " }}</div>{% endif %}</td></tr>
+<tr><td class="input">{% trans "Style" %} ({% trans "Optional" %})</td><td>{{ form.style }}{% if form.style.errors %}<div class="error">{{ form.style.errors|join:", " }}</div>{% endif %}</td></tr>
+<tr><td colspan="2"><b><br/>{% trans "Fill the following fields if Vulture needs to connect to SSL-enabled server or proxy: " %}</b><br/></td></tr>
+<tr><td class="input">{% trans "Machine Certificate file (full path)" %}</td><td>{{ form.remote_proxy_SSLProxyMachineCertificateFile }}{% if form.remote_proxy_SSLProxyMachineCertificateFile.errors %}<div class="error">{{ form.remote_proxy_SSLProxyMachineCertificateFile.errors|join:", " }}</div>{% endif %}</td></tr>
+<tr><td class="input">{% trans "CA Certificate file (full path)" %}</td><td>{{ form.remote_proxy_SSLProxyCACertificateFile }}{% if form.remote_proxy_SSLProxyCACertificateFile.errors %}<div class="error">{{ form.remote_proxy_SSLProxyCACertificateFile.errors|join:", " }}</div>{% endif %}</td></tr>
+<tr><td class="input">{% trans "CA Revocation file (full path)" %}</td><td>{{ form.remote_proxy_SSLProxyCARevocationFile }}{% if form.remote_proxy_SSLProxyCARevocationFile.errors %}<div class="error">{{ form.remote_proxy_SSLProxyCARevocationFile.errors|join:", " }}</div>{% endif %}</td></tr>
+<tr><td class="input">{% trans "Verify Remote Certificate" %}</td><td>{{ form.remote_proxy_SSLProxyVerify }}{% if form.remote_proxy_SSLProxyVerify.errors %}<div class="error">{{ form.remote_proxy_SSLProxyVerify.errors|join:", " }}</div>{% endif %}</td></tr>
+</table>
+
+<div id="proxy" style="display: {% if not object.remote_proxy %}none{% endif %}">
+<table>
+<tr><td class="input">{% trans "Remote proxy" %}</td><td>{{ form.remote_proxy }}{% if form.remote_proxy.errors %}<div class="error">{{ form.remote_proxy.errors|join:", " }}</div>{% endif %}</td></tr>
+</table>
+</div>
+
+<div id="sso" style="display: {% if not object.sso_portal %}none{% endif %}">
+<table>
+<tr><td class="input">{% trans "SSO portal" %}</td><td>{{ form.sso_portal }}{% if form.sso_portal %}<div class="error">{{ form.sso_portal.errors|join:", " }}</div>{% endif %}</td></tr>
+</table>
+</div>
+
+<div id="ssl" style="display: {% if not object.cert %}none{% endif %}">
+<table>
+<table>
+<tr><td class="input">{% trans "SSL engine" %}</td><td>{{ form.ssl_engine }}{% if form.ssl_engine.errors %}<div class="error">{{ form.ssl_engine.errors|join:", " }}</div>{% endif %}</td></tr>
+<tr><td class="input">{% trans "PEM certificat" %}</td><td>{{ form.cert }}{% if form.cert.errors %}<div class="error">{{ form.cert.errors|join:", " }}</div>{% endif %}</td></tr>
+<tr><td class="input">{% trans "PEM key" %}</td><td>{{ form.key }}{% if form.key.errors %}<div class="error">{{ form.key.errors|join:", " }}</div>{% endif %}</td></tr>
+<tr><td class="input">{% trans "PEM certification chain" %}</td><td>{{ form.ca }}{% if form.ca.errors %}<div class="error">{{ form.ca.errors|join:", " }}</div>{% endif %}</td></tr>
+</table>
+</div>
+<div style="width: 75%; text-align: right"><input type="submit" style="width: 100px;"/></div>
+</form>
+{% endblock %}
+
+{% block action %}
+<fieldset id='fieldset'><legend><img src='/img/goto.png'>{% trans "Action" %}</legend>
+<ul>
+    <div id='enable_proxy' style='display: {% if object.remote_proxy %}none{% endif %}'>
+		<li><a onclick="document.getElementById('proxy').style.display=''; document.getElementById('enable_proxy').style.display='none'; document.getElementById('disable_proxy').style.display=''">{% trans "Enable remote proxy" %}</a></li>
+	</div>
+	<div id='disable_proxy' style='display: {% if not object.remote_proxy %}none{% endif %}'>
+		<li><a onclick="document.getElementById('proxy').style.display='none'; document.getElementById('disable_proxy').style.display='none'; document.getElementById('enable_proxy').style.display=''; document.intf.sso_portal.value=''">{% trans "Disable remote proxy" %}</a></li>
+	</div>
+	<div id='enable_sso' style='display: {% if object.sso_portal %}none{% endif %}'>
+		<li><a onclick="document.getElementById('sso').style.display=''; document.getElementById('enable_sso').style.display='none'; document.getElementById('disable_sso').style.display=''">{% trans "Enable SSO portal" %}</a></li>
+	</div>
+	<div id='disable_sso' style='display: {% if not object.sso_portal %}none{% endif %}'>
+		<li><a onclick="document.getElementById('sso').style.display='none'; document.getElementById('disable_sso').style.display='none'; document.getElementById('enable_sso').style.display=''; document.intf.sso_portal.value=''">{% trans "Disable SSO portal" %}<br></a>
+	</div>
+	<div id='enable_ssl' style='display: {% if object.cert %}none{% endif %}'>
+		<li><a onclick="document.getElementById('ssl').style.display=''; document.getElementById('enable_ssl').style.display='none'; document.getElementById('disable_ssl').style.display=''"> Enable SSL</a></li>
+	</div>
+	<div id='disable_ssl' style='display: {% if not object.cert %}none{% endif %}'>
+		<li><a onclick="document.getElementById('ssl').style.display='none'; document.getElementById('disable_ssl').style.display='none'; document.getElementById('enable_ssl').style.display=''; document.intf.cert.value=''"> Disable SSL<br></a>
+	</div>
+</ul>
+</fieldset>
+{% endblock %}
+

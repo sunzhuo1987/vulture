@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}
+	<img src="/img/unused-security-keys.png"> {% trans "RADIUS authentication" %}
+{% endblock %}
+
+{% block display_auth_menu %}{% endblock %}
+{% block display_components_menu %}none{% endblock %}
+{% block display_style_menu %}none{% endblock %}
+
+{% block content %}
+
+<form method="post" id="radius" action="." name="edit_radius">
+<table style="padding: 0">
+<tr><td class="input">{% trans "Description" %}</td><td>{{ form.name }}{% if form.name.errors %}<div class="error">{{ form.name.errors|join:", " }}</div>{% endif %}</td></tr>
+<tr><td class="input">{% trans "Host" %}</td><td>{{ form.host }}{% if form.host.errors %}<div class="error">{{ form.host.errors|join:", " }}</div>{% endif %}</td></tr>
+<tr><td class="input">{% trans "Port" %}</td><td>{{ form.port }}{% if form.port.errors %}<div class="error">{{ form.port.errors|join:", " }}</div>{% endif %}</td></tr>
+<tr><td class="input">{% trans "Secret" %}</td><td>{{ form.secret }}{% if form.secret.errors %}<div class="error">{{ form.secret.errors|join:", " }}</div>{% endif %}</td></tr>
+<tr><td class="input">{% trans "Timeout" %}</td><td>{{ form.timeout }}{% if form.timeout.errors %}<div class="error">{{ form.timeout.errors|join:", " }}</div>{% endif %}</td></tr>
+<!--<tr><td class="input">{% trans "One Time Password" %}</td><td>{{ form.one_time_password }}{% if form.one_time_password.errors %}<div class="error">{{ form.one_time_password.errors|join:", " }}</div>{% endif %}</td></tr>-->
+</table>
+
+<div style="width: 75%; text-align: right"><input type="submit" style="width: 100px;"/></div>
+</form>
+{{ form.errors }}
+
+{% endblock %}
+
+{% block action %}
+
+{% endblock %}
+
