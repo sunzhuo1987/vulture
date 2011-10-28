@@ -2,35 +2,35 @@
 {% load i18n %}
 
 {% block title %}
-	<img src="/img/icon-security-lock.png"> {% trans "mod_security" %}
+	{% trans "Web Firewall" %} - <small>{% trans "Mod security list" %}</small>
 {% endblock %}
 
-{% block display_auth_menu %}none{% endblock %}
-{% block display_components_menu %}{% endblock %}
-{% block display_style_menu %}none{% endblock %}
+{% block tabs %}
+    <li><a href="#" id="main_tab_1" class="active">{% trans "List" %}</a></li>
+    <li><a href="/security/new/">{% trans "Add" %}</a></li>
+{% endblock %}
 
 {% block content %}
-
- 	{% if k_output %}<div style="border: 1px dashed black; width: 60%; padding: 1em; margin: 3em"><code style="color: red">{{ k_output }}</code></div><a href="/security">Click here to return to list</a>{% else %}
-	<a href="/security/update"><img src="/img/reload.png"> - <b>Click here to download/update security rules from modsecurity.org</b></a><br><br>
-	<table class="list">
-	<tr>
-	<th>{% trans "Name" %}</th>
-	<th style="width: 32px"></th>
-	</tr>
-{% for object in object_list %}
-	<tr><td>{{ object.name }}</td><td><a href="/security/{{ object.id }}/del/"><img src="/img/editdelete.png"><a href="/security/{{ object.id }}"><img src="/img/edit.png"></a></tr>
-{% endfor %}
-	</td>
-	</table>
+    <div id="main_content_1" class="main_content">
+ 	{% if k_output %}
+        <div style="border: 1px dashed black; padding: 1em; margin: 3em"><code style="color: red">{{ k_output }}</code></div>
+        <a href="/security/">{% trans "Click here to return to list" %}</a>
+    {% else %}
+        <a href="/security/update/"><img src="/img/vulture2/reload.png" alt="reload" /> - <b>{% trans "Click here to download/update security rules from modsecurity.org" %}</b></a><br /><br />
+        <table>
+            <tr>
+                <th>{% trans "Name" %}</th>
+                <th style="width: 32px"></th>
+            </tr>
+            {% for object in object_list %}
+                <tr>
+                    <td>{{ object.name }}</td>
+                    <td><a href="/security/{{ object.id }}/del/"><img src="/img/vulture2/trash.png" alt="delete" /></a><a href="/security/{{ object.id }}"><img src="/img/vulture2/edit.png" alt="edit" /></a></td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="2" style="text-align:center;">{% trans "The list is empty. You can add an item " %}<a href="/security/new/">{% trans "here" %}</a></td></tr>
+            {% endfor %}
+        </table>
 	{% endif %}
-
-{% endblock %}
-
-{% block action %}
-<fieldset id='fieldset'><legend><img src='/img/goto.png'>{% trans "Action" %}</legend>
-<ul>
-		<li><a href="/security/new/">{% trans "Add" %}</a></li>
-</ul>
-</fieldset>
+    </div>
 {% endblock %}

@@ -13,7 +13,7 @@ use LWP;
 
 use Apache2::Const -compile => qw(OK DECLINED);
 
-use Core::VultureUtils qw(&session);
+use Core::VultureUtils qw(&session &getTranslations &getStyle);
 use SSO::ProfileManager qw(&setProfile &getProfile);
 
 sub forward{
@@ -25,13 +25,13 @@ sub forward{
 	$log->debug("########## SSO_Learning ##########");
 
 	#Getting fields to send	
-	my $sql = "SELECT post.field_var, post.field_mapped, post.field_type, post.field_encrypted, post.field_value, post.field_prefix, post.field_suffix, post.field_desc FROM post, sso, app WHERE post.sso_id = sso.id AND sso.id = app.sso_forward_id AND app.id=? AND post.field_type != 'autologon_user' AND post.field_type != 'autologon_password' AND post.field_type != 'hidden'";
+	my $sql = "SELECT field.field_var, field.field_mapped, field.field_type, field.field_encrypted, field.field_value, field.field_prefix, field.field_suffix, field.field_desc FROM field, sso, app WHERE field.sso_id = sso.id AND sso.id = app.sso_forward_id AND app.id=? AND field.field_type != 'autologon_user' AND field.field_type != 'autologon_password' AND field.field_type != 'hidden'";
 	
 	my $sth = $dbh->prepare($sql);
 	$sth->execute($app->{id});
-	
 	my @fields =  @{$sth->fetchall_arrayref};
-
+    $sth->finish();
+    
     #Nothing to learn
     if(not scalar(@fields)){
         $r->content_type('text/html');
@@ -66,14 +66,16 @@ sub forward{
 	}
 	$form .= "<tr><td></td><td><input type=\"submit\"></td></tr>";
 	$form .= "</form></table>";
-
-	$sth->finish();
+    my $translations = getTranslations($r, $log, $dbh, "SSO_LEARNING");
+    
+    #If no html, send form
+    my $html = getStyle($r, $log, $dbh, $app, 'LEARNING', 'Please fill these fields', {FORM => $form}, $translations);
 	
-	#Print form
+    #Print form
 	if(not $req->param('vulture_learning')){
 		$r->pnotes('SSO_Forwarding' => 'LEARNING');
 		$r->content_type('text/html');	
-		$r->print($form);
+		$r->print($html =~ /<body>.+<\/body>/ ? $html : $form);
 		
 	#Learning was ok, move on SSO Forward
 	} elsif(setProfile($r, $log, $dbh, $app, $user, $req, @fields)) {

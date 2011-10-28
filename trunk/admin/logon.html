@@ -1,33 +1,52 @@
-{% extends "layout.html" %}
-
 {% load i18n %}
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Vulture 2</title>
+    <link rel="stylesheet" href="/css/vulture2.css" type="text/css" title="Vulture 2" />
+</head>
 
-{% block auth %}
-<fieldset id='fieldset' class='logout'><legend><img src='img/connect_no.png'>&nbsp;Authentication</legend>
+<body>
+    <div id='action'>
+        <fieldset id='fieldset' class='logon'><legend><img src='/img/vulture2/key.png' alt="keys"/>&nbsp;Authentication</legend>
+            <form action="/logon/" method="post">
+                <div id="main_content_1" class="main_content">
+                    <table style="display: block; width:auto; margin: 0 auto;">
+                        <tr><th colspan="2">Authentication :</th><td><input type="hidden" name="next" value="{{ next }}" /></td></tr>
+                        <tr><th>Login</th><td><input type="text" name="username" value="" /></td></tr>
+                        <tr><th>Password</th><td><input type="password" name="password" value="" /></td></tr>
+                    </table>
+                    <br />
+                    <input type='submit' value="{% trans "Logon" %}" />
+                </div>
+            </form>
+        </fieldset>
+    </div>
 
-<form action="/logon/" Method="POST"/>
-<input type="hidden" name="next" value="{{ next }}" />
-<input type="text" name="username" value="" />
-<input type="password" name="password" value="" />
-<input type='submit' value="{% trans "Logon" %}" />
-</form>
-</fieldset>
-{% endblock %}
-
-{% block menu %}
-<div style='margin: 2em'>
-<img src='/img/vulture_little.png'>
-</div>
-{% endblock %}
-
-{% block main %}
-<div id='splash' style='margin-left: 3em'>
-		<p>
-
-<br>
-		Vulture is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 2 of the License, or any later version. Vulture is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
-		</p><p>You should have received a copy of the GNU General Public License along with this program; if not, write to the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA.
-		</p>
-
-		</div>
-{% endblock %}
+    <div id='main_box' class='main_box'>
+        <div class='main_area'>
+            <div id='splash' style='margin-left: 3em'>
+                <table>
+                    <tr>
+                        <td>
+                            <div style="background-color:#ffffff;padding:8px;border:2px solid #f57e00;border-radius: 0 15px 0 15px;">
+                                <img src='/img/vulture_little.png' alt='logo' style='width:140px;height:160px;'/>
+                            </div>
+                        </td>
+                        <td>
+                        <p>
+                            <br />
+                            Vulture is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 2 of the License, or any later version. Vulture is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+                        </p>
+                        <p>
+                            You should have received a copy of the GNU General Public License along with this program; if not, write to the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA.
+                        </p>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

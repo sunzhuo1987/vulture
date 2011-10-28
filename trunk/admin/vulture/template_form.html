@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}
+    {% trans "Appearance" %} - <small>{% trans "Template settings" %}</small>
+{% endblock %}
+
+{% block tabs %}
+    <li><a href="/template/">{% trans "List" %}</a></li>
+    <li><a href="#" id="main_tab_1" class="active">{% trans "Main settings" %}</a></li>
+{% endblock %}
+
+{% block content %}
+    <form method="post" action="." id="template">
+        <div id="main_content_1" class="main_content">
+            <table>
+                <tr><th colspan="2"><i>{% trans "The italic items below refer to translations" %}</i></th></tr>
+                <tr><th>{% trans "Localization" %}</th><td><i>__USER__</i> -- <i>__PASSWORD__</i> -- <i>__APPLICATION__</i></td></tr>
+                <tr><th>{% trans "All" %}</th><td>__IMAGE__</td></tr>
+                <tr><th>{% trans "App down Template" %}</th><td><i>__APP_DOWN__</i></td></tr>
+                <tr><th>{% trans "Login Template" %}</th><td>__FORM__ -- <i>__ERRORS__</i></td></tr>
+                <tr><th>{% trans "ACL Template" %}</th><td><i>__ACL_FAILED__</i></td></tr>
+                <tr><th>{% trans "Portal Template" %}</th><td>__APPS__</td></tr>
+                <tr><th>{% trans "SSO Learning Template" %}</th><td>__FORM__ -- <i>__SSO_LEARNING__</i></td></tr>
+            </table>
+            <table>
+                <tr><th>{% trans "Name" %}</th><td class="input">{{ form.name }}{% if form.name.errors %}<div class="error">{{ form.name.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+                <tr><th>{% trans "Type" %}</th><td class="input">{{ form.type }}{% if form.type.errors %}<div class="error">{{ form.type.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+                <tr><th>HTML</th><td class="input">{{ form.value }}{% if form.value.errors %}<div class="error">{{ form.value.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+            </table>
+        </div>
+        <br />
+        <input type="submit" value="{% trans "Save settings" %}"/>
+        <input type="button" onclick="document.location='/template/'" value="{% trans "Cancel" %}"/>
+    </form>
+{% endblock %}

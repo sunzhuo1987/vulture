@@ -18,10 +18,10 @@ sub checkAuth{
 
 	$log->debug("########## Auth_LDAP ##########");
 
-	my ($ldap, $ldap_url_attr, $ldap_uid_attr, $ldap_user_filter, $ldap_group_filter, $ldap_user_scope, $ldap_group_scope, $ldap_base_dn, $ldap_group_member, $ldap_group_is_dn, $ldap_group_attr) = getLDAP_object($log, $dbh, $id_method);
+	my ($ldap, $ldap_url_attr, $ldap_uid_attr, $ldap_user_ou, $ldap_group_ou, $ldap_user_filter, $ldap_group_filter, $ldap_user_scope, $ldap_group_scope, $ldap_base_dn, $ldap_group_member, $ldap_group_is_dn, $ldap_group_attr) = getLDAP_object($log, $dbh, $id_method);
 	return Apache2::Const::FORBIDDEN if (!$ldap);
 
-	my $mesg = $ldap->search(base => $ldap_base_dn,
+	my $mesg = $ldap->search(base => $ldap_user_ou ? $ldap_user_ou : $ldap_base_dn,
 				 scope => $ldap_user_scope,
 				 filter => "(&" . $ldap_user_filter . "(" . $ldap_uid_attr . "=" . $user . "))"
 			     );

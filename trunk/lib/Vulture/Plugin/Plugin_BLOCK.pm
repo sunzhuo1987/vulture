@@ -8,7 +8,7 @@ use Apache2::Reload;
 use Apache2::Const -compile => qw(FORBIDDEN);
 
 sub plugin{
-	my ($package_name, $r, $log, $dbh, $app, $options) = @_;
+	my ($package_name, $r, $log, $dbh, $intf, $app, $options) = @_;
 	
 	$log->debug("########## Plugin_BLOCK ##########");
 

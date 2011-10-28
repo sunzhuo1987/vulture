@@ -2,38 +2,46 @@
 {% load i18n %}
 
 {% block title %}
-	<img src="/img/proxy.png"> {% trans "Interfaces" %}
+	{% trans "System" %} - <small>{% trans "Interface list" %}</small>
 {% endblock %}
 
-{% block display_auth_menu %}none{% endblock %}
-{% block display_components_menu %}none{% endblock %}
-{% block display_style_menu %}none{% endblock %}
+{% block tabs %}
+    <li><a href="#" id="main_tab_1" class="active">{% trans "List" %}</a></li>
+    <li><a href="/intf/new/">{% trans "Add" %}</a></li>
+{% endblock %}
 
 {% block content %}
-	{% if k_output %}<div style="border: 1px dashed black; width: 60%; padding: 1em; margin: 3em"><code style="color: red">{{ k_output }}</code></div>{% endif %}
-	<table class="list">
-	<tr>
-	<th>{% trans "Description" %}</th>
-	<th>{% trans "IP" %}</th>
-    <th>{% trans "SSO Portal" %}</th>
-	<th style="align: center">{% trans "Status" %}</th>
-	<th style="width: 64px"></th>
-	</tr>
-{% for object in object_list %}
-	<tr><td>{{ object.desc }}</td><td>{{ object.ip }}:{{ object.port }}</td><td>{% if object.sso_portal %}{{ object.sso_portal }}{% else %}{% trans "None" %}{% endif %}</td>
-	<td style="text-align: center">{% if object.pid %}<img src="/img/button_ok.png">{% else %}<img src="/img/button_cancel.png">{% endif %}</td>
-	<td>{% if object.pid %}<a href="/intf/{{ object.id }}/stop"><img src="/img/stop.png"></a>{% if not object.checkIfEqual and object.need_restart %}<a href="/intf/{{ object.id }}/reload/"><img src="/img/reload.png"></a>{% endif %}{% else %}<a href="/intf/{{ object.id }}/start/"><img src="/img/forward.png"></a>{% endif %}
-
-<a href="/intf/{{ object.id }}/del/"><img src="/img/editdelete.png"><a href="/intf/{{ object.id }}"><img src="/img/edit.png"></a></tr>
-{% endfor %}
-	</td>
-	</table>
-{% endblock %}
-
-{% block action %}
-<fieldset id='fieldset'><legend><img src='/img/goto.png'>{% trans "Action" %}</legend>
-<ul>
-		<li><a href="/intf/new/">{% trans "Add" %}</a></li>
-</ul>
-</fieldset>
+	<div id="main_content_1" class="main_content">
+        {% if k_output %}<div style="border: 1px dashed black; padding: 1em; margin: 3em"><code style="color: red">{{ k_output }}</code></div>{% endif %}
+        <table>
+            <tr>
+                <th>{% trans "Name" %}</th>
+                <th>{% trans "IP" %}</th>
+                <th>{% trans "SSO Portal" %}</th>
+                <th style="width: 32px;">{% trans "Status" %}</th>
+                <th style="width: 72px;"></th>
+            </tr>
+            {% for object in object_list %}
+                <tr>
+                    <td>{{ object.name }}</td>
+                    <td>{{ object.ip }}:{{ object.port }}</td>
+                    <td>{% if object.sso_portal %}{{ object.sso_portal }}{% else %}{% trans "None" %}{% endif %}</td>
+                    <td>{% if object.pid %}<img src="/img/vulture2/ok.png" alt="ok" />{% else %}<img src="/img/vulture2/stop.png" alt="stop" />{% endif %}</td>
+                    <td>
+                        {% if object.pid %}
+                            <a href="/intf/{{ object.id }}/stop"><img src="/img/vulture2/stop.png" /></a>
+                            {% if not object.checkIfEqual and object.need_restart %}
+                                <a href="/intf/{{ object.id }}/reload/"><img src="/img/vulture2/reload.png" alt="reload" /></a>
+                            {% endif %}
+                        {% else %}
+                            <a href="/intf/{{ object.id }}/start/"><img src="/img/vulture2/start.png" alt="start" /></a>
+                        {% endif %}
+                        <a href="/intf/{{ object.id }}/del/"><img src="/img/vulture2/trash.png" alt="delete" /></a><a href="/intf/{{ object.id }}"><img src="/img/vulture2/edit.png" alt="edit" /></a>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="5" style="text-align:center;">{% trans "The list is empty. You can add an item " %}<a href="/intf/new/">{% trans "here" %}</a></td></tr>
+            {% endfor %}
+        </table>
+    </div>
 {% endblock %}

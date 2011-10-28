@@ -1,3 +1,17 @@
+vulture (2.0.1) stable; urgency=low
+
+  * New graphical UI
+  * Add VirtualHost directives
+  * Add CAS client / Server
+  * Fix bugs
+  * Add templates such as ACL failed, app down, ...
+  * Add event viewer
+  * Export / Import configuration database
+  * Translate graphical UI
+  * Display help in graphical UI
+
+ -- Pierre Quetelart <pierre.quetelart@advens.fr>  Thu, 11 Aug 2011 16:00:00 +0200
+
 vulture (2.0) stable; urgency=low
 
   * Fix bugs

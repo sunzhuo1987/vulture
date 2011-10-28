@@ -1,60 +1,83 @@
 {% extends "layout.html" %}
 {% load i18n %}
+{% load get_all %}
+{% load set_var %}
 
 {% block auth %}
-<fieldset id='fieldset' class='logon'><legend><img src='/img/connect_established.png'>&nbsp;{% trans "Authentication" %}</legend>
-<form action='/logon/' method='GET'/>
-<center>{{ user }}</center>
-<!--<center>{% trans "Last login" %} : {{ user.last_login|date:"m/d/Y H:i:s" }}</center>-->
-<input type='submit' class='inputbutton' value='{% trans "Logout" %}'>
-</form>
+<fieldset class='logon'><legend><img src='/img/vulture2/key.png' alt="authentication" />&nbsp;{% trans "Authentication" %}</legend>
+    <form action='/logon/' method='get'>
+        <div style="text-align:center;">{{ user }}</div>
+        <!--<center>{% trans "Last login" %} : {{ user.last_login|date:"m/d/Y H:i:s" }}</center>-->
+        <br />
+        <input type='submit' class='inputbutton' value='{% trans "Logout" %}'/>
+    </form>
 </fieldset>
 {% endblock %}
 
-{% block _action %}
-	{% block action %}{% endblock %}
+{% block action %}
+{% get_all vulture.Intf as intfs %}
+{% for intf in intfs %}
+        {% if intf.need_restart and end != 1%}
+            {% set end = 1 %}
+            <fieldset><legend><img src='/img/vulture2/run.png' alt="configuration" />{% trans "Configuration" %}</legend>
+                <a href="/intf/reloadAll/">{% trans "Reload needed" %}</a>
+            </fieldset>
+        {% endif %}
+{% endfor %}
 {% endblock %}
 
 {% block main %}
-	<h1>{% block title %}{% endblock %}</h1>
-<br>&nbsp;<br>
-	{% block content %}{% endblock %}
+	<h4>{% block title %}{% endblock %}</h4>
+    <br />
+	<ul class="tabs">{% block tabs %}{% endblock %}</ul>
+    <div style="text-align:center">{% block content %}{% endblock %}</div>
 {% endblock %}
-
 
 {% block menu %}
-<ul>
-{% if user.is_staff %}
-<li><a href='/user/'>{% trans "Users" %}</a></li>
-<li><a href='/intf/'>{% trans "Interfaces" %}</a></li>
-<li><a href='/app/'>{% trans "Applications" %}</a></li>
-<li><a onClick="switchDisplay('auth_menu')">{% trans "Authentications" %}</a></li>
-<ul id='auth_menu' style='display: {% block display_auth_menu %}{% endblock %}'>
-    <li><a href='/kerberos/'> &raquo; Kerberos</a></li>
-    <li><a href='/ldap/'> &raquo; LDAP</a></li>
-    <li><a href='/ntlm/'> &raquo; NTLM</a></li>
-    <li><a href='/sql/'> &raquo; SQL</a></li>
-    <li><a href='/ssl/'> &raquo; SSL</a></li>
-    <li><a href='/radius/'> &raquo; RADIUS</a></li>
-</ul>
-<li><a href='/acl/'>{% trans "ACL" %}</a></li>
-<li><a onClick="switchDisplay('components_menu')">{% trans "Components" %}</a></li>
-<ul id='components_menu' style='display: {% block display_components_menu %}{% endblock %}'>
-    <li><a href='/sso/'> &raquo; {% trans "SSO Forward" %}</a></li>
-    <li><a href='/log/'> &raquo; {% trans "mod_log" %}</a></li>
-    <li><a href='/security/'> &raquo; {% trans "mod_security" %}</a></li>
-    <li><a href='/map_uri/'> &raquo; {% trans "Plugins" %}</a></li>
-    <!--<li><a href='/o/'> &raquo; {% trans "Organizations" %}</a></li>-->
-</ul>
-<li><a onClick="switchDisplay('style_menu')">{% trans "Style" %}</a></li>
-<ul id='style_menu' style='display: {% block display_style_menu %}{% endblock %}'>
-    <li><a href='/style_style/'> &raquo; {%trans "Styles" %}</a></li>
-    <li><a href='/style_css/'> &raquo; {%trans "CSS" %}</a></li>
-    <li><a href='/style_tpl/'> &raquo; {%trans "Templates" %}</a></li>
-    <li><a href='/style_images/'> &raquo; {%trans "Images" %}</a></li>
-    <li><a href='/style_translation/'> &raquo; {%trans "Translations" %}</a></li>
-</ul>
-{% endif %}
-
-</ul>
+    <img src='/img/vulture2/server.png' alt="system"/>
+    <b>{% trans "System" %}</b>
+    <ul>
+        <li><a class="menu_entry" href="/user/">{% trans "Admin Users" %}</a></li>
+        <li><a class="menu_entry" href="/log/">{% trans "mod_log" %}</a></li>
+        <li><a class="menu_entry" href="/event/">{% trans "Event viewer" %}</a></li>
+        <li><a class="menu_entry" href="/intf/">{% trans "Interfaces" %}</a></li>
+        <li><a class="menu_entry" href="/localization/">{% trans "Localization" %}</a></li>
+        <li><a class="menu_entry" href="/export/">{% trans "Import/Export config" %}</a></li>
+    </ul>
+    <img src='/img/vulture2/agt_family.png' alt="authentication"/>
+    <b>{% trans "Authentication" %}</b>
+    <ul>
+        <li><a class="menu_entry" href="#">{% trans "Authentication" %}</a>
+            <ul>
+                <li><a href='/kerberos/'> &raquo; {% trans "Kerberos" %}</a></li>
+                <li><a href='/ldap/'> &raquo; {% trans "LDAP" %}</a></li>
+                <li><a href='/ntlm/'> &raquo; {% trans "NTLM" %}</a></li>
+                <li><a href='/sql/'> &raquo; {% trans "SQL" %}</a></li>
+                <li><a href='/ssl/'> &raquo; {% trans "SSL" %}</a></li>
+                <li><a href='/radius/'> &raquo; {% trans "RADIUS" %}</a></li>
+                <li><a href='/cas/'> &raquo; {% trans "CAS" %}</a></li>
+            </ul>
+        </li>
+        <li><a class="menu_entry" href="/acl/">{% trans "ACL" %}</a></li>
+        <li><a class="menu_entry" href="/sso/">{% trans "Web SSO" %}</a></li>
+    </ul>
+    <img src='/img/vulture2/web.png' alt="web firewall"/>
+    <b>{% trans "Web Firewall" %}</b>
+    <ul>
+        <li><a class="menu_entry" href="/security/">{% trans "mod_security" %}</a></li>
+        <!--<li><a class="menu_entry" href="/">mod_qos</a></li>-->
+    </ul>
+    <img src='/img/vulture2/package_network.png' alt="web applications"/><b>{% trans "Web Applications" %}</b>
+    <ul>
+        <li><a class="menu_entry" href="/app/">{% trans "Applications" %}</a></li>
+        <li><a class="menu_entry" href="/appearance/">{% trans "Appearance" %}</a>
+            <ul>
+                <li><a class="menu_entry" href="/template/"><small>{% trans "HTML templates" %}</small></a></li>
+                <li><a class="menu_entry" href="/template_css/"><small>{% trans "CSS templates" %}</small></a></li>
+                <li><a class="menu_entry" href="/image/"><small>{% trans "Images" %}</small></a></li>
+            </ul>
+        </li>
+        <li><a class="menu_entry" href="/plugin/">{% trans "Plugins" %}</a></li>
+    </ul>
 {% endblock %}
+{% block copyright %}<b>{% trans "Vulture 2 is released under GNU Public Licence Version 3" %}</b>{% endblock %}

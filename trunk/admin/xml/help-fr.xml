@@ -1,0 +1,171 @@
+<xml>
+    <user>
+        <username>Nom de l'utilisateur</username>
+        <password>Mot de passe de l'utilisateur</password>
+        <c_password>Mot de passe (confirmation)</c_password>
+        <is_admin>Autoriser l'utilisateur à administrer Vulture</is_admin>
+    </user>
+    <log>
+        <name>Nom du log</name>
+        <level>Voir la documentation d'Apache pour plus d'informations</level>
+        <format>Une chaine de caractère valide</format>
+        <dir>Endroit où mettre les logs</dir>
+    </log>
+    <log_viewer>
+        <file>Nom de l'application</file>
+        <type>Type de log à visualiser</type>
+        <records>Nombre d'enregistrements</records>
+        <filter>Expression régulière utilisée comme filtre</filter>
+    </log_viewer>
+    <intf>
+        <name>Nom de l'interface</name>
+        <ip>Adresse IP sur laquelle Apache doit écouter</ip>
+        <port>Port d'écoute d'Apache</port>
+        <log>Format de log pour l'interface</log>
+        <appearance>Apparence des différents éléments (écrasée par l'application)</appearance>
+        <remote_proxy>Adresse du proxy par lequel Vulture doit passer pour accèder à l'application en interne</remote_proxy>
+        <sso_portal>Adresse du portail SSO (sous la forme "portail.fr")</sso_portal>
+        <sso_timeout>Durée avant déconnexion de l'utilisateur (en secondes)</sso_timeout>
+        <sso_update_access_time>Relancer le décompte de déconnexion à chaque action de l'utilisateur sur le portail</sso_update_access_time>
+        <!--
+        <ssl_engine></ssl_engine>
+        <cert></cert>
+        <key></key>
+        <ca></ca>
+        <remote_proxy_SSLProxyMachineCertificateFile></remote_proxy_SSLProxyMachineCertificateFile>
+        <remote_proxy_SSLProxyCACertificateFile></remote_proxy_SSLProxyCACertificateFile>
+        <remote_proxy_SSLProxyCARevocationFile></remote_proxy_SSLProxyCARevocationFile>
+        <remote_proxy_SSLProxyVerify></remote_proxy_SSLProxyVerify>
+        -->
+        <virtualhost_directives>Ajouter des directives Apache pour l'interface</virtualhost_directives>
+    </intf>
+    <localization>
+        <country>Langue à traduire</country>
+        <message>Message à traduire</message>
+        <translation>Traduction</translation>
+    </localization>
+    <importexport>
+        <path>Chemin où importer / exporter la base de données Vulture (l'utilisateur www-data (Debian) ou apache (RedHat) doit avoir les droits)</path>
+    </importexport>
+    <kerberos>
+        <name>Nom de la méthode d'authentification</name>
+        <realm>Mire d'authentification Kerberos</realm>
+    </kerberos>
+    <ldap>
+        <name>Nom de la méthode d'authentification</name>
+        <host>Adresse du serveur LDAP</host>
+        <port>Port réservé au LDAP sur le serveur LDAP (par défaut 389)</port>
+        <protocol>Version du protocole LDAP</protocol>
+        <scheme>Sécurisation des échanges avec le serveur LDAP</scheme>
+        <dn>DN de connexion</dn>
+        <password>Mot de passe associé au DN de connexion</password>
+        <base_dn>Base dn du serveur LDAP</base_dn>
+        <user_attr>Attribut de l'utilisateur à rechercher lors de la connexion</user_attr>
+        <user_filter>Filtre associé aux utilisateurs</user_filter>
+        <user_scope>Champ d'action de la recherche</user_scope>
+        <user_ou>Unité organisationnelle des utilisateurs (dn complet)</user_ou>
+        <group_attr>Attribut du groupe à rechercher lors des ACL</group_attr>
+        <group_filter>Filtre associé aux groupes</group_filter>
+        <group_scope>Champ d'action de la recherche</group_scope>
+        <group_ou>Unité organisationnelle des groupes (dn complet)</group_ou>
+        <group_member>Attribut qui fait que l'utilisateur recherché appartient au groupe</group_member>
+        <are_members_dn>L'attribut de recherche est un DN complet</are_members_dn>
+    </ldap>
+    <ntlm>
+        <name>Nom de la méthode d'authentification</name>
+        <domain>Nom du domaine</domain>
+        <primary_dc>Contrôleur primaire</primary_dc>
+        <secondary_dc>Contrôleur secondaire</secondary_dc>
+    </ntlm>
+    <sql>
+        <name>Nom de la méthode d'authentification</name>
+        <driver>Type de base de données</driver>
+        <database>Nom de la base de données</database>
+        <host>Adresse du serveur SQL</host>
+        <port>Port réservé au SQL sur le serveur SQL</port>
+        <user>Nom d'utilisateur de connexion</user>
+        <password>Mot de passe de connexion</password>
+        <table>Table contenant l'ensemble des utilisateurs</table>
+        <user_column>Champ contenant le nom d'utilisateur</user_column>
+        <pass_column>Champ contenant le mot de passe de l'utilisateur</pass_column>
+        <pass_algo>Algorithme utilisé pour le hashage du mot de passe</pass_algo>
+    </sql>
+    <!--
+    <ssl>
+        <name>Nom de la méthode d'authentification</name>
+        <require></require>
+        <crt></crt>
+        <constraint></constraint>
+    </ssl>
+    -->
+    <radius>
+        <name>Nom de la méthode d'authentification</name>
+        <host>Adresse du serveur RADIUS</host>
+        <port>Port réservé à l'authentification sur le serveur RADIUS (par défaut 1812)</port>
+        <secret>Secret partagé entre le serveur RADIUS et Vulture</secret>
+        <timeout>Durée avant déconnexion du serveur RADIUS</timeout>
+    </radius>
+    <acl>
+        <name>Nom du contrôle d'accès</name>
+        <auth>Méthode d'authentification sur lequel repose le contrôle d'accès pour aller chercher les utilisateurs et les groupes (SQL ou LDAP)</auth>
+    </acl>
+    <sso>
+        <name>Nom du Web SSO (Single Sign On)</name>
+        <auth>Méthode d'authentification sur lequel repose le Web SSO pour enregistrer les données de profils (SQL ou LDAP)</auth>
+        <table_mapped>Nom de la table qui contient les informations de profils</table_mapped>
+        <app_mapped>Champ de la table qui correspond à l'identifiant de l'application</app_mapped>
+        <user_mapped>Champ de la table qui correspond au nom d'utilisateur</user_mapped>
+    </sso>
+    <security>
+        <name>Nom de la règle de sécurité</name>
+        <rules>Directives mod_security (attention à la syntaxe)</rules>
+    </security>
+    <app>
+        <name>Nom internet de l'application (sous la forme "app1.fr")</name>
+        <intf>Interface(s) associée(s) à l'application. Il est possible d'en spécifier plusieures. Pour désélectionner, appuyez sur Ctrl en cliquant sur un espace vide</intf>
+        <url>Nom internet de l'application protégée par Vulture (sous la forme "http://*****" /!\ pas de / final)</url>
+        <log>Format de log pour l'application</log>
+        <appearance>Apparence des différents éléments</appearance>
+        <auth>Méthode(s) d'authentification associée(s) à l'application. De même que pour le champ Interface, il est possible d'en spécifier plusieures</auth>
+        <auth_basic>Affiche une pop-up demandant le nom d'utilisateur et le mot de passe au lieu d'un formulaire</auth_basic>
+        <display_portal>Affiche la liste de toutes les applications de l'interface après une connexion réussie au lieu de rediriger vers l'application interne</display_portal>
+        <acl>Méthode de contrôle d'accès associée à l'application</acl>
+        <sso_forward>Méthode de Web SSO</sso_forward>
+        <logon_url>Page vers laquelle sont envoyées les données du formulaire d'authentifications</logon_url>
+        <logout_url>Page de déconnexion de l'application</logout_url>
+        <security>Règles de mod_security pour protéger l'application</security>
+        <timeout>Durée avant déconnexion de l'utilisateur (en secondes)</timeout>
+        <update_access_time>Relancer le décompte de déconnexion à chaque action de l'utilisateur sur l'application</update_access_time>
+        <canonicalise_url>Transmettre l'URL pour l'application interne sous sa forme brute. /!\ Cela peut poser des problèmes de sécurité</canonicalise_url>
+        <virtualhost_directives>Ajouter des directives Apache pour l'interface</virtualhost_directives>
+    </app>
+    <appearance>
+        <name>Nom de l'apparence</name>
+        <app_down_tpl>Modèle de page lorsque l'application est hors service</app_down_tpl>
+        <login_tpl>Modèle de page pour la mire d'authentification Vulture</login_tpl>
+        <acl_tpl>Modèle de page lorsque le contrôle d'accès (ACL) échoue (au lieu d'une erreur 403)</acl_tpl>
+        <sso_portal_tpl>Modèle de page pour le portail SSO</sso_portal_tpl>
+        <sso_learning_tpl>Modèle de page pour l'apprentissage lors du Web SSO</sso_learning_tpl>
+        <css>Feuille de style liée à l'apparence</css>
+        <image>Image liée à l'apparence</image>
+    </appearance>
+    <template>
+        <name>Nom du modèle de page</name>
+        <type>Type de modèle</type>
+        <value>Code HTML correspondant à ce type de modèle. Toutes les balises HTML sont autorisées ainsi que les éléments dynamiques au-dessus</value>
+    </template>
+    <css>
+        <name>Nom de la feuille de style</name>
+        <value>Code CSS. Toutes les balises sont autorisées</value>
+    </css>
+    <image>
+        <name>Nom de l'image</name>
+        <image>Fichier image à envoyer sur le serveur</image>
+    </image>
+    <plugin>
+        <uri_pattern>Expression régulière à détecter dans l'url entrante</uri_pattern>
+        <type>Type de plugin à associer à l'expression régulière</type>
+        <app>Portée de l'expression régulière. Laisser vide pour appliquer à toutes les interfaces et toutes les applications</app>
+        <options>Pour le mode Rewrite, il est nécessaire de préciser l'url de redirection</options>
+    </plugin>
+</xml>

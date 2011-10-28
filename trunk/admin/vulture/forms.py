@@ -1,27 +1,54 @@
 # -*- coding: utf-8 -*-
-#from django.newforms import form_for_model
 from vulture.models import *
 from django import forms
 from django.utils.translation import gettext as _
+import hashlib
 
-class Headerform(forms.Form):
-    name = forms.CharField(label=_('Nom'))
-    type = forms.ChoiceField(choices=Header.HEADER_TYPE, initial="none",label=_('Type de header'))
-    value = forms.CharField(label=_('Valeur'))
+class UserForm(forms.ModelForm):
+    password = forms.CharField(widget=forms.PasswordInput, max_length=128, required=False)
+    c_password = forms.CharField(widget=forms.PasswordInput, max_length=128, required=False)
+    def __init__(self, *args, **kwargs):
+        self.edit = False
+        super(UserForm, self).__init__(*args, **kwargs)
+        instance = getattr(self, 'instance', None)
+        if instance and instance.id:
+            self.edit = True
+        # now modify self.fields dependent on the value of self.edit
 
-class Rewriteform(forms.Form):
-    rewrite_values = forms.CharField(label=_('Regles de reecriture'),widget=forms.Textarea)
-    
-class Proxydirectivesform(forms.Form):
-    proxydirectives_values = forms.CharField(label=_('Directives proxy'),widget=forms.Textarea)
-    
-class Virtualhostdirectivesform(forms.Form):
-    virtualhostdirectives_values = forms.CharField(label=_('Directives VirtualHost'),widget=forms.Textarea)
+    def clean(self):
+        password = self.cleaned_data.get('password')
+        c_password = self.cleaned_data.get('c_password')
+        if password == c_password:
+            if not password:
+                if self.edit :
+                    #Nothing to to
+                    return self.cleaned_data
+                else:
+                    msg = u"Password can't be empty"
+                    self._errors["password"] = self.error_class([msg])
+                    self._errors["c_password"] = self.error_class([msg])
+                    
+                    if c_password:
+                        del self.cleaned_data["c_password"]
+                    if password:
+                        del self.cleaned_data["password"]
+            #Encode to sha1
+            else:
+                self.cleaned_data["password"] = hashlib.sha1(self.cleaned_data.get("password")).hexdigest()
+        else:
+            msg = u"Password and confirm password must be the same"
+            self._errors["password"] = self.error_class([msg])
+            self._errors["c_password"] = self.error_class([msg])
+            
+            if c_password:
+                del self.cleaned_data["c_password"]
+            if password:
+                del self.cleaned_data["password"]
 
-class CityForm(forms.Form):
-    state = forms.ModelChoiceField(queryset=App.objects.all())
-    city = forms.ModelChoiceField(queryset=Header.objects.get_empty_query_set())
-
+        return self.cleaned_data
+    class Meta:
+        model = User
+        
 class AppForm(forms.ModelForm):
     security = forms.ModelMultipleChoiceField(widget=forms.CheckboxSelectMultiple,required=False, queryset=ModSecurity.objects.all())
     auth = forms.ModelMultipleChoiceField(required=False, queryset=Auth.objects.all())
@@ -41,17 +68,18 @@ class AppForm(forms.ModelForm):
         model = App
 
 class ACLForm(forms.ModelForm):
+    auth = forms.ModelChoiceField(required=False, queryset=Auth.objects.filter(auth_type__in=['sql','ldap']))
     class Meta:
         model = ACL
 
 class SQLForm(forms.ModelForm):
-    def clean_database(self):
-        database = self.cleaned_data["database"]
-        try:
-            f=open("%s" % (database), 'r')
-        except:
-            raise forms.ValidationError("Database path is incorrect or cannot be read by Apache")           
-        return database
+    # def clean_database(self):
+        # database = self.cleaned_data["database"]
+        # try:
+            # f=open("%s" % (database), 'r')
+        # except:
+            # raise forms.ValidationError("Database path is incorrect or cannot be read by Apache")           
+        # return database
     class Meta:
         model = SQL
 
@@ -83,26 +111,34 @@ class RADIUSForm(forms.ModelForm):
     secret = forms.CharField(widget=forms.PasswordInput)
     class Meta:
         model = RADIUS
+        
+class CASForm(forms.ModelForm):
+    class Meta:
+        model = CAS
 
 class SSOForm(forms.ModelForm):
+    auth = forms.ModelChoiceField(required=False, queryset=Auth.objects.filter(auth_type__in=['sql','ldap']))
     class Meta:
         model= SSO
 
-class TranslationForm(forms.ModelForm):
+class LocalizationForm(forms.ModelForm):
     class Meta:
-        model = Translation
+        model = Localization
     def clean(self):
         country = self.cleaned_data.get('country')
         message = self.cleaned_data.get('message')
 
         try:
-            messages = Translation.objects.get(country=country, message=message)
+            messages = Localization.objects.get(country=country, message=message)
             messages.delete()
-        except Translation.DoesNotExist:
+        except Localization.DoesNotExist:
             pass
         return self.cleaned_data
 
-class MapURIForm(forms.ModelForm):
+class PluginForm(forms.ModelForm):
     class Meta:
-        model = MapURI
-
+        model = Plugin
+        
+class AppearanceForm(forms.ModelForm):
+    class Meta:
+        model = Appearance

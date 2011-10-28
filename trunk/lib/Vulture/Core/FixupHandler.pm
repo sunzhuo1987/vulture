@@ -33,6 +33,7 @@ sub proxy_redirect {
 	$r->err_headers_out->set('Host' => $app->{'url'});
 	
 	#Cleaning up cookies
+    #Don't send VultureApp && VultureProxy cookies
     $cookies = $r->headers_in->{Cookie};
     my $cleaned_cookies;
     foreach (split(';', $cookies)) {

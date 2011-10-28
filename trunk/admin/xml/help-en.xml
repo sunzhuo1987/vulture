@@ -1,0 +1,8 @@
+<xml>
+    <log>
+        <name>This is the name of the log</name>
+        <level>Log level is bind with Apache Mod log level</level>
+        <format>A valid string</format>
+        <dir>Where to put log</dir>
+    </log>
+</xml>
