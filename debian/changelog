@@ -1,10 +1,10 @@
-vulture (2) stable; urgency=low
+vulture (2.0) stable; urgency=low
 
   * Fix bugs
 
  -- Pierre Quetelart <pierre.quetelart@advens.fr>  Thu, 11 Aug 2011 16:00:00 +0200
 
-vulture (2.0) unstable; urgency=low
+vulture (2.0b) unstable; urgency=low
 
   * Beta 1 : Perl, django
 
