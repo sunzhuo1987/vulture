@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}
+    {% trans category|title %} - <small>{% blocktrans with name|title as name_t %}{{ name_t }} list{% endblocktrans %}</small>
+{% endblock %}
+
+{% block tabs %}
+    <li><a href="{{ url }}/">{% trans "List" %}</a></li>
+    <li><a href="#" id="main_tab_1" class="active">{% trans "Delete" %}</a></li>
+{% endblock %}
+
+{% block content %}
+    <form method="post" action="{{ url }}/{{ object.id }}/del/">
+        <div id="main_content_1" class="main_content">
+            {% trans "Delete the item" %} <b>{{ object }}</b> ?<br />
+        </div>
+        <br /><br />
+        <input type="button" onclick="document.location='{{ url }}/'" value="{% trans "no" %}" style="width: 50px;"/> <input type="submit" value="{% trans "yes" %}" style="width: 50px;"/>
+    </form>
+{% endblock %}

@@ -37,10 +37,11 @@ sub getProfile{
     $sth->finish();
     
     #Getting fields to retrieve
-    my $sql = "SELECT post.field_var, post.field_mapped, post.field_encrypted FROM post, sso, app WHERE post.sso_id = sso.id AND sso.id = app.sso_forward_id AND app.id=? AND post.field_type != 'autologon_user' AND post.field_type != 'autologon_password' AND post.field_type != 'hidden'";
+    my $sql = "SELECT field.field_var, field.field_mapped, field.field_encrypted FROM field, sso, app WHERE field.sso_id = sso.id AND sso.id = app.sso_forward_id AND app.id=? AND field.field_type != 'autologon_user' AND field.field_type != 'autologon_password' AND field.field_type != 'hidden'";
 	my $sth = $dbh->prepare($sql);
 	$sth->execute($app->{id});
 	my @fields =  @{$sth->fetchall_arrayref};
+    $sth->finish();
     
     #If fields exists (i.e. not just autologon_ or hidden fields)
     if (@fields) {
@@ -54,6 +55,9 @@ sub getProfile{
             
             #Return hashref
             my $ref = $sth->fetchrow_hashref;
+            $sth->finish();
+            $new_dbh->disconnect;
+            
             my $return = {};
 
 	        foreach my $field (@fields) {
@@ -75,20 +79,20 @@ sub getProfile{
         } elsif ($result->{type} eq 'ldap') {
             
             #Getting LDAP object from Vulture Utils
-            my ($ldap, $ldap_url_attr, $ldap_uid_attr, $ldap_user_filter, $ldap_group_filter, $ldap_user_scope, $ldap_group_scope, $ldap_base_dn, $ldap_group_member, $ldap_group_is_dn, $ldap_group_attr) = getLDAP_object($log, $dbh, $result->{id_method});
+            my ($ldap, $ldap_url_attr, $ldap_uid_attr, $ldap_user_ou, $ldap_group_ou, $ldap_user_filter, $ldap_group_filter, $ldap_user_scope, $ldap_group_scope, $ldap_base_dn, $ldap_group_member, $ldap_group_is_dn, $ldap_group_attr) = getLDAP_object($log, $dbh, $result->{id_method});
 	        return Apache2::Const::FORBIDDEN if (!$ldap);
 
             #Looking for entry
-	        my $mesg = $ldap->search(base => $result->{base_dn_mapped},
+	        my $mesg = $ldap->search(base => $ldap_user_ou,
 				         scope => $ldap_user_scope,
-				         filter => "(&(|(objectclass=posixAccount)(objectclass=inetOrgPerson)(objectclass=person))(" . $result->{user_mapped} . "=" . $user . "))"
+				         filter => "(&" . $ldap_user_filter . "(" . $ldap_uid_attr . "=" . $user . "))"
 			             );
 
-	        $log->debug("[LDAP SEARCH] (&(|(objectclass=posixAccount)(objectclass=inetOrgPerson)(objectclass=person))(" . $result->{user_mapped} . "=" . $user . "))");
+	        $log->debug("[LDAP SEARCH] (&" . $ldap_user_filter . "(" . $ldap_uid_attr . "=" . $user . "))");
 	        my $entry = $mesg->entry(0);
 	        if ($mesg->code or !$entry) {
 		        $log->error($user .
-			            " not found [base=".$result->{base_dn_mapped}.", scope=$ldap_user_scope, filter=(&(|(objectclass=posixAccount)(objectclass=inetOrgPerson)(objectclass=person))(" . $result->{user_mapped} . "=" . $user . "))]");
+			            " not found [base=".$result->{base_dn_mapped}.", scope=$ldap_user_scope, filter=(&" . $ldap_user_filter . "(" . $ldap_uid_attr . "=" . $user . "))]");
                 $ldap->unbind;
 		        return Apache2::Const::FORBIDDEN;
 	        }
@@ -145,11 +149,21 @@ sub setProfile{
                 $values .= ", '".$prefix.$value.$suffix."'";
 		    }
 	    }
-        my $query = 'INSERT INTO '.$result->{table_mapped}.' ( '.$result->{app_mapped}.', '.$result->{user_mapped};
+        my $query = "SELECT id FROM ".$result->{table_mapped}." WHERE ".$result->{user_mapped}."='".$user."' AND ".$result->{app_mapped}." = '".$app->{id}."'";
+        $log->debug($query);
+        my $res = $new_dbh->selectrow_array($query);
+        #Delete the row before inserting a new one
+        if($res){
+            $query = 'DELETE FROM '.$result->{table_mapped}.' WHERE id = '.$res;
+            $new_dbh->do($query);
+        }
+        #Insert a row
+        $query = 'INSERT INTO '.$result->{table_mapped}.' ( '.$result->{app_mapped}.', '.$result->{user_mapped};
         $query .= $columns;
         $query .= ") VALUES ( '".$app->{id}."', '".$user."'";
         $query .= $values;
         $query .= ")";
+
         $log->debug($query);
         
         #Return result of insert
@@ -159,19 +173,19 @@ sub setProfile{
     } elsif($result->{type} eq 'ldap') {
         
         #Getting LDAP object from Vulture Utils
-        my ($ldap, $ldap_url_attr, $ldap_uid_attr, $ldap_user_filter, $ldap_group_filter, $ldap_user_scope, $ldap_group_scope, $ldap_base_dn, $ldap_group_member, $ldap_group_is_dn, $ldap_group_attr) = getLDAP_object($log, $dbh, $result->{id_method});
+        my ($ldap, $ldap_url_attr, $ldap_uid_attr, $ldap_user_ou, $ldap_group_ou, $ldap_user_filter, $ldap_group_filter, $ldap_user_scope, $ldap_group_scope, $ldap_base_dn, $ldap_group_member, $ldap_group_is_dn, $ldap_group_attr) = getLDAP_object($log, $dbh, $result->{id_method});
 	    return Apache2::Const::FORBIDDEN if (!$ldap);
 
-	    my $mesg = $ldap->search(base => $result->{base_dn_mapped},
-				     scope => $ldap_user_scope,
-				     filter => "(&(|(objectclass=posixAccount)(objectclass=inetOrgPerson)(objectclass=person))(" . $result->{user_mapped} . "=" . $user . "))"
-			         );
+        my $mesg = $ldap->search(base => $ldap_user_ou,
+				         scope => $ldap_user_scope,
+				         filter => "(&" . $ldap_user_filter . "(" . $ldap_uid_attr . "=" . $user . "))"
+			             );
 
-	    $log->debug("[LDAP SEARCH] (&(|(objectclass=posixAccount)(objectclass=inetOrgPerson)(objectclass=person))(" . $result->{user_mapped} . "=" . $user . "))");
+        $log->debug("[LDAP SEARCH] (&" . $ldap_user_filter . "(" . $ldap_uid_attr . "=" . $user . "))");
 	    my $entry = $mesg->entry(0);
 	    if ($mesg->code or !$entry) {
 		    $log->error($user .
-			        " not found [base=".$result->{base_dn_mapped}.", scope=$ldap_user_scope, filter=(&(|(objectclass=posixAccount)(objectclass=inetOrgPerson)(objectclass=person))(" . $result->{user_mapped} . "=" . $user . "))]");
+			            " not found [base=".$result->{base_dn_mapped}.", scope=$ldap_user_scope, filter=(&" . $ldap_user_filter . "(" . $ldap_uid_attr . "=" . $user . "))]");
             $ldap->unbind;
 		    return Apache2::Const::FORBIDDEN;
 	    }

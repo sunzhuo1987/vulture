@@ -81,13 +81,14 @@ sub forward{
     }
 
     #Getting specials fields like "autologon_*"
-    my $sql = "SELECT field_var, field_type, field_encrypted, field_value FROM post, sso, app WHERE post.sso_id = sso.id AND sso.id = app.sso_forward_id AND app.id=? AND (field_type = 'autologon_password' OR field_type = 'autologon_user' OR field_type = 'hidden')";
+    my $sql = "SELECT field_var, field_type, field_encrypted, field_value FROM field, sso, app WHERE field.sso_id = sso.id AND sso.id = app.sso_forward_id AND app.id=? AND (field_type = 'autologon_password' OR field_type = 'autologon_user' OR field_type = 'hidden')";
 	my $sth = $dbh->prepare($sql);
 	$sth->execute($app->{id});
 
 	#Adding data to post variable
     #URI encoding is needed
 	my $ref = $sth->fetchall_arrayref;
+    $sth->finish();
 	foreach my $row (@{$ref}) {
         my ($var, $type, $need_decryption, $value) = @$row;
 		if($type eq 'autologon_user'){
@@ -199,21 +200,8 @@ sub forward{
 	if ($response->code =~ /^30(.*)/ ) { 
         $log->debug("Redirecting after SSO");
         $url = $response->headers->header('Location');
-        my $parsed_uri = APR::URI->parse($r->pool, $url);
-        
-        #Rewrite scheme in Location header
-        if($r->is_https) {
-            $parsed_uri->scheme('https');
-        } else {
-            $parsed_uri->scheme('http');
-        }
-		$r->headers_out->add('Location' => $parsed_uri->unparse);
-        $r->pnotes('SSO_Forwarding' => undef);
-        
-        #Redirecting        
-        $r->content_type('text/html');
 
-		$r->headers_out->add('Location' => $r->unparsed_uri);	
+		$r->headers_out->add('Location' => $url);	
 
 		#Set status
 		$r->status(302);

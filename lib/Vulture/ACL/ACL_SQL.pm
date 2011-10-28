@@ -14,10 +14,10 @@ sub checkACL{
 
 	$log->debug("########## ACL_SQL ##########");
 
-	my $query = "SELECT count(*) FROM userok,acl_userok WHERE acl_userok.acl_id = ? AND userok.user=?";
+	my $query = "SELECT count(*) FROM userok,acl_userok WHERE userok.user = ? AND acl_userok.userok_id = userok.id AND acl_id = ?";
 	$log->debug($query);
 
-	if ($dbh->selectrow_array(($query, undef, $app->{'acl'}->{'id'}, $user))){
+	if ($dbh->selectrow_array(($query, undef, $user,$app->{'acl'}->{'id'}))){
 		return Apache2::Const::OK;
 	} else {
 		return Apache2::Const::FORBIDDEN;	

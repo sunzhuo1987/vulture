@@ -38,9 +38,11 @@ sub checkAuth{
 		$log->debug($query."=>".$user."=>".$password);
 		if ($new_dbh->selectrow_array($query, undef, $user, $password)){
 			$log->debug("User is ok for Auth_SQL;");
+            $new_dbh->disconnect();
 		 	return Apache2::Const::OK;	
 		} else {
 			$log->debug("User is bad for Auth_SQL;");
+            $new_dbh->disconnect();
 			return Apache2::Const::FORBIDDEN;
 		}
 	}

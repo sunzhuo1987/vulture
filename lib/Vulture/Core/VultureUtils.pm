@@ -6,7 +6,7 @@ our $VERSION = '2.1';
 BEGIN {
     use Exporter ();
     @ISA = qw(Exporter);
-    @EXPORT_OK = qw(&version_check &get_app &get_intf &session &get_cookie &get_memcached &set_memcached &getDB_object &getLDAP_object &getStyle &getTranslations &generate_random_string);
+    @EXPORT_OK = qw(&version_check &get_app &get_intf &session &get_cookie &get_memcached &set_memcached &getDB_object &getLDAP_object &getStyle &getTranslations &generate_random_string &notify);
 }
 
 use Apache::Session::Generate::MD5;
@@ -16,6 +16,8 @@ use Apache2::Log;
 use Apache2::Reload;
 use Cache::Memcached;
 use APR::Table;
+
+use Data::Dumper;
 
 our ($memd);
 
@@ -121,7 +123,7 @@ sub	get_app {
 	my ($log, $host, $dbh, $intf) = @_;
 
     #Getting app
-    my $query = "SELECT app.id,name, url, app.log_id, logon_url, logout_url,intf.port, intf.remote_proxy, up, auth_basic, display_portal, canonicalise_url, sso_forward_id AS sso_forward, timeout, update_access_time FROM app, intf, app_intf WHERE app_intf.intf_id='".$intf."' AND app.id = app_intf.app_id AND app.name = '".$host."' AND intf.id='".$intf."'";
+    my $query = "SELECT app.id, app.name, app.url, app.log_id, app.sso_forward_id AS sso_forward, app.logon_url, app.logout_url, intf.port, intf.remote_proxy, app.up, app.auth_basic, app.display_portal, app.canonicalise_url, app.timeout, app.update_access_time FROM app, intf, app_intf WHERE app_intf.intf_id='".$intf."' AND app.id = app_intf.app_id AND app.name = '".$host."' AND intf.id='".$intf."'";
 	#$log->debug($query);
 	$sth = $dbh->prepare($query);
 	$sth->execute;
@@ -146,11 +148,16 @@ sub	get_app {
 sub	get_intf {
 	my ($log, $dbh, $intf) = @_;
 
-	my $query = "SELECT id, ip, port, ssl_engine, log_id, sso_portal, cert, key, ca FROM intf WHERE id='".$intf."'";
+    #Getting intf
+	my $query = "SELECT id, ip, port, ssl_engine, log_id, sso_portal, sso_timeout, sso_update_access_time, cert, key, ca, cas_portal, cas_st_timeout FROM intf WHERE id='".$intf."'";
 	$sth = $dbh->prepare($query);
 	$sth->execute;
 	my $ref = $sth->fetchrow_hashref;
 	$sth->finish();
+    
+    #Getting auth (CAS)
+    my $query = "SELECT auth.name, auth.auth_type, auth.id_method FROM auth, intf_auth_multiple WHERE intf_auth_multiple.intf_id = '".$ref->{id}."' AND intf_auth_multiple.auth_id = auth.id";
+    $ref->{'auth'} = $dbh->selectall_arrayref($query);
 	return $ref;
 }
 
@@ -166,7 +173,7 @@ sub getDB_object{
 
     #Let's connect to this new database and retrieve all fields
     if($ref){
-	    #Build a driver like this one "dbi:SQLite:dbname=/var/www/vulture/admin/db"
+	    #Build a driver like "dbi:SQLite:dbname=/var/www/vulture/admin/db"
 	    my $dsn = 'dbi:'.$ref->{'driver'}.':dbname='.$ref->{'database'};
 	    if($ref->{'host'}){
 		    $dsn .=':'.$ref->{'host'};
@@ -183,13 +190,13 @@ sub getDB_object{
 sub getLDAP_object{
 	my ($log, $dbh, $id_method) = @_;
 
-	my $query = "SELECT host, port, scheme, cacert_path, dn, password, base_dn, user_scope, user_attr, user_filter, group_scope, group_attr, group_filter, group_member, are_members_dn, url_attr, protocol FROM ldap WHERE id='".$id_method."'";
+	my $query = "SELECT host, port, scheme, cacert_path, dn, password, base_dn, user_ou, user_scope, user_attr, user_filter, group_ou, group_scope, group_attr, group_filter, group_member, are_members_dn, url_attr, protocol FROM ldap WHERE id='".$id_method."'";
 	$log->debug($query);
 	my $sth = $dbh->prepare($query);
 	$sth->execute;
 	my ($ldap_server, $ldap_port, $ldap_encrypt, $ldap_cacert_path, $ldap_bind_dn,
-	    $ldap_bind_password, $ldap_base_dn, $ldap_user_scope, $ldap_uid_attr,
-	    $ldap_user_filter, $ldap_group_scope, $ldap_group_attr,
+	    $ldap_bind_password, $ldap_base_dn, $ldap_user_ou, $ldap_user_scope, $ldap_uid_attr,
+	    $ldap_user_filter, $ldap_group_ou, $ldap_group_scope, $ldap_group_attr,
 	    $ldap_group_filter, $ldap_group_member, $ldap_group_is_dn,
 	    $ldap_url_attr, $ldap_protocol) = $sth->fetchrow;
 
@@ -234,25 +241,70 @@ sub getLDAP_object{
 		$log->error("Unable to bind with $ldap_bind_dn on $ldap_server");
 		return ;
 	}
-	return ($ldap, $ldap_url_attr, $ldap_uid_attr, $ldap_user_filter, $ldap_group_filter, $ldap_user_scope, $ldap_group_scope, $ldap_base_dn, $ldap_group_member, $ldap_group_is_dn, $ldap_group_attr);
+	return ($ldap, $ldap_url_attr, $ldap_uid_attr, $ldap_user_ou, $ldap_group_ou, $ldap_user_filter, $ldap_group_filter, $ldap_user_scope, $ldap_group_scope, $ldap_base_dn, $ldap_group_member, $ldap_group_is_dn, $ldap_group_attr);
 }
 
 sub getStyle {
-    my ($r, $log, $dbh, $app, $type) = @_;
-    
+    my ($r, $log, $dbh, $app, $type, $title, $fields, $translations) = @_;
+    my ($ref, $html);
     #
     # ONLY FOR SQLITE3
     #
-    
+    #return {} unless defined $app->{'id'};
     #Querying database for style
     my $intf_id = $r->dir_config('VultureID');
-	my $query = "SELECT CASE WHEN app.style_id NOT NULL THEN app.style_id WHEN intf.style_id NOT NULL THEN intf.style_id ELSE '' END AS 'id_style', style_style.name, style_css.value AS css, style_image.image AS image, style_tpl.value AS tpl FROM app,intf, style_tpl_mapping, style_tpl LEFT JOIN style_style ON style_style.id = id_style LEFT JOIN style_css ON style_css.id = style_style.css_id LEFT JOIN style_image ON style_image.id = style_style.image_id WHERE app.id= ".$app->{id}." AND intf.id = ".$intf_id." AND style_tpl_mapping.style_id = id_style AND style_tpl.id = style_tpl_mapping.tpl_id AND style_tpl.type = '".uc($type)."'";
+    my $query = "SELECT CASE WHEN app.appearance_id NOT NULL THEN app.appearance_id WHEN intf.appearance_id NOT NULL THEN intf.appearance_id ELSE '' END AS 'id_appearance', style_css.value AS css, style_image.image AS image, style_tpl.value AS tpl FROM app,intf, style_tpl LEFT JOIN style_style ON style_style.id = id_appearance LEFT JOIN style_css ON style_css.id = style_style.css_id LEFT JOIN style_image ON style_image.id = style_style.image_id WHERE ";;
+    
+    #App id if not null
+    $query .= "app.id= '".$app->{id}."' AND " if ($app->{id});
+    $query .= "intf.id = '".$intf_id."' ";
+    if(uc($type) eq 'DOWN'){
+        $query .=  "AND style_tpl.id = style_style.app_down_tpl_id";
+    } elsif(uc($type) eq 'LOGIN'){
+        $query .= "AND style_tpl.id = style_style.login_tpl_id";
+    } elsif(uc($type) eq 'ACL'){
+        $query .= "AND style_tpl.id = style_style.acl_tpl_id";
+    } elsif(uc($type) eq 'PORTAL'){
+        $query .= "AND style_tpl.id = style_style.sso_portal_tpl_id";
+    } elsif(uc($type) eq 'LEARNING'){
+        $query .= "AND style_tpl.id = style_style.sso_learning_tpl_id";
+    } else {
+        return;
+    }
     $log->debug($query);
     $sth = $dbh->prepare($query);
-	$sth->execute;
-	my $ref = $sth->fetchrow_hashref;
-	$sth->finish();
-	return $ref;
+    $sth->execute;
+    $ref = $sth->fetchrow_hashref;
+    $sth->finish();
+    
+    #Headers
+    $html = '<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><title>'.$title.'</title>';
+    $html .= "<style type=\"text/css\">".$ref->{css}."</style>" if (defined $ref->{css});
+    $html .= "</head><body>";
+    
+    #Parse template
+    if(defined $ref->{tpl}){
+        $log->debug("Parse template");
+        $html .= join "",map {
+            my ($directive) = $_ =~ /__(.+)__/s;
+            if ($directive){
+                if ($directive eq "IMAGE"){
+                    $_ = "<img id=\"logo\" src=\"/static/".$ref->{image}."\" />" if $ref->{image};
+                } elsif (defined $fields->{$directive}){
+                    $_ = $fields->{$directive};
+                #Custom translated string
+                } elsif (defined $translations->{$directive} and defined $translations->{$directive}{'translation'}){
+                    $_ = $translations->{$directive}{'translation'};
+                } else {
+                }
+            } else {
+                $_ = $_;        
+            }
+        } split (/(__.*?__)/s, $ref->{tpl});
+    }    
+    $html .= '</body></html>';
+    
+	return $html;
 }
 
 sub getTranslations {
@@ -281,7 +333,7 @@ sub getTranslations {
         foreach my $tag (@languages){
         
             #Querying data for language accepted by the server
-            my $query = "SELECT count(*) FROM style_translation WHERE country = '".$tag->{lclanguage}."'";
+            my $query = "SELECT count(*) FROM localization WHERE country = '".$tag->{lclanguage}."'";
             if ($tag->{lclanguage} =~ /^([^-]+)-([^-]+)$/){
                 $query .= " OR country = '".$1."' OR country = '".$2."'";
             }
@@ -297,10 +349,10 @@ sub getTranslations {
         }
         
         #Message translation
-        my $message_query = "message = 'USER' OR message = 'PASSWORD'";
+        my $message_query = "message = 'USER' OR message = 'PASSWORD' OR message = 'APPLICATION'";
         $message_query .= " OR message = '".$message."'" if defined $message;
 
-        my $query = "SELECT message, translation FROM style_translation WHERE (".$message_query.") AND (".$language_query.")";        
+        my $query = "SELECT message, translation FROM localization WHERE (".$message_query.") AND (".$language_query.")";        
         $log->debug($query);
 
         $translated_messages = $dbh->selectall_hashref($query,'message');
@@ -310,8 +362,8 @@ sub getTranslations {
 
 sub generate_random_string
 {
-	my $length_of_randomstring=shift;# the length of 
-			 # the random string to generate
+	my $length_of_randomstring=shift;
+    # the length of the random string to generate
 
 	my @chars=('a'..'z','A'..'Z','0'..'9','-');
 	my $random_string;
@@ -322,6 +374,18 @@ sub generate_random_string
 		$random_string.=$chars[rand @chars];
 	}
 	return $random_string;
+}
+
+sub notify {
+    my ($dbh, $app_id, $user, $type, $info) = @_;
+    #Filling database
+    my $query = "INSERT INTO event_logger ('app_id', 'user', 'event_type', 'timestamp', 'info') VALUES (?,?,?,?,?)";
+    my $sth = $dbh->prepare($query);
+    #Notify event to db
+    $sth->execute($app_id, $user, $type, time, undef);
+    #Log active users
+    $sth->execute($app_id, $user, 'active_sessions', time, $info);
+    $sth->finish();
 }
 
 1;

@@ -24,5 +24,4 @@ sub handler {
 
 	return Apache2::Const::OK;
 }
-
 1;

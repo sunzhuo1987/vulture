@@ -10,7 +10,7 @@ use Core::VultureUtils qw(&session &get_memcached &set_memcached);
 use Apache2::Const -compile => qw(OK FORBIDDEN);
 
 sub plugin{
-	my ($package_name, $r, $log, $dbh, $app, $options) = @_;
+	my ($package_name, $r, $log, $dbh, $intf, $app, $options) = @_;
 	
 	$log->debug("########## Plugin_SAML ##########");
 
@@ -50,11 +50,11 @@ sub plugin{
 		if(not($app_name)){
 			return Apache2::Const::FORBIDDEN;		
 		}
-		if(defined $users{$login}){
+		if(defined $users{$login}{SSO}){
 
 			#Taking user identity			
 			my (%user_session_SSO);
-			session(\%user_session_SSO, undef, $users{$login});
+			session(\%user_session_SSO, undef, $users{$login}{SSO});
 			if(defined $user_session_SSO{$app_name}){
 				$xml .= "true";			
 			} else {
@@ -71,11 +71,11 @@ sub plugin{
 	} elsif($action eq 'logout'){
 		$log->debug("Logout user $login from SSO portal");
 		#If user is currently logged		
-		if(defined $users{$login}){
+		if(defined $users{$login}{SSO}){
 			
 			#Logout taking user identity			
 			my (%user_session_SSO);
-			session(\%user_session_SSO, undef, $users{$login});
+			session(\%user_session_SSO, undef, $users{$login}{SSO});
 			$user_session_SSO{is_auth} = 0;
 
 			#Deleting session from Memcached
@@ -88,11 +88,11 @@ sub plugin{
 		if(not($app_name)){
 			return Apache2::Const::FORBIDDEN;		
 		}
-		if(defined $users{$login}){
+		if(defined $users{$login}{SSO}){
 
 			#Taking user identity			
 			my (%user_session_SSO);
-			session(\%user_session_SSO, undef, $users{$login});
+			session(\%user_session_SSO, undef, $users{$login}{SSO});
 			if(defined $user_session_SSO{$app_name}){
 				my (%user_session_app);
 				session(\%user_session_app, undef, $user_session_SSO{$app_name});

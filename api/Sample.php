@@ -7,7 +7,7 @@ include ('Vulture.class.php');
 $log = new Vulture();
 
 $log->setIP("127.0.0.1");
-$log->setPort("8080");
+$log->setPort("8181");
 
 if($log->is_logged("admin"))
 	echo "COOl";

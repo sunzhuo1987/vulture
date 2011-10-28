@@ -1,1 +1,1 @@
-INSERT INTO "style_css" VALUES(1,'Default','body { text-align: center; font-family: verdana,arial,helvetica,sans-serif; padding: 0; margin: 0; } table { margin : 10px auto auto auto; }');
+INSERT INTO "style_css" VALUES(1,'Default','body,th,td,p,div,span,a,ul,ol,dl,li,select,input,textarea,blockquote{font-size:11px;}table { margin : 10px auto auto auto; }input {border-bottom: solid 1px #cccccc;border-right: solid 1px #cccccc;margin: 5px;padding: 2px;}#custom {width: 502px;height: 217px;background-repeat: no-repeat;background-image: url(''/static/img/bg.png'');}');

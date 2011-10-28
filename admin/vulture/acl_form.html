@@ -2,121 +2,142 @@
 {% load i18n %}
 
 {% block title %}
-	<img src="/img/icon-user.png"> {% if form.desc %} {% trans "ACL add" %} {% else %} {% trans "ACL edit" %} {% endif %}
+    {% trans "Authentication" %} - <small>{% trans "ACL settings" %}</small>
 {% endblock %}
 
-{% block display_auth_menu %}none{% endblock %}
-{% block display_components_menu %}none{% endblock %}
-{% block display_style_menu %}none{% endblock %}
+{% block tabs %}
+    <li><a href="/acl/">{% trans "List" %}</a></li>
+    <li><a href="{% if not users_ok and not users_ko and not groups_ok and not groups_ko %}#{% else %}javascript:swapTab(1, 3, 'main_tab_', 'main_content_');{% endif %}" id="main_tab_1" class="active">{% trans "Main settings" %}</a></li>
+    <li {% if users_ok or users_ko %}{% else %}style="display:none;"{% endif %}><a href="javascript:swapTab(2, 3, 'main_tab_', 'main_content_');" id="main_tab_2">{% trans "Users" %}</a></li>
+    <li {% if groups_ok or groups_ko %}{% else %}style="display:none;"{% endif %}><a href="javascript:swapTab(3, 3, 'main_tab_', 'main_content_');" id="main_tab_3">{% trans "Groups" %}</a></li>
+{% endblock %}
 
 {% block content %}
-
-<form method="post" id="acl" action="." name="edit_acl">
-<table>
-<tr><td class="input">{% trans "Name" %}</td><td>{{ form.name }}{% if form.name.errors %}<div class="error">{{ form.name.errors|join:", " }}</div>{% endif %}</td></tr>
-<tr><td class="input">{% trans "Authentication" %}</td><td>{{ form.auth }}{% if form.auth.errors %}<div class="error">{{ form.auth.errors|join:", " }}</div>{% endif %}</td></tr>
-</table>
-
-<fieldset style='width: 0'><legend>{% trans "ACL" %}</legend>
-    <table style='margin-bottom: 0; padding-bottom: 0'>
-        {% if users_ok or users_ko %}
-        <tr><th>{% trans "Available users" %}</th><td></td><th>{% trans "Users ok" %}</th></tr>
-        <tr>
-            <td align='center'>
-                <select style='width: 250px' class='textinput' id='avail_user' name='avail_user[]' multiple size='10'>
-                {% for user in users_ko %}
-                    <option value='{{ user.0 }}'>{{ user.1 }}</option>
-                {% endfor %}           
-                </select>
-            </td>
-            <td align='center' width='30'>
-                    <input type='button' onClick="move('avail_user', 'in_user')" class='menuentry' name='add_user' value='>' style="width: 20px;"><br>
-                    <input type='button' onClick="move('in_user', 'avail_user')" class='menuentry' name='remove_user' value='<' style="width: 20px;">
-            </td>
-            <td align='center'><select  style='width: 250px' class='text' id='in_user' name='in_user[]' multiple size='10'>
-                {% for user in users_ok.all %}
-                    <option value='{{ user.user }}'>{{ user.user }}</option>
-                {% endfor %}
-                </select>
-            </td>
-        </tr>
-        {% endif %}
-        {% if groups_ok or groups_ko %}
-        <tr><th>{% trans "Available groups" %}</th><td></td><th>{% trans "Groups ok" %}</th></tr>
-        <tr>
-            <td align='center'>
-                <select style='width: 250px' class='textinput' id='avail_group' name='avail_group[]' multiple size='10'>
-                {% for group in groups_ko %}
-                    <option value='{{ group.0 }}'>{{ group.1 }}</option>
-                {% endfor %}           
-                </select>
-            </td>
-            <td align='center' width='30'>
-                    <input type='button' onClick="move('avail_group', 'in_group')" class='menuentry' name='add_group' value='>' style="width: 20px;"><br>
-                    <input type='button' onClick="move('in_group', 'avail_group')" class='menuentry' name='remove_group' value='<' style="width: 20px;">
-            </td>
-            <td align='center'><select  style='width: 250px' class='text' id='in_group' name='in_group[]' multiple size='10'>
-                {% for group in groups_ok.all %}
-                    <option value='{{ group.group }}'>{{ group.group }}</option>
-                {% endfor %}
-                </select>
-            </td>
-        </tr>
-        {% endif %}
-        {% if not users_ok and not users_ko and not groups_ok and not groups_ko %}
-        <tr><td align='center'><div style='width:530'>{% trans "You can't add user or group until you have saved this acl" %}</div></td></tr>
-        {% endif %}
-    </table>
-</fieldset>
-
-
-<br/>
-<script type='text/javascript'>
-	function move(select_from, select_to){
-        var select = document.getElementById(select_from);
-        var x=0;
-        var arrayRemove = [];
-        for (x=0;x<select.options.length;x++)
-        {
-            if (select.options[x].selected)
-            {
-                //Create new option
-                var newOption = document.createElement('option');
-                newOption.text = select.options[x].text;
-                newOption.value = select.options[x].value;
-                document.getElementById(select_to).add(newOption, null);
-
-                arrayRemove.push(x);
-            }
-        }
-        var len = arrayRemove.length
-        for (x=0;x<len;x++)
-        {
-            select.remove(arrayRemove.pop()); 
-        }
-	}
-    function clean(select_from){
-        var select = document.getElementById(select_from);
-        if(select){
+    <script type='text/javascript'>
+        function move(select_from, select_to){
+            var select = document.getElementById(select_from);
             var x=0;
-            for(x=select.options.length;x>=0;x--){
-                select.remove(x);
+            var arrayRemove = [];
+            for (x=0;x<select.options.length;x++)
+            {
+                if (select.options[x].selected)
+                {
+                    //Create new option
+                    var newOption = document.createElement('option');
+                    newOption.text = select.options[x].text;
+                    newOption.value = select.options[x].value;
+                    document.getElementById(select_to).add(newOption, null);
+
+                    arrayRemove.push(x);
+                }
+            }
+            var len = arrayRemove.length
+            for (x=0;x<len;x++)
+            {
+                select.remove(arrayRemove.pop()); 
             }
         }
-    }
-    function selectAll(select_from) {
-        var select = document.getElementById(select_from);
-        if(select){
-            for(var i=0; i<select.options.length; i++) {
-                select.options[i].selected = true;
+        function clean(select_from){
+            var select = document.getElementById(select_from);
+            if(select){
+                var x=0;
+                for(x=select.options.length;x>=0;x--){
+                    select.remove(x);
+                }
             }
         }
-    }
-</script>
-<div style="width: 75%; text-align: right"><input type="submit" onClick="clean('avail_user');clean('avail_group');selectAll('in_user');selectAll('in_group');" style="width: 100px;"/></div>
-</form>
-
-{% endblock %}
-
-{% block action %}
+        function selectAll(select_from) {
+            var select = document.getElementById(select_from);
+            if(select){
+                for(var i=0; i<select.options.length; i++) {
+                    select.options[i].selected = true;
+                }
+            }
+        }
+    </script>
+    <form method="post" action="." id="acl">
+        <div id="main_content_1" class="main_content">
+            <table>
+                <tr><th>{% trans "Name" %}</th><td class="input">{{ form.name }}{% if form.name.errors %}<div class="error">{{ form.name.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+                <tr><th>{% trans "Authentication" %}</th><td class="input">{{ form.auth }}{% if form.auth.errors %}<div class="error">{{ form.auth.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+            </table>
+            <br />
+            {% if not users_ok and not users_ko and not groups_ok and not groups_ko %}
+                <table>
+                    <tr>
+                        <td align='center'>
+                                {% trans "You can't add user or group until you have saved this acl" %}
+                        </td>
+                    </tr>
+                </table>
+            {% endif %}
+        </div>
+        
+        <div id="main_content_2" class="main_content">
+            <table>
+                {% if users_ok or users_ko %}
+                    <tr>
+                        <th>{% trans "Available users" %}</th>
+                        <td></td>
+                        <th>{% trans "Users ok" %}</th>
+                    </tr>
+                    <tr>
+                        <td align='center'>
+                            <select style='width: 250px' class='textinput' id='avail_user' name='avail_user[]' multiple size='10'>
+                                {% for user in users_ko %}
+                                    <option value='{{ user.0 }}'>{{ user.1 }}</option>
+                                {% endfor %}           
+                            </select>
+                        </td>
+                        <td align='center' width='30'>
+                            <input type='button' onclick="move('avail_user', 'in_user')" class='menuentry' name='add_user' value='>' style="width: 20px;" /><br />
+                            <input type='button' onclick="move('in_user', 'avail_user')" class='menuentry' name='remove_user' value='<' style="width: 20px;" />
+                        </td>
+                        <td align='center'>
+                            <select style='width: 250px' class='text' id='in_user' name='in_user[]' multiple size='10'>
+                                {% for user in users_ok.all %}
+                                    <option value='{{ user.user }}'>{{ user.user }}</option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                    </tr>
+                {% endif %}
+            </table>
+        </div>    
+        
+        <div id="main_content_3" class="main_content">
+            <table>
+                {% if groups_ok or groups_ko %}
+                    <tr>
+                        <th>{% trans "Available groups" %}</th>
+                        <td></td>
+                        <th>{% trans "Groups ok" %}</th>
+                    </tr>
+                    <tr>
+                        <td align='center'>
+                            <select style='width: 250px' class='textinput' id='avail_group' name='avail_group[]' multiple size='10'>
+                                {% for group in groups_ko %}
+                                    <option value='{{ group.0 }}'>{{ group.1 }}</option>
+                                {% endfor %}           
+                            </select>
+                        </td>
+                        <td align='center' width='30'>
+                            <input type='button' onclick="move('avail_group', 'in_group')" class='menuentry' name='add_group' value='>' style="width: 20px;" /><br />
+                            <input type='button' onclick="move('in_group', 'avail_group')" class='menuentry' name='remove_group' value='<' style="width: 20px;" />
+                        </td>
+                        <td align='center'>
+                            <select  style='width: 250px' class='text' id='in_group' name='in_group[]' multiple size='10'>
+                                {% for group in groups_ok.all %}
+                                    <option value='{{ group.group }}'>{{ group.group }}</option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                    </tr>
+                {% endif %}
+            </table>
+        </div>
+        <br />
+        <input type="submit" value="{% trans "Save settings" %}" onclick="clean('avail_user');clean('avail_group');selectAll('in_user');selectAll('in_group');"/>
+        <input type="button" onclick="document.location='/acl/'" value="{% trans "Cancel" %}"/>
+    </form>
 {% endblock %}

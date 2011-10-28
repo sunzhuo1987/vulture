@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from django.contrib.auth.models import User
 from django.db import connection
 import hashlib
@@ -5,7 +6,7 @@ import hashlib
 class sql:
 	def authenticate(self, username=None, password=None):
 		cursor = connection.cursor()
-		cursor.execute("SELECT 1 FROM user WHERE login = %s AND password = %s", [username, hashlib.md5(password).hexdigest()])
+		cursor.execute("SELECT 1 FROM user WHERE username = %s AND password = %s", [username, hashlib.sha1(password).hexdigest()])
 		row = cursor.fetchone()
 		if not row:
 			return None

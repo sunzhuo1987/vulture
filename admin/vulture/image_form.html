@@ -1,27 +1,25 @@
 {% extends "base.html" %}
 {% load i18n %}
 
-{% block title %}<img src="/img/winprops.png"> {% trans "Image" %}{% endblock %}
+{% block title %}
+    {% trans "Appearance" %} - <small>{% trans "Image settings" %}</small>
+{% endblock %}
 
-{% block display_auth_menu %}none{% endblock %}
-{% block display_components_menu %}none{% endblock %}
-{% block display_style_menu %}{% endblock %}
+{% block tabs %}
+    <li><a href="/image/">{% trans "List" %}</a></li>
+    <li><a href="#" id="main_tab_1" class="active">{% trans "Main settings" %}</a></li>
+{% endblock %}
 
 {% block content %}
-
-<form method="post" action="." name="image" enctype="multipart/form-data">
-<table style="padding: 0">
-<tr><td class="input">{% trans "Name" %}</td><td>{{ form.name }}{% if form.name.errors %}<div class="error">{{ form.name.errors|join:", " }}</div>{% endif %}</td></tr>
-<tr><td class="input">{% trans "Image" %}</td><td>{{ form.image }}{% if form.image.errors %}<div class="error">{{ form.image.errors|join:", " }}</div>{% endif %}</td></tr>
-</table>
-<br>
-<div style="width: 75%; text-align: right"><input type="submit" style="width: 100px;"/></div>
-</form>
-
-
+    <form method="post" action="." id="image" enctype="multipart/form-data">
+        <div id="main_content_1" class="main_content">
+            <table>
+                <tr><th>{% trans "Name" %}</th><td class="input">{{ form.name }}{% if form.name.errors %}<div class="error">{{ form.name.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+                <tr><th>{% trans "Image" %}</th><td class="input">{{ form.image }}{% if form.image.errors %}<div class="error">{{ form.image.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+            </table>
+        </div>
+        <br />
+        <input type="submit" value="{% trans "Save settings" %}"/>
+        <input type="button" onclick="document.location='/image/'" value="{% trans "Cancel" %}"/>
+    </form>
 {% endblock %}
-
-{% block action %}
-
-{% endblock %}
-

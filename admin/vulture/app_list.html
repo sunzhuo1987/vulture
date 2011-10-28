@@ -2,37 +2,48 @@
 {% load i18n %}
 
 {% block title %}
-	<img src="/img/winprops.png"> {% trans "Applications" %}
+	{% trans "Web Applications" %} - <small>{% trans "Application list" %}</small>
 {% endblock %}
 
-{% block display_auth_menu %}none{% endblock %}
-{% block display_components_menu %}none{% endblock %}
-{% block display_style_menu %}none{% endblock %}
+{% block tabs %}
+    <li><a href="#" id="main_tab_1" class="active">{% trans "List" %}</a></li>
+    <li><a href="/app/new/">{% trans "Add" %}</a></li>
+{% endblock %}
 
 {% block content %}
-	<table class="list">
-	<tr>
-	<th>{% trans "Internet name" %}</th>
-	<th>{% trans "Private URL" %}</th>
-	<th>{% trans "Authentications Methods" %}</th>
-	<th>{% trans "Network interface" %}</th>
-	<th colspan=2 style="width: 32px">{% trans "Status" %}</th>
-	<th colspan=3 style="width: 48px"></th>
-	</tr>
-{% for object in object_list %}
-	<tr><td>{{ object.name }}</td><td>{{ object.url }}</td></td></td><td>{{ object.auth.all|join:", " }}</td><td>{{ object.intf.all|join:", " }}</td><td style="text-align: center">{% if object.up %}<img src="/img/button_ok.png">{% else %}<img src="/img/button_cancel.png">{% endif %}</td><td>{% if object.acl %}<img src="/img/stock_standard-filter.png">{% endif %}</td><td>{% if object.up %}<a href="/app/{{ object.id }}/stop/"><img src="/img/stop.png"></a>{% else %}<a href="/app/{{ object.id }}/start/"><img src="/img/reload.png"></a>{% endif %}</td><td><a href="/app/{{ object.id }}/del/"><img src="/img/editdelete.png"></td><td><a href="/app/{{ object.id }}"><img src="/img/edit.png"></a></tr>
-{% endfor %}
-	</td>
-	</table>
-{% for security in object.security.all %}
-    {{ security.name }}
-{% endfor %}
-{% endblock %}
-
-{% block action %}
-<fieldset id='fieldset'><legend><img src='/img/goto.png'>{% trans "Action" %}</legend>
-<ul>
-		<li><a href="/app/new/">{% trans "Add" %}</a></li>
-</ul>
-</fieldset>
+    <div id="main_content_1" class="main_content">
+        <table>
+            <tr>
+                <th>{% trans "Internet name" %}</th>
+                <th>{% trans "Private URL" %}</th>
+                <th>{% trans "Authentications Methods" %}</th>
+                <th>{% trans "Network interface" %}</th>
+                <th style="width: 32px">{% trans "Status" %}</th>
+                <th style="width: 56px"></th>
+            </tr>
+            {% for object in object_list %}
+                <tr>
+                    <td>{{ object.name }}</td>
+                    <td>{{ object.url }}</td>
+                    <td>{{ object.auth.all|join:", " }}</td>
+                    <td>{{ object.intf.all|join:", " }}</td>
+                    <td>
+                        {% if object.up %}<img src="/img/vulture2/ok.png" alt="ok" />{% else %}<img src="/img/vulture2/stop.png" alt="stop" />{% endif %}
+                        {% if object.acl %}<img src="/img/vulture2/filter.png" alt="acl" />{% endif %}
+                    </td>
+                    <td>
+                        {% if object.up %}
+                            <a href="/app/{{ object.id }}/stop/"><img src="/img/vulture2/stop.png" alt="stop" /></a>
+                        {% else %}
+                            <a href="/app/{{ object.id }}/start/"><img src="/img/vulture2/reload.png" alt="reload" /></a>
+                        {% endif %}
+                        <a href="/app/{{ object.id }}/del/"><img src="/img/vulture2/trash.png" alt="delete" /></a>
+                        <a href="/app/{{ object.id }}"><img src="/img/vulture2/edit.png" alt="edit" /></a>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="6" style="text-align:center;">{% trans "The list is empty. You can add an item " %}<a href="/app/new/">{% trans "here" %}</a></td></tr>
+            {% endfor %}
+        </table>
+    </div>
 {% endblock %}
