@@ -1,4 +1,10 @@
 <xml>
+    <user>
+        <username>Username</username>
+        <password>Password for user</password>
+        <c_password>Confirm password</c_password>
+        <is_admin>Let's this user manage Vulture admin</is_admin>
+    </user>
     <log>
         <name>This is the name of the log</name>
         <level>Log level is bind with Apache Mod log level</level>

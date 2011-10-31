@@ -41,10 +41,11 @@
 
 /* Retrieve the default language set for the browser. */
 /* Ensure language code is in the format aa-AA. */
+/* Then, cut string to get only aa */
 function normaliseLang(lang) {
     lang = lang.replace(/_/, '-').toLowerCase();
     if (lang.length > 3) {
-        lang = lang.substring(0, 3) + lang.substring(3).toUpperCase();
+        lang = lang.substring(0, 2)
     }
     return lang;
 }
