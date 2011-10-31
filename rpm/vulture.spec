@@ -3,7 +3,7 @@ Requires: openssl python-ldap vulture-common >= 3
 Vendor: Advens
 %define release 1
 %define name vulture
-%define version 2.1
+%define version 2.0.1
 AutoReqProv: no
 
 Summary: Vulture Reverse Proxy
@@ -166,8 +166,8 @@ Vulture Reverse Proxy
 %exclude /usr/bin
 
 %changelog
-* Fri Oct 7 2011 Arnaud Desmons <logarno@gmail.com> 2.1-1
-- 2.1
+* Fri Oct 7 2011 Arnaud Desmons <logarno@gmail.com> 2.0.1-1
+- 2.0.1
 
 * Fri Jul 29 2011 Arnaud Desmons <logarno@gmail.com> 2.0-1
 - admin Django
