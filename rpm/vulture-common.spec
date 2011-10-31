@@ -8,7 +8,7 @@ URL: http://vulture.googlecode.com
 Conflicts: INTRINsec-common
 
 Source0: http://www.openssl.org/source/openssl-0.9.8r.tar.gz
-Source1: http://apache.cict.fr/httpd/httpd-2.2.19.tar.bz2
+Source1: http://apache.cict.fr/httpd/httpd-2.2.21.tar.bz2
 Source2: http://www.modsecurity.org/download/modsecurity-apache_2.5.13.tar.gz
 Source3: http://modwsgi.googlecode.com/files/mod_wsgi-3.3.tar.gz
 Source4: http://perl.apache.org/dist/mod_perl-2.0.4.tar.gz
@@ -57,6 +57,7 @@ Source46: http://search.cpan.org/CPAN/authors/id/P/PM/PMKANE/Authen-Smb-0.91.tar
 Source47: http://pysqlite.googlecode.com/files/pysqlite-2.6.0.tar.gz
 Source48: http://code.krypto.org/python/hashlib/hashlib-20081119.tar.gz
 Source49: http://www.sqlite.org/sqlite-autoconf-3070800.tar.gz
+Source50: http://search.cpan.org/CPAN/authors/id/J/JH/JHI/Time-HiRes-1.9721.tar.gz
 
 Patch0: Apache-SSLLookup-2.00_04.patch
 Patch1: httpd_mod_rewrite.patch
@@ -92,7 +93,7 @@ BuildRoot: %{_tmppath}/%{name}-root
 vulture common
 
 %prep
-%setup -c -a 0 -a 1 -a 2 -a 3 -a 4 -a 5 -a 6 -a 7 -a 8 -a 9 -a 10 -a 11 -a 12 -a 13 -a 14 -a 15 -a 16 -a 17 -a 18 -a 19 -a 20 -a 21 -a 22 -a 23 -a 24 -a 25 -a 26 -a 29 -a 30 -a 31 -a 32 -a 33 -a 34 -a 35 -a 36 -a 37 -a 38 -a 39 -a 40 -a 41 -a 42 -a 43 -a 44 -a 45 -a 46 -a 47 -a 48 -a 49
+%setup -c -a 0 -a 1 -a 2 -a 3 -a 4 -a 5 -a 6 -a 7 -a 8 -a 9 -a 10 -a 11 -a 12 -a 13 -a 14 -a 15 -a 16 -a 17 -a 18 -a 19 -a 20 -a 21 -a 22 -a 23 -a 24 -a 25 -a 26 -a 29 -a 30 -a 31 -a 32 -a 33 -a 34 -a 35 -a 36 -a 37 -a 38 -a 39 -a 40 -a 41 -a 42 -a 43 -a 44 -a 45 -a 46 -a 47 -a 48 -a 49 -a 50
 %patch0 -p0 -b .old
 %patch1 -p0 -b .old
 %patch2 -p0 -b .old
@@ -116,7 +117,7 @@ vulture common
         make install &&\
 	make clean &&\
 	export LD_LIBRARY_PATH="$RPM_BUILD_ROOT/opt/vulture/openssl/lib:$LD_LIBRARY_PATH" &&\
-        cd ../httpd-2.2.19 &&\
+        cd ../httpd-2.2.21 &&\
 %ifarch x86_64
 	mv srclib/apr-util/configure srclib/apr-util/configure.bak &&\
 	mv configure configure.bak &&\
@@ -163,7 +164,7 @@ vulture common
 		python setup.py install --prefix=$RPM_BUILD_ROOT/usr &&\
 	cd ../modsecurity-apache_2.5.13/apache2 &&\
 	./configure --with-apxs=$RPM_BUILD_ROOT/opt/vulture/httpd/bin/apxs \
-	    --with-httpd-src=../../httpd-2.2.19 --with-apr=$RPM_BUILD_ROOT/opt/vulture/httpd \
+	    --with-httpd-src=../../httpd-2.2.21 --with-apr=$RPM_BUILD_ROOT/opt/vulture/httpd \
 	    --with-apu=$RPM_BUILD_ROOT/opt/vulture/httpd &&\
 	make CFLAGS="%{optflags}" &&\
 	make install &&\
@@ -371,6 +372,12 @@ vulture common
 	make DESTDIR=$RPM_BUILD_ROOT/opt/vulture SITEPREFIX= PERLPREFIX= install &&\
 	make clean  &&\
 	cd ../Authen-Smb-0.91 &&\
+	perl -I ../ExtUtils-MakeMaker-6.42/lib -I $RPM_BUILD_ROOT/opt/vulture/lib \
+		Makefile.PL LIB=/lib &&\
+	make &&\
+	make DESTDIR=$RPM_BUILD_ROOT/opt/vulture SITEPREFIX= PERLPREFIX= install &&\
+	make clean  &&\
+    cd ../Time-HiRes-1.9721 &&\
 	perl -I ../ExtUtils-MakeMaker-6.42/lib -I $RPM_BUILD_ROOT/opt/vulture/lib \
 		Makefile.PL LIB=/lib &&\
 	make &&\
