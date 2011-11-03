@@ -58,6 +58,8 @@ Source47: http://pysqlite.googlecode.com/files/pysqlite-2.6.0.tar.gz
 Source48: http://code.krypto.org/python/hashlib/hashlib-20081119.tar.gz
 Source49: http://www.sqlite.org/sqlite-autoconf-3070800.tar.gz
 Source50: http://search.cpan.org/CPAN/authors/id/J/JH/JHI/Time-HiRes-1.9721.tar.gz
+Source51: http://search.cpan.org/CPAN/authors/id/I/IS/ISAAC/libapreq2-2.13.tar.gz
+Source52: http://search.cpan.org/CPAN/authors/id/N/NB/NBEBOUT/NTLM-1.09.tar.gz
 
 Patch0: Apache-SSLLookup-2.00_04.patch
 Patch1: httpd_mod_rewrite.patch
@@ -93,7 +95,7 @@ BuildRoot: %{_tmppath}/%{name}-root
 vulture common
 
 %prep
-%setup -c -a 0 -a 1 -a 2 -a 3 -a 4 -a 5 -a 6 -a 7 -a 8 -a 9 -a 10 -a 11 -a 12 -a 13 -a 14 -a 15 -a 16 -a 17 -a 18 -a 19 -a 20 -a 21 -a 22 -a 23 -a 24 -a 25 -a 26 -a 29 -a 30 -a 31 -a 32 -a 33 -a 34 -a 35 -a 36 -a 37 -a 38 -a 39 -a 40 -a 41 -a 42 -a 43 -a 44 -a 45 -a 46 -a 47 -a 48 -a 49 -a 50
+%setup -c -a 0 -a 1 -a 2 -a 3 -a 4 -a 5 -a 6 -a 7 -a 8 -a 9 -a 10 -a 11 -a 12 -a 13 -a 14 -a 15 -a 16 -a 17 -a 18 -a 19 -a 20 -a 21 -a 22 -a 23 -a 24 -a 25 -a 26 -a 29 -a 30 -a 31 -a 32 -a 33 -a 34 -a 35 -a 36 -a 37 -a 38 -a 39 -a 40 -a 41 -a 42 -a 43 -a 44 -a 45 -a 46 -a 47 -a 48 -a 49 -a 50 -a 51 -a 52
 %patch0 -p0 -b .old
 %patch1 -p0 -b .old
 %patch2 -p0 -b .old
@@ -379,6 +381,18 @@ vulture common
 	make clean  &&\
     cd ../Time-HiRes-1.9721 &&\
 	perl -I ../ExtUtils-MakeMaker-6.42/lib -I $RPM_BUILD_ROOT/opt/vulture/lib \
+		Makefile.PL LIB=/lib &&\
+	make &&\
+	make DESTDIR=$RPM_BUILD_ROOT/opt/vulture SITEPREFIX= PERLPREFIX= install &&\
+	make clean  &&\
+    cd ../libapreq2-2.13 &&\
+    perl -I ../ExtUtils-MakeMaker-6.42/lib -I $RPM_BUILD_ROOT/opt/vulture/lib \
+		Makefile.PL LIB=/lib &&\
+	make &&\
+	make DESTDIR=$RPM_BUILD_ROOT/opt/vulture SITEPREFIX= PERLPREFIX= install &&\
+	make clean  &&\
+    cd ../NTLM-1.09 && \
+    perl -I ../ExtUtils-MakeMaker-6.42/lib -I $RPM_BUILD_ROOT/opt/vulture/lib \
 		Makefile.PL LIB=/lib &&\
 	make &&\
 	make DESTDIR=$RPM_BUILD_ROOT/opt/vulture SITEPREFIX= PERLPREFIX= install &&\
