@@ -387,11 +387,10 @@ vulture common
 	make DESTDIR=$RPM_BUILD_ROOT/opt/vulture SITEPREFIX= PERLPREFIX= install &&\
 	make clean  &&\
     cd ../libapreq2-2.13 &&\
-    perl -I ../ExtUtils-MakeMaker-6.42/lib -I $RPM_BUILD_ROOT/opt/vulture/lib \
-		Makefile.PL LIB=/lib &&\
-	make &&\
-	make DESTDIR=$RPM_BUILD_ROOT/opt/vulture SITEPREFIX= PERLPREFIX= install &&\
-	make clean  &&\
+    ./configure --with-apache2-apxs=$RPM_BUILD_ROOT/opt/vulture/httpd/bin/apxs &&\
+	make CFLAGS="%{optflags}" &&\
+	make install &&\
+	make clean &&\
     cd ../NTLM-1.09 && \
     perl -I ../ExtUtils-MakeMaker-6.42/lib -I $RPM_BUILD_ROOT/opt/vulture/lib \
 		Makefile.PL LIB=/lib &&\
