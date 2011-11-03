@@ -165,6 +165,12 @@ vulture common
 		python setup.py install --prefix=$RPM_BUILD_ROOT/usr &&\
 	cd ../hashlib-20081119 &&\
 		python setup.py install --prefix=$RPM_BUILD_ROOT/usr &&\
+    cd ../libapreq2-2.13 &&\
+    perl -I ../ExtUtils-MakeMaker-6.42/lib -I $RPM_BUILD_ROOT/opt/vulture/lib \
+		Makefile.PL --with-apache2-apxs=$RPM_BUILD_ROOT/opt/vulture/httpd/bin/apxs &&\
+	make &&\
+	make DESTDIR=$RPM_BUILD_ROOT/opt/vulture SITEPREFIX= PERLPREFIX= install &&\
+	make clean  &&\
 	cd ../modsecurity-apache_2.5.13/apache2 &&\
 	./configure --with-apxs=$RPM_BUILD_ROOT/opt/vulture/httpd/bin/apxs \
 	    --with-httpd-src=../../httpd-2.2.21 --with-apr=$RPM_BUILD_ROOT/opt/vulture/httpd \
@@ -386,11 +392,6 @@ vulture common
 	make &&\
 	make DESTDIR=$RPM_BUILD_ROOT/opt/vulture SITEPREFIX= PERLPREFIX= install &&\
 	make clean  &&\
-    cd ../libapreq2-2.13 &&\
-    ./configure --with-apache2-apxs=$RPM_BUILD_ROOT/opt/vulture/httpd/bin/apxs &&\
-	make CFLAGS="%{optflags}" &&\
-	make install &&\
-	make clean &&\
     cd ../NTLM-1.09 && \
     perl -I ../ExtUtils-MakeMaker-6.42/lib -I $RPM_BUILD_ROOT/opt/vulture/lib \
 		Makefile.PL LIB=/lib &&\
