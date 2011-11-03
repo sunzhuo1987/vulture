@@ -60,7 +60,15 @@ sub checkAuth{
         #Get answer
         $request = HTTP::Request->new('GET', , undef, $post);
         my $ua = LWP::UserAgent->new;
+        
+        #Setting proxy if needed
+        if ($app->{remote_proxy} ne ''){
+            $ua->proxy(['http', 'https'], $app->{remote_proxy});
+        }
+        
         $response = $ua->get($url);
+        
+        $log->debug($response->decoded_content);
         
         #Check answer
         if($response->decoded_content =~ /<cas:user>(.+)<\/cas:user>/){

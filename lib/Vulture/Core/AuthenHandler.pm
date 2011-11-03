@@ -10,6 +10,8 @@ use Apache2::Reload;
 use Apache2::Request;
 use Apache2::Access;
 
+use Authen::Smb;
+
 use Module::Load;
 
 use Apache2::Const -compile => qw(OK HTTP_UNAUTHORIZED);
@@ -89,7 +91,7 @@ sub handler:method
         #Generate new service ticket
         my $st = 'ST-'.generate_random_string(29);
         my $req = Apache2::Request->new($r);
-        $service = $req->param('service');
+        my $service = $req->param('service');
         if(defined $service){
             $log->debug("Creating new service ticket");
             $users{$session_SSO{username}}->{'ticket'} = $st;
@@ -104,6 +106,8 @@ sub handler:method
 
 	#Not authentified
 	} else {
+        $log->debug("Try to authenticate user");
+        
         #Check type and use good auth module
         my $ret = Apache2::Const::HTTP_UNAUTHORIZED;
 
@@ -115,12 +119,12 @@ sub handler:method
             if (uc(@$row[1]) eq "NTLM" ) {
                 $ret = multipleAuth($r, $log, $dbh, $app, $user, $password, $class, 1);
                 $ntlm = 1;
-                break;
+                last;
             } elsif (uc(@$row[1]) eq "CAS" ) {
                 $log->debug("CAS mode");
                 $ret = multipleAuth($r, $log, $dbh, $app, $user, $password, $class, 1);
                 $cas = 1;
-                break;
+                last;
             }
         }
 
@@ -144,7 +148,7 @@ sub handler:method
 
             #Setting Memcached table
             my (%users);
-            %users = %{get_memcached('vulture_users_in')};
+            %users = %{get_memcached('vulture_users_in') or {}};
             $users{$user} = {'SSO' => $r->pnotes('id_session_SSO')};
 
             notify($dbh, undef, $user, 'connection', scalar(keys %users));
@@ -152,7 +156,7 @@ sub handler:method
             #Generate new service ticket
             my $st = 'ST-'.generate_random_string(29);
             my $req = Apache2::Request->new($r);
-            $service = $req->param('service');
+            my $service = $req->param('service');
             if(defined $service){
                 $log->debug("Creating new ticket");
                 $users{$session_SSO{username}}->{'ticket'} = $st;
@@ -166,12 +170,12 @@ sub handler:method
         } else {
             unless ($ntlm) {
                 my (%users);
-                %users = %{get_memcached('vulture_users_in')};
+                %users = %{get_memcached('vulture_users_in') or {}};
 
                 notify($dbh, undef, $user, 'connection_failed', scalar(keys %users));
 
-                $r->user(undef);
-                $log->debug("Wrong user/password") if ($password and $user);
+                $r->user('');
+                $log->warn("Login failed in AuthenHandler for user $user") if ($password and $user);
 
                 #Create error message
                 $r->pnotes('auth_message' => "MISSING_USER") if $password;
@@ -181,15 +185,16 @@ sub handler:method
 
             #Unfinite loop for basic auth
             if($app and $app->{'auth_basic'}){
-            $r->note_basic_auth_failure;
-            return Apache2::Const::HTTP_UNAUTHORIZED;
+                $log->warn("Login failed (basic mode) in AuthenHandler for user $user") if ($password and $user);
+                $r->note_basic_auth_failure;
+                return Apache2::Const::HTTP_UNAUTHORIZED;
             } else {
 
-            #IF NTLM is used, we immediatly return the results of MultipleAuth();
-            return $ret if ($ntlm);
+                #IF NTLM is used, we immediatly return the results of MultipleAuth();
+                return $ret if ($ntlm);
 
-            $log->debug("No user / password... ask response handler to display the logon form");
-            return Apache2::Const::OK;
+                $log->debug("No user / password... ask response handler to display the logon form");
+                return Apache2::Const::OK;
             }
         }
 	}

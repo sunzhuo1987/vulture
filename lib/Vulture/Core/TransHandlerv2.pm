@@ -81,7 +81,9 @@ sub handler {
 	$r->pnotes('app' => $app) if defined $app;
     
 	#Plugin or Rewrite (according to URI)
-	my $plugins = $dbh->selectall_arrayref("SELECT uri_pattern, type, options FROM plugin WHERE app_id = ? OR app_id IS NULL ORDER BY type", undef, $app->{id});
+    my $query = 'SELECT uri_pattern, type, options FROM plugin WHERE app_id = ? OR app_id IS NULL ORDER BY type';
+    $log->debug($query);
+	my $plugins = $dbh->selectall_arrayref($query, undef, $app->{id});
 	foreach my $row (@$plugins) {
 		my $module_name;
         my $options;
@@ -104,7 +106,7 @@ sub handler {
 			load $module_name;
 			
 			#Get return
-			$ret = $module_name->plugin($r, $log, $dbh, $intf, $app, $options);
+			my $ret = $module_name->plugin($r, $log, $dbh, $intf, $app, $options);
             
             #Return all code returns (means that OK from plugin will skip all of the TransHandler process)
             return $ret if($ret or (uc(@$row[1]) eq "STATIC") or (uc(@$row[1]) eq "SAML") or (uc(@$row[1]) eq "LOGOUT") or (uc(@$row[1]) eq "CAS"));
@@ -282,7 +284,7 @@ sub handler {
         }
         
         #Getting SSO session if exists.
-		my $SSO_cookie_name = get_cookie($r->headers_in->{Cookie}, $r->dir_config('VultureProxyCookieName').'=([^;]*)');
+		my $SSO_cookie_name = get_cookie($r->headers_in->{Cookie}, $r->dir_config('VultureProxyCookieName').'=([^;]*)') or '';
 
 		my (%session_SSO);
 		
@@ -307,6 +309,7 @@ sub handler {
     #CAS Portal
 	} elsif ($r->hostname =~ $intf->{'cas_portal'}){
         return Apache2::Const::OK;
+        
 	#Application is down or unusable
 	} elsif ($app and defined $app->{'up'} and not $app->{'up'}){
 		$log->error('Trying to redirect to '.$r->hostname.' but failed because '.$r->hostname.' is down');

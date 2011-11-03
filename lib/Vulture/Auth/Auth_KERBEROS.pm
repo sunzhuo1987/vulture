@@ -18,8 +18,8 @@ sub checkAuth{
 
     #Get infos
 	my $query = "SELECT * FROM kerberos WHERE id='".$id_method."'";
-    my $sth = $dbh->prepare($query);
     $log->debug($query);
+    my $sth = $dbh->prepare($query);
     $sth->execute;
     my $ref = $sth->fetchrow_hashref;
     $sth->finish();

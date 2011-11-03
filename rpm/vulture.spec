@@ -20,6 +20,7 @@ Source2: http://ovh.dl.sourceforge.net/sourceforge/pyopenssl/pyOpenSSL-0.6.tar.g
 Patch0: http://arnaud.desmons.free.fr/pyOpenSSL-0.6-pkcs12.patch
 Patch1: http://arnaud.desmons.free.fr/pyOpenSSL-0.6-pkcs12_cafile.patch
 Patch2: http://arnaud.desmons.free.fr/pyOpenSSL-0.6-crl.patch
+Patch3: database_path.patch
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildRequires: perl gcc gcc-c++ sqlite python-devel openssl-devel
@@ -32,6 +33,7 @@ Vulture Reverse Proxy
 %patch0 -p1 -b .old
 %patch1 -p0 -b .old
 %patch2 -p0 -b .old
+%patch3 -p0 -b .old
 
 %build
 	rm -rf $RPM_BUILD_ROOT

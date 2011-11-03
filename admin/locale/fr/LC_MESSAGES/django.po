@@ -224,7 +224,7 @@ msgid "Groups ok"
 msgstr "Groupes autorisés"
 
 #: vulture/acl_form.html:140 vulture/app_form.html:149
-#: vulture/appearance_form.html:29 vulture/cas_form.html:23
+#: vulture/appearance_form.html:30 vulture/cas_form.html:23
 #: vulture/css_form.html:22 vulture/exportimport_form.html:23
 #: vulture/image_form.html:22 vulture/intf_form.html:77
 #: vulture/kerberos_form.html:22 vulture/ldap_form.html:57
@@ -232,12 +232,12 @@ msgstr "Groupes autorisés"
 #: vulture/modsecurity_form.html:22 vulture/ntlm_form.html:24
 #: vulture/plugin_form.html:24 vulture/radius_form.html:25
 #: vulture/sql_form.html:43 vulture/ssl_form.html:24 vulture/sso_form.html:149
-#: vulture/template_form.html:33 vulture/user_form.html:24
+#: vulture/template_form.html:34 vulture/user_form.html:24
 msgid "Save settings"
 msgstr "Enregistrer"
 
 #: vulture/acl_form.html:141 vulture/app_form.html:150
-#: vulture/appearance_form.html:30 vulture/cas_form.html:24
+#: vulture/appearance_form.html:31 vulture/cas_form.html:24
 #: vulture/css_form.html:23 vulture/exportimport_form.html:24
 #: vulture/image_form.html:23 vulture/intf_form.html:78
 #: vulture/kerberos_form.html:23 vulture/ldap_form.html:58
@@ -245,7 +245,7 @@ msgstr "Enregistrer"
 #: vulture/modsecurity_form.html:23 vulture/ntlm_form.html:25
 #: vulture/plugin_form.html:25 vulture/radius_form.html:26
 #: vulture/sql_form.html:44 vulture/ssl_form.html:25 vulture/sso_form.html:150
-#: vulture/template_form.html:34 vulture/user_form.html:25
+#: vulture/template_form.html:35 vulture/user_form.html:25
 msgid "Cancel"
 msgstr "Annuler"
 
@@ -338,7 +338,7 @@ msgstr "Nom de l'en-tête"
 
 #: vulture/app_form.html:115 vulture/event_list.html:33
 #: vulture/plugin_form.html:18 vulture/sql_form.html:20
-#: vulture/template_form.html:28
+#: vulture/template_form.html:29
 msgid "Type"
 msgstr "Type"
 
@@ -383,26 +383,6 @@ msgstr "Statut"
 #: vulture/appearance_form.html:5
 msgid "Appearance settings"
 msgstr "Paramètres d'apparence"
-
-#: vulture/appearance_form.html:19
-msgid "App down template"
-msgstr "Application hors service"
-
-#: vulture/appearance_form.html:20
-msgid "Login template"
-msgstr "Mire d'authentification"
-
-#: vulture/appearance_form.html:21
-msgid "ACL template"
-msgstr "Accès (ACL) refusé"
-
-#: vulture/appearance_form.html:22
-msgid "SSO portal template"
-msgstr "Portail SSO"
-
-#: vulture/appearance_form.html:23
-msgid "SSO learning template"
-msgstr "Apprentissage Web SSO"
 
 #: vulture/appearance_form.html:24 vulture/css_form.html:18
 msgid "CSS"
@@ -908,25 +888,35 @@ msgstr "Les éléments ci-dessous en italique font références à des élément
 msgid "All"
 msgstr "Tous"
 
+#: vulture/appearance_form.html:19
 #: vulture/template_form.html:20
 msgid "App down Template"
 msgstr "Application hors service"
 
 #: vulture/template_form.html:21
+#: vulture/appearance_form.html:20
 msgid "Login Template"
 msgstr "Mire d'authentification"
 
+#: vulture/appearance_form.html:21
 #: vulture/template_form.html:22
 msgid "ACL Template"
-msgstr "Contrôle d'accès"
+msgstr "Contrôle d'accès (ACL) refusé"
 
 #: vulture/template_form.html:23
+#: vulture/appearance_form.html:22
 msgid "Portal Template"
 msgstr "Portail SSO"
 
+#: vulture/appearance_form.html:23
 #: vulture/template_form.html:24
 msgid "SSO Learning Template"
 msgstr "Apprentissage"
+
+#: vulture/appearance_form.html:24
+#: vulture/template_form.html:25
+msgid "Logout Template"
+msgstr "Déconnexion"
 
 #: vulture/user_form.html:5
 msgid "User settings"

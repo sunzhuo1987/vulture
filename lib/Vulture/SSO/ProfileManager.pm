@@ -53,13 +53,13 @@ sub getProfile{
             $log->debug($query);
             $sth->execute;
             
-            #Return hashref
             my $ref = $sth->fetchrow_hashref;
             $sth->finish();
             $new_dbh->disconnect;
             
             my $return = {};
 
+            #Parse fields to get values
 	        foreach my $field (@fields) {
 	            my ($var, $mapping, $need_decryption) = @$field;
 	            
@@ -152,6 +152,7 @@ sub setProfile{
         my $query = "SELECT id FROM ".$result->{table_mapped}." WHERE ".$result->{user_mapped}."='".$user."' AND ".$result->{app_mapped}." = '".$app->{id}."'";
         $log->debug($query);
         my $res = $new_dbh->selectrow_array($query);
+        
         #Delete the row before inserting a new one
         if($res){
             $query = 'DELETE FROM '.$result->{table_mapped}.' WHERE id = '.$res;

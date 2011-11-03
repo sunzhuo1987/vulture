@@ -1,12 +1,12 @@
 #file:Core/VultureUtils.pm
 #-------------------------
 package Core::VultureUtils;
-our $VERSION = '2.1';
+our $VERSION = '2.0.1';
 
 BEGIN {
     use Exporter ();
-    @ISA = qw(Exporter);
-    @EXPORT_OK = qw(&version_check &get_app &get_intf &session &get_cookie &get_memcached &set_memcached &getDB_object &getLDAP_object &getStyle &getTranslations &generate_random_string &notify);
+    our @ISA = qw(Exporter);
+    our @EXPORT_OK = qw(&version_check &get_app &get_intf &session &get_cookie &get_memcached &set_memcached &getDB_object &getLDAP_object &getStyle &getTranslations &generate_random_string &notify);
 }
 
 use Apache::Session::Generate::MD5;
@@ -25,8 +25,8 @@ sub	version_check {
 	my ($dbh, $log) = @_;
 	
 	#Querying database and compare with VERSION defined in the head of this file
-	$query = "SELECT count(*) FROM conf WHERE var='version' AND value='".$VERSION."'";
-	#$log->debug($query);
+	my $query = "SELECT count(*) FROM conf WHERE var='version' AND value='".$VERSION."'";
+	$log->debug($query);
 	return ($dbh->selectrow_array($query));
 }
 
@@ -121,21 +121,26 @@ sub	get_cookie {
 
 sub	get_app {
 	my ($log, $host, $dbh, $intf) = @_;
+    my ($query, $sth, $ref);
 
     #Getting app
-    my $query = "SELECT app.id, app.name, app.url, app.log_id, app.sso_forward_id AS sso_forward, app.logon_url, app.logout_url, intf.port, intf.remote_proxy, app.up, app.auth_basic, app.display_portal, app.canonicalise_url, app.timeout, app.update_access_time FROM app, intf, app_intf WHERE app_intf.intf_id='".$intf."' AND app.id = app_intf.app_id AND app.name = '".$host."' AND intf.id='".$intf."'";
-	#$log->debug($query);
+    return {} unless ($host and $intf and $dbh);
+    $query = "SELECT app.id, app.name, app.url, app.log_id, app.sso_forward_id AS sso_forward, app.logon_url, app.logout_url, intf.port, intf.remote_proxy, app.up, app.auth_basic, app.display_portal, app.canonicalise_url, app.timeout, app.update_access_time FROM app, intf, app_intf WHERE app_intf.intf_id='".$intf."' AND app.id = app_intf.app_id AND app.name = '".$host."' AND intf.id='".$intf."'";
+	$log->debug($query);
 	$sth = $dbh->prepare($query);
 	$sth->execute;
-	my $ref = $sth->fetchrow_hashref;
+	$ref = $sth->fetchrow_hashref;
 	$sth->finish();
 
+    return {} unless $ref->{id};
     #Getting auth
-    my $query = "SELECT auth.name, auth.auth_type, auth.id_method FROM auth, auth_multiple WHERE auth_multiple.app_id = '".$ref->{id}."' AND auth_multiple.auth_id = auth.id";
+    $query = "SELECT auth.name, auth.auth_type, auth.id_method FROM auth, auth_multiple WHERE auth_multiple.app_id = '".$ref->{id}."' AND auth_multiple.auth_id = auth.id";
+    $log->debug($query);
     $ref->{'auth'} = $dbh->selectall_arrayref($query);
 
     #Getting ACL
     $query = "SELECT acl.id, acl.name, auth.auth_type AS acl_type, auth.id_method FROM acl, auth, app WHERE app.id = '".$ref->{id}."' AND acl.id = app.acl_id AND auth.id = acl.auth_id";
+    $log->debug($query);
     $sth = $dbh->prepare($query);
 	$sth->execute;
 	$ref->{'acl'} = $sth->fetchrow_hashref;
@@ -147,16 +152,19 @@ sub	get_app {
 
 sub	get_intf {
 	my ($log, $dbh, $intf) = @_;
-
+    my ($query, $sth, $ref);
+    
     #Getting intf
-	my $query = "SELECT id, ip, port, ssl_engine, log_id, sso_portal, sso_timeout, sso_update_access_time, cert, key, ca, cas_portal, cas_st_timeout FROM intf WHERE id='".$intf."'";
-	$sth = $dbh->prepare($query);
+	$query = "SELECT id, ip, port, ssl_engine, log_id, sso_portal, sso_timeout, sso_update_access_time, cert, key, ca, cas_portal, cas_st_timeout FROM intf WHERE id='".$intf."'";
+	$log->debug($query);
+    $sth = $dbh->prepare($query);
 	$sth->execute;
-	my $ref = $sth->fetchrow_hashref;
+	$ref = $sth->fetchrow_hashref;
 	$sth->finish();
     
     #Getting auth (CAS)
-    my $query = "SELECT auth.name, auth.auth_type, auth.id_method FROM auth, intf_auth_multiple WHERE intf_auth_multiple.intf_id = '".$ref->{id}."' AND intf_auth_multiple.auth_id = auth.id";
+    $query = "SELECT auth.name, auth.auth_type, auth.id_method FROM auth, intf_auth_multiple WHERE intf_auth_multiple.intf_id = '".$ref->{id}."' AND intf_auth_multiple.auth_id = auth.id";
+    $log->debug($query);
     $ref->{'auth'} = $dbh->selectall_arrayref($query);
 	return $ref;
 }
@@ -257,22 +265,24 @@ sub getStyle {
     
     #App id if not null
     $query .= "app.id= '".$app->{id}."' AND " if ($app->{id});
-    $query .= "intf.id = '".$intf_id."' ";
+    $query .= "intf.id = '".$intf_id."' AND style_tpl.id = style_style.";
     if(uc($type) eq 'DOWN'){
-        $query .=  "AND style_tpl.id = style_style.app_down_tpl_id";
+        $query .=  "app_down_tpl_id";
     } elsif(uc($type) eq 'LOGIN'){
-        $query .= "AND style_tpl.id = style_style.login_tpl_id";
+        $query .= "login_tpl_id";
     } elsif(uc($type) eq 'ACL'){
-        $query .= "AND style_tpl.id = style_style.acl_tpl_id";
+        $query .= "acl_tpl_id";
     } elsif(uc($type) eq 'PORTAL'){
-        $query .= "AND style_tpl.id = style_style.sso_portal_tpl_id";
+        $query .= "sso_portal_tpl_id";
     } elsif(uc($type) eq 'LEARNING'){
-        $query .= "AND style_tpl.id = style_style.sso_learning_tpl_id";
+        $query .= "sso_learning_tpl_id";
+    } elsif(uc($type) eq 'LOGOUT'){
+        $query .= "logout_tpl_id";
     } else {
         return;
     }
     $log->debug($query);
-    $sth = $dbh->prepare($query);
+    my $sth = $dbh->prepare($query);
     $sth->execute;
     $ref = $sth->fetchrow_hashref;
     $sth->finish();
@@ -355,8 +365,7 @@ sub getTranslations {
         my $query = "SELECT message, translation FROM localization WHERE (".$message_query.") AND (".$language_query.")";        
         $log->debug($query);
 
-        $translated_messages = $dbh->selectall_hashref($query,'message');
-        return $translated_messages;
+        return $dbh->selectall_hashref($query,'message');
     }
 }
 

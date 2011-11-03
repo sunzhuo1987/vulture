@@ -63,6 +63,7 @@ sub forward{
 	#Getting SSO type
 	$log->debug("Getting data from database");
 	my $query = "SELECT sso.type FROM sso, app WHERE app.id=".$app->{id}." AND sso.id = app.sso_forward_id";
+    $log->debug($query);
 
 	my $sth = $dbh->prepare($query);
 	$sth->execute;
@@ -81,8 +82,9 @@ sub forward{
     }
 
     #Getting specials fields like "autologon_*"
-    my $sql = "SELECT field_var, field_type, field_encrypted, field_value FROM field, sso, app WHERE field.sso_id = sso.id AND sso.id = app.sso_forward_id AND app.id=? AND (field_type = 'autologon_password' OR field_type = 'autologon_user' OR field_type = 'hidden')";
-	my $sth = $dbh->prepare($sql);
+    $query = "SELECT field_var, field_type, field_encrypted, field_value FROM field, sso, app WHERE field.sso_id = sso.id AND sso.id = app.sso_forward_id AND app.id=? AND (field_type = 'autologon_password' OR field_type = 'autologon_user' OR field_type = 'hidden')";
+	$log->debug($query);
+    my $sth = $dbh->prepare($query);
 	$sth->execute($app->{id});
 
 	#Adding data to post variable
@@ -102,10 +104,9 @@ sub forward{
 		    }
             $post .= uri_escape($var)."=".uri_escape($value)."&";        
         }
-		#$log->debug($post);
 	}
     $sth->finish();
-    $log->debug($post);
+    $log->debug("Due to CONFIDENTIALITY REASONS, posted string have been removed from debug");
 
 	#Setting browser
 	my ($ua, $response, $request);
@@ -167,12 +168,9 @@ sub forward{
         $request->push_header('Authorization' => "Basic " . encode_base64($user.':'.$password));    
     }
 
-    $log->debug($request->as_string);
-
-	#Getting response
+	#Make request and get response
 	$response = $ua->request($request);
-
-    $log->debug($response->as_string);	
+    $log->debug("Due to CONFIDENTIALITY REASONS, response have been removed from debug");	
 
 	#Cookie coming from response
 	my %cookies_app;
@@ -217,26 +215,25 @@ sub forward{
 
     #Fail. Redirecting to SSO Learning
     } else {
-        $log->debug("SSO fails. Delete old profile values. Redirecting to SSO Learning");
+        $log->debug("SSO fails (not 30x headers nor 20x headers). Try to move forward");
         $r->pnotes('SSO_Forwarding' => undef);
         $r->headers_out->add('Location' => $r->unparsed_uri);
         $r->status(302);
         return Apache2::Const::REDIRECT;
-    #    $r->pnotes('SSO_Forwarding' => 'LEARNING');
-
+        #$r->pnotes('SSO_Forwarding' => 'LEARNING');
         #Delete old values which don't work
-#        deleteProfile($r, $log, $dbh, $app, $user);
-        
+        #deleteProfile($r, $log, $dbh, $app, $user);
+
         #Redirecting to SSO Learning
- #       $r->content_type('text/html');
+        #$r->content_type('text/html');
 
-	#	$r->headers_out->add('Location' => $r->unparsed_uri);	
+        #$r->headers_out->add('Location' => $r->unparsed_uri);	
 
-		#Set status
-	#	$r->status(302);
+        #Set status
+        #$r->status(302);
 
-	 #   return Apache2::Const::REDIRECT;
-    }	
+        #return Apache2::Const::REDIRECT;
+    }
 }
 
 1;

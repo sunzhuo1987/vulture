@@ -14,7 +14,7 @@ use Module::Load;
 
 use Apache2::Const -compile => qw(OK HTTP_UNAUTHORIZED);
 
-use Core::VultureUtils qw(&session &notify &getTranslations &getStyle);
+use Core::VultureUtils qw(&session &get_memcached &notify &getTranslations &getStyle);
 
 sub handler {
 	my $r = shift;
@@ -50,10 +50,13 @@ sub handler {
 	}
 
 	#Get app info coming from TransHandlerv2
-	if($app and $app->{'id'}){ 
+	if($app and $app->{'id'}){
 		
+        #Get users list to notify
+        my (%users);
+        %users = %{get_memcached('vulture_users_in') or {}};
+
 		#Check if ACL is on. If not, let user go.
-        		
 		if($app->{'acl'}){
 			#If user was set by AuthenHandler, then check his credentials			
 			if ($user){
@@ -87,7 +90,7 @@ sub handler {
 					$log->debug("Validate app session");
 					return Apache2::Const::OK;
 				} else {
-					$log->debug("Regarding to ACL, user is not authorized to access to this app.");
+					$log->warn("Regarding to ACL, user $user is not authorized to access to this app.");
 					
                     notify($dbh, $app->{id}, $user, 'connection_failed', scalar(keys %users));
                     

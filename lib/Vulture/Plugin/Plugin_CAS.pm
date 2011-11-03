@@ -33,7 +33,7 @@ sub plugin{
     #CAS Portal doesn't have auth
     my $auths = $intf->{'auth'};
     if(not defined @$auths or not @$auths){
-	$log->debug("Auth in CAS is undefined");
+        $log->debug("Auth in CAS is undefined");
         return Apache2::Const::FORBIDDEN;        
     }
 

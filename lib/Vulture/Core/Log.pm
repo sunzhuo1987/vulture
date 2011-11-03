@@ -7,13 +7,13 @@ use Apache2::Reload;
 
 use constant {
 	EMERG => "emerg",
-	ALERT => "emerg",
-	CRIT => "emerg",
-	ERROR => "emerg",
-	WARN => "emerg",
-	NOTICE => "emerg",
-	INFO => "emerg",
-	DEBUG => "emerg"
+	ALERT => "alert",
+	CRIT => "crit",
+	ERROR => "error",
+	WARN => "warn",
+	NOTICE => "notice",
+	INFO => "info",
+	DEBUG => "debug"
 };
 
 sub new {
@@ -44,19 +44,19 @@ sub handle_log {
 	}
 	
 	#Sort by log level
-	if($log_level eq $EMERG){
+	if($log_level eq EMERG){
 		$log->emerg($message);
-	} elsif($log_level eq $ALERT){
+	} elsif($log_level eq ALERT){
 		$log->alert($message);
-	} elsif($log_level eq $CRIT){
+	} elsif($log_level eq CRIT){
 		$log->crit($message);
-	} elsif($log_level eq $ERROR){
+	} elsif($log_level eq ERROR){
 		$log->error($message);
-	} elsif($log_level eq $WARN){
+	} elsif($log_level eq WARN){
 		$log->warn($message);
-	} elsif($log_level eq $NOTICE){
+	} elsif($log_level eq NOTICE){
 		$log->notice($message);
-	} elsif($log_level eq $INFO){
+	} elsif($log_level eq INFO){
 		$log->info($message);
 	} else {
 		$log->debug($message);
@@ -68,7 +68,7 @@ sub emerg {
 	my ($self, @args) = @_;
 	my ($desc, $type, $user) = @args;
 
-	my $log_level = $EMERG;
+	my $log_level = EMERG;
 	my ($package, $filename, $line) = caller;
 
 	handle_log($self, $package, $filename, $line, $log_level, $type, $desc, $user);
@@ -79,7 +79,7 @@ sub alert {
 	my ($self, @args) = @_;
 	my ($desc, $type, $user) = @args;
 
-	my $log_level = $ALERT;
+	my $log_level = ALERT;
 	my ($package, $filename, $line) = caller;
 
 	handle_log($self, $package, $filename, $line, $log_level, $type, $desc, $user);
@@ -90,7 +90,7 @@ sub crit {
 	my ($self, @args) = @_;
 	my ($desc, $type, $user) = @args;
 
-	my $log_level = $CRIT;
+	my $log_level = CRIT;
 	my ($package, $filename, $line) = caller;
 
 	handle_log($self, $package, $filename, $line, $log_level, $type, $desc, $user);
@@ -101,7 +101,7 @@ sub error {
 	my ($self, @args) = @_;
 	my ($desc, $type, $user) = @args;
 
-	my $log_level = $ERROR;
+	my $log_level = ERROR;
 	my ($package, $filename, $line) = caller;
 
 	handle_log($self, $package, $filename, $line, $log_level, $type, $desc, $user);
@@ -112,7 +112,7 @@ sub warn {
 	my ($self, @args) = @_;
 	my ($desc, $type, $user) = @args;
 
-	my $log_level = $WARN;
+	my $log_level = WARN;
 	my ($package, $filename, $line) = caller;
 
 	handle_log($self, $package, $filename, $line, $log_level, $type, $desc, $user);
@@ -123,7 +123,7 @@ sub notice {
 	my ($self, @args) = @_;
 	my ($desc, $type, $user) = @args;
 
-	my $log_level = $NOTICE;
+	my $log_level = NOTICE;
 	my ($package, $filename, $line) = caller;
 
 	handle_log($self, $package, $filename, $line, $log_level, $type, $desc, $user);
@@ -134,7 +134,7 @@ sub info {
 	my ($self, @args) = @_;
 	my ($desc, $type, $user) = @args;
 
-	my $log_level = $INFO;
+	my $log_level = INFO;
 	my ($package, $filename, $line) = caller;
 
 	handle_log($self, $package, $filename, $line, $log_level, $type, $desc, $user);
@@ -145,7 +145,7 @@ sub debug {
 	my ($self, @args) = @_;
 	my ($desc, $type, $user) = @args;
 
-	my $log_level = $DEBUG;
+	my $log_level = DEBUG;
 	my ($package, $filename, $line) = caller;
 
 	handle_log($self, $package, $filename, $line, $log_level, $type, $desc, $user);

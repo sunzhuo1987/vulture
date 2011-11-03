@@ -26,7 +26,8 @@ sub forward{
 
 	#Getting fields to send	
 	my $sql = "SELECT field.field_var, field.field_mapped, field.field_type, field.field_encrypted, field.field_value, field.field_prefix, field.field_suffix, field.field_desc FROM field, sso, app WHERE field.sso_id = sso.id AND sso.id = app.sso_forward_id AND app.id=? AND field.field_type != 'autologon_user' AND field.field_type != 'autologon_password' AND field.field_type != 'hidden'";
-	
+	$log->debug($sql);
+    
 	my $sth = $dbh->prepare($sql);
 	$sth->execute($app->{id});
 	my @fields =  @{$sth->fetchall_arrayref};
@@ -38,14 +39,11 @@ sub forward{
 		$log->debug("Nothing to learn");
 		$r->pnotes('SSO_Forwarding' => 'FORWARD');
 
+        #Redirect user
 		$r->headers_out->add('Location' => $r->unparsed_uri);	
-
-		#Set status
 		$r->status(302);
-
 	    return Apache2::Const::REDIRECT;
     }
-
 
 	#Getting values posted & set it into profile
 	my $req = Apache2::Request->new($r);
@@ -91,9 +89,7 @@ sub forward{
 	    return Apache2::Const::REDIRECT;
 	} else {
 	    $log->debug("Something went wrong in SSO Learning");
-	}
-
-	
+	}	
 }
 
 1;

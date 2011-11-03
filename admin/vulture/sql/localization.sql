@@ -7,7 +7,8 @@ INSERT INTO "localization" VALUES(6,'en','NEED_CHANGE_PASS','The password needs 
 INSERT INTO "localization" VALUES(7,'en','APPLICATION','Application');
 INSERT INTO "localization" VALUES(8,'en','ACL_FAILED','You are not authorized to access this app');
 INSERT INTO "localization" VALUES(9,'en','APP_DOWN','This app is down. Please try later');
-INSERT INTO "localization" VALUES(10,'fr','SSO_LEARNING',"SSO Learning");
+INSERT INTO "localization" VALUES(10,'en','SSO_LEARNING',"SSO Learning");
+INSERT INTO "localization" VALUES(11,'en','DISCONNECTED',"You have been disconnected from Vulture");
 INSERT INTO "localization" VALUES(21,'fr','USER','Utilisateur');
 INSERT INTO "localization" VALUES(22,'fr','PASSWORD','Mot de passe');
 INSERT INTO "localization" VALUES(23,'fr','LOGIN_FAILED','La connexion a échouée');
@@ -18,3 +19,4 @@ INSERT INTO "localization" VALUES(27,'fr','APPLICATION','Application');
 INSERT INTO "localization" VALUES(28,'fr','ACL_FAILED',"Vous n'êtes pas autorisé(e) à voir cette page");
 INSERT INTO "localization" VALUES(29,'fr','APP_DOWN',"Cet application n'est pas en service actuellement. Réessayez plus tard");
 INSERT INTO "localization" VALUES(30,'fr','SSO_LEARNING',"Auto apprentissage");
+INSERT INTO "localization" VALUES(31,'fr','DISCONNECTED',"Vous avez été déconnecté de Vulture");

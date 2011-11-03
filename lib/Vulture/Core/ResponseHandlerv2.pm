@@ -28,7 +28,7 @@ sub handler {
 	my $dbh = $r->pnotes('dbh');
 
 	#$user may not be set if Authentication is done via Apache (ex: mod_auth_kerb)
-	$user = $r->pnotes('username') || $r->user;
+	my $user = $r->pnotes('username') || $r->user;
 	my $password = $r->pnotes('password');
 
 	my (%session_app);
@@ -47,7 +47,7 @@ sub handler {
 	if($r->pnotes('response_content') or $r->pnotes('response_headers') or $r->pnotes('response_content_type')){
 	    $log->debug("Bypass ResponseHandler because we have a response to display");
 		if($r->pnotes('response_headers')){
-			@headers = split /\n/, $r->pnotes('response_headers');
+			my @headers = split /\n/, $r->pnotes('response_headers');
 			
             foreach my $header (@headers){
                 $log->debug('Parse header');
@@ -74,7 +74,7 @@ sub handler {
 			load $module_name;
 			
 			#Get return
-			$ret = $module_name->forward($r, $log, $dbh, $app, $user, $password);
+			$module_name->forward($r, $log, $dbh, $app, $user, $password);
 		}
 		delete $session_app{SSO_Forwarding};
 		$session_app{SSO_Forwarding} = $r->pnotes('SSO_Forwarding') if defined $r->pnotes('SSO_Forwarding');
@@ -89,12 +89,14 @@ sub handler {
 		if(not defined $session_app{SSO_Forwarding} and $app->{sso_forward}){
 			#If results are the same, it means user has already complete the SSO Learning phase
 			my $query = "SELECT count(*) FROM field, sso, app WHERE field.sso_id = sso.id AND sso.id = app.sso_forward_id AND app.id=? AND field_type != 'autologon_password' AND field_type != 'autologon_user' AND field_type != 'hidden'";
-			my $href = SSO::ProfileManager::getProfile($r, $log, $dbh, $app, $user);
+			$log->debug($query);
+            my $href = SSO::ProfileManager::getProfile($r, $log, $dbh, $app, $user);
             
 			my $length1 = $dbh->selectrow_array($query, undef, $app->{id});
             my $length2 = keys %$href;
 
             my $query_type = "SELECT sso.type FROM sso, app WHERE app.id = ? AND sso.id = app.sso_forward_id";
+            $log->debug($query_type);
 			my $type = $dbh->selectrow_array($query_type, undef, $app->{id});
 
             #Learning ok or no need of learning
@@ -173,9 +175,8 @@ sub display_auth_form {
 	
 	#CAS
 	my $req = Apache2::Request->new($r);	
-	$service = $req->param('service');
+	my $service = $req->param('service');
 	#END CAS
-
     
 	my $uri = $r->unparsed_uri;
 	my $message = $r->pnotes("auth_message");    
@@ -218,7 +219,6 @@ sub display_portal {
 
     my $intf_id = $r->dir_config('VultureID');
 	my $query = "SELECT app.name FROM app, app_intf WHERE app_intf.intf_id='$intf_id' AND app.id = app_intf.app_id";
-
     $log->debug($query);
 
     my $all_apps = $dbh->selectall_arrayref($query);
