@@ -45,7 +45,7 @@
         <translation>Traduction</translation>
     </localization>
     <importexport>
-        <path>Chemin où importer / exporter la base de données Vulture (l'utilisateur www-data (Debian) ou apache (RedHat) doit avoir les droits)</path>
+        <path>Chemin complet du fichier d'import / export de la base de données Vulture</path>
     </importexport>
     <kerberos>
         <name>Nom de la méthode d'authentification</name>
@@ -146,6 +146,7 @@
         <acl_tpl>Modèle de page lorsque le contrôle d'accès (ACL) échoue (au lieu d'une erreur 403)</acl_tpl>
         <sso_portal_tpl>Modèle de page pour le portail SSO</sso_portal_tpl>
         <sso_learning_tpl>Modèle de page pour l'apprentissage lors du Web SSO</sso_learning_tpl>
+        <logout_tpl>Modèle de page pour la déconnexion</logout_tpl>
         <css>Feuille de style liée à l'apparence</css>
         <image>Image liée à l'apparence</image>
     </appearance>

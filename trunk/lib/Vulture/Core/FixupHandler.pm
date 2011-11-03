@@ -34,7 +34,7 @@ sub proxy_redirect {
 	
 	#Cleaning up cookies
     #Don't send VultureApp && VultureProxy cookies
-    $cookies = $r->headers_in->{Cookie};
+    my $cookies = $r->headers_in->{Cookie};
     my $cleaned_cookies;
     foreach (split(';', $cookies)) {
         if (/([^,; ]+)=([^,; ]+)/) {

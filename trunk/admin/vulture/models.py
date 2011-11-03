@@ -431,6 +431,8 @@ class Plugin(models.Model):
 	('Static', 'Static'),
     ('Rewrite', 'Rewrite'),
 	('Block', 'Block'),
+    ('Logout', 'Logout'),
+    ('CAS','CAS'),
     )
     app = models.ForeignKey(App,null=1,blank=1)
     uri_pattern = models.CharField(max_length=200)
@@ -728,6 +730,7 @@ class Template(models.Model):
         ('ACL','ACL'),
         ('PORTAL','Portal'),
         ('LEARNING', 'Learning'),
+        ('LOGOUT', 'Logout'),
         )
     name = models.CharField(max_length=128,unique=1)    
     type = models.CharField(max_length=50, choices=TEMPLATE_TYPES)
@@ -768,6 +771,7 @@ class Localization(models.Model):
         ('APPLICATION', 'Application'),
         ('APP_DOWN', 'App down'),
         ('SSO_LEARNING', 'SSO Learning'),
+        ('DISCONNECTED', 'Disconnected'),
         )
     country = models.CharField(max_length=2, choices=COUNTRY_CHOICES)
     message = models.CharField(max_length=50, choices=ERRORS_CHOICES)
@@ -786,6 +790,7 @@ class Appearance(models.Model):
     acl_tpl = models.ForeignKey('Template', related_name='acl_tpl', blank=1, null=1, limit_choices_to = {'type__exact' : 'ACL'})
     sso_portal_tpl = models.ForeignKey('Template', related_name='sso_portal_tpl', blank=1, null=1, limit_choices_to = {'type__exact' : 'PORTAL'})
     sso_learning_tpl = models.ForeignKey('Template', related_name='sso_learning_tpl', blank=1, null=1, limit_choices_to = {'type__exact' : 'LEARNING'})
+    logout_tpl = models.ForeignKey('Template', related_name='logout_tpl', blank=1, null=1, limit_choices_to = {'type__exact' : 'LOGOUT'})
     image = models.ForeignKey('Image',blank=1,null=1)
     
     def __str__(self):

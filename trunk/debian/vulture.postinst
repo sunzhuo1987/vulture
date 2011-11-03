@@ -16,14 +16,18 @@ openssl req -x509 -newkey rsa:1024 -batch -out /var/www/vulture/conf/server.crt 
 fi
 chown -R www-data /var/www/vulture
 chgrp -R www-data /var/www/vulture
+
+#Backup database
 if [ -f /var/www/vulture/admin/db ] ; then
 	echo "Database is here"
     echo "Backup your old database"
     mv /var/www/vulture/admin/db /var/www/vulture/admin/db_old
 fi
+
+#Set up database ( call django )
 cd /var/www/vulture/admin && ./manage.py syncdb --noinput
-chown www-data.www-data /var/www/vulture/admin/db
-chown root.root /var/www/vulture/conf/httpd.conf
+chown www-data. /var/www/vulture/admin/db
+chown root. /var/www/vulture/conf/httpd.conf
 chown -R www-data. /var/www/vulture/admin/
 chmod -R 777 /var/www/vulture/conf/
 chmod 600 /var/www/vulture/conf/httpd.conf

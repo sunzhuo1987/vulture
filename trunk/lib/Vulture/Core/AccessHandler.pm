@@ -20,7 +20,7 @@ sub handler {
 	my $c = $r->connection(); 
 	
 	unless (defined $c and $c->remote_ip){
-	    warn "Can't read remote ip\n";
+	    $log->warn("Can't read remote ip");
 	    return Apache2::Const::FORBIDDEN;
 	}
 	
@@ -29,7 +29,7 @@ sub handler {
 
 	my $query = "SELECT count(*) FROM blackip WHERE ip=? AND app_id=?";
 	if (not $dbh or not $app_id or $dbh->selectrow_array(($query, undef, $c->remote_ip, $app_id))){
-		$log->error('IP '.$c->remote_ip.' is blocked\n');
+		$log->warn('IP '.$c->remote_ip.' is blocked');
 	 	return Apache2::Const::FORBIDDEN;	
 	} else {
 		$log->debug('White IP '.$c->remote_ip);

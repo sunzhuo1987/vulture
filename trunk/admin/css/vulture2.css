@@ -68,6 +68,11 @@ table {
     border-radius: 15px 0 15px 0;
 }
 
+.menu_area ul {
+    margin-left: -10px;
+    padding-left: -10px;
+}
+
 .menu_area li,a {
     color:#3300FF;
     text-decoration:none;

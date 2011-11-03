@@ -1,0 +1,5 @@
+--- vulture-2.1/admin/vulture/sql/sql.sql.py.orig	2011-09-27 14:56:09.000000000 +0200
++++ vulture-2.1/admin/vulture/sql/sql.sql	2011-09-27 14:56:21.000000000 +0200
+@@ -6,7 +6,7 @@
+-INSERT INTO "sql" VALUES(1,'vulture','SQLite','/var/www/vulture/admin/db','','','',NULL,'user','username','password','sha1');
++INSERT INTO "sql" VALUES(1,'vulture','SQLite','/opt/vulture/admin/db','','','',NULL,'user','username','password','sha1');
