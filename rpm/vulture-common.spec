@@ -418,12 +418,6 @@ vulture common
 	make &&\
 	make DESTDIR=$RPM_BUILD_ROOT/opt/vulture SITEPREFIX= PERLPREFIX= install &&\
 	make clean  &&\
-    cd ../NTLM-1.09 && \
-    perl -I ../ExtUtils-MakeMaker-6.42/lib -I $RPM_BUILD_ROOT/opt/vulture/lib \
-		Makefile.PL LIB=/lib &&\
-	make &&\
-	make DESTDIR=$RPM_BUILD_ROOT/opt/vulture SITEPREFIX= PERLPREFIX= install &&\
-	make clean  &&\
 	cd ../Apache-Reload-0.10 &&\
         perl -I ../ExtUtils-MakeMaker-6.42/lib\
              -I $RPM_BUILD_ROOT/opt/vulture/lib/x86_64-linux-thread-multi\
