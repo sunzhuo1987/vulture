@@ -114,7 +114,7 @@ vulture common
 	./configure --prefix=$RPM_BUILD_ROOT/opt/vulture/freetds &&\
 	make CFLAGS="%{optflags}" &&\
 	make install &&\
-        cd ../openssl-0.9.8r &&\
+    cd ../openssl-0.9.8r &&\
         ./config --prefix=$RPM_BUILD_ROOT/opt/vulture/openssl shared &&\
         make CPPFLAGS="%{optflags} -DSSL_EXPERIMENTAL_ENGINE" &&\
         make install &&\
@@ -149,6 +149,12 @@ vulture common
 	make &&\
 	make install &&\
 	make clean &&\
+    cd ../libapreq2-2.13 &&\
+    perl -I ../ExtUtils-MakeMaker-6.42/lib -I $RPM_BUILD_ROOT/opt/vulture/lib \
+		Makefile.PL --with-apache2-apxs=$RPM_BUILD_ROOT/opt/vulture/httpd/bin/apxs &&\
+	make &&\
+	make install &&\
+	make clean  &&\
         cd ../mod_evasive &&\
         $RPM_BUILD_ROOT/opt/vulture/httpd/bin/apxs -cia mod_evasive20.c &&\
         cd ../mod_qos-9.68 &&\
@@ -165,12 +171,6 @@ vulture common
 		python setup.py install --prefix=$RPM_BUILD_ROOT/usr &&\
 	cd ../hashlib-20081119 &&\
 		python setup.py install --prefix=$RPM_BUILD_ROOT/usr &&\
-    cd ../libapreq2-2.13 &&\
-    perl -I ../ExtUtils-MakeMaker-6.42/lib -I $RPM_BUILD_ROOT/opt/vulture/lib \
-		Makefile.PL --with-apache2-apxs=$RPM_BUILD_ROOT/opt/vulture/httpd/bin/apxs &&\
-	make &&\
-	make DESTDIR=$RPM_BUILD_ROOT/opt/vulture SITEPREFIX= PERLPREFIX= install &&\
-	make clean  &&\
 	cd ../modsecurity-apache_2.5.13/apache2 &&\
 	./configure --with-apxs=$RPM_BUILD_ROOT/opt/vulture/httpd/bin/apxs \
 	    --with-httpd-src=../../httpd-2.2.21 --with-apr=$RPM_BUILD_ROOT/opt/vulture/httpd \
