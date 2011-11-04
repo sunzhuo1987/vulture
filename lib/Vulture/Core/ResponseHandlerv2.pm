@@ -6,6 +6,7 @@ use Apache2::Access ();
 use Apache2::Reload;
 use Apache2::RequestUtil ();
 use Apache2::Log;
+use CGI qw/:standard/;
 
 use DBI;
 
@@ -174,8 +175,7 @@ sub display_auth_form {
 	my ($r, $log, $dbh, $app) = @_;
 	
 	#CAS
-	my $req = Apache2::Request->new($r);	
-	my $service = $req->param('service');
+	my $service = param('service');
 	#END CAS
     
 	my $uri = $r->unparsed_uri;

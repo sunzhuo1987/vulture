@@ -4,7 +4,7 @@ package SSO::ProfileManager;
 
 use Apache2::RequestRec ();
 use Apache2::RequestIO ();
-use Apache2::Request;
+use CGI qw/:standard/;
 
 use Apache2::Log;
 use Apache2::Reload;
@@ -116,7 +116,7 @@ sub getProfile{
 }
 
 sub setProfile{
-    my($r, $log, $dbh, $app, $user, $req, @fields) = @_;
+    my($r, $log, $dbh, $app, $user, @fields) = @_;
 
     $log->debug("########## Profile Manager ##########");
     
@@ -138,8 +138,8 @@ sub setProfile{
 		    my ($var, $mapped, $type, $need_encryption, $default_value, $prefix, $suffix, $desc) = @$field;
 
 		    #Getting values posted
-		    if($req->param('vulture_learning') and $req->param($var) and ($type ne 'hidden' and $type ne 'autologon_user' and $type ne 'autologon_password')){
-		        my $value = $req->param($var);
+		    if(param('vulture_learning') and param($var) and ($type ne 'hidden' and $type ne 'autologon_user' and $type ne 'autologon_password')){
+		        my $value = param($var);
 		        if($need_encryption){
                     $log->debug("Encrypting $var");
                     $value = encrypt($r, $value);
@@ -195,8 +195,8 @@ sub setProfile{
 		    my ($var, $mapped, $type, $need_encryption, $default_value, $prefix, $suffix, $desc) = @$field;
 
 		    #Getting values posted
-		    if($req->param('vulture_learning') and $req->param($var) and ($type ne 'hidden' and $type ne 'autologon_user' and $type ne 'autologon_password')){
-		        my $value = $req->param($var);
+		    if(param('vulture_learning') and param($var) and ($type ne 'hidden' and $type ne 'autologon_user' and $type ne 'autologon_password')){
+		        my $value = param($var);
 		        if($need_encryption){
                     $log->debug("Encrypting $var");
                     $value = encrypt($r, $value);
