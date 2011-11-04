@@ -4,7 +4,6 @@ package SSO::SSO_LEARNING;
 
 use Apache2::RequestRec ();
 use Apache2::RequestIO ();
-use Apache2::Request;
 
 use Apache2::Log;
 use Apache2::Reload;
@@ -44,9 +43,6 @@ sub forward{
 		$r->status(302);
 	    return Apache2::Const::REDIRECT;
     }
-
-	#Getting values posted & set it into profile
-	my $req = Apache2::Request->new($r);
 	
 	#Adding data to post variable
 	my $form = "<h3>To access to this app, you must specify the following fields</h3><table>";
@@ -70,13 +66,13 @@ sub forward{
     my $html = getStyle($r, $log, $dbh, $app, 'LEARNING', 'Please fill these fields', {FORM => $form}, $translations);
 	
     #Print form
-	if(not $req->param('vulture_learning')){
+	if(not param('vulture_learning')){
 		$r->pnotes('SSO_Forwarding' => 'LEARNING');
 		$r->content_type('text/html');	
 		$r->print($html =~ /<body>.+<\/body>/ ? $html : $form);
 		
 	#Learning was ok, move on SSO Forward
-	} elsif(setProfile($r, $log, $dbh, $app, $user, $req, @fields)) {
+	} elsif(setProfile($r, $log, $dbh, $app, $user, @fields)) {
 		$r->content_type('text/html');
 		$log->debug("Learning was a huge success");
 		$r->pnotes('SSO_Forwarding' => 'FORWARD');
