@@ -130,7 +130,7 @@ table {
 }
 
 .main_content {
-    overflow: hidden;
+    overflow: auto;
     background-color:#ffffff;
     padding:4px;
     border:1px solid #464c54;
