@@ -7,8 +7,7 @@ use Apache2::RequestIO ();
 
 use Apache2::Log;
 use Apache2::Reload;
-
-use CGI;
+use CGI qw/:standard/;
 
 use LWP;
 
