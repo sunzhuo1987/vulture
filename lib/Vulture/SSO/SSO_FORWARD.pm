@@ -12,10 +12,10 @@ use Apache2::Reload;
 use LWP::UserAgent;
 use HTTP::Request;
 
-use Apache2::Const -compile => qw(OK DECLINED REDIRECT HTTP_UNAUTHORIZED);
+use Apache2::Const -compile => qw(OK REDIRECT);
 
 use Core::VultureUtils qw(&session);
-use SSO::ProfileManager qw(&getProfile &deleteProfile);
+use SSO::ProfileManager qw(&get_profile &delete_profile);
 
 use Apache::SSLLookup;
 use MIME::Base64;
@@ -25,6 +25,74 @@ use APR::Table;
 use APR::SockAddr;
 
 use URI::Escape;
+
+sub triggerAction{
+    my ($r, $log, $dbh, $app, $response) = @_;
+    
+    my($query, $type, $options);
+    $query = 'SELECT is_in_url, is_in_url_action, is_in_url_options, is_in_page, is_in_page_action, is_in_page_options FROM sso, app WHERE app.id=? AND sso.id = app.sso_forward_id';
+    my $sth = $dbh->prepare($query);
+	$sth->execute($app->{id});
+	my ($is_in_url, $is_in_url_action, $is_in_url_options, $is_in_page, $is_in_page_action, $is_in_page_options) = $sth->fetchrow;
+    $sth->finish();
+    
+    #Check if action is needed (grep in url, grep in page or by return code)
+    if ($is_in_url and $r->unparsed_uri =~ /$is_in_url/){
+        $type = $is_in_url_action;
+        $options = $is_in_url_options;
+    } elsif ($is_in_page and $response->as_string =~ /$is_in_page/){
+        $type = $is_in_page_action;
+        $options = $is_in_page_options;
+        
+    # Headers
+    } else{
+        # 10x headers
+        if ($response->is_info){
+            $query = 'SELECT is_info, is_info_options FROM sso, app WHERE app.id=? AND sso.id = app.sso_forward_id';
+        # 20x headers
+        } elsif ($response->is_success){
+            $query = 'SELECT is_success, is_success_options FROM sso, app WHERE app.id=? AND sso.id = app.sso_forward_id';
+
+        # 30x headers
+        } elsif ($response->is_redirect) { 
+            $query = 'SELECT is_redirect, is_redirect_options FROM sso, app WHERE app.id=? AND sso.id = app.sso_forward_id';
+        
+        # 40x and 50x headers
+        } elsif ($response->is_error) {
+            $query = 'SELECT is_error, is_error_options FROM sso, app WHERE app.id=? AND sso.id = app.sso_forward_id';
+        # No action defined
+        }
+        
+        $log->debug($query);
+
+        $sth = $dbh->prepare($query);
+        $sth->execute($app->{id});
+        ($type, $options) = $sth->fetchrow;
+        $sth->finish();
+    }
+    
+    #Trigger action to do
+	if($type){
+        $log->debug($type.' => '.$options);
+        if($type eq 'message'){
+            $r->content_type('text/html');
+            $r->print($options);
+            return Apache2::Const::OK;
+        } elsif($type eq 'log'){
+            $log->debug('Response from app : '.$response->as_string);
+        } elsif($type eq 'redirect'){
+            $r->headers_out->set('Location' => $options);
+            $r->status(302);
+            return Apache2::Const::REDIRECT;
+        }
+    }
+    
+    $log->debug("Ending SSO Forward");
+    $r->pnotes('SSO_Forwarding' => undef);
+    $r->headers_out->add('Location' => $r->unparsed_uri);
+    $r->status(302);
+    return Apache2::Const::REDIRECT;
+}
 
 sub forward{
 	my ($package_name, $r, $log, $dbh, $app, $user, $password) = @_;
@@ -61,11 +129,11 @@ sub forward{
 
 	#Getting SSO type
 	$log->debug("Getting data from database");
-	my $query = "SELECT sso.type FROM sso, app WHERE app.id=".$app->{id}." AND sso.id = app.sso_forward_id";
+	my $query = "SELECT sso.type FROM sso, app WHERE app.id=? AND sso.id = app.sso_forward_id";
     $log->debug($query);
 
 	my $sth = $dbh->prepare($query);
-	$sth->execute;
+	$sth->execute($app->{id});
 	my ($sso_forward_type) = $sth->fetchrow;
 	$sth->finish();
 	$log->debug("SSO_FORWARD_TYPE=".$sso_forward_type);
@@ -73,7 +141,7 @@ sub forward{
 	my $post = '';
 	#Getting fields from profile
     #URI encoding is needed
-	my %results = %{getProfile($r, $log, $dbh, $app, $user)};
+	my %results = %{get_profile($r, $log, $dbh, $app, $user)};
 	if (%results){
 	    while (($key, $value) = each(%results)){
 	        $post .= uri_escape($key)."=".uri_escape($value)."&";
@@ -173,7 +241,7 @@ sub forward{
 
 	#Cookie coming from response
 	my %cookies_app;
-	if ($response->headers->header('Set-Cookie')) {
+	if ($response->headers->header('Set-Cookie')){
 		# Adding new couples (name, value) thanks to POST response
 		foreach ($response->headers->header('Set-Cookie')) {
 			if (/([^,; ]+)=([^,; ]+)/) {
@@ -186,53 +254,12 @@ sub forward{
         #Fill session with cookies returned by app (for logout)
 		$session_app{cookie} = $response->headers->header('Set-Cookie');
 	}
-	foreach my $k (keys %cookies_app) {
+	foreach my $k (keys %cookies_app){
 		$r->err_headers_out->add('Set-Cookie' => $k."=".$cookies_app{$k}."; domain=".$r->hostname."; path=/");  # Send cookies to browser's client
 		$log->debug("PROPAG ".$k."=".$cookies_app{$k});
 	}
     
-    # Fill session app with cookies returned by app
-
-    # 30x headers
-	if ($response->code =~ /^30(.*)/ ) { 
-        $log->debug("Redirecting after SSO");
-        $url = $response->headers->header('Location');
-
-		$r->headers_out->add('Location' => $url);	
-
-		#Set status
-		$r->status(302);
-        return Apache2::Const::REDIRECT;
-    
-    #Response was successful
-	} elsif ($response->is_success()) {
-        $log->debug("SSO was a success but we don't know what to do right now");	
-        $r->pnotes('SSO_Forwarding' => undef);
-        $r->headers_out->add('Location' => $r->unparsed_uri);
-        $r->status(302);
-        return Apache2::Const::REDIRECT;
-
-    #Fail. Redirecting to SSO Learning
-    } else {
-        $log->debug("SSO fails (not 30x headers nor 20x headers). Try to move forward");
-        $r->pnotes('SSO_Forwarding' => undef);
-        $r->headers_out->add('Location' => $r->unparsed_uri);
-        $r->status(302);
-        return Apache2::Const::REDIRECT;
-        #$r->pnotes('SSO_Forwarding' => 'LEARNING');
-        #Delete old values which don't work
-        #deleteProfile($r, $log, $dbh, $app, $user);
-
-        #Redirecting to SSO Learning
-        #$r->content_type('text/html');
-
-        #$r->headers_out->add('Location' => $r->unparsed_uri);	
-
-        #Set status
-        #$r->status(302);
-
-        #return Apache2::Const::REDIRECT;
-    }
+    #trigger action needed
+    return triggerAction($r, $log, $dbh, $app, $response);
 }
-
 1;

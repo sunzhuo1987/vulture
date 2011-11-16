@@ -5,7 +5,7 @@ package Plugin::Plugin_LOGOUT;
 use Apache2::Log;
 use Apache2::Reload;
 
-use Core::VultureUtils qw(&get_cookie &session &get_memcached &set_memcached &notify &getTranslations &getStyle);
+use Core::VultureUtils qw(&get_cookie &session &get_memcached &set_memcached &notify &get_translations &get_style);
 
 use Apache2::Const -compile => qw(OK FORBIDDEN REDIRECT);
 
@@ -135,10 +135,10 @@ sub plugin{
 	$r->set_handlers(PerlAuthzHandler => undef);
 	$r->set_handlers(PerlFixupHandler => undef);
     
-    my $translations = getTranslations($r, $log, $dbh, "DISCONNECTED");
+    my $translations = get_translations($r, $log, $dbh, "DISCONNECTED");
     
     #If no html, send form
-    my $html = getStyle($r, $log, $dbh, $app, 'LOGOUT', 'Logout from Vulture', {FORM => $form}, $translations);
+    my $html = get_style($r, $log, $dbh, $app, 'LOGOUT', 'Logout from Vulture', {FORM => $form}, $translations);
     $r->pnotes('response_content' => $html);
     $r->pnotes('response_content_type' => 'text/html');
 	return Apache2::Const::OK;

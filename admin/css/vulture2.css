@@ -254,7 +254,7 @@ ul.tabs li a.active {
     border-bottom:none;
 }
 
-#fields input[type=text], #fields  input[type=password], #fields  select, #fields  option, #fields  textarea {
+.fields input[type=text], .fields  input[type=password], .fields  select, .fields  option, .fields  textarea {
 	width: auto;
 }
 

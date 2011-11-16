@@ -6,7 +6,7 @@ our $VERSION = '2.0.1';
 BEGIN {
     use Exporter ();
     our @ISA = qw(Exporter);
-    our @EXPORT_OK = qw(&version_check &get_app &get_intf &session &get_cookie &get_memcached &set_memcached &getDB_object &getLDAP_object &getStyle &getTranslations &generate_random_string &notify);
+    our @EXPORT_OK = qw(&version_check &get_app &get_intf &session &get_cookie &get_memcached &set_memcached &get_DB_object &get_LDAP_object &get_style &get_translations &generate_random_string &notify);
 }
 
 use Apache::Session::Generate::MD5;
@@ -125,25 +125,33 @@ sub	get_app {
 
     #Getting app
     return {} unless ($host and $intf and $dbh);
-    $query = "SELECT app.id, app.name, app.url, app.log_id, app.sso_forward_id AS sso_forward, app.logon_url, app.logout_url, intf.port, intf.remote_proxy, app.up, app.auth_basic, app.display_portal, app.canonicalise_url, app.timeout, app.update_access_time FROM app, intf, app_intf WHERE app_intf.intf_id='".$intf."' AND app.id = app_intf.app_id AND app.name = '".$host."' AND intf.id='".$intf."'";
+    $query = "SELECT app.id, app.name, app.url, app.log_id, app.sso_forward_id AS sso_forward, app.logon_url, app.logout_url, intf.port, intf.remote_proxy, app.up, app.auth_basic, app.display_portal, app.canonicalise_url, app.timeout, app.update_access_time FROM app, intf, app_intf WHERE app_intf.intf_id= ? AND app.id = app_intf.app_id AND app.name = ? AND intf.id= ?";
 	$log->debug($query);
 	$sth = $dbh->prepare($query);
-	$sth->execute;
+	$sth->execute($intf, $host, $intf);
 	$ref = $sth->fetchrow_hashref;
 	$sth->finish();
 
     return {} unless $ref->{id};
     #Getting auth
-    $query = "SELECT auth.name, auth.auth_type, auth.id_method FROM auth, auth_multiple WHERE auth_multiple.app_id = '".$ref->{id}."' AND auth_multiple.auth_id = auth.id";
+    $query = "SELECT auth.name, auth.auth_type, auth.id_method FROM auth, auth_multiple WHERE auth_multiple.app_id = ? AND auth_multiple.auth_id = auth.id";
     $log->debug($query);
-    $ref->{'auth'} = $dbh->selectall_arrayref($query);
+    $ref->{'auth'} = $dbh->selectall_arrayref($query, {}, $ref->{id});
 
     #Getting ACL
-    $query = "SELECT acl.id, acl.name, auth.auth_type AS acl_type, auth.id_method FROM acl, auth, app WHERE app.id = '".$ref->{id}."' AND acl.id = app.acl_id AND auth.id = acl.auth_id";
+    $query = "SELECT acl.id, acl.name, auth.auth_type AS acl_type, auth.id_method FROM acl, auth, app WHERE app.id = ? AND acl.id = app.acl_id AND auth.id = acl.auth_id";
     $log->debug($query);
     $sth = $dbh->prepare($query);
-	$sth->execute;
+	$sth->execute($ref->{id});
 	$ref->{'acl'} = $sth->fetchrow_hashref;
+	$sth->finish();
+    
+    #Getting actions
+    $query = "SELECT login_failed_action, login_failed_options, need_change_pass_action, need_change_pass_options, acl_failed_action, acl_failed_options FROM app WHERE app.id = ?";
+    $log->debug($query);
+    $sth = $dbh->prepare($query);
+	$sth->execute($ref->{id});
+    $ref->{'actions'} = $sth->fetchrow_hashref;
 	$sth->finish();
 
 	return $ref;
@@ -155,27 +163,27 @@ sub	get_intf {
     my ($query, $sth, $ref);
     
     #Getting intf
-	$query = "SELECT id, ip, port, ssl_engine, log_id, sso_portal, sso_timeout, sso_update_access_time, cert, key, ca, cas_portal, cas_st_timeout FROM intf WHERE id='".$intf."'";
+	$query = "SELECT id, ip, port, ssl_engine, log_id, sso_portal, sso_timeout, sso_update_access_time, cert, key, ca, cas_portal, cas_st_timeout FROM intf WHERE id = ?";
 	$log->debug($query);
     $sth = $dbh->prepare($query);
-	$sth->execute;
+	$sth->execute($intf);
 	$ref = $sth->fetchrow_hashref;
 	$sth->finish();
     
     #Getting auth (CAS)
-    $query = "SELECT auth.name, auth.auth_type, auth.id_method FROM auth, intf_auth_multiple WHERE intf_auth_multiple.intf_id = '".$ref->{id}."' AND intf_auth_multiple.auth_id = auth.id";
+    $query = "SELECT auth.name, auth.auth_type, auth.id_method FROM auth, intf_auth_multiple WHERE intf_auth_multiple.intf_id = ? AND intf_auth_multiple.auth_id = auth.id";
     $log->debug($query);
-    $ref->{'auth'} = $dbh->selectall_arrayref($query);
+    $ref->{'auth'} = $dbh->selectall_arrayref($query, {}, $ref->{id});
 	return $ref;
 }
 
 #Getting DB object
-sub getDB_object{
+sub get_DB_object{
     my ($log, $dbh, $id_method) = @_;
-    my $query = "SELECT * FROM sql WHERE id='".$id_method."'";
+    my $query = "SELECT * FROM sql WHERE id = ?";
     my $sth = $dbh->prepare($query);
     $log->debug($query);
-    $sth->execute;
+    $sth->execute($id_method);
     my $ref = $sth->fetchrow_hashref;
     $sth->finish();
 
@@ -195,18 +203,19 @@ sub getDB_object{
     return;
 }
 
-sub getLDAP_object{
+sub get_LDAP_object{
 	my ($log, $dbh, $id_method) = @_;
 
-	my $query = "SELECT host, port, scheme, cacert_path, dn, password, base_dn, user_ou, user_scope, user_attr, user_filter, group_ou, group_scope, group_attr, group_filter, group_member, are_members_dn, url_attr, protocol FROM ldap WHERE id='".$id_method."'";
+	my $query = "SELECT host, port, scheme, cacert_path, dn, password, base_dn, user_ou, user_scope, user_attr, user_filter, group_ou, group_scope, group_attr, group_filter, group_member, are_members_dn, url_attr, protocol, chpass_attr FROM ldap WHERE id = ?";
 	$log->debug($query);
 	my $sth = $dbh->prepare($query);
-	$sth->execute;
-	my ($ldap_server, $ldap_port, $ldap_encrypt, $ldap_cacert_path, $ldap_bind_dn,
-	    $ldap_bind_password, $ldap_base_dn, $ldap_user_ou, $ldap_user_scope, $ldap_uid_attr,
-	    $ldap_user_filter, $ldap_group_ou, $ldap_group_scope, $ldap_group_attr,
+	$sth->execute($id_method);
+	my ($ldap_server, $ldap_port, $ldap_encrypt, $ldap_cacert_path, 
+        $ldap_bind_dn, $ldap_bind_password, $ldap_base_dn, 
+        $ldap_user_ou, $ldap_user_scope, $ldap_uid_attr, $ldap_user_filter, 
+        $ldap_group_ou, $ldap_group_scope, $ldap_group_attr,
 	    $ldap_group_filter, $ldap_group_member, $ldap_group_is_dn,
-	    $ldap_url_attr, $ldap_protocol) = $sth->fetchrow;
+	    $ldap_url_attr, $ldap_protocol, $ldap_chpass_attr) = $sth->fetchrow;
 
 	$ldap_cacert_path="/var/www/vulture/conf/cacerts" if ($ldap_cacert_path eq '');
 	$ldap_user_filter = "(|(objectclass=posixAccount)(objectclass=inetOrgPerson)(objectclass=person))"
@@ -249,10 +258,10 @@ sub getLDAP_object{
 		$log->error("Unable to bind with $ldap_bind_dn on $ldap_server");
 		return ;
 	}
-	return ($ldap, $ldap_url_attr, $ldap_uid_attr, $ldap_user_ou, $ldap_group_ou, $ldap_user_filter, $ldap_group_filter, $ldap_user_scope, $ldap_group_scope, $ldap_base_dn, $ldap_group_member, $ldap_group_is_dn, $ldap_group_attr);
+	return ($ldap, $ldap_url_attr, $ldap_uid_attr, $ldap_user_ou, $ldap_group_ou, $ldap_user_filter, $ldap_group_filter, $ldap_user_scope, $ldap_group_scope, $ldap_base_dn, $ldap_group_member, $ldap_group_is_dn, $ldap_group_attr, $ldap_chpass_attr);
 }
 
-sub getStyle {
+sub get_style {
     my ($r, $log, $dbh, $app, $type, $title, $fields, $translations) = @_;
     my ($ref, $html);
     #
@@ -261,18 +270,18 @@ sub getStyle {
     #return {} unless defined $app->{'id'};
     #Querying database for style
     my $intf_id = $r->dir_config('VultureID');
-    my $query = "SELECT CASE WHEN app.appearance_id NOT NULL THEN app.appearance_id WHEN intf.appearance_id NOT NULL THEN intf.appearance_id ELSE '' END AS 'id_appearance', style_css.value AS css, style_image.image AS image, style_tpl.value AS tpl FROM app,intf, style_tpl LEFT JOIN style_style ON style_style.id = id_appearance LEFT JOIN style_css ON style_css.id = style_style.css_id LEFT JOIN style_image ON style_image.id = style_style.image_id WHERE ";;
+    my $query = "SELECT CASE WHEN app.appearance_id NOT NULL THEN app.appearance_id WHEN intf.appearance_id NOT NULL THEN intf.appearance_id ELSE '' END AS 'id_appearance', style_css.value AS css, style_image.image AS image, style_tpl.value AS tpl FROM app,intf, style_tpl LEFT JOIN style_style ON style_style.id = id_appearance LEFT JOIN style_css ON style_css.id = style_style.css_id LEFT JOIN style_image ON style_image.id = style_style.image_id WHERE ";
     
     #App id if not null
     $query .= "app.id= '".$app->{id}."' AND " if ($app->{id});
     $query .= "intf.id = '".$intf_id."' AND style_tpl.id = style_style.";
-    if(uc($type) eq 'DOWN'){
+    if(uc($type) eq 'APP_DOWN'){
         $query .=  "app_down_tpl_id";
     } elsif(uc($type) eq 'LOGIN'){
         $query .= "login_tpl_id";
-    } elsif(uc($type) eq 'ACL'){
+    } elsif(uc($type) eq 'ACL_FAILED'){
         $query .= "acl_tpl_id";
-    } elsif(uc($type) eq 'PORTAL'){
+    } elsif(uc($type) eq 'DISPLAY_PORTAL'){
         $query .= "sso_portal_tpl_id";
     } elsif(uc($type) eq 'LEARNING'){
         $query .= "sso_learning_tpl_id";
@@ -317,7 +326,7 @@ sub getStyle {
 	return $html;
 }
 
-sub getTranslations {
+sub get_translations {
     my ($r, $log, $dbh, $message) = @_;
         #Error message to translate / Form
     if($r->headers_in->{'Accept-Language'}){
@@ -396,5 +405,4 @@ sub notify {
     $sth->execute($app_id, $user, 'active_sessions', time, $info);
     $sth->finish();
 }
-
 1;

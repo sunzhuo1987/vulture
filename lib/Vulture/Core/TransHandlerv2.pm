@@ -11,7 +11,7 @@ use Apache2::RequestUtil ();
 use Apache::SSLLookup;
 use Apache2::Const -compile => qw(OK DECLINED FORBIDDEN REDIRECT DONE NOT_FOUND);
 
-use Core::VultureUtils qw(&get_app &get_intf &version_check &get_cookie &session &getTranslations &getStyle);
+use Core::VultureUtils qw(&get_app &get_intf &version_check &get_cookie &session &get_translations &get_style);
 use Core::Log;
 
 use APR::URI;
@@ -312,17 +312,17 @@ sub handler {
         
 	#Application is down or unusable
 	} elsif ($app and defined $app->{'up'} and not $app->{'up'}){
-		$log->error('Trying to redirect to '.$r->hostname.' but failed because '.$r->hostname.' is down');
-		$r->status(Apache2::Const::NOT_FOUND);
+                $log->error('Trying to redirect to '.$r->hostname.' but failed because '.$r->hostname.' is down');
+                $r->status(Apache2::Const::NOT_FOUND);
         #Custom error message
-        my $translations = getTranslations($r, $log, $dbh, "APP_DOWN");
-        my $html = getStyle($r, $log, $dbh, $app, 'DOWN', 'App is down', {}, $translations);
+        my $translations = get_translations($r, $log, $dbh, "APP_DOWN");
+        my $html = get_style($r, $log, $dbh, $app, 'DOWN', 'App is down', {}, $translations);
         $log->debug($html);
         $r->custom_response(Apache2::Const::NOT_FOUND, $html) if $html =~ /<body>.+<\/body>/;
-		return Apache2::Const::NOT_FOUND;
-	
-	#Fail
-	} else {
+                return Apache2::Const::NOT_FOUND;
+        
+        #Fail
+    } else {
 		$log->error('Trying to redirect to '.$r->hostname.' but failed because '.$r->hostname.' doesn\'t exist in Database');
 		$r->status(Apache2::Const::NOT_FOUND);
 		return Apache2::Const::DONE;

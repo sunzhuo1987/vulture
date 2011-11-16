@@ -11,7 +11,7 @@ use Net::LDAP;
 
 use Apache2::Const -compile => qw(OK FORBIDDEN);
 
-use Core::VultureUtils qw(&getLDAP_object);
+use Core::VultureUtils qw(&get_LDAP_object);
 
 sub checkACL{
 	my ($package_name, $r, $log, $dbh, $app, $user, $id_method) = @_;
@@ -28,7 +28,7 @@ sub checkACL{
 	} else {
         
         #Get LDAP object
-		my ($ldap, $ldap_url_attr, $ldap_uid_attr, $ldap_user_ou, $ldap_group_ou, $ldap_user_filter, $ldap_group_filter, $ldap_user_scope, $ldap_group_scope, $ldap_base_dn, $ldap_group_member, $ldap_group_is_dn, $ldap_group_attr) = getLDAP_object($log, $dbh, $id_method);
+		my ($ldap, $ldap_url_attr, $ldap_uid_attr, $ldap_user_ou, $ldap_group_ou, $ldap_user_filter, $ldap_group_filter, $ldap_user_scope, $ldap_group_scope, $ldap_base_dn, $ldap_group_member, $ldap_group_is_dn, $ldap_group_attr, $ldap_chpass_attr) = get_LDAP_object($log, $dbh, $id_method);
         
         #If not LDAP, return FORBIDDEN 
 	    return Apache2::Const::FORBIDDEN unless ($ldap);
@@ -43,9 +43,9 @@ sub checkACL{
 	    my $dnuser = $object->dn;
 
         #Get LDAP groups
-        my $sql = "SELECT `group` FROM groupok, acl_groupok WHERE acl_groupok.acl_id = '".$app->{'acl'}->{'id'}."' AND groupok.id = acl_groupok.groupok_id";
+        my $sql = "SELECT `group` FROM groupok, acl_groupok WHERE acl_groupok.acl_id = ? AND groupok.id = acl_groupok.groupok_id";
         my $sth = $dbh->prepare($sql);
-        $sth->execute;
+        $sth->execute($app->{'acl'}->{'id'});
 
         my $filter_groups;
         while (my ($group) = $sth->fetchrow) {
