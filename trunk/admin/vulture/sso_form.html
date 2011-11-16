@@ -7,82 +7,93 @@
 
 {% block tabs %}
     <li><a href="/sso/">{% trans "List" %}</a></li>
-    <li><a href="javascript:swapTab(1, 4, 'main_tab_', 'main_content_');" id="main_tab_1" class="active">{% trans "Main settings" %}</a></li>
-    <li><a href="javascript:swapTab(2, 4, 'main_tab_', 'main_content_');" id="main_tab_2">{% trans "SQL" %}</a></li>
-    <li><a href="javascript:swapTab(3, 4, 'main_tab_', 'main_content_');" id="main_tab_3">{% trans "LDAP" %}</a></li>
-    <li><a href="javascript:swapTab(4, 4, 'main_tab_', 'main_content_');" id="main_tab_4">{% trans "Fields" %}</a></li>
+    <li><a href="javascript:swapTab(1, 5, 'main_tab_', 'main_content_');" id="main_tab_1" class="active">{% trans "Main settings" %}</a></li>
+    <li><a href="javascript:swapTab(2, 5, 'main_tab_', 'main_content_');" id="main_tab_2">{% trans "SQL" %}</a></li>
+    <li><a href="javascript:swapTab(3, 5, 'main_tab_', 'main_content_');" id="main_tab_3">{% trans "LDAP" %}</a></li>
+    <li><a href="javascript:swapTab(4, 5, 'main_tab_', 'main_content_');" id="main_tab_4">{% trans "Fields" %}</a></li>
+    <li><a href="javascript:swapTab(5, 5, 'main_tab_', 'main_content_');" id="main_tab_5">{% trans "Advanced" %}</a></li>
 {% endblock %}
 
 {% block content %}
     <script type='text/javascript'>
         var nbfields = {{ form.post|length }};
-        function addRowTo(table) {
-            nbfields++;
-            var name = 'table.' + nbfields;
-            var d = document.getElementById(table);
-            var newdiv = document.createElement('tr');
-            newdiv.setAttribute('id',name);
-            newdiv.innerHTML = '<input type="hidden" name="post_id-' + nbfields +'"" value="' + nbfields +'" />';
-
-            var col1 = document.createElement('td');
-            col1.innerHTML = '<input id="id_field_desc-' + nbfields +'" type="text" name="field_desc-' + nbfields +'" maxlength="128" />';
-            
-            var col2 = document.createElement('td');
-            col2.innerHTML = '<input id="id_field_var-' + nbfields +'" type="text" name="field_var-' + nbfields +'" maxlength="100" />';
-            
-            var col3 = document.createElement('td');
-            col3.innerHTML = '<input id="id_field_mapped-' + nbfields +'" type="text" name="field_mapped-' + nbfields +'" maxlength="128" />';
-
-            var col4 = document.createElement('td');
-            col4.innerHTML = '<select name="field_type-' + nbfields +'"" id="id_field_type-' + nbfields +'">';
-            
-            var col5 = document.createElement('td');
-            col5.setAttribute("align","center");
-            col5.innerHTML = '<input id="id_field_encrypted-' + nbfields +'" type="checkbox" name="field_encrypted-' + nbfields +'" /></td>';
-
-            var col6 = document.createElement('td');
-            col6.innerHTML = '<input id="id_field_value-' + nbfields +'" type="text" name="field_value-' + nbfields +'" maxlength="100" /></td>';
-
-            var col7 = document.createElement('td');
-            col7.innerHTML = '<input id="id_field_prefix-' + nbfields +'" type="text" name="field_prefix-' + nbfields +'" maxlength="50" />';
-
-            var col8 = document.createElement('td');
-            col8.innerHTML = '<input id="id_field_suffix-' + nbfields +'" type="text" name="field_suffix-' + nbfields +'" maxlength="50" />';
-
-            var col9 = document.createElement('td');
-            col9.innerHTML = '<a onclick="delRowTo(\'tbl1body\',\'' + name +'\')" href="#"><img src="/img/vulture2/trash.png" alt="delete" /></a>';
-
-            newdiv.appendChild(col1);
-            newdiv.appendChild(col2);
-            newdiv.appendChild(col3);
-            newdiv.appendChild(col4);  
-            newdiv.appendChild(col5);  
-            newdiv.appendChild(col6);
-            newdiv.appendChild(col7);
-            newdiv.appendChild(col8); 
-            newdiv.appendChild(col9);              
-            d.appendChild(newdiv);             
-            populateList('id_field_type-'+ nbfields,['text','hidden','password','submit','checkbox','radio','autologon_user', 'autologon_password']);
-            changeHiddenField(nbfields);
-        }
-
-        function populateList(div, array) {
-        var arLen=array.length;
-        for(var i=0; i<arLen; i++){
-            document.getElementById(div).options[i]=new Option(array[i], array[i]);
-            }
-        }
-
-        function changeHiddenField(value) {
-            var d = document.getElementById('nbfields');
-            d.setAttribute('value',value);
-        }
 
         function delRowTo(table, row) {
               var d = document.getElementById(table);
               var olddiv = document.getElementById(row);
               d.removeChild(olddiv);
         }
+        (function($) {
+            // we can now rely on $ within the safety of our “bodyguard” function
+            $(document).ready( function() {
+                $("#addrow").click(function() {
+                    nbfields++;
+                    var name = 'table.' + nbfields;
+                    var tr = $('<tr>').attr('id', name);
+                    
+                    tr.append($('<input type="hidden">').attr('name', 'post_id-' + nbfields).attr('value', nbfields));
+                    tr.append($('<td>').append($('<input type="text">').attr('name', 'field_desc-' + nbfields).attr('maxlength', '128')));
+                    tr.append($('<td>').append($('<input type="text">').attr('name', 'field_var-' + nbfields).attr('maxlength', '100')));
+                    tr.append($('<td>').append($('<input type="text">').attr('name', 'field_mapped-' + nbfields).attr('maxlength', '128')));
+                    var select  = $('<select>').attr('name', 'field_type-' + nbfields);
+                        select.append($('<option>').attr('value', 'text').text('text'));
+                        select.append($('<option>').attr('value', 'hidden').text('hidden'));
+                        select.append($('<option>').attr('value', 'password').text('password'));
+                        select.append($('<option>').attr('value', 'submit').text('submit'));
+                        select.append($('<option>').attr('value', 'checkbox').text('checkbox'));
+                        select.append($('<option>').attr('value', 'radio').text('radio'));
+                        select.append($('<option>').attr('value', 'autologon_user').text('autologon_user'));
+                        select.append($('<option>').attr('value', 'autologon_password').text('autologon_password'));
+                    tr.append($('<td>').append(select));
+                    tr.append($('<td>').append($('<input type="checkbox">').attr('name', 'field_encrypted-' + nbfields)));
+                    tr.append($('<td>').append($('<input type="text">').attr('name', 'field_value-' + nbfields).attr('maxlength', '100')));
+                    tr.append($('<td>').append($('<input type="text">').attr('name', 'field_prefix-' + nbfields).attr('maxlength', '50')));
+                    tr.append($('<td>').append($('<input type="text">').attr('name', 'field_suffix-' + nbfields).attr('maxlength', '50')));
+                    tr.append($('<td>').append($('<a href="#">').append('<img src="/img/vulture2/trash.png" alt="delete" />').click(function(){
+                        $(this).closest('tr').remove();
+                    })));
+                       // title: 'Blah',
+                       // href: '#'
+                        //click: function(){ $(this).parent().remove();return false;}
+                       // )));
+                    
+                    $('#tbl1body').append(tr);
+                });
+                
+                //Display input when required by select
+                $("#main_content_5 table tr").each(function() {
+                    var tr = $(this);
+                    tr.find(":input:last").hide();
+                    var input = tr.find("select");
+                    //Initial state
+                    switch(input.attr('value')){
+                            case "message":
+                            case "redirect":
+                                tr.find(":input:last").show();
+                                break;
+                            default:
+                                tr.find(":input:last").hide().val('');
+                                break;
+                        }
+                    //On select change
+                    input.change(function(){
+                        switch($(this).attr('value')){
+                            case "message":
+                            case "redirect":
+                                tr.find(":input:last").show();
+                                break;
+                            default:
+                                tr.find(":input:last").hide().val('');
+                                break;
+                        }
+                    });
+                });
+                
+                $('#sso').submit(function() {
+                    $('#nbfields').attr('value', nbfields);
+                });
+            });
+        })(jQuery);
     </script>
     <form method="post" action="." id="sso">
         <div id="main_content_1" class="main_content">
@@ -107,7 +118,7 @@
         </div>
 
         <div id="main_content_4" class="main_content">
-            <table id="fields">
+            <table class="fields">
                 <tbody id="tbl1body">
                     <tr>
                         <th>{% trans "Field desc" %}</th>
@@ -118,7 +129,7 @@
                         <th>{% trans "Field value (optional)" %}</th>
                         <th>{% trans "Field prefix (optional)" %}</th>
                         <th>{% trans "Field suffix (optional)" %}</th>
-                        <th><a id= "champremove" href="#" onclick="addRowTo('tbl1body')"><img src="/img/vulture2/add.png" alt="add" /></a></th>
+                        <th><a id= "addrow" href="#"><img src="/img/vulture2/add.png" alt="add" /></a></th>
                     </tr>
                     {% for post in form.post %}
                         <tr id="table.{{forloop.counter}}">
@@ -145,8 +156,19 @@
                 </tbody>
             </table>
         </div>
+        <div id="main_content_5" class="main_content">
+            <table class="fields">
+                <tr><th></th><th>{% trans "Regexp" %}</th><th>{% trans "Action" %}</th><th>{% trans "Options" %}</th></tr>
+                <tr><th>{% trans "In page" %}</th><td class="input">{{ form.is_in_page }}</td><td class="input">{{ form.is_in_page_action }}</td><td class="input">{{ form.is_in_page_options }}</td></tr>
+                <tr><th>{% trans "In URL" %}</th><td class="input">{{ form.is_in_url }}</td><td class="input">{{ form.is_in_url_action }}</td><td class="input">{{ form.is_in_url_options }}</td></tr>
+                <tr><th>{% trans "Information" %}</th><td>10x {% trans "headers" %} </td><td class="input">{{ form.is_info }}</td><td class="input">{{ form.is_info_options }}</td></tr>
+                <tr><th>{% trans "Success" %}</th><td>20x {% trans "headers" %}</td><td class="input">{{ form.is_success }}</td><td class="input">{{ form.is_success_options }}</td></tr>
+                <tr><th>{% trans "Redirect" %}</th><td>30x {% trans "headers" %}</td><td class="input">{{ form.is_redirect }}</td><td class="input">{{ form.is_redirect_options }}</td></tr>
+                <tr><th>{% trans "Error" %}</th><td>40x / 50x {% trans "headers" %}</td><td class="input">{{ form.is_error }}</td><td class="input">{{ form.is_error_options }}</td></tr>
+            </table>
+        </div>
         <br />
-        <input type="submit" onclick="changeHiddenField(nbfields);" value="{% trans "Save settings" %}"/>
+        <input type="submit" value="{% trans "Save settings" %}"/>
         <input type="button" onclick="document.location='/intf/'" value="{% trans "Cancel" %}"/>
     </form>
 {% endblock %}

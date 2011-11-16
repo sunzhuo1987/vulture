@@ -13,8 +13,8 @@ use LWP;
 
 use Apache2::Const -compile => qw(OK DECLINED);
 
-use Core::VultureUtils qw(&session &getTranslations &getStyle);
-use SSO::ProfileManager qw(&setProfile &getProfile);
+use Core::VultureUtils qw(&session &get_translations &get_style);
+use SSO::ProfileManager qw(&set_profile &get_profile);
 
 sub forward{
 	my ($package_name, $r, $log, $dbh, $app, $user, $password) = @_;
@@ -61,10 +61,10 @@ sub forward{
 	}
 	$form .= "<tr><td></td><td><input type=\"submit\"></td></tr>";
 	$form .= "</form></table>";
-    my $translations = getTranslations($r, $log, $dbh, "SSO_LEARNING");
+    my $translations = get_translations($r, $log, $dbh, "SSO_LEARNING");
     
     #If no html, send form
-    my $html = getStyle($r, $log, $dbh, $app, 'LEARNING', 'Please fill these fields', {FORM => $form}, $translations);
+    my $html = get_style($r, $log, $dbh, $app, 'LEARNING', 'Please fill these fields', {FORM => $form}, $translations);
 	
     #Print form
 	if(not param('vulture_learning')){
@@ -73,7 +73,7 @@ sub forward{
 		$r->print($html =~ /<body>.+<\/body>/ ? $html : $form);
 		
 	#Learning was ok, move on SSO Forward
-	} elsif(setProfile($r, $log, $dbh, $app, $user, @fields)) {
+	} elsif(set_profile($r, $log, $dbh, $app, $user, @fields)) {
 		$r->content_type('text/html');
 		$log->debug("Learning was a huge success");
 		$r->pnotes('SSO_Forwarding' => 'FORWARD');

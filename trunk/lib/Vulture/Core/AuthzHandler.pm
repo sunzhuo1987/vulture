@@ -14,7 +14,8 @@ use Module::Load;
 
 use Apache2::Const -compile => qw(OK HTTP_UNAUTHORIZED);
 
-use Core::VultureUtils qw(&session &get_memcached &notify &getTranslations &getStyle);
+use Core::VultureUtils qw(&session &get_memcached &notify);
+use Core::ActionManager qw(&handle_action);
 
 sub handler {
 	my $r = shift;
@@ -67,9 +68,7 @@ sub handler {
 				
 				#Get return
 				$ret = $module_name->checkACL($r, $log, $dbh, $app, $user, $app->{'acl'}->{'id_method'});
-	
-				#Debug for eval				
-				$log->debug($@) if $@;
+                handle_action($r, $log, $dbh, $app, 'ACL_FAILED', 'ACL failed') if ($ret != scalar Apache2::Const::OK);
 				
 				if (defined $ret and $ret == scalar Apache2::Const::OK){
 					$log->debug("User $user has credentials for this app regarding ACL. Validate app session");
@@ -98,11 +97,8 @@ sub handler {
 					$r->pnotes('username' => undef);
 					$r->pnotes('password' => undef);
                     
-                    #Custom error message
-                    my $translations = getTranslations($r, $log, $dbh, "ACL_FAILED");
-                    my $html = getStyle($r, $log, $dbh, $app, 'ACL', 'ACL failed', {}, $translations);
-                    $r->custom_response(Apache2::Const::HTTP_UNAUTHORIZED, $html) if $html =~ /<body>.+<\/body>/;
-					return Apache2::Const::HTTP_UNAUTHORIZED;
+                    #Trigger action
+                    handle_action($r, $log, $dbh, $app, "ACL_FAILED");
 				}
 			}
 			return Apache2::Const::HTTP_UNAUTHORIZED;
