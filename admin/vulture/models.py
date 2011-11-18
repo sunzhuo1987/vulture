@@ -30,16 +30,6 @@ from django.contrib.auth.models import User as DjangoUser, UserManager as Django
 from django import forms
 import base64
 
-class User(models.Model):
-    username = models.CharField(max_length=128,unique=1)
-    password = models.CharField(max_length=128,blank=1)
-    is_admin = models.BooleanField()
-    is_superadmin = models.BooleanField()
-    def __str__(self):
-        return self.username
-    class Meta:
-        db_table = 'user'
-
 class Log(models.Model):
     LOG_LEVELS = (
         ('emerg', 'emerg'),
