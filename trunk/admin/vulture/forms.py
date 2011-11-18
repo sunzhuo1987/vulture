@@ -2,52 +2,43 @@
 from vulture.models import *
 from django import forms
 from django.utils.translation import gettext as _
+from django.contrib.auth.forms import UserCreationForm, SetPasswordForm, UserChangeForm
 import hashlib
 
-class UserForm(forms.ModelForm):
-    password = forms.CharField(widget=forms.PasswordInput, max_length=128, required=False)
-    c_password = forms.CharField(widget=forms.PasswordInput, max_length=128, required=False)
+class UserProfileForm(UserCreationForm):
+    is_staff = forms.BooleanField(required=False)
+    is_superuser = forms.BooleanField(required=False)
     def __init__(self, *args, **kwargs):
-        self.edit = False
-        super(UserForm, self).__init__(*args, **kwargs)
-        instance = getattr(self, 'instance', None)
-        if instance and instance.id:
-            self.edit = True
-        # now modify self.fields dependent on the value of self.edit
+        super(UserProfileForm, self).__init__(*args, **kwargs)
 
-    def clean(self):
-        password = self.cleaned_data.get('password')
-        c_password = self.cleaned_data.get('c_password')
-        if password == c_password:
-            if not password:
-                if self.edit :
-                    #Nothing to to
-                    return self.cleaned_data
-                else:
-                    msg = u"Password can't be empty"
-                    self._errors["password"] = self.error_class([msg])
-                    self._errors["c_password"] = self.error_class([msg])
-                    
-                    if c_password:
-                        del self.cleaned_data["c_password"]
-                    if password:
-                        del self.cleaned_data["password"]
-            #Encode to sha1
-            else:
-                self.cleaned_data["password"] = hashlib.sha1(self.cleaned_data.get("password")).hexdigest()
-        else:
-            msg = u"Password and confirm password must be the same"
-            self._errors["password"] = self.error_class([msg])
-            self._errors["c_password"] = self.error_class([msg])
-            
-            if c_password:
-                del self.cleaned_data["c_password"]
-            if password:
-                del self.cleaned_data["password"]
+    def save(self, commit=False):
+        user = super(UserProfileForm, self).save(commit=False)
+        user.is_staff = self.cleaned_data['is_staff']
+        user.is_superuser = self.cleaned_data['is_superuser']
+        user.save()
 
-        return self.cleaned_data
-    class Meta:
-        model = User
+        try:
+            profile = user.get_profile()
+        except:
+            profile = UserProfile(user=user)
+
+        #profile.nickname = self.cleaned_data['nickname']
+        #profile.company = self.cleaned_data['company']
+        profile.save()
+
+        return user
+        
+class MyUserChangeForm(UserChangeForm):
+    #Bug in django
+    edit = forms.BooleanField()
+    def __init__(self, *args, **kwargs):
+        super(MyUserChangeForm, self).__init__(*args, **kwargs)
+        del self.fields['username']
+        del self.fields['password']
+        del self.fields['last_login']
+        del self.fields['date_joined']
+        del self.fields['is_active']
+        # This is a declared field we really want to be removed
         
 class AppForm(forms.ModelForm):
     security = forms.ModelMultipleChoiceField(widget=forms.CheckboxSelectMultiple,required=False, queryset=ModSecurity.objects.all())
