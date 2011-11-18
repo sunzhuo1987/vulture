@@ -26,9 +26,19 @@ from email.MIMEBase import MIMEBase
 from email.MIMEText import MIMEText
 from email.Utils import COMMASPACE, formatdate
 from email import Encoders
-from django.contrib.auth.models import User as DjangoUser
+from django.contrib.auth.models import User as DjangoUser, UserManager as DjangoUserManager
 from django import forms
 import base64
+
+class User(models.Model):
+    username = models.CharField(max_length=128,unique=1)
+    password = models.CharField(max_length=128,blank=1)
+    is_admin = models.BooleanField()
+    is_superadmin = models.BooleanField()
+    def __str__(self):
+        return self.username
+    class Meta:
+        db_table = 'user'
 
 class Log(models.Model):
     LOG_LEVELS = (
@@ -62,11 +72,6 @@ class Intf(models.Model):
         ('sureware', 'SureWare'),
         ('4758cca',  'IBM 4758 CCA'),
         )
-    SSL_PROXY_VERIFY = (
-        ('none', 'none'),
-        ('optional', 'optional'),
-        ('require', 'require'),
-    )
     name = models.CharField(max_length=128, unique=1)
     ip = models.IPAddressField()
     port = models.IntegerField()
@@ -76,11 +81,6 @@ class Intf(models.Model):
     sso_timeout = models.IntegerField(blank=1,null=1)
     sso_update_access_time = models.BooleanField(default=0)
     appearance = models.ForeignKey('Appearance', blank=1, null=1)
-    remote_proxy = models.URLField(blank=1, null=1, verify_exists=0)
-    remote_proxy_SSLProxyMachineCertificateFile = models.CharField(max_length=512, blank=1, null=1)
-    remote_proxy_SSLProxyCACertificateFile = models.CharField(max_length=512, blank=1, null=1)
-    remote_proxy_SSLProxyCARevocationFile = models.CharField(max_length=512, blank=1, null=1)
-    remote_proxy_SSLProxyVerify = models.CharField(max_length=10,blank=1,choices=SSL_PROXY_VERIFY)
     cas_portal = models.CharField(max_length=256,blank=1,null=1)
     cas_auth = models.ManyToManyField('Auth',null=1,blank=1,db_table='intf_auth_multiple')
     cas_st_timeout = models.IntegerField(blank=1,null=1)
@@ -411,6 +411,11 @@ class Field(models.Model):
         db_table = 'field'
 
 class App(models.Model):
+    SSL_PROXY_VERIFY = (
+        ('none', 'none'),
+        ('optional', 'optional'),
+        ('require', 'require'),
+    )
     ACTIONS = (
         ('nothing', 'nothing'),
         ('template', 'template'),
@@ -432,6 +437,11 @@ class App(models.Model):
     logon_url = models.CharField(max_length=128,null=1,blank=1)
     logout_url = models.CharField(max_length=128,null=1,blank=1)
     up = models.BooleanField(default=1)
+    remote_proxy = models.URLField(blank=1, null=1, verify_exists=0)
+    remote_proxy_SSLProxyMachineCertificateFile = models.CharField(max_length=512, blank=1, null=1)
+    remote_proxy_SSLProxyCACertificateFile = models.CharField(max_length=512, blank=1, null=1)
+    remote_proxy_SSLProxyCARevocationFile = models.CharField(max_length=512, blank=1, null=1)
+    remote_proxy_SSLProxyVerify = models.CharField(max_length=10,blank=1,choices=SSL_PROXY_VERIFY)
     timeout = models.IntegerField(null=1,blank=1)
     auth= models.ManyToManyField('Auth',null=1,blank=1,db_table='auth_multiple')
     auth_basic = models.BooleanField(default=0)
@@ -743,15 +753,6 @@ def personalTitles():
     
 def getAllIntfs():
     return Intf.objects.all()
-
-class User(models.Model):
-    username = models.CharField(max_length=128,unique=1)
-    password = models.CharField(max_length=128,blank=1)
-    is_admin = models.BooleanField()
-    def __str__(self):
-        return self.username
-    class Meta:
-        db_table = 'user'
 
 class CSS(models.Model):
     name = models.CharField(max_length=128, unique=1)

@@ -7,14 +7,15 @@
 
 {% block tabs %}
     <li><a href="/app/">{% trans "List" %}</a></li>
-    <li><a href="javascript:swapTab(1, 8, 'main_tab_', 'main_content_');" id="main_tab_1" class="active">{% trans "Main settings" %}</a></li>
-    <li><a href="javascript:swapTab(2, 8, 'main_tab_', 'main_content_');" id="main_tab_2">{% trans "Authentication" %}</a></li>
-    <li><a href="javascript:swapTab(3, 8, 'main_tab_', 'main_content_');" id="main_tab_3">{% trans "ACL" %}</a></li>
-    <li><a href="javascript:swapTab(4, 8, 'main_tab_', 'main_content_');" id="main_tab_4">{% trans "SSO Forward" %}</a></li>
-    <li><a href="javascript:swapTab(5, 8, 'main_tab_', 'main_content_');" id="main_tab_5">{% trans "Mod security" %}</a></li>
-    <li><a href="javascript:swapTab(6, 8, 'main_tab_', 'main_content_');" id="main_tab_6">{% trans "Headers" %}</a></li>
-    <li><a href="javascript:swapTab(7, 8, 'main_tab_', 'main_content_');" id="main_tab_7">{% trans "Timeout" %}</a></li>
-    <li><a href="javascript:swapTab(8, 8, 'main_tab_', 'main_content_');" id="main_tab_8">{% trans "Advanced settings" %}</a></li>
+    <li><a href="javascript:swapTab(1, 9, 'main_tab_', 'main_content_');" id="main_tab_1" class="active">{% trans "Main settings" %}</a></li>
+    <li><a href="javascript:swapTab(2, 9, 'main_tab_', 'main_content_');" id="main_tab_2">{% trans "Remote proxy" %}</a></li>
+    <li><a href="javascript:swapTab(3, 9, 'main_tab_', 'main_content_');" id="main_tab_3">{% trans "Authentication" %}</a></li>
+    <li><a href="javascript:swapTab(4, 9, 'main_tab_', 'main_content_');" id="main_tab_4">{% trans "ACL" %}</a></li>
+    <li><a href="javascript:swapTab(5, 9, 'main_tab_', 'main_content_');" id="main_tab_5">{% trans "SSO Forward" %}</a></li>
+    <li><a href="javascript:swapTab(6, 9, 'main_tab_', 'main_content_');" id="main_tab_6">{% trans "Mod security" %}</a></li>
+    <li><a href="javascript:swapTab(7, 9, 'main_tab_', 'main_content_');" id="main_tab_7">{% trans "Headers" %}</a></li>
+    <li><a href="javascript:swapTab(8, 9, 'main_tab_', 'main_content_');" id="main_tab_8">{% trans "Timeout" %}</a></li>
+    <li><a href="javascript:swapTab(9, 9, 'main_tab_', 'main_content_');" id="main_tab_9">{% trans "Advanced settings" %}</a></li>
 {% endblock %}
 
 {% block content %}
@@ -157,6 +158,16 @@
         
         <div id="main_content_2" class="main_content">
             <table>
+                <tr><th>{% trans "Remote proxy" %}</th><td class="input">{{ form.remote_proxy }}{% if form.remote_proxy.errors %}<div class="error">{{ form.remote_proxy.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+                <tr><th>{% trans "Machine Certificate file (full path)" %}</th><td class="input">{{ form.remote_proxy_SSLProxyMachineCertificateFile }}{% if form.remote_proxy_SSLProxyMachineCertificateFile.errors %}<div class="error">{{ form.remote_proxy_SSLProxyMachineCertificateFile.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+                <tr><th>{% trans "CA Certificate file (full path)" %}</th><td class="input">{{ form.remote_proxy_SSLProxyCACertificateFile }}{% if form.remote_proxy_SSLProxyCACertificateFile.errors %}<div class="error">{{ form.remote_proxy_SSLProxyCACertificateFile.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+                <tr><th>{% trans "CA Revocation file (full path)" %}</th><td class="input">{{ form.remote_proxy_SSLProxyCARevocationFile }}{% if form.remote_proxy_SSLProxyCARevocationFile.errors %}<div class="error">{{ form.remote_proxy_SSLProxyCARevocationFile.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+                <tr><th>{% trans "Verify Remote Certificate" %}</th><td class="input">{{ form.remote_proxy_SSLProxyVerify }}{% if form.remote_proxy_SSLProxyVerify.errors %}<div class="error">{{ form.remote_proxy_SSLProxyVerify.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+            </table>
+        </div>
+        
+        <div id="main_content_3" class="main_content">
+            <table>
                 <tr><th>{% trans "Authentication" %}</th><td class="input">{{ form.auth }}{% if form.auth.errors %}<div class="error">{{ form.auth.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
                 <tr><th>{% trans "Basic Auth" %}</th><td class="input">{{ form.auth_basic }}{% if form.auth_basic.errors %}<div class="error">{{ form.auth_basic.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
                 <tr><th>{% trans "Display portal" %}</th><td class="input">{{ form.display_portal }}{% if form.display_portal.errors %}<div class="error">{{ form.display_portal.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
@@ -168,7 +179,7 @@
             </table>
         </div>
         
-        <div id="main_content_3" class="main_content">
+        <div id="main_content_4" class="main_content">
             <table>
                 <tr><th>{% trans "ACL" %}</th><td class="input">{{ form.acl }}{% if form.acl.errors %}<div class="error">{{ form.acl.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
             </table>
@@ -178,7 +189,7 @@
             </table>
         </div>
         
-        <div id="main_content_4" class="main_content">
+        <div id="main_content_5" class="main_content">
             <table>
                 <tr><th>{% trans "SSO Forward" %}</th><td class="input">{{ form.sso_forward }}{% if form.sso_forward.errors %}<div class="error">{{ form.sso_forward.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
                 <tr><th>{% trans "Logon URL" %}</th><td class="input">{{ form.logon_url }}{% if form.logon_url.errors %}<div class="error">{{ form.logon_url.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
@@ -186,13 +197,13 @@
             </table>
         </div>
         
-        <div id="main_content_5" class="main_content">
+        <div id="main_content_6" class="main_content">
             <table>
                 <tr><th>{% trans "Mod security" %}</th><td class="input">{{ form.security }}{% if form.security.errors %}<div class="error">{{ form.security.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
             </table>
         </div>
         
-        <div id='main_content_6' class="main_content">
+        <div id='main_content_7' class="main_content">
             <input type='hidden' name='nbheaders' value='0'><br>
             <table class="fields">
                 <tbody id="tbl1body">
@@ -218,14 +229,14 @@
             </table>
         </div>
         
-        <div id="main_content_7" class="main_content">
+        <div id="main_content_8" class="main_content">
             <table>
                 <tr><th>{% trans "Timeout for user session (leave blank for no timeout)" %}</th><td class="input">{{ form.timeout }}{% if form.timeout.errors %}<div class="error">{{ form.timeout.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
                 <tr><th>{% trans "Update user session timeout each time he does smth" %}</th><td class="input">{{ form.update_access_time }}{% if form.update_access_time.errors %}<div class="error">{{ form.update_access_time.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
             </table>
         </div>
         
-        <div id="main_content_8" class="main_content">
+        <div id="main_content_9" class="main_content">
             <table>
                 <tr><th>{% trans "Canonicalise URL" %}</th><td class="input">{{ form.canonicalise_url }}{% if form.canonicalise_url.errors %}<div class="error">{{ form.canonicalise_url.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
                 <tr><th>{% trans "Add VirtualHost directives" %}</th><td class="input">{{ form.virtualhost_directives }}{% if form.virtualhost_directives.errors %}<div class="error">{{ form.virtualhost_directives.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>

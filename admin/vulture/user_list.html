@@ -16,12 +16,14 @@
         <tr>
             <th>{% trans "Login" %}</th>
             <th style="width:16px;">{% trans "Admin" %}</th>
+            <th style="width:16px;">{% trans "Super Admin" %}</th>
             <th style="width:32px;"></th>
         </tr>
         {% for object in object_list %}
             <tr>
                 <td>{{ object.username }}</td>
                 <td style="width:16px;">{% if object.is_admin %}<img src="/img/vulture2/icon-security-badge.png" alt="admin" />{% else %}<img src="/img/vulture2/stop.png" alt="stop" />{% endif %}</td>
+                <td style="width:16px;">{% if object.is_superadmin %}<img src="/img/vulture2/icon-security-badge.png" alt="admin" />{% else %}<img src="/img/vulture2/stop.png" alt="stop" />{% endif %}</td>
                 <td style="width:32px;"><a href="/user/{{ object.id }}/del/"><img src="/img/vulture2/trash.png" alt="delete" /></a><a href="/user/{{ object.id }}"><img src="/img/vulture2/edit.png" alt="edit" /></a></td>
             </tr>
         {% empty %}
