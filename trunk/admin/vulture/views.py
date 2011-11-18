@@ -281,7 +281,6 @@ def edit_acl(request,object_id=None):
 @login_required
 def edit_user(request,object_id=None):
     form = UserForm(request.POST or None,instance=object_id and User.objects.get(id=object_id), initial={'password': ''})
-    print "edit"
     
     # Save new/edited component
     if request.method == 'POST' and form.is_valid():

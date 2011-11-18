@@ -8,7 +8,7 @@
 
 {% block tabs %}
     <li><a href="#" id="main_tab_1" class="active">{% trans "List" %}</a></li>
-    <li><a href="{{ url }}/new/">{% trans "Add" %}</a></li>
+    {% if not noadd %}<li><a href="{{ url }}/new/">{% trans "Add" %}</a></li>{% endif %}
 {% endblock %}
 
 {% block content %}
@@ -27,11 +27,10 @@
                     {% for tuple in fields %}
                         <td>{{ object|getattribute:tuple.0 }}</td>
                     {% endfor %}
-                    <td><a href="{{ url }}/{{ object.id }}/del/"><img src="/img/vulture2/trash.png" alt="delete" /></a><a href="{{ url }}/{{ object.id }}"><img src="/img/vulture2/edit.png" alt="edit" /></a>
-                    </td>
+                    <td>{% if not nodelete %}<a href="{{ url }}/{{ object.id }}/del/"><img src="/img/vulture2/trash.png" alt="delete" /></a>{% endif %}{% if not noedit %}<a href="{{ url }}/{{ object.id }}"><img src="/img/vulture2/edit.png" alt="edit" /></a>{% endif %}</td>
                 </tr>
             {% empty %}
-                <tr><td colspan="5" style="text-align:center;">{% trans "The list is empty. You can add an item " %}<a href="{{ url }}/new/">{% trans "here" %}</a></td></tr>
+                {% if not noadd %}<tr><td colspan="5" style="text-align:center;">{% trans "The list is empty. You can add an item " %}<a href="{{ url }}/new/">{% trans "here" %}</a></td></tr>{% endif %}
             {% endfor %}
         </table>
     </div>

@@ -18,6 +18,7 @@
                 <tr><th>{% trans "Password" %}</th><td class="input">{{ form.password }}{% if form.password.errors %}<div class="error">{{ form.password.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
                 <tr><th>{% trans "Confirm password" %}</th><td class="input">{{ form.c_password }}{% if form.c_password.errors %}<div class="error">{{ form.c_password.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
                 <tr><th>{% trans "Administrator" %}</th><td class="input">{{ form.is_admin }}{% if form.is_admin.errors %}<div class="error">{{ form.is_admin.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+                <tr><th>{% trans "Super Administrator" %}</th><td class="input">{{ form.is_superadmin }}{% if form.is_superadmin.errors %}<div class="error">{{ form.is_superadmin.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
             </table>
         </div>
         <br />

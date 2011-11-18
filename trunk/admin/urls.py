@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from django.conf.urls.defaults import *
+from django.contrib.auth.models import User
 from vulture.models import *
 from django.contrib import admin
 from vulture.views import *
@@ -69,7 +70,8 @@ urlpatterns = patterns('',
   (r'^logon/$',                               'vulture.views.logon'),
   (r'^logout/$',                              'logout'),
   (r'^logon/None$',                           'vulture.views.vulture_object_list_adm', dict({'queryset': User.objects.all()}, allow_empty=1)),
-  
+  (r'^conf/$',                                 'vulture.views.vulture_object_list_adm', dict({'queryset': Conf.objects.all()}, template_name='vulture/generic_list.html', extra_context = dict(category='System', name='Configuration', url='/conf', noname=True, noadd=True, nodelete=True, fields=(('var','Variable'),('value', 'Value'))))),
+  (r'^conf/(?P<object_id>\d+)/$',              'vulture.views.vulture_update_object_adm', dict({'model': Conf}, post_save_redirect='/conf/')),  
   (r'^log/$',                                 'vulture.views.vulture_object_list_adm', dict({'queryset': Log.objects.all()}, template_name='vulture/generic_list.html', extra_context = dict(category='System', name='Log', url='/log', fields=(('level','Level'),)))),
   (r'^log/(?P<object_id>\d+)/$',              'vulture.views.vulture_update_object_adm', dict({'model': Log}, post_save_redirect='/log/')),
   (r'^log/new/$',                             'vulture.views.vulture_create_object_adm', dict({'model': Log}, post_save_redirect='/log/')),
