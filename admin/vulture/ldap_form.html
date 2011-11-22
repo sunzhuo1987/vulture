@@ -40,7 +40,6 @@
                 <tr><th>{% trans "Searching scope for users" %}</th><td class="input">{{ form.user_scope }}{% if form.user_scope.errors %}<div class="error">{{ form.user_scope.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
                 <!-- <tr><th><img style='width: 9px; height:9px;' src='/img/vulture2/sub.png'> {% trans "Url attribut" %}</th><td>{{ form.url_attr }}{% if form.url_attr.errors %}<div class="error">{{ form.url_attr.errors|join:", " }}</div>{% endif %}</td></tr> -->
                 <tr><th>{% trans "User OU" %}</th><td class="input">{{ form.user_ou }}{% if form.user_ou.errors %}<div class="error">{{ form.user_ou.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-                <tr><th>{% trans "Change password attribute" %}</th><td class="input">{{ form.chpass_attr }}{% if form.chpass_attr.errors %}<div class="error">{{ form.chpass_attr.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
             </table>
         </div>
         

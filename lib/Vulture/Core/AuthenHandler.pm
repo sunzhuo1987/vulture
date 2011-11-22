@@ -17,7 +17,6 @@ use Module::Load;
 use Apache2::Const -compile => qw(OK HTTP_UNAUTHORIZED);
 
 use Core::VultureUtils qw(&session &get_memcached &set_memcached &generate_random_string &notify);
-use Core::ActionManager qw(&handle_action);
 
 #USED FOR NTLM
 sub get_nonce
@@ -60,7 +59,7 @@ sub handler:method
 
 	my ($status, $password);
 	my $user;
-    my $token;
+        my $token;
 
 	$log->debug("########## AuthenHandler ##########");
 
@@ -130,10 +129,6 @@ sub handler:method
 
         $ret = multipleAuth($r, $log, $dbh, $app, $user, $password, 0, 0) if ($user and ($token eq $session_SSO{random_token} or $app->{'auth_basic'} or not $cas));
 
-        #Trigger action when change pass is needed / auth failed
-        handle_action($r, $log, $dbh, $app, 'NEED_CHANGE_PASS', 'You need to change your password') if(uc($r->pnotes('auth_message')) eq 'NEED_CHANGE_PASS');
-        handle_action($r, $log, $dbh, $app, 'LOGIN_FAILED', 'Login failed') if ($ret != scalar Apache2::Const::OK and ($user or $password));
-        
         if(defined $ret and $ret == scalar Apache2::Const::OK){
             $log->debug("Good user/password");
 
@@ -180,12 +175,10 @@ sub handler:method
                 $r->user('');
                 $log->warn("Login failed in AuthenHandler for user $user") if ($password and $user);
 
-                #Create error message if no auth_message
-                unless($r->pnotes('auth_message')){
-                    $r->pnotes('auth_message' => "MISSING_USER") if $password;
-                    $r->pnotes('auth_message' => "MISSING_PASSWORD") if $user;
-                    $r->pnotes('auth_message' => "LOGIN_FAILED") if ($password and $user);
-                }
+                #Create error message
+                $r->pnotes('auth_message' => "MISSING_USER") if $password;
+                $r->pnotes('auth_message' => "MISSING_PASSWORD") if $user;
+                $r->pnotes('auth_message' => "LOGIN_FAILED") if ($password and $user);
             }
 
             #Unfinite loop for basic auth

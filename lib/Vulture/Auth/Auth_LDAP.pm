@@ -11,18 +11,14 @@ use Net::LDAP;
 
 use Apache2::Const -compile => qw(OK FORBIDDEN);
 
-use Core::VultureUtils qw(&get_LDAP_object);
-
-sub trigerAction{
-    my ($r, $log, $dbh, $app, $response) = @_;
-}
+use Core::VultureUtils qw(&getLDAP_object);
 
 sub checkAuth{
 	my ($package_name, $r, $log, $dbh, $app, $user, $password, $id_method) = @_;
 
 	$log->debug("########## Auth_LDAP ##########");
 
-	my ($ldap, $ldap_url_attr, $ldap_uid_attr, $ldap_user_ou, $ldap_group_ou, $ldap_user_filter, $ldap_group_filter, $ldap_user_scope, $ldap_group_scope, $ldap_base_dn, $ldap_group_member, $ldap_group_is_dn, $ldap_group_attr, $ldap_chpass_attr) = get_LDAP_object($log, $dbh, $id_method);
+	my ($ldap, $ldap_url_attr, $ldap_uid_attr, $ldap_user_ou, $ldap_group_ou, $ldap_user_filter, $ldap_group_filter, $ldap_user_scope, $ldap_group_scope, $ldap_base_dn, $ldap_group_member, $ldap_group_is_dn, $ldap_group_attr) = getLDAP_object($log, $dbh, $id_method);
 	return Apache2::Const::FORBIDDEN if (!$ldap);
 
 	my $mesg = $ldap->search(base => $ldap_user_ou ? $ldap_user_ou : $ldap_base_dn,
@@ -50,17 +46,13 @@ sub checkAuth{
 	#my $need_change_password = $object->get_value($ldap_chpass_attr) if ($ldap_chpass_attr);
     #    return 2 if (defined($need_change_password) and $need_change_password == 1);
 
-	if ($ldap_url_attr and (my ($url) = $object->get_value($ldap_url_attr))) {
+	if ($ldap_url_attr && (my ($url) = $object->get_value($ldap_url_attr))) {
 		$r->pnotes('url_to_mod_proxy' => $url);
 		$log->debug($user . " routed to ". $url ." via mod_proxy");
 	}
-    
-    $ldap_chpass_attr
-    if($ldap_chpass_attr and (my ($need_change_password) = $object->get_value($ldap_chpass_attr))) {
-        $r->pnotes('auth_message' => 'NEED_CHANGE_PASS');
-        $log->debug("User $user need to change password");
-    }
+
     $ldap->unbind;
 	return Apache2::Const::OK;
 }
+
 1;

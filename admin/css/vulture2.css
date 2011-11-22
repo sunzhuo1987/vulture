@@ -130,7 +130,7 @@ table {
 }
 
 .main_content {
-    overflow: auto;
+    overflow: hidden;
     background-color:#ffffff;
     padding:4px;
     border:1px solid #464c54;
@@ -254,7 +254,7 @@ ul.tabs li a.active {
     border-bottom:none;
 }
 
-.fields input[type=text], .fields  input[type=password], .fields  select, .fields  option, .fields  textarea {
+#fields input[type=text], #fields  input[type=password], #fields  select, #fields  option, #fields  textarea {
 	width: auto;
 }
 

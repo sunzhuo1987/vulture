@@ -14,7 +14,7 @@ use LWP;
 use Crypt::CBC;
 use Crypt::OpenSSL::AES;
 
-use Core::VultureUtils qw(&get_DB_object &get_LDAP_object);
+use Core::VultureUtils qw(&getDB_object &getLDAP_object);
 
 use Net::LDAP;
 use DBI;
@@ -22,10 +22,10 @@ use DBI;
 BEGIN {
     use Exporter ();
     @ISA = qw(Exporter);
-    @EXPORT_OK = qw(&get_profile &set_profile &delete_profile &encrypt &decrypt);
+    @EXPORT_OK = qw(&getProfile &setProfile &deleteProfile &encrypt &decrypt);
 }
 
-sub get_profile{
+sub getProfile{
     my ($r, $log, $dbh, $app, $user) = @_;
     
     $log->debug("########## Profile Manager ##########");
@@ -47,7 +47,7 @@ sub get_profile{
     if (@fields) {
         #SQL Database
         if($result->{type} eq 'sql'){
-            my ($new_dbh, $ref) = get_DB_object($log, $dbh, $result->{id_method});
+            my ($new_dbh, $ref) = getDB_object($log, $dbh, $result->{id_method});
             my $query = "SELECT * FROM ".$result->{table_mapped}." WHERE ".$result->{app_mapped}."='".$app->{id}."' AND ".$result->{user_mapped}."='".$user."'";
 	        my $sth = $new_dbh->prepare($query);
             $log->debug($query);
@@ -79,7 +79,7 @@ sub get_profile{
         } elsif ($result->{type} eq 'ldap') {
             
             #Getting LDAP object from Vulture Utils
-            my ($ldap, $ldap_url_attr, $ldap_uid_attr, $ldap_user_ou, $ldap_group_ou, $ldap_user_filter, $ldap_group_filter, $ldap_user_scope, $ldap_group_scope, $ldap_base_dn, $ldap_group_member, $ldap_group_is_dn, $ldap_group_attr) = get_LDAP_object($log, $dbh, $result->{id_method});
+            my ($ldap, $ldap_url_attr, $ldap_uid_attr, $ldap_user_ou, $ldap_group_ou, $ldap_user_filter, $ldap_group_filter, $ldap_user_scope, $ldap_group_scope, $ldap_base_dn, $ldap_group_member, $ldap_group_is_dn, $ldap_group_attr) = getLDAP_object($log, $dbh, $result->{id_method});
 	        return Apache2::Const::FORBIDDEN if (!$ldap);
 
             #Looking for entry
@@ -115,7 +115,7 @@ sub get_profile{
     }
 }
 
-sub set_profile{
+sub setProfile{
     my($r, $log, $dbh, $app, $user, @fields) = @_;
 
     $log->debug("########## Profile Manager ##########");
@@ -129,7 +129,7 @@ sub set_profile{
     #SQL Database
     if($result->{type} eq 'sql'){
         #I'm so sorry for this kind of hack. Please forgive me
-        my ($new_dbh, $ref) = get_DB_object($log, $dbh, $result->{id_method});#Pushing values into mapped columns
+        my ($new_dbh, $ref) = getDB_object($log, $dbh, $result->{id_method});#Pushing values into mapped columns
         
         #Making 2 arrays : columns and values for query
         my $columns;
@@ -174,7 +174,7 @@ sub set_profile{
     } elsif($result->{type} eq 'ldap') {
         
         #Getting LDAP object from Vulture Utils
-        my ($ldap, $ldap_url_attr, $ldap_uid_attr, $ldap_user_ou, $ldap_group_ou, $ldap_user_filter, $ldap_group_filter, $ldap_user_scope, $ldap_group_scope, $ldap_base_dn, $ldap_group_member, $ldap_group_is_dn, $ldap_group_attr) = get_LDAP_object($log, $dbh, $result->{id_method});
+        my ($ldap, $ldap_url_attr, $ldap_uid_attr, $ldap_user_ou, $ldap_group_ou, $ldap_user_filter, $ldap_group_filter, $ldap_user_scope, $ldap_group_scope, $ldap_base_dn, $ldap_group_member, $ldap_group_is_dn, $ldap_group_attr) = getLDAP_object($log, $dbh, $result->{id_method});
 	    return Apache2::Const::FORBIDDEN if (!$ldap);
 
         my $mesg = $ldap->search(base => $ldap_user_ou,
@@ -219,7 +219,7 @@ sub set_profile{
 }
 
 #Delete profile from specific user and specific app
-sub delete_profile{
+sub deleteProfile{
     my($r, $log, $dbh, $app, $user) = @_;
     
     $log->debug("########## Profile Manager ##########");
@@ -232,7 +232,7 @@ sub delete_profile{
     
     #SQL Database
     if($result->{type} eq 'sql'){
-        my ($new_dbh, $ref) = get_DB_object($log, $dbh, $result->{id_method});
+        my ($new_dbh, $ref) = getDB_object($log, $dbh, $result->{id_method});
         $log->debug("Deleting values for $user");
         my $sql = "DELETE FROM ".$result->{table_mapped}." WHERE ".$result->{app_mapped}."='".$app->{id}."' AND ".$result->{user_mapped}."='".$user."'";
         $log->debug($sql);

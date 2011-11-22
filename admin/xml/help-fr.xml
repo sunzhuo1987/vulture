@@ -131,7 +131,7 @@
         <display_portal>Affiche la liste de toutes les applications de l'interface après une connexion réussie au lieu de rediriger vers l'application interne</display_portal>
         <acl>Méthode de contrôle d'accès associée à l'application</acl>
         <sso_forward>Méthode de Web SSO</sso_forward>
-        <logon_url>Page vers laquelle sont envoyées les données du formulaire d'authentification</logon_url>
+        <logon_url>Page vers laquelle sont envoyées les données du formulaire d'authentifications</logon_url>
         <logout_url>Page de déconnexion de l'application</logout_url>
         <security>Règles de mod_security pour protéger l'application</security>
         <timeout>Durée avant déconnexion de l'utilisateur (en secondes)</timeout>

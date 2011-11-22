@@ -7,12 +7,13 @@ use Apache2::Reload;
 use Apache2::RequestUtil ();
 use Apache2::Log;
 use CGI qw/:standard/;
+
 use DBI;
 
 use Apache2::Const -compile => qw(OK DECLINED REDIRECT HTTP_UNAUTHORIZED);
 
-use Core::VultureUtils qw(&session &get_style &get_translations &generate_random_string &get_style &get_translations);
-use SSO::ProfileManager qw(&get_profile);
+use Core::VultureUtils qw(&session &getStyle &getTranslations &generate_random_string);
+use SSO::ProfileManager qw(&getProfile);
 
 use Apache::SSLLookup;
 
@@ -90,7 +91,7 @@ sub handler {
 			#If results are the same, it means user has already complete the SSO Learning phase
 			my $query = "SELECT count(*) FROM field, sso, app WHERE field.sso_id = sso.id AND sso.id = app.sso_forward_id AND app.id=? AND field_type != 'autologon_password' AND field_type != 'autologon_user' AND field_type != 'hidden'";
 			$log->debug($query);
-            my $href = SSO::ProfileManager::get_profile($r, $log, $dbh, $app, $user);
+            my $href = SSO::ProfileManager::getProfile($r, $log, $dbh, $app, $user);
             
 			my $length1 = $dbh->selectrow_array($query, undef, $app->{id});
             my $length2 = keys %$href;
@@ -111,13 +112,14 @@ sub handler {
             }
 		}
         #Display portal instead of redirect user
-        if($app->{display_portal}){
+	    if($app->{display_portal}){
             $log->debug("Display portal with all applications");
-            #Getting all app info
+		    #Getting all app info
             my $portal = display_portal($r,$log, $dbh, $app);
-            $r->content_type('text/html');
-            $r->print($portal);
-            return Apache2::Const::OK;
+		    $r->content_type('text/html');
+		    $r->print($portal);
+		    return Apache2::Const::OK;
+		    
         } elsif(defined($session_app{url_to_redirect})) {
             #Redirect user
 		    $r->status(200);
@@ -159,10 +161,10 @@ sub handler {
 	} else {
         #Display Vulture auth
         if($app and !$app->{'auth_basic'} and not $r->pnotes('static')) {
-            $log->debug("Display auth form");
-            $r->content_type('text/html');
-            $r->print(display_auth_form($r, $log, $dbh, $app));
-            return Apache2::Const::OK;
+	        $log->debug("Display auth form");
+	        $r->content_type('text/html');
+	        $r->print(display_auth_form($r, $log, $dbh, $app));
+	        return Apache2::Const::OK;
         }
 	    $log->debug("Serving static file");
     }
@@ -170,26 +172,26 @@ sub handler {
 }
 
 sub display_auth_form {
-        my ($r, $log, $dbh, $app) = @_;
-        
-        #CAS
-        my $service = param('service');
-        #END CAS
+	my ($r, $log, $dbh, $app) = @_;
+	
+	#CAS
+	my $service = param('service');
+	#END CAS
     
-        my $uri = $r->unparsed_uri;
-        my $message = $r->pnotes("auth_message");    
+	my $uri = $r->unparsed_uri;
+	my $message = $r->pnotes("auth_message");    
     my $translated_message;
 
     #Get session SSO for filling random token
     my (%session_SSO);
     session(\%session_SSO, $app->{timeout}, $r->pnotes('id_session_SSO'), $log, $app->{update_access_time});
 
-        #if($r->unparsed_uri =~ /vulture_app=([^;]*)/){
-        #       $uri = $1;
-        #}
+	#if($r->unparsed_uri =~ /vulture_app=([^;]*)/){
+	#	$uri = $1;
+	#}
     
     #Get translations
-    my $translations = get_translations($r, $log, $dbh, $message);
+    my $translations = getTranslations($r, $log, $dbh, $message);
     
     #Avoid bot request (token)
     my $token = generate_random_string(32);
@@ -209,20 +211,20 @@ sub display_auth_form {
 FOO
 ;
 
-    return get_style($r, $log, $dbh, $app, 'LOGIN', 'Please authenticate', {FORM => $form, ERRORS => $translations->{$message}{'translation'}}, $translations);
+	return getStyle($r, $log, $dbh, $app, 'LOGIN', 'Please authenticate', {FORM => $form, ERRORS => $translations->{$message}{'translation'}}, $translations);
 }
 
 sub display_portal {
-        my ($r,$log,$dbh, $app) = @_;
+	my ($r,$log,$dbh, $app) = @_;
 
     my $intf_id = $r->dir_config('VultureID');
-        my $query = "SELECT app.name FROM app, app_intf WHERE app_intf.intf_id='$intf_id' AND app.id = app_intf.app_id";
+	my $query = "SELECT app.name FROM app, app_intf WHERE app_intf.intf_id='$intf_id' AND app.id = app_intf.app_id";
     $log->debug($query);
 
     my $all_apps = $dbh->selectall_arrayref($query);
     
     #Get translations
-    my $translations = get_translations($r, $log, $dbh, 'APPLICATION');
+    my $translations = getTranslations($r, $log, $dbh, 'APPLICATION');
     
     #Get all apps
     my $html_apps = "<ul>";
@@ -243,7 +245,8 @@ sub display_portal {
     $html_apps .= "</ul>";
     
     #Get style
-    my $html = get_style($r, $log, $dbh, $app, 'PORTAL', 'SSO portal', {APPS => $html_apps}, $translations);
+    my $html = getStyle($r, $log, $dbh, $app, 'PORTAL', 'SSO portal', {APPS => $html_apps}, $translations);
     return $html =~ /<body>.+<\/body>/ ? $html : $html_apps;
 }
+
 1;

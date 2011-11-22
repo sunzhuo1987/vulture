@@ -15,14 +15,14 @@ use DBI;
 
 use Apache2::Const -compile => qw(OK FORBIDDEN);
 
-use Core::VultureUtils qw(&get_DB_object);
+use Core::VultureUtils qw(&getDB_object);
 
 sub checkAuth{
 	my ($package_name, $r, $log, $dbh, $app, $user, $password, $id_method) = @_;	
 
 	$log->debug("########## Auth_SQL ##########");
 
-	my ($new_dbh, $ref) = get_DB_object($log, $dbh, $id_method);
+	my ($new_dbh, $ref) = getDB_object($log, $dbh, $id_method);
     if($new_dbh and $ref){		
 		#Password encryption
 		if ($ref->{'pass_algo'} eq "plain") {

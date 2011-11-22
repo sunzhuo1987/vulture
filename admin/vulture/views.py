@@ -8,9 +8,8 @@ from django.views.generic.list_detail import object_list
 from django.views.generic.create_update import update_object, create_object, delete_object
 from django.http import Http404, HttpResponse, HttpResponseRedirect
 from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.models import User
-from django.contrib.auth.decorators import login_required, user_passes_test
-from django.contrib.auth.forms import UserChangeForm, SetPasswordForm
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import user_passes_test
 from django.utils.html import escape
 from django.forms import ModelForm
 from django import forms
@@ -35,11 +34,11 @@ def logon(request):
         user = authenticate(username=request.POST['username'], password=request.POST['password'])
         if user is not None:
             login(request, user)
-            #u = User.objects.get(username=request.POST['username'])
-            #if u.is_admin == True:
-            #    user.is_staff = 1
-            #user.save()
-            #request.session['version'] = '2.0'
+            u = User.objects.get(username=request.POST['username'])
+            if u.is_admin == True:
+                user.is_staff = 1
+            user.save()
+            request.session['version'] = '2.0'
             return HttpResponseRedirect(request.POST.get('next'))
     logout(request)
     return render_to_response('logon.html', { 'next' : request.GET.get('next')})
@@ -280,37 +279,23 @@ def edit_acl(request,object_id=None):
     return render_to_response('vulture/acl_form.html', {'form': form, 'user' : request.user, 'users_ok' : users_ok, 'users_ko' : users_ko, 'groups_ok' : groups_ok, 'groups_ko' : groups_ko})
 
 @login_required
-def create_user(request,object_id=None):
-    form = UserProfileForm(request.POST or None,instance=object_id and User.objects.get(id=object_id))
+def edit_user(request,object_id=None):
+    form = UserForm(request.POST or None,instance=object_id and User.objects.get(id=object_id), initial={'password': ''})
+    print "edit"
+    
     # Save new/edited component
     if request.method == 'POST' and form.is_valid():
         user = form.save(commit=False)
+        try:
+            #Get old password (if not modified)
+            old_user = User.objects.get(id=user.id)
+            if not user.password:
+                user.password = old_user.password
+        except:
+            pass
         user.save()
         return HttpResponseRedirect('/user/')
     return render_to_response('vulture/user_form.html', {'form': form, 'user' : request.user})
-    
-@login_required
-def edit_user(request,object_id=None):
-    form = MyUserChangeForm(request.POST or None,instance=object_id and User.objects.get(id=object_id))
-    # Save new/edited component
-    if request.method == 'POST' and form.is_valid():
-        user = form.save(commit=False)
-        user.save()
-        return HttpResponseRedirect('/user/')
-    return render_to_response('vulture/useredit_form.html', {'form': form, 'user' : request.user, 'id' : object_id})
-    
-@login_required
-def edit_user_password(request,object_id=None):    
-    user = User.objects.get(id=object_id)
-    form = SetPasswordForm(user, request.POST)
-    
-    # Save new/edited component
-    if request.method == 'POST' and form.is_valid():
-        dataPosted = request.POST
-        user.set_password(dataPosted['new_password2'])
-        user.save()
-        return HttpResponseRedirect('/user/')
-    return render_to_response('vulture/userpassword_form.html', {'form': form, 'user' : request.user})
     
 @login_required
 def edit_localization(request,object_id=None):

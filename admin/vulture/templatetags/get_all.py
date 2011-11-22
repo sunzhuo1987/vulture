@@ -13,9 +13,6 @@ class AllContentNode(Node):
         return ''
 
 def get_all(parser, token):
-    """
-        {% get_all app.Class as  = <var_value> %}
-    """
     bits = token.contents.split()
     if len(bits) != 4:
         raise TemplateSyntaxError, "get_latest tag takes exactly four arguments"

@@ -14,14 +14,6 @@
 
 {% block content %}
     <script type='text/javascript'>
-        $().ready(function() {
-            $('#add').click(function() {
-                return !$('#select1 option:selected').appendTo('#select2');
-            });
-            $('#remove').click(function() {
-                return !$('#select2 option:selected').appendTo('#select1');
-            });
-        });
         function move(select_from, select_to){
             var select = document.getElementById(select_from);
             var x=0;

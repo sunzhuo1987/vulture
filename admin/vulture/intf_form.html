@@ -7,11 +7,13 @@
 
 {% block tabs %}
     <li><a href="/intf/">{% trans "List" %}</a></li>
-    <li><a href="javascript:swapTab(1, 5, 'main_tab_', 'main_content_');" id="main_tab_1" class="active">{% trans "Main settings" %}</a></li>
-    <li><a href="javascript:swapTab(2, 5, 'main_tab_', 'main_content_');" id="main_tab_2">{% trans "SSO Portal" %}</a></li>
-    <li><a href="javascript:swapTab(3, 5, 'main_tab_', 'main_content_');" id="main_tab_3">{% trans "CAS Portal" %}</a></li>
-    <li><a href="javascript:swapTab(4, 5, 'main_tab_', 'main_content_');" id="main_tab_4">{% trans "SSL" %}</a></li>
-    <li><a href="javascript:swapTab(5, 5, 'main_tab_', 'main_content_');" id="main_tab_5">{% trans "Advanced settings" %}</a></li>
+    <li><a href="javascript:swapTab(1, 7, 'main_tab_', 'main_content_');" id="main_tab_1" class="active">{% trans "Main settings" %}</a></li>
+    <li><a href="javascript:swapTab(2, 7, 'main_tab_', 'main_content_');" id="main_tab_2">{% trans "Remote proxy" %}</a></li>
+    <li><a href="javascript:swapTab(3, 7, 'main_tab_', 'main_content_');" id="main_tab_3">{% trans "SSO Portal" %}</a></li>
+    <li><a href="javascript:swapTab(4, 7, 'main_tab_', 'main_content_');" id="main_tab_4">{% trans "CAS Portal" %}</a></li>
+    <li><a href="javascript:swapTab(5, 7, 'main_tab_', 'main_content_');" id="main_tab_5">{% trans "SSL" %}</a></li>
+    <li><a href="javascript:swapTab(6, 7, 'main_tab_', 'main_content_');" id="main_tab_6">{% trans "Proxy SSL" %}</a></li>
+    <li><a href="javascript:swapTab(7, 7, 'main_tab_', 'main_content_');" id="main_tab_7">{% trans "Advanced settings" %}</a></li>
 {% endblock %}
 
 {% block content %}
@@ -28,13 +30,19 @@
 
         <div id="main_content_2" class="main_content">
             <table>
+                <tr><th>{% trans "Remote proxy" %}</th><td class="input">{{ form.remote_proxy }}{% if form.remote_proxy.errors %}<div class="error">{{ form.remote_proxy.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+            </table>
+        </div>
+
+        <div id="main_content_3" class="main_content">
+            <table>
                 <tr><th>{% trans "SSO Portal" %}</th><td class="input">{{ form.sso_portal }}{% if form.sso_portal %}<div class="error">{{ form.sso_portal.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
                 <tr><th>{% trans "Timeout for user session" %}</th><td class="input">{{ form.sso_timeout }}{% if form.sso_timeout.errors %}<div class="error">{{ form.sso_timeout.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
                 <tr><th>{% trans "Update user session timeout" %}</th><td class="input">{{ form.sso_update_access_time }}{% if form.sso_update_access_time.errors %}<div class="error">{{ form.sso_update_access_time.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
             </table>
         </div>
 
-        <div id="main_content_3" class="main_content">
+        <div id="main_content_4" class="main_content">
             <table>
                 <tr><th>{% trans "CAS Portal" %}</th><td class="input">{{ form.cas_portal }}{% if form.cas_portal %}<div class="error">{{ form.cas_portal.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
                 <tr><th>{% trans "CAS auth" %}</th><td class="input">{{ form.cas_auth }}{% if form.cas_auth %}<div class="error">{{ form.cas_auth.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
@@ -42,7 +50,7 @@
             </table>
         </div>
 
-        <div id="main_content_4" class="main_content">
+        <div id="main_content_5" class="main_content">
             <table>
                 <tr><th>{% trans "SSL engine" %}</th><td class="input">{{ form.ssl_engine }}{% if form.ssl_engine.errors %}<div class="error">{{ form.ssl_engine.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
                 <tr><th>{% trans "PEM certificat" %}</th><td class="input">{{ form.cert }}{% if form.cert.errors %}<div class="error">{{ form.cert.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
@@ -50,8 +58,17 @@
                 <tr><th>{% trans "PEM certification chain" %}</th><td class="input">{{ form.ca }}{% if form.ca.errors %}<div class="error">{{ form.ca.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
             </table>
         </div>
+
+        <div id="main_content_6" class="main_content">
+            <table>
+                <tr><th>{% trans "Machine Certificate file (full path)" %}</th><td class="input">{{ form.remote_proxy_SSLProxyMachineCertificateFile }}{% if form.remote_proxy_SSLProxyMachineCertificateFile.errors %}<div class="error">{{ form.remote_proxy_SSLProxyMachineCertificateFile.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+                <tr><th>{% trans "CA Certificate file (full path)" %}</th><td class="input">{{ form.remote_proxy_SSLProxyCACertificateFile }}{% if form.remote_proxy_SSLProxyCACertificateFile.errors %}<div class="error">{{ form.remote_proxy_SSLProxyCACertificateFile.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+                <tr><th>{% trans "CA Revocation file (full path)" %}</th><td class="input">{{ form.remote_proxy_SSLProxyCARevocationFile }}{% if form.remote_proxy_SSLProxyCARevocationFile.errors %}<div class="error">{{ form.remote_proxy_SSLProxyCARevocationFile.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+                <tr><th>{% trans "Verify Remote Certificate" %}</th><td class="input">{{ form.remote_proxy_SSLProxyVerify }}{% if form.remote_proxy_SSLProxyVerify.errors %}<div class="error">{{ form.remote_proxy_SSLProxyVerify.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+            </table>
+        </div>
         
-        <div id="main_content_5" class="main_content">
+        <div id="main_content_7" class="main_content">
             <table>
                 <tr><th>{% trans "Add VirtualHost directives" %}</th><td class="input">{{ form.virtualhost_directives }}{% if form.virtualhost_directives.errors %}<div class="error">{{ form.virtualhost_directives.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
             </table>

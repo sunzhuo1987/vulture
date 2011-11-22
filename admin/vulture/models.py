@@ -26,7 +26,7 @@ from email.MIMEBase import MIMEBase
 from email.MIMEText import MIMEText
 from email.Utils import COMMASPACE, formatdate
 from email import Encoders
-from django.contrib.auth.models import User as DjangoUser, UserManager as DjangoUserManager
+from django.contrib.auth.models import User as DjangoUser
 from django import forms
 import base64
 
@@ -62,6 +62,11 @@ class Intf(models.Model):
         ('sureware', 'SureWare'),
         ('4758cca',  'IBM 4758 CCA'),
         )
+    SSL_PROXY_VERIFY = (
+        ('none', 'none'),
+        ('optional', 'optional'),
+        ('require', 'require'),
+    )
     name = models.CharField(max_length=128, unique=1)
     ip = models.IPAddressField()
     port = models.IntegerField()
@@ -71,6 +76,11 @@ class Intf(models.Model):
     sso_timeout = models.IntegerField(blank=1,null=1)
     sso_update_access_time = models.BooleanField(default=0)
     appearance = models.ForeignKey('Appearance', blank=1, null=1)
+    remote_proxy = models.URLField(blank=1, null=1, verify_exists=0)
+    remote_proxy_SSLProxyMachineCertificateFile = models.CharField(max_length=512, blank=1, null=1)
+    remote_proxy_SSLProxyCACertificateFile = models.CharField(max_length=512, blank=1, null=1)
+    remote_proxy_SSLProxyCARevocationFile = models.CharField(max_length=512, blank=1, null=1)
+    remote_proxy_SSLProxyVerify = models.CharField(max_length=10,blank=1,choices=SSL_PROXY_VERIFY)
     cas_portal = models.CharField(max_length=256,blank=1,null=1)
     cas_auth = models.ManyToManyField('Auth',null=1,blank=1,db_table='intf_auth_multiple')
     cas_st_timeout = models.IntegerField(blank=1,null=1)
@@ -341,12 +351,6 @@ class SSO(models.Model):
         ('sso_forward_htaccess', 'sso_forward_htaccess'),
         ('sso_forward', 'sso_forward'),
         )
-    ACTIONS = (
-        ('nothing', 'nothing'),
-        ('log', 'log'),
-        ('message', 'message'),
-        ('redirect', 'redirect'),
-        )
     name = models.CharField(max_length=128, unique=1)
     type = models.CharField(max_length=20, choices=SSO_TYPES, blank=1)
     auth = models.ForeignKey('Auth', blank=1, null=1)
@@ -354,20 +358,6 @@ class SSO(models.Model):
     base_dn_mapped = models.CharField(max_length=128, blank=1, null=1)
     user_mapped = models.CharField(max_length=128, blank=1, null=1)
     app_mapped = models.CharField(max_length=128, blank=1, null=1)
-    is_info = models.CharField(max_length=128, blank=1, null=1, choices=ACTIONS, default='nothing')
-    is_info_options = models.CharField(max_length=128, blank=1, null=1)
-    is_success = models.CharField(max_length=128, blank=1, null=1, choices=ACTIONS, default='nothing')
-    is_success_options = models.CharField(max_length=128, blank=1)
-    is_redirect = models.CharField(max_length=128, blank=1, null=1, choices=ACTIONS, default='nothing')
-    is_redirect_options = models.CharField(max_length=128, blank=1)
-    is_error = models.CharField(max_length=128, blank=1, null=1, choices=ACTIONS, default='nothing')
-    is_error_options = models.CharField(max_length=128, blank=1, null=1)
-    is_in_page = models.CharField(max_length=128, blank=1, null=1)
-    is_in_page_action = models.CharField(max_length=128, blank=1, null=1, choices=ACTIONS, default='nothing')
-    is_in_page_options = models.CharField(max_length=128, blank=1, null=1)
-    is_in_url = models.CharField(max_length=128, blank=1, null=1)
-    is_in_url_action = models.CharField(max_length=128, blank=1, null=1, choices=ACTIONS, default='nothing')
-    is_in_url_options = models.CharField(max_length=128, blank=1, null=1)
     def __unicode__(self):
         return self.name
     class Meta:
@@ -401,24 +391,6 @@ class Field(models.Model):
         db_table = 'field'
 
 class App(models.Model):
-    SSL_PROXY_VERIFY = (
-        ('none', 'none'),
-        ('optional', 'optional'),
-        ('require', 'require'),
-    )
-    ACTIONS = (
-        ('nothing', 'nothing'),
-        ('template', 'template'),
-        ('log', 'log'),
-        ('message', 'message'),
-        ('redirect', 'redirect'),
-        ('script', 'script'),
-        )
-    RESTRICTED_ACTIONS = (
-        ('message', 'message'),
-        ('redirect', 'redirect'),
-        ('script', 'script'),
-        )
     name = models.CharField(max_length=128,unique=1)
     url = models.CharField(max_length=256)
     intf = models.ManyToManyField('Intf',db_table='app_intf')
@@ -427,26 +399,15 @@ class App(models.Model):
     logon_url = models.CharField(max_length=128,null=1,blank=1)
     logout_url = models.CharField(max_length=128,null=1,blank=1)
     up = models.BooleanField(default=1)
-    remote_proxy = models.URLField(blank=1, null=1, verify_exists=0)
-    remote_proxy_SSLProxyMachineCertificateFile = models.CharField(max_length=512, blank=1, null=1)
-    remote_proxy_SSLProxyCACertificateFile = models.CharField(max_length=512, blank=1, null=1)
-    remote_proxy_SSLProxyCARevocationFile = models.CharField(max_length=512, blank=1, null=1)
-    remote_proxy_SSLProxyVerify = models.CharField(max_length=10,blank=1,choices=SSL_PROXY_VERIFY)
     timeout = models.IntegerField(null=1,blank=1)
     auth= models.ManyToManyField('Auth',null=1,blank=1,db_table='auth_multiple')
     auth_basic = models.BooleanField(default=0)
-    display_portal = models.BooleanField()
-    login_failed_action = models.CharField(max_length=128, blank=1, null=1, choices=RESTRICTED_ACTIONS, default='template')
-    login_failed_options = models.CharField(max_length=128, blank=1, null=1)
-    need_change_pass_action = models.CharField(max_length=128, blank=1, null=1, choices=ACTIONS, default='nothing')
-    need_change_pass_options = models.CharField(max_length=128, blank=1, null=1)
-    acl_failed_action = models.CharField(max_length=128, blank=1, null=1, choices=RESTRICTED_ACTIONS, default='template')
-    acl_failed_options = models.CharField(max_length=128, blank=1, null=1)
     acl = models.ForeignKey('ACL',null=1,blank=1)
     rewrite = models.CharField(max_length=100,blank=1)
     proxy_config =  models.CharField(max_length=100,blank=1)
     follow_post = models.CharField(max_length=1,blank=1)
     no_cookie_mode = models.BooleanField(default=0)
+    display_portal = models.BooleanField()
     sso_forward = models.ForeignKey('SSO',null=1,blank=1)
     appearance = models.ForeignKey('Appearance', blank=1, null=1)
     canonicalise_url = models.BooleanField(default=1)
@@ -592,7 +553,6 @@ class LDAP(models.Model):
     group_member = models.CharField(max_length=32, blank=1, null=1)
     are_members_dn = models.BooleanField()
     url_attr = models.CharField(max_length=32, blank=1)
-    chpass_attr = models.CharField(max_length=32, blank=1)
     def search(self, base_dn, scope, filter, attr):
         result_set = []
         try:
@@ -743,6 +703,15 @@ def personalTitles():
     
 def getAllIntfs():
     return Intf.objects.all()
+
+class User(models.Model):
+    username = models.CharField(max_length=128,unique=1)
+    password = models.CharField(max_length=128,blank=1)
+    is_admin = models.BooleanField()
+    def __str__(self):
+        return self.username
+    class Meta:
+        db_table = 'user'
 
 class CSS(models.Model):
     name = models.CharField(max_length=128, unique=1)
