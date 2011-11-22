@@ -112,7 +112,33 @@ sub handler {
             return $ret if($ret or (uc(@$row[1]) eq "STATIC") or (uc(@$row[1]) eq "SAML") or (uc(@$row[1]) eq "LOGOUT") or (uc(@$row[1]) eq "CAS"));
 		}
 	}	
+	#Rewrite content
+    my $query = 'SELECT pattern, type, options, options1 FROM plugincontent WHERE (app_id = ?  OR app_id IS NULL) AND sense = "Output" ORDER BY type';
+    $log->debug($query);
+	my $plugins = $dbh->selectall_arrayref($query, undef, $app->{id});
+	my $i = 0;
+	$log->debug($plugins);
+	foreach my $row (@$plugins) {
+		$r->pnotes('type'.$i => @$row[1]);
+		$r->pnotes('exp'.$i => @$row[0]);
+		$r->pnotes('options'.$i => @$row[2]);
+		$r->pnotes('options1'.$i => @$row[3]);
+			
+		$i++;
+            
+ 	}
+	$log->debug($module_name);
+	if ($r->pnotes('type0')) {
+		my $module_name;
+		$module_name = 'Plugin::Plugin_REWRITE_CONTENT';
 
+		$log->debug("Load $module_name");
+    
+        #Calling associated plugin
+		load $module_name;
+
+		my $ret = $module_name->plugin($r, $log, $dbh, $intf, $app);
+	}
 	#If application exists and is not down, check auth
 	if($app and $app->{'up'}){
 		my $proxy_url;

@@ -829,3 +829,25 @@ class Appearance(models.Model):
 
     class Meta:
         db_table = 'style_style'
+
+class Plugincontent(models.Model):
+    PLUGIN_TYPES = (
+	('Header Add', 'Header Add'),
+    ('Header Modify', 'Header Modify'),
+	('Header Replacement', 'Header Replacement'),
+    ('Mime Forbiden', 'Mime Forbiden'),
+    ('Header Unset','Header Unset'),
+    ('Header to link','Header to link'),
+    ('Header to proxy','Header to proxy'),
+    ('Rewrite Content','Rewrite Content'),
+    ('Rewrite Link','Rewrite Link'),
+    )
+    app = models.ForeignKey(App,null=1,blank=1)
+    pattern = models.CharField(max_length=200)
+    type = models.CharField(max_length=20, choices=PLUGIN_TYPES)
+    options = models.CharField(max_length=200, null=1, blank=1)
+    options1 = models.CharField(max_length=200, null=1, blank=1)
+    def __str__(self):
+        return self.type + ' - ' + self.pattern
+    class Meta:
+        db_table = 'plugincontent'
