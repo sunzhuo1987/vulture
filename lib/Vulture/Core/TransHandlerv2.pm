@@ -113,7 +113,7 @@ sub handler {
 		}
 	}	
 	#Rewrite content
-    my $query = 'SELECT pattern, type, options, options1 FROM plugincontent WHERE (app_id = ?  OR app_id IS NULL) AND sense = "Output" ORDER BY type';
+    my $query = 'SELECT pattern, type, options, options1 FROM plugincontent WHERE (app_id = ?  OR app_id IS NULL) ORDER BY type';
     $log->debug($query);
 	my $plugins = $dbh->selectall_arrayref($query, undef, $app->{id});
 	my $i = 0;
