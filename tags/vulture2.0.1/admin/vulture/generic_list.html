@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load getattribute %}
+
+{% block title %}
+	{% trans category|title %} - <small>{% blocktrans with name|title as name_t %}{{ name_t }} list{% endblocktrans %}</small>
+{% endblock %}
+
+{% block tabs %}
+    <li><a href="#" id="main_tab_1" class="active">{% trans "List" %}</a></li>
+    <li><a href="{{ url }}/new/">{% trans "Add" %}</a></li>
+{% endblock %}
+
+{% block content %}
+	<div id="main_content_1" class="main_content">
+        <table>
+            <tr>
+                {% if not noname %}<th>{% trans "Name" %}</th>{% endif %}
+                {% for tuple in fields %}
+                    <th>{% trans tuple.1|title %}</th>
+                {% endfor %}
+                <th style="width: 32px"></th>
+            </tr>
+            {% for object in object_list %}
+                <tr>
+                    {% if not noname %}<td>{{ object.name }}</td>{% endif %}
+                    {% for tuple in fields %}
+                        <td>{{ object|getattribute:tuple.0 }}</td>
+                    {% endfor %}
+                    <td><a href="{{ url }}/{{ object.id }}/del/"><img src="/img/vulture2/trash.png" alt="delete" /></a><a href="{{ url }}/{{ object.id }}"><img src="/img/vulture2/edit.png" alt="edit" /></a>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="5" style="text-align:center;">{% trans "The list is empty. You can add an item " %}<a href="{{ url }}/new/">{% trans "here" %}</a></td></tr>
+            {% endfor %}
+        </table>
+    </div>
+{% endblock %}
