@@ -144,7 +144,7 @@ sub handler {
 			my $parsed_uri = $f->r->construct_url();
 			my $encoding = $f->r->headers_out->{'Content-Encoding'} || '';
 				# if Content-Encoding  (coming from app): gzip,deflate try to uncompress
-			if ($encoding =~ /gzip|deflate/) {
+			if ($encoding =~ /gzip|deflate|x-compress|x-gzip/) {
 				use IO::Uncompress::AnyInflate qw(anyinflate $AnyInflateError) ;
 				my $output = '';
 				anyinflate  \$ctx->{data} => \$output or print STDERR "anyinflate failed: $AnyInflateError\n";
@@ -171,12 +171,12 @@ sub handler {
 				}
 			}
 
-			if ($encoding =~ /gzip/) {
+			if ($encoding =~ /gzip|x-gzip/) {
 				use IO::Compress::Gzip qw(gzip $GzipError) ;
 				my $output = '';
 				my $status = gzip \$ctx->{data} => \$output or die "gzip failed: $GzipError\n";
 				$ctx->{data} = $output;
-			} elsif ($encoding =~ /deflate/) {
+			} elsif ($encoding =~ /deflate|x-compress/) {
 				use IO::Compress::Deflate qw(deflate $DeflateError) ;
 				my $output = '';
 				my $status = deflate \$ctx->{data} => \$output or die "deflate failed: $DeflateError\n";
