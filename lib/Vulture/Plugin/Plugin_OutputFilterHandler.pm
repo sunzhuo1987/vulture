@@ -142,8 +142,8 @@ sub handler {
 		if ($f->seen_eos) { 
 			# Skip content that should not have links
 			my $parsed_uri = $f->r->construct_url();
-			my $encoding = $f->r->headers_in->{'Accept-Encoding'} || '';
-				# if Accept-Encoding: gzip,deflate try to uncompress
+			my $encoding = $f->r->headers_out->{'Content-Encoding'} || '';
+				# if Content-Encoding  (coming from app): gzip,deflate try to uncompress
 			if ($encoding =~ /gzip|deflate/) {
 				use IO::Uncompress::AnyInflate qw(anyinflate $AnyInflateError) ;
 				my $output = '';
