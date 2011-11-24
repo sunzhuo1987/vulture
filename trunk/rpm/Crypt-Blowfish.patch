@@ -1,0 +1,14 @@
+diff -ruN Crypt-Blowfish-2.12.ori/_blowfish.c Crypt-Blowfish-2.12/_blowfish.c
+--- Crypt-Blowfish-2.12.ori/_blowfish.c	2010-02-15 18:47:06.000000000 +0100
++++ Crypt-Blowfish-2.12/_blowfish.c	2011-09-27 14:05:52.000000000 +0200
+@@ -20,6 +20,10 @@
+ */
+ 
+ #include <string.h>
++#include <strings.h>
++#include <unistd.h>
++#include <sys/socket.h>
++#include <stdio.h>
+ 
+ /* Define IntU32 to be an unsigned in 32 bits long */
+ typedef unsigned int IntU32 ;
