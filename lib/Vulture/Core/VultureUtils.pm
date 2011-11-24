@@ -1,7 +1,7 @@
 #file:Core/VultureUtils.pm
 #-------------------------
 package Core::VultureUtils;
-our $VERSION = '2.0.1';
+our $VERSION = '2.0.2';
 
 BEGIN {
     use Exporter ();
@@ -11,23 +11,21 @@ BEGIN {
 
 use Apache::Session::Generate::MD5;
 use Apache::Session::Flex;
-use DBI;
-use Apache2::Log;
 use Apache2::Reload;
+
+use Core::Config qw(&get_key);
+
+use DBI;
+
 use Cache::Memcached;
 use APR::Table;
-
-use Data::Dumper;
 
 our ($memd);
 
 sub	version_check {
-	my ($dbh, $log) = @_;
-	
-	#Querying database and compare with VERSION defined in the head of this file
-	my $query = "SELECT count(*) FROM conf WHERE var='version' AND value='".$VERSION."'";
-	$log->debug($query);
-	return ($dbh->selectrow_array($query));
+	my ($config) = @_;
+	#Get config and compare with VERSION defined in the head of this file
+	return ($config->get_key('version') eq $VERSION);
 }
 
 sub	get_memcached {
@@ -125,7 +123,7 @@ sub	get_app {
 
     #Getting app
     return {} unless ($host and $intf and $dbh);
-    $query = "SELECT app.id, app.name, app.url, app.log_id, app.sso_forward_id AS sso_forward, app.logon_url, app.logout_url, intf.port, intf.remote_proxy, app.up, app.auth_basic, app.display_portal, app.canonicalise_url, app.timeout, app.update_access_time FROM app, intf, app_intf WHERE app_intf.intf_id= ? AND app.id = app_intf.app_id AND app.name = ? AND intf.id= ?";
+    $query = "SELECT app.id, app.name, app.url, app.log_id, app.sso_forward_id AS sso_forward, app.logon_url, app.logout_url, intf.port, app.remote_proxy, app.up, app.auth_basic, app.display_portal, app.canonicalise_url, app.timeout, app.update_access_time FROM app, intf, app_intf WHERE app_intf.intf_id= ? AND app.id = app_intf.app_id AND app.name = ? AND intf.id= ?";
 	$log->debug($query);
 	$sth = $dbh->prepare($query);
 	$sth->execute($intf, $host, $intf);
@@ -136,7 +134,7 @@ sub	get_app {
     #Getting auth
     $query = "SELECT auth.name, auth.auth_type, auth.id_method FROM auth, auth_multiple WHERE auth_multiple.app_id = ? AND auth_multiple.auth_id = auth.id";
     $log->debug($query);
-    $ref->{'auth'} = $dbh->selectall_arrayref($query, {}, $ref->{id});
+    $ref->{'auth'} = $dbh->selectall_arrayref($query, undef, $ref->{id});
 
     #Getting ACL
     $query = "SELECT acl.id, acl.name, auth.auth_type AS acl_type, auth.id_method FROM acl, auth, app WHERE app.id = ? AND acl.id = app.acl_id AND auth.id = acl.auth_id";
@@ -173,7 +171,7 @@ sub	get_intf {
     #Getting auth (CAS)
     $query = "SELECT auth.name, auth.auth_type, auth.id_method FROM auth, intf_auth_multiple WHERE intf_auth_multiple.intf_id = ? AND intf_auth_multiple.auth_id = auth.id";
     $log->debug($query);
-    $ref->{'auth'} = $dbh->selectall_arrayref($query, {}, $ref->{id});
+    $ref->{'auth'} = $dbh->selectall_arrayref($query, undef, $ref->{id});
 	return $ref;
 }
 

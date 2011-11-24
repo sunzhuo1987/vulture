@@ -2,6 +2,12 @@
 #-------------------------
 package Core::Config;
 
+BEGIN {
+    use Exporter ();
+    our @ISA = qw(Exporter);
+    our @EXPORT_OK = qw(&new &get_key);
+}
+
 use DBI;
 
 sub new {
@@ -17,9 +23,9 @@ sub new {
 	return ($self);
 }
 
-sub getKey {
+sub get_key {
 	my ($self, $key) = @_;
 	
-	return $self->{'config'}->{$key}->{'value'} ? $self->{'config'}->{$key}->{'value'} : '';
+	return $self->{'config'}->{$key}->{'value'} ? $self->{'config'}->{$key}->{'value'} : undef;
 }
 1;

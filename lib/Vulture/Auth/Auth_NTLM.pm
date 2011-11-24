@@ -182,10 +182,10 @@ sub checkAuth{
         $log->debug("Auth_NTLM: Reusing connexion");
     }
 
-    my $query = "SELECT * FROM ntlm WHERE id='".$id_method."'";
+    my $query = "SELECT * FROM ntlm WHERE id= ?";
     my $sth = $dbh->prepare($query);
     $log->debug($query);
-    $sth->execute;
+    $sth->execute($id_method);
     my $ref = $sth->fetchrow_hashref;
     $sth->finish();
 
