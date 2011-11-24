@@ -2,6 +2,12 @@
 #-------------------------
 package Core::Log;
 
+BEGIN {
+    use Exporter ();
+    our @ISA = qw(Exporter);
+    our @EXPORT_OK = qw(&new &emerg &alert &crit &error &warn &notice &info &debug);
+}
+
 use Apache2::Log;
 use Apache2::Reload;
 

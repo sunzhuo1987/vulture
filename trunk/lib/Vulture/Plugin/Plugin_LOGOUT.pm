@@ -62,10 +62,10 @@ sub plugin{
                 notify($dbh, $id_app, $session_SSO{username}, 'deconnection', scalar(keys %users));
 				
 				#Getting url to logout
-				my $query = "SELECT url, remote_proxy, logout_url FROM app, intf WHERE app.name = '".$current_app{app_name}."' AND intf.id = '".$intf->{id}."'";
+				my $query = "SELECT url, remote_proxy, logout_url FROM app, intf WHERE app.name = ? AND intf.id = ?";
 				$log->debug($query);
                 my $sth = $dbh->prepare($query);
-				$sth->execute;
+				$sth->execute($current_app{app_name}, $intf->{id});
 				my ($url, $remote_proxy, $logout_url) = $sth->fetchrow_array;
                 if ($url and $logout_url){
 					#Setting fake user agent

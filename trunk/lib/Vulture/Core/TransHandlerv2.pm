@@ -3,7 +3,6 @@
 package Core::TransHandlerv2;
 
 use Apache2::Reload;
-use Apache2::Log;
 use Apache2::Response ();
 use Apache2::RequestRec ();
 use Apache2::RequestIO ();
@@ -12,7 +11,8 @@ use Apache::SSLLookup;
 use Apache2::Const -compile => qw(OK DECLINED FORBIDDEN REDIRECT DONE NOT_FOUND);
 
 use Core::VultureUtils qw(&get_app &get_intf &version_check &get_cookie &session &get_translations &get_style);
-use Core::Log;
+use Core::Log qw(&new &debug &error);
+use Core::Config qw(&new);
 
 use APR::URI;
 use APR::Table;
@@ -50,17 +50,21 @@ sub handler {
 	my $protocol = $r->protocol();
 	my $dbh = DBI->connect($r->dir_config('VultureDSNv3'));
 
+    #Calling config functions
+    my $config = Core::Config->new($dbh);
+    
     #Calling log functions
 	my $log = Core::Log->new($r);
 
 	#Sending db handler to next Apache Handlers
 	$r->pnotes('dbh' => $dbh);
 	$r->pnotes('log' => $log);
+    $r->pnotes('config' => $config);
 
 	$log->debug("########## TransHandler ##########");
 
 	#Version check
-	if (!version_check($dbh, $log)){
+	unless (version_check($config)){
 		$log->error("Database version is not up-to-date. Can't load Vulture. Please check versions");
 		return Apache2::Const::FORBIDDEN;	
 	} else {
@@ -159,13 +163,13 @@ sub handler {
 		    $r->pnotes('url_to_mod_proxy' => $proxy_url) unless $r->pnotes('url_to_mod_proxy');
 		    
 		    #Getting headers to forward
-			my $sth = $dbh->prepare("SELECT name, type, value FROM header WHERE app_id='".$app->{id}."'");
+			my $sth = $dbh->prepare("SELECT name, type, value FROM header WHERE app_id= ?");
 			my $parsed_uri = APR::URI->parse($r->pool, $app->{'url'});
 			my $host = $parsed_uri->hostname ;
 	
             #Replace host
 			$r->headers_in->set("Host" => $host);
-            $sth->execute;
+            $sth->execute($app->{id});
             while (my ($name, $type, $value) = $sth->fetchrow) {
                 if ($type eq "REMOTE_ADDR"){
 	                $value = $r->connection->remote_ip;
@@ -214,13 +218,13 @@ sub handler {
 			}
 			
 			#Getting headers to forward
-		    my $sth = $dbh->prepare("SELECT name, type, value FROM header WHERE app_id='".$app->{id}."'");
+		    my $sth = $dbh->prepare("SELECT name, type, value FROM header WHERE app_id= ?");
 			my $parsed_uri = APR::URI->parse($r->pool, $app->{'url'});
             my $host = $parsed_uri->hostname ;
 
             #Replace host
 			$r->headers_in->set("Host" => $host);
-            $sth->execute;
+            $sth->execute($app->{id});
             while (my ($name, $type, $value) = $sth->fetchrow) {
                 if ($type eq "REMOTE_ADDR"){
 	                $value = $r->connection->remote_ip;

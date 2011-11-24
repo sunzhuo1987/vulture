@@ -19,6 +19,8 @@ use Core::VultureUtils qw(&get_DB_object &get_LDAP_object);
 use Net::LDAP;
 use DBI;
 
+use Data::Dumper;
+
 BEGIN {
     use Exporter ();
     @ISA = qw(Exporter);
@@ -30,15 +32,47 @@ sub get_profile{
     
     $log->debug("########## Profile Manager ##########");
     
+    my $user = $r->pnotes('username') || $r->user;
+	my $password = $r->pnotes('password');
+    
+    #Return hash with all values (profile + fields like autologon_ or hidden)
+    my $return = {};
+    
+    #Getting specials fields like "autologon_* or hidden fields"
+    my $query = "SELECT field_var, field_type, field_encrypted, field_value, field_prefix, field_suffix FROM field, sso, app WHERE field.sso_id = sso.id AND sso.id = app.sso_forward_id AND app.id=? AND (field_type = 'autologon_password' OR field_type = 'autologon_user' OR field_type = 'hidden')";
+	$log->debug($query);
+    my $sth = $dbh->prepare($query);
+	$sth->execute($app->{id});
+    
+	#Adding data to post variable
+    #URI encoding is needed
+	my $ref = $sth->fetchall_arrayref;
+    $sth->finish();
+	foreach my $row (@{$ref}) {
+        $log->debug(Dumper($row));
+        my ($var, $type, $need_decryption, $value, $field_prefix, $field_suffix) = @$row;
+		if($type eq 'autologon_user'){
+            $return->{$var} = $field_prefix.$user.$field_suffix;
+        } elsif($type eq 'autologon_password'){
+            $return->{$var} = $field_prefix.$password.$field_suffix;
+        } else {
+		    if($need_decryption){
+		        $log->debug("Decrypting $var");
+                $value = decrypt($value);
+		    }
+            $return->{$var} = $field_prefix.$value.$field_suffix;        
+        }
+	}
+    
     #Getting auth type related to profile manager
-    my $sth = $dbh->prepare("SELECT auth.auth_type AS type, auth.id_method, sso.table_mapped, sso.base_dn_mapped, sso.app_mapped, sso.user_mapped FROM auth, sso, app WHERE app.id='".$app->{id}."' AND sso.id = app.sso_forward_id AND auth.id = sso.auth_id");
-    $sth->execute;
+    $sth = $dbh->prepare("SELECT auth.auth_type AS type, auth.id_method, sso.table_mapped, sso.base_dn_mapped, sso.app_mapped, sso.user_mapped FROM auth, sso, app WHERE app.id = ? AND sso.id = app.sso_forward_id AND auth.id = sso.auth_id");
+    $sth->execute($app->{id});
     my $result = $sth->fetchrow_hashref;
     $sth->finish();
     
     #Getting fields to retrieve
-    my $sql = "SELECT field.field_var, field.field_mapped, field.field_encrypted FROM field, sso, app WHERE field.sso_id = sso.id AND sso.id = app.sso_forward_id AND app.id=? AND field.field_type != 'autologon_user' AND field.field_type != 'autologon_password' AND field.field_type != 'hidden'";
-	my $sth = $dbh->prepare($sql);
+    $query = "SELECT field_var, field_mapped, field_encrypted, field_value, field_prefix, field_suffix FROM field, sso, app WHERE field.sso_id = sso.id AND sso.id = app.sso_forward_id AND app.id=? AND field.field_type != 'autologon_user' AND field.field_type != 'autologon_password' AND field.field_type != 'hidden'";
+	$sth = $dbh->prepare($query);
 	$sth->execute($app->{id});
 	my @fields =  @{$sth->fetchall_arrayref};
     $sth->finish();
@@ -56,23 +90,22 @@ sub get_profile{
             my $ref = $sth->fetchrow_hashref;
             $sth->finish();
             $new_dbh->disconnect;
-            
-            my $return = {};
 
             #Parse fields to get values
 	        foreach my $field (@fields) {
-	            my ($var, $mapping, $need_decryption) = @$field;
+	            my ($var, $mapping, $need_decryption, $value, $field_prefix, $field_suffix) = @$field;
 	            
 	            if(defined $ref->{$mapping}){
 	                #Decryption is needed
 	                if($need_decryption){
-	                    $return->{$var} = decrypt($r, $ref->{$mapping});
+	                    $return->{$var} = $field_prefix.decrypt($r, $ref->{$mapping}).$field_suffix;
 	                } else {
-	                    $return->{$var} = $ref->{$mapping};
+	                    $return->{$var} = $field_prefix.$ref->{$mapping}.$field_suffix;
 	                }
+                } else {
+                    $return->{$var} = $field_prefix.$value.$field_suffix;
                 }
 	        }
-	        
             return $return;
             
         #LDAP
@@ -98,20 +131,23 @@ sub get_profile{
 	        }
             
             #User found. Get property and return ref
-            my %return_hash;
             foreach my $field (@fields) {
-                my ($var, $mapping, $need_decryption) = @$field;
+                my ($var, $mapping, $need_decryption, $value, $field_prefix, $field_suffix) = @$field;
                 $log->debug("Checking access for property $mapping");
                 if($entry->exists($mapping)){
-                    $return_hash{$var} = $entry->get_value($mapping);
+                    $return->{$var} = $field_prefix.$entry->get_value($mapping).$field_suffix;
+                } else {
+                    $return->{$var} = $field_prefix.$value.$field_suffix;
                 }
             }
-            return \%return_hash;
+            return $return;
         } else {
         
         }
+        
+    # Only hidden fields or autologon_
     } else {
-        return undef;
+        return $return;
     }
 }
 
@@ -121,8 +157,8 @@ sub set_profile{
     $log->debug("########## Profile Manager ##########");
     
     #Getting auth type related to profile manager
-    my $sth = $dbh->prepare("SELECT auth.auth_type AS type, auth.id_method, sso.table_mapped, sso.base_dn_mapped, sso.app_mapped, sso.user_mapped FROM auth, sso, app WHERE app.id='".$app->{id}."' AND sso.id = app.sso_forward_id AND auth.id = sso.auth_id");
-    $sth->execute;
+    my $sth = $dbh->prepare("SELECT auth.auth_type AS type, auth.id_method, sso.table_mapped, sso.base_dn_mapped, sso.app_mapped, sso.user_mapped FROM auth, sso, app WHERE app.id = ? AND sso.id = app.sso_forward_id AND auth.id = sso.auth_id");
+    $sth->execute($app->{id});
     my $result = $sth->fetchrow_hashref;
     $sth->finish();
     

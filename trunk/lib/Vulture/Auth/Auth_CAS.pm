@@ -23,10 +23,10 @@ sub checkAuth{
 	$log->debug("########## Auth_CAS ##########");
 
     #Get CAS infos
-	my $query = "SELECT * FROM cas WHERE id='".$id_method."'";
+	my $query = "SELECT * FROM cas WHERE id= ?";
     my $sth = $dbh->prepare($query);
     $log->debug($query);
-    $sth->execute;
+    $sth->execute($id_method);
     my $ref = $sth->fetchrow_hashref;
     $sth->finish();
 

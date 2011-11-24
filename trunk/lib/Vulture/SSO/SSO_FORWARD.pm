@@ -10,7 +10,9 @@ use Apache2::Log;
 use Apache2::Reload;
 
 use LWP::UserAgent;
+use WWW::Mechanize;
 use HTTP::Request;
+use HTML::Form;
 
 use Apache2::Const -compile => qw(OK REDIRECT);
 
@@ -24,13 +26,13 @@ use APR::URI;
 use APR::Table;
 use APR::SockAddr;
 
-use URI::Escape;
+use Data::Dumper;
 
-sub triggerAction{
+sub handle_action{
     my ($r, $log, $dbh, $app, $response) = @_;
     
     my($query, $type, $options);
-    $query = 'SELECT is_in_url, is_in_url_action, is_in_url_options, is_in_page, is_in_page_action, is_in_page_options FROM sso, app WHERE app.id=? AND sso.id = app.sso_forward_id';
+    $query = 'SELECT is_in_url, is_in_url_action, is_in_url_options, is_in_page, is_in_page_action, is_in_page_options FROM sso, app WHERE app.id = ? AND sso.id = app.sso_forward_id';
     my $sth = $dbh->prepare($query);
 	$sth->execute($app->{id});
 	my ($is_in_url, $is_in_url_action, $is_in_url_options, $is_in_page, $is_in_page_action, $is_in_page_options) = $sth->fetchrow;
@@ -48,18 +50,18 @@ sub triggerAction{
     } else{
         # 10x headers
         if ($response->is_info){
-            $query = 'SELECT is_info, is_info_options FROM sso, app WHERE app.id=? AND sso.id = app.sso_forward_id';
+            $query = 'SELECT is_info, is_info_options FROM sso, app WHERE app.id = ? AND sso.id = app.sso_forward_id';
         # 20x headers
         } elsif ($response->is_success){
-            $query = 'SELECT is_success, is_success_options FROM sso, app WHERE app.id=? AND sso.id = app.sso_forward_id';
+            $query = 'SELECT is_success, is_success_options FROM sso, app WHERE app.id = ? AND sso.id = app.sso_forward_id';
 
         # 30x headers
         } elsif ($response->is_redirect) { 
-            $query = 'SELECT is_redirect, is_redirect_options FROM sso, app WHERE app.id=? AND sso.id = app.sso_forward_id';
+            $query = 'SELECT is_redirect, is_redirect_options FROM sso, app WHERE app.id = ? AND sso.id = app.sso_forward_id';
         
         # 40x and 50x headers
         } elsif ($response->is_error) {
-            $query = 'SELECT is_error, is_error_options FROM sso, app WHERE app.id=? AND sso.id = app.sso_forward_id';
+            $query = 'SELECT is_error, is_error_options FROM sso, app WHERE app.id = ? AND sso.id = app.sso_forward_id';
         # No action defined
         }
         
@@ -76,7 +78,11 @@ sub triggerAction{
         $log->debug($type.' => '.$options);
         if($type eq 'message'){
             $r->content_type('text/html');
-            $r->print($options);
+            if($options){
+                $r->print($options);
+            } else {
+                $r->print($response->as_string);
+            }
             return Apache2::Const::OK;
         } elsif($type eq 'log'){
             $log->debug('Response from app : '.$response->as_string);
@@ -138,57 +144,43 @@ sub forward{
 	$sth->finish();
 	$log->debug("SSO_FORWARD_TYPE=".$sso_forward_type);
 
-	my $post = '';
-	#Getting fields from profile
-    #URI encoding is needed
-	my %results = %{get_profile($r, $log, $dbh, $app, $user)};
-	if (%results){
-	    while (($key, $value) = each(%results)){
-	        $post .= uri_escape($key)."=".uri_escape($value)."&";
-	    }
-    }
-
-    #Getting specials fields like "autologon_*"
-    $query = "SELECT field_var, field_type, field_encrypted, field_value FROM field, sso, app WHERE field.sso_id = sso.id AND sso.id = app.sso_forward_id AND app.id=? AND (field_type = 'autologon_password' OR field_type = 'autologon_user' OR field_type = 'hidden')";
-	$log->debug($query);
-    my $sth = $dbh->prepare($query);
-	$sth->execute($app->{id});
-
-	#Adding data to post variable
-    #URI encoding is needed
-	my $ref = $sth->fetchall_arrayref;
-    $sth->finish();
-	foreach my $row (@{$ref}) {
-        my ($var, $type, $need_decryption, $value) = @$row;
-		if($type eq 'autologon_user'){
-            $post .= uri_escape($var)."=".uri_escape($user)."&";
-        } elsif($type eq 'autologon_password'){
-            $post .= uri_escape($var)."=".uri_escape($password)."&";
-        } else {
-		    if($need_decryption){
-		        $log->debug("Decrypting $var");
-                $value = decrypt($value);
-		    }
-            $post .= uri_escape($var)."=".uri_escape($value)."&";        
-        }
-	}
-    $sth->finish();
-    $log->debug("Due to CONFIDENTIALITY REASONS, posted string have been removed from debug");
-
 	#Setting browser
-	my ($ua, $response, $request);
-	$ua = LWP::UserAgent->new;
+	my ($mech, $response, $request);
+    $mech = WWW::Mechanize->new;
 
 	#Setting proxy if needed
 	if ($app->{remote_proxy} ne ''){
-		$ua->proxy(['http', 'https'], $app->{remote_proxy});
+		$mech->proxy(['http', 'https'], $app->{remote_proxy});
 	}
 
-	#Setting request
-	$request = HTTP::Request->new('POST', $app->{url}.$app->{logon_url}, undef, $post);
-
-	#Setting headers
-	$request->push_header('Content-Type' => 'application/x-www-form-urlencoded');
+    #Get the form page
+    my $response = $mech->get($app->{url}.$app->{logon_url});
+    
+    #Get profile
+    my %results = %{get_profile($r, $log, $dbh, $app, $user)};
+    
+    $log->debug(Dumper(%results));
+    
+    #Get form which contains fields set in admin
+    $form = $mech->form_with_fields(keys %results) if %results;
+    #$log->debug(Dumper(\$form));
+    
+    #Fill form with profile
+	if (%results){
+	    while (($key, $value) = each(%results)){
+	        $mech->field($key, $value);
+	    }
+    }
+    
+    #Simulate click
+    $request = $form->click();
+    
+    #Setting headers
+    
+    #Cookies get from form page
+    $request->push_header('Cookie' => $response->headers->header('Set-Cookie'));
+    
+    #Push user-agent, etc.
 	$request->push_header('User-Agent' => $r->headers_in->{'User-Agent'});
 	
 	my $parsed_uri = APR::URI->parse($r->pool, $app->{'url'});
@@ -209,11 +201,10 @@ sub forward{
 
     $request->push_header('X-Forwarded-Host' => $r->hostname());
     $request->push_header('X-Forwarded-Server' => $r->hostname());
-			       
 
     #Getting custom headers defined in admin
-    my $sth = $dbh->prepare("SELECT name, type, value FROM header WHERE app_id='".$app->{id}."'");
-    $sth->execute;
+    my $sth = $dbh->prepare("SELECT name, type, value FROM header WHERE app_id = ?");
+    $sth->execute($app->{id});
     while (my ($name, $type, $value) = $sth->fetchrow) {
         if ($type eq "REMOTE_ADDR"){
 	        $value = $r->connection->remote_ip;
@@ -234,10 +225,13 @@ sub forward{
     if($sso_forward_type eq 'sso_forward_htaccess'){
         $request->push_header('Authorization' => "Basic " . encode_base64($user.':'.$password));    
     }
-
-	#Make request and get response
-	$response = $ua->request($request);
-    $log->debug("Due to CONFIDENTIALITY REASONS, response have been removed from debug");	
+    
+    $log->debug($request->as_string);
+        
+    #Send request (POST)
+    $response = $mech->request($request);
+    
+    $log->debug($response->as_string);
 
 	#Cookie coming from response
 	my %cookies_app;
@@ -260,6 +254,6 @@ sub forward{
 	}
     
     #trigger action needed
-    return triggerAction($r, $log, $dbh, $app, $response);
+    return handle_action($r, $log, $dbh, $app, $response);
 }
 1;

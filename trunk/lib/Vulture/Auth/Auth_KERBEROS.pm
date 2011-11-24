@@ -17,10 +17,10 @@ sub checkAuth{
 	$log->debug("########## Auth_KERBEROS ##########");
 
     #Get infos
-	my $query = "SELECT * FROM kerberos WHERE id='".$id_method."'";
+	my $query = "SELECT * FROM kerberos WHERE id= ?";
     $log->debug($query);
     my $sth = $dbh->prepare($query);
-    $sth->execute;
+    $sth->execute($id_method);
     my $ref = $sth->fetchrow_hashref;
     $sth->finish();
 

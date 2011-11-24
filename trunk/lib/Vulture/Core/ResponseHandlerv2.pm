@@ -216,10 +216,10 @@ sub display_portal {
         my ($r,$log,$dbh, $app) = @_;
 
     my $intf_id = $r->dir_config('VultureID');
-        my $query = "SELECT app.name FROM app, app_intf WHERE app_intf.intf_id='$intf_id' AND app.id = app_intf.app_id";
+    my $query = "SELECT app.name FROM app, app_intf WHERE app_intf.intf_id=? AND app.id = app_intf.app_id";
     $log->debug($query);
 
-    my $all_apps = $dbh->selectall_arrayref($query);
+    my $all_apps = $dbh->selectall_arrayref($query, undef, $intf_id);
     
     #Get translations
     my $translations = get_translations($r, $log, $dbh, 'APPLICATION');

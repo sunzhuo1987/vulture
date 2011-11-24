@@ -16,9 +16,9 @@ sub checkAuth{
 
 	$log->debug("########## Auth_RADIUS ##########");
 
-	my $query = "SELECT host, port, secret, timeout FROM radius WHERE id='".$id_method."'";
+	my $query = "SELECT host, port, secret, timeout FROM radius WHERE id= ?";
 	my $sth = $dbh->prepare($query);
-	$sth->execute();
+	$sth->execute($id_method);
 	my ($host, $port, $secret, $timeout, $url_attr) = $sth->fetchrow;
 	my $radius = Authen::Radius->new(
 					 Host => $host.":".$port,
