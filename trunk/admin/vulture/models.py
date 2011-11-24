@@ -84,7 +84,7 @@ class Intf(models.Model):
         c = Context({"VultureConfPath" : settings.CONF_PATH,
                      "VultureStaticPath" : settings.MEDIA_ROOT,
                      "PerlSwitches" : settings.PERL_SWITCHES,
-                     "dbname" : settings.DATABASE_NAME,
+                     "dbname" : settings.DATABASES['default']['NAME'],
                      "serverroot" : settings.SERVERROOT,
                      "www_user" : settings.WWW_USER,
                      "httpd_custom" : settings.HTTPD_CUSTOM,
