@@ -1,0 +1,12 @@
+diff -ruN vulture-2.0.1.ori/admin/vulture_httpd.conf vulture-2.0.1/admin/vulture_httpd.conf
+--- vulture-2.0.1.ori/admin/vulture_httpd.conf	2011-11-04 17:18:15.000000000 +0100
++++ vulture-2.0.1/admin/vulture_httpd.conf	2011-11-08 23:23:03.000000000 +0100
+@@ -21,7 +21,7 @@
+ user {{ www_user }}
+ group {{ www_user }}
+ 
+-LoadFile			/usr/lib/libxml2.so.2
++LoadFile			/usr/lib64/libxml2.so.2
+ LoadModule perl_module		{{ serverroot }}/modules/mod_perl.so
+ {{ httpd_custom|safe }}
+ 

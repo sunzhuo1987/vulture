@@ -3,7 +3,7 @@ Requires: openssl python-ldap vulture-common >= 3
 Vendor: Advens
 %define release 1
 %define name vulture
-%define version 2.0.1
+%define version 2.0.2
 AutoReqProv: no
 
 Summary: Vulture Reverse Proxy
@@ -21,10 +21,15 @@ Patch0: http://arnaud.desmons.free.fr/pyOpenSSL-0.6-pkcs12.patch
 Patch1: http://arnaud.desmons.free.fr/pyOpenSSL-0.6-pkcs12_cafile.patch
 Patch2: http://arnaud.desmons.free.fr/pyOpenSSL-0.6-crl.patch
 Patch3: database_path.patch
+Patch4: rpm.patch
+Patch5: lib.patch
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildRequires: perl gcc gcc-c++ sqlite python-devel openssl-devel
-
+%if ! (0%{?fedora} > 12 || 0%{?rhel} > 5)
+%{!?python_sitelib: %global python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
+%{!?python_sitearch: %global python_sitearch %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(1))")}
+%endif
 %description
 Vulture Reverse Proxy
 
@@ -34,30 +39,20 @@ Vulture Reverse Proxy
 %patch1 -p0 -b .old
 %patch2 -p0 -b .old
 %patch3 -p0 -b .old
+%patch4 -p0 -b .old
+%ifarch x86_64
+%patch5 -p0 -b .old
+%endif
+
 
 %build
 	rm -rf $RPM_BUILD_ROOT
 	cd %name-%{version} &&\
-%if %(test -e /usr/bin/python2.4 && echo 1 || echo 0)
-	install -d -m0755 $RPM_BUILD_ROOT/usr/lib/python2.4/site-packages/
-	cd ../Django-1.3.1 && PYTHONPATH=$RPM_BUILD_ROOT/usr/lib/python2.4/site-packages/ \
-		python setup.py install --prefix=$RPM_BUILD_ROOT/usr
-	cd ../pyOpenSSL-0.6 && PYTHONPATH=$RPM_BUILD_ROOT/usr/lib/python2.4/site-packages/ \
-		python setup.py install --prefix=$RPM_BUILD_ROOT/usr
-%endif
-%if %(test -e /usr/bin/python2.5 && echo 1 || echo 0)
-	install -d -m0755 $RPM_BUILD_ROOT/usr/lib/python2.5/site-packages/
-	cd ../Django-1.3.1 && PYTHONPATH=$RPM_BUILD_ROOT/usr/lib/python2.5/site-packages/ \
-		python setup.py install --prefix=$RPM_BUILD_ROOT/usr
-	cd ../pyOpenSSL-0.6 && PYTHONPATH=$RPM_BUILD_ROOT/usr/lib/python2.5/site-packages/ \
-		python setup.py install --prefix=$RPM_BUILD_ROOT/usr
-%else
-	install -d -m0755 $RPM_BUILD_ROOT/usr/lib/python2.6/site-packages/
-        cd ../Django-1.3.1 && PYTHONPATH=$RPM_BUILD_ROOT/usr/lib/python2.6/site-packages/ \
-                python setup.py install --prefix=$RPM_BUILD_ROOT/usr
-        cd ../pyOpenSSL-0.6 && PYTHONPATH=$RPM_BUILD_ROOT/usr/lib/python2.6/site-packages/ \
-                python setup.py install --prefix=$RPM_BUILD_ROOT/usr
-%endif
+	install -d -m0755 $RPM_BUILD_ROOT%{serverroot}/%{name}%{python_sitearch}/
+	cd ../Django-1.3.1 && PYTHONPATH=$RPM_BUILD_ROOT%{serverroot}/%{name}%{python_sitearch}/ \
+		python setup.py install --prefix=$RPM_BUILD_ROOT%{serverroot}/%{name}/usr
+	cd ../pyOpenSSL-0.6 && PYTHONPATH=$RPM_BUILD_ROOT%{serverroot}/%{name}%{python_sitearch}/ \
+		python setup.py install --prefix=$RPM_BUILD_ROOT%{serverroot}/%{name}/usr
 
 
 %install
@@ -66,14 +61,18 @@ Vulture Reverse Proxy
      rm -f $RPM_BUILD_ROOT%{serverroot}/%{name}/lib/x86_64-linux-thread-multi/perllocal.pod
      rm -f $RPM_BUILD_ROOT%{serverroot}/%{name}/lib/i386-linux-thread-multi/perllocal.pod
      install -d -m0700 $RPM_BUILD_ROOT/etc/init.d
+	 %if 0%{?suse_version}
+     install -m0755 rpm/vulture.suse $RPM_BUILD_ROOT/etc/init.d/vulture
+     %else
      install -m0755 rpm/vulture $RPM_BUILD_ROOT/etc/init.d/vulture
+     %endif
      install -d -m0755 $RPM_BUILD_ROOT%{serverroot}/%{name}
      cp -r admin $RPM_BUILD_ROOT%{serverroot}/%{name}
      install -m0644 rpm/settings.py\
 	$RPM_BUILD_ROOT%{serverroot}/%{name}/admin/settings.py
      install -d -m0755 $RPM_BUILD_ROOT%{serverroot}/%{name}/conf
      install -m0644 rpm/httpd.conf\
-	$RPM_BUILD_ROOT%{serverroot}/%{name}/conf/httpd.conf
+	$RPM_BUILD_ROOT%{serverroot}/%{name}/conf/httpd-profiles.conf
      install -m0644 rpm/vulture.wsgi\
         $RPM_BUILD_ROOT%{serverroot}/%{name}/conf/vulture.wsgi
      install -m0644 conf/openssl.cnf\
@@ -93,6 +92,8 @@ Vulture Reverse Proxy
     fi
     /sbin/chkconfig --add vulture
     /etc/init.d/vulture start
+	PYTHONPATH=$PYTHONPATH:%{serverroot}/%{name}%{python_sitearch}/:%{serverroot}/%{name}%{python_sitelib}/
+	export PYTHONPATH 
     echo no | python %{serverroot}/%{name}/admin/manage.py syncdb
     if [ -f %{serverroot}/%{name}/admin/vulture/sql/log.sql ] ; then
         BASE_RULE=`%{serverroot}/%{name}/sqlite/bin/sqlite3 %{serverroot}/%{name}/admin/db "SELECT count(*) from log"`
@@ -104,6 +105,12 @@ Vulture Reverse Proxy
         BASE_RULE=`%{serverroot}/%{name}/sqlite/bin/sqlite3 %{serverroot}/%{name}/admin/db "SELECT count(*) from modsecurity"`
         if [ $BASE_RULE = 0 ]; then
             %{serverroot}/%{name}/sqlite/bin/sqlite3 %{serverroot}/%{name}/admin/db < %{serverroot}/%{name}/admin/vulture/sql/modsecurity.sql
+        fi
+    fi
+    if [ -f %{serverroot}/%{name}/admin/vulture/sql/user.sql ] ; then
+        BASE_RULE=`%{serverroot}/%{name}/sqlite/bin/sqlite3 %{serverroot}/%{name}/admin/db "SELECT count(*) from auth_user"`
+        if [ $BASE_RULE = 0 ]; then
+            %{serverroot}/%{name}/sqlite/bin/sqlite3 %{serverroot}/%{name}/admin/db < %{serverroot}/%{name}/admin/vulture/sql/user.sql
         fi
     fi
     chown apache. %{serverroot}/%{name}/admin/db
@@ -145,31 +152,32 @@ Vulture Reverse Proxy
 %{serverroot}/%{name}/bin
 %{serverroot}/%{name}/static
 %defattr(-,root,root)
+%{serverroot}/%{name}/usr
 %{serverroot}/%{name}/lib
 /etc/init.d/%{name}
-%if %(test -e /usr/bin/python2.4 && echo 1 || echo 0)
-/usr/lib/python2.4
-%ifarch x86_64
-/usr/lib64/python2.4
-%endif
-%endif
-%if %(test -e /usr/bin/python2.5 && echo 1 || echo 0)
-/usr/lib/python2.5
-%ifarch x86_64
-/usr/lib64/python2.5
-%endif
-%else
-/usr/lib/python2.6
-%ifarch x86_64
-/usr/lib64/python2.6
-%endif
-%endif
-%defattr(-,apache,apache,-)
-%exclude /usr/bin
+
 
 %changelog
+* Wed Nov 23 2011 Arnaud Desmons <logarno@gmail.com> 2.0.1-1
+- 2.0.2
+- New user management
+- Attach action to message such as LOGIN_FAILED, etc.
+- SSO Forward make one GET before POSTing infos (get pseudo-random token CSRF)
+- Parse SSO Forward response and do actions
+- New packaging DEB/RPM
+- New Config manager
+- Remote proxy belongs to app (no more to intf)
 * Fri Oct 7 2011 Arnaud Desmons <logarno@gmail.com> 2.0.1-1
 - 2.0.1
+- New graphical UI
+- Add VirtualHost directives
+- Add CAS client / Server
+- Fix bugs
+- Add templates such as ACL failed, app down, ...
+- Add event viewer
+- Export / Import configuration database
+- Translate graphical UI
+- Display help in graphical UI
 
 * Fri Jul 29 2011 Arnaud Desmons <logarno@gmail.com> 2.0-1
 - admin Django

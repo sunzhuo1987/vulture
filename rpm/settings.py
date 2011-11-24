@@ -8,28 +8,32 @@ ADMINS = (
 )
 
 MANAGERS = ADMINS
-
-DATABASE_ENGINE = 'sqlite3'           # 'postgresql', 'mysql', 'sqlite3' or 'ado_mssql'.
-DATABASE_NAME = '/opt/vulture/admin/db'              # Or path to database file if using sqlite3.
-DATABASE_USER = ''             # Not used with sqlite3.
-DATABASE_PASSWORD = ''         # Not used with sqlite3.
-DATABASE_HOST = ''             # Set to empty string for localhost. Not used with sqlite3.
-DATABASE_PORT = ''             # Set to empty string for default. Not used with sqlite3.
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
+        'NAME': '/opt/vulture/admin/db',                      # Or path to database file if using sqlite3.
+        'USER': '',                      # Not used with sqlite3.
+        'PASSWORD': '',                  # Not used with sqlite3.
+        'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
+        'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
+    }
+}
+FIXTURE_DIRS = (
+   '/opt/vulture/admin/fixtures/',
+)
 
 HTTPD_PATH = 'sudo /opt/vulture/httpd/bin/httpd'
 BIN_PATH = '/opt/vulture/bin/'
 
-
 CONF_PATH = '/opt/vulture/conf/'
 DATABASE_PATH = '/opt/vulture/admin/'
-BIN_PATH = '/opt/vulture/bin/'
 SERVERROOT = '/opt/vulture/httpd'
 HTTPD_CUSTOM = "\n\
 "
 
 WWW_USER='apache'
 
-PERL_SWITCHES = '-I/opt/vulture/lib/i386-linux-thread-multi -I/opt/vulture/lib/i386-linux-thread-multi/Vulture -I/opt/vulture/lib/i486-linux-thread-multi -I/opt/vulture/lib/i486-linux-gnu-thread-multi -I/opt/vulture/lib'
+PERL_SWITCHES = '-I/opt/vulture/lib/i386-linux-thread-multi -I/opt/vulture/lib/i386-linux-thread-multi/Vulture -I/opt/vulture/lib/x86_64-linux-thread-multi -I/opt/vulture/lib/i486-linux-thread-multi -I/opt/vulture/lib/i586-linux-thread-multi -I/opt/vulture/lib/i486-linux-gnu-thread-multi -I/opt/vulture/lib -I/opt/vulture/usr/local/lib64/perl5 -I/opt/vulture/usr/lib64/perl5/site_perl/5.8.8/x86_64-linux-thread-multi/Apache2'
 
 
 # Local time zone for this installation. All choices can be found here:
@@ -89,7 +93,7 @@ INSTALLED_APPS = (
 )
 
 AUTHENTICATION_BACKENDS = (
-    'vulture.auth.sql',
+   'vulture.auth.sql',
 )
 
 EMAIL_HOST='127.0.0.1'

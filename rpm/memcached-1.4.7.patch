@@ -1,0 +1,25 @@
+diff -ruN memcached-1.4.7.ori/memcached.c memcached-1.4.7/memcached.c
+--- memcached-1.4.7.ori/memcached.c	2011-08-10 17:45:37.000000000 +0200
++++ memcached-1.4.7/memcached.c	2011-09-27 08:30:12.000000000 +0200
+@@ -2356,15 +2356,18 @@
+ inline static void process_stats_detail(conn *c, const char *command) {
+     assert(c != NULL);
+ 
+-    if (strcmp(command, "on") == 0) {
++    char on[] = "on";
++    char off[] = "off";
++    char dump[] = "dump";
++    if (strcmp(command, on) == 0) {
+         settings.detail_enabled = 1;
+         out_string(c, "OK");
+     }
+-    else if (strcmp(command, "off") == 0) {
++    else if (strcmp(command, off) == 0) {
+         settings.detail_enabled = 0;
+         out_string(c, "OK");
+     }
+-    else if (strcmp(command, "dump") == 0) {
++    else if (strcmp(command, dump) == 0) {
+         int len;
+         char *stats = stats_prefix_dump(&len);
+         write_and_free(c, stats, len);
