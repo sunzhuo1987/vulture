@@ -1,3 +1,15 @@
+vulture (2.0.2) stable; urgency=low
+
+  * New user management
+  * Attach action to message such as LOGIN_FAILED, etc.
+  * SSO Forward make one GET before POSTing infos (get pseudo-random token CSRF)
+  * Parse SSO Forward response and do actions
+  * New packaging DEB/RPM
+  * New Config manager
+  * Remote proxy belongs to app (no more to intf)
+
+ -- Pierre Quetelart <pierre.quetelart@advens.fr>  Thu, 21 Nov 2011 16:00:00 +0200
+
 vulture (2.0.1) stable; urgency=low
 
   * New graphical UI
@@ -10,7 +22,7 @@ vulture (2.0.1) stable; urgency=low
   * Translate graphical UI
   * Display help in graphical UI
 
- -- Pierre Quetelart <pierre.quetelart@advens.fr>  Thu, 11 Aug 2011 16:00:00 +0200
+ -- Pierre Quetelart <pierre.quetelart@advens.fr>  Thu, 4 Nov 2011 18:00:00 +0200
 
 vulture (2.0) stable; urgency=low
 

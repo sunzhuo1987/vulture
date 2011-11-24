@@ -8,26 +8,26 @@ ADMINS = (
 )
 
 MANAGERS = ADMINS
-
-DATABASE_ENGINE = 'sqlite3'           # 'postgresql', 'mysql', 'sqlite3' or 'ado_mssql'.
-DATABASE_NAME = '/var/www/vulture/admin/db'              # Or path to database file if using sqlite3.
-
-DATABASE_USER = ''             # Not used with sqlite3.
-DATABASE_PASSWORD = ''         # Not used with sqlite3.
-DATABASE_HOST = ''             # Set to empty string for localhost. Not used with sqlite3.
-DATABASE_PORT = ''             # Set to empty string for default. Not used with sqlite3.
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
+        'NAME': '/var/www/vulture/admin/db',                      # Or path to database file if using sqlite3.
+        'USER': '',                      # Not used with sqlite3.
+        'PASSWORD': '',                  # Not used with sqlite3.
+        'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
+        'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
+    }
+}
+FIXTURE_DIRS = (
+   '/var/www/vulture/admin/fixtures/',
+)
 
 HTTPD_PATH = 'sudo /usr/sbin/apache2'
+BIN_PATH = '/var/www/vulture/bin/'
 
 CONF_PATH = '/var/www/vulture/conf/'
 DATABASE_PATH = '/var/www/vulture/admin/'
-BIN_PATH = '/var/www/vulture/bin/'
-
 SERVERROOT = '/usr/lib/apache2'
-WWW_USER = 'www-data'
-
-PERL_SWITCHES = '-I/opt/vulture/lib/i386-linux-thread-multi -I/opt/vulture/lib/i386-linux-thread-multi/Vulture -I/opt/vulture/lib/i486-linux-thread-multi -I/opt/vulture/lib/i486-linux-gnu-thread-multi'
-
 HTTPD_CUSTOM = "\n\
 LoadModule apreq_module		/usr/lib/apache2/modules/mod_apreq2.so\n\
 LoadModule ssl_module		/usr/lib/apache2/modules/mod_ssl.so\n\
@@ -45,6 +45,11 @@ LoadModule auth_kerb_module	/usr/lib/apache2/modules/mod_auth_kerb.so\n\
         TypesConfig mime.types\n\
 </IfModule>\n\
 "
+
+WWW_USER = 'www-data'
+
+PERL_SWITCHES = '-I/opt/vulture/lib/i386-linux-thread-multi -I/opt/vulture/lib/i386-linux-thread-multi/Vulture -I/opt/vulture/lib/i486-linux-thread-multi -I/opt/vulture/lib/i486-linux-gnu-thread-multi'
+
 
 # Local time zone for this installation. All choices can be found here:
 # http://www.postgresql.org/docs/current/static/datetime-keywords.html#DATETIME-TIMEZONE-SET-TABLE
