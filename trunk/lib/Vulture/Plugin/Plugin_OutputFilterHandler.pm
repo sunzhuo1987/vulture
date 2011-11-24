@@ -10,7 +10,7 @@ use constant BUFF_LEN => 8000;
 use Apache2::ServerRec;
 use Apache2::URI;
 use Data::Dumper;
-
+use Encode;
 
 %Plugin::Plugin_OutputFilterHandler::linkElements = (
 	'a'       => ['href', 'id'],
@@ -101,9 +101,14 @@ sub handler {
 					}
 					if ($type eq "Rewrite Content") {
 						$log->debug("Rewrite Content");
+						my $options = $r->pnotes('options'.$i);
 						my $content_type = $f->r->content_type() || '';
+						if ($content_type =~ /charset=(.*)/) {
+							Encode::from_to($exp, "utf8", $1);
+							Encode::from_to($options, "utf8", $1);
+						}							
 						$f->r->headers_out->unset('Content-Length');
-						my @rewrite = $exp ." => ". $r->pnotes('options'.$i) ;
+						my @rewrite = $exp ." => ". $options ;
 						$log->debug($exp);
 						my $ct = $f->ctx;
 						$ct->{data} = '';
@@ -114,10 +119,14 @@ sub handler {
 					}
 					if (($type eq "Rewrite Link") or (defined($linkval)) ) {
 						$log->debug("Rewrite Link");
+						my $options = $r->pnotes('options'.$i);
 						my $content_type = $f->r->content_type() || '';
-						
+						if ($content_type =~ /charset=(.*)/) {
+							Encode::from_to($exp, "utf8", $1);
+							Encode::from_to($options, "utf8", $1);
+						}
 						$f->r->headers_out->unset('Content-Length');
-						my @pattern = $exp ." => ". $r->pnotes('options'.$i);
+						my @pattern = $exp ." => ". $options;
 						if (defined($linkval))	{
 							@pattern = $linkval;
 						}
@@ -143,9 +152,9 @@ sub handler {
 			# Skip content that should not have links
 			my $parsed_uri = $f->r->construct_url();
 			my $encoding = $f->r->headers_out->{'Content-Encoding'} || '';
-				# if Content-Encoding  (coming from app): gzip,deflate try to uncompress
+				# if Accept-Encoding: gzip,deflate try to uncompress
 			if ($encoding =~ /gzip|deflate|x-compress|x-gzip/) {
-				use IO::Uncompress::AnyInflate qw(anyinflate $AnyInflateError) ;
+				use IO::Uncompress::AnyInflate qw(anyinflate $AnyInflateError);
 				my $output = '';
 				anyinflate  \$ctx->{data} => \$output or print STDERR "anyinflate failed: $AnyInflateError\n";
 				if ($ctx->{data} ne $output) {
@@ -172,12 +181,12 @@ sub handler {
 			}
 
 			if ($encoding =~ /gzip|x-gzip/) {
-				use IO::Compress::Gzip qw(gzip $GzipError) ;
+				use IO::Compress::Gzip qw(gzip $GzipError);
 				my $output = '';
 				my $status = gzip \$ctx->{data} => \$output or die "gzip failed: $GzipError\n";
 				$ctx->{data} = $output;
 			} elsif ($encoding =~ /deflate|x-compress/) {
-				use IO::Compress::Deflate qw(deflate $DeflateError) ;
+				use IO::Compress::Deflate qw(deflate $DeflateError);
 				my $output = '';
 				my $status = deflate \$ctx->{data} => \$output or die "deflate failed: $DeflateError\n";
 				$ctx->{data} = $output;
