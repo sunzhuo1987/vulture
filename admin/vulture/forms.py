@@ -17,14 +17,14 @@ class UserProfileForm(UserCreationForm):
         user.is_superuser = self.cleaned_data['is_superuser']
         user.save()
 
-        try:
-            profile = user.get_profile()
-        except:
-            profile = UserProfile(user=user)
+        # try:
+            # profile = user.get_profile()
+        # except:
+            # profile = UserProfile(user=user)
 
         #profile.nickname = self.cleaned_data['nickname']
         #profile.company = self.cleaned_data['company']
-        profile.save()
+        #profile.save()
 
         return user
         

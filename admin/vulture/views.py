@@ -9,7 +9,7 @@ from django.views.generic.create_update import update_object, create_object, del
 from django.http import Http404, HttpResponse, HttpResponseRedirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
-from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.decorators import login_required, user_passes_test, permission_required
 from django.contrib.auth.forms import UserChangeForm, SetPasswordForm
 from django.utils.html import escape
 from django.forms import ModelForm
@@ -285,6 +285,8 @@ def create_user(request,object_id=None):
     # Save new/edited component
     if request.method == 'POST' and form.is_valid():
         user = form.save(commit=False)
+        dataPosted = request.POST
+        user.password = hashlib.sha1(dataPosted['password1']).hexdigest()
         user.save()
         return HttpResponseRedirect('/user/')
     return render_to_response('vulture/user_form.html', {'form': form, 'user' : request.user})
@@ -307,7 +309,7 @@ def edit_user_password(request,object_id=None):
     # Save new/edited component
     if request.method == 'POST' and form.is_valid():
         dataPosted = request.POST
-        user.set_password(dataPosted['new_password2'])
+        user.password = hashlib.sha1(dataPosted['new_password2']).hexdigest()
         user.save()
         return HttpResponseRedirect('/user/')
     return render_to_response('vulture/userpassword_form.html', {'form': form, 'user' : request.user})
