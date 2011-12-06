@@ -851,3 +851,19 @@ class Plugincontent(models.Model):
         return self.type + ' - ' + self.pattern
     class Meta:
         db_table = 'plugincontent'
+
+class Pluginheader(models.Model):
+    PLUGIN_TYPES = (
+    ('Header Modify', 'Header Modify'),
+    ('Header Replacement', 'Header Replacement'),
+    ('Header Unset','Header Unset'),
+    )
+    app = models.ForeignKey(App,null=1,blank=1)
+    pattern = models.CharField(max_length=200)
+    type = models.CharField(max_length=20, choices=PLUGIN_TYPES)
+    options = models.CharField(max_length=200, null=1, blank=1)
+    options1 = models.CharField(max_length=200, null=1, blank=1)
+    def __str__(self):
+        return self.type + ' - ' + self.pattern
+    class Meta:
+        db_table = 'pluginheader'

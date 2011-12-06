@@ -143,6 +143,26 @@ sub handler {
 
 		my $ret = $module_name->plugin($r, $log, $dbh, $intf, $app);
 	}
+	#Header input modify
+    my $query = 'SELECT pattern, type, options, options1 FROM pluginheader WHERE app_id = ? OR app_id IS NULL ORDER BY type';
+    $log->debug($query);
+	my $plugins = $dbh->selectall_arrayref($query, undef, $app->{id});
+	foreach my $row (@$plugins) {
+		my $module_name;
+		my $header = @$row[0];
+		my $type = @$row[1];
+		my $options = @$row[2];
+		my $options1 = @$row[3];
+		my @result;
+		$module_name = 'Plugin::Plugin_HEADER_INPUT';
+		$log->debug("Load $module_name");
+    		$log->debug($header);
+	        #Calling associated plugin
+		load $module_name;
+		#Get return
+		my $ret = $module_name->plugin($r, $log, $dbh, $intf, $app, $header, $type, $options, $options1);
+            
+		}	
 	#If application exists and is not down, check auth
 	if($app and $app->{'up'}){
 		my $proxy_url;
