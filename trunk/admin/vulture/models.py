@@ -77,6 +77,7 @@ class Intf(models.Model):
     cert = models.TextField(blank=1,null=1)
     key = models.TextField(blank=1,null=1)
     ca = models.TextField(blank=1,null=1)
+    cacert = models.TextField(blank=1,null=1)
     virtualhost_directives = models.TextField(blank=1,null=1)
 
     def conf(self):
@@ -109,6 +110,10 @@ class Intf(models.Model):
             f=open("%s/%s.chain" % (settings.CONF_PATH, self.id), 'w')
             f.write(self.ca)
             f.close()
+        if self.cacert:
+            f=open("%s/%s.cacrt" % (settings.CONF_PATH, self.id), 'w')
+            f.write(self.cacert)
+            f.close()
 	for app in App.objects.filter(intf=self.id).all():
 	    auth_list=app.auth.all()
 	    for auth in auth_list:
@@ -128,7 +133,7 @@ class Intf(models.Model):
             
     def pid(self):
         try:
-            pid = string.strip((open("%s/%s.pid" % (settings.CONF_PATH, self.id), 'r').read()))
+            pid = string.strip((open("sudo %s/%s.pid" % (settings.CONF_PATH, self.id), 'r').read()))
         except:
             return None
         pidof = str(os.popen("pidof %s" % settings.HTTPD_PATH).read()).split()
@@ -163,6 +168,13 @@ class Intf(models.Model):
 	        except:
 	            return True
 	        if f.read() != self.key :
+	            return True
+        if self.cacert:
+	        try:
+	            f=open("%s/%s.cacrt" % (settings.CONF_PATH, self.id), 'r')
+	        except:
+	            return True
+	        if f.read() != self.cacert :
 	            return True
 	for app in App.objects.filter(intf=self.id).all():
             auth_list=app.auth.all()
