@@ -48,6 +48,7 @@
                 <tr><th>{% trans "PEM certificat" %}</th><td class="input">{{ form.cert }}{% if form.cert.errors %}<div class="error">{{ form.cert.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
                 <tr><th>{% trans "PEM key" %}</th><td class="input">{{ form.key }}{% if form.key.errors %}<div class="error">{{ form.key.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
                 <tr><th>{% trans "PEM certification chain" %}</th><td class="input">{{ form.ca }}{% if form.ca.errors %}<div class="error">{{ form.ca.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+                <tr><th>{% trans "PEM-encoded CA Certificates" %}</th><td class="input">{{ form.cacert }}{% if form.cacert.errors %}<div class="error">{{ form.cacert.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
             </table>
         </div>
         
