@@ -88,12 +88,14 @@ sub handler {
 		#SSO Forwarding once
 		if(not defined $session_app{SSO_Forwarding} and $app->{sso_forward}){
 			#If results are the same, it means user has already complete the SSO Learning phase
-			my $query = "SELECT count(*) FROM field, sso, app WHERE field.sso_id = sso.id AND sso.id = app.sso_forward_id AND app.id=? AND field_type != 'autologon_password' AND field_type != 'autologon_user' AND field_type != 'hidden'";
+			my $query = "SELECT count(*) FROM field, sso, app WHERE field.sso_id = sso.id AND sso.id = app.sso_forward_id AND app.id=?";
 			$log->debug($query);
             my $href = SSO::ProfileManager::get_profile($r, $log, $dbh, $app, $user);
             
 			my $length1 = $dbh->selectrow_array($query, undef, $app->{id});
             my $length2 = keys %$href;
+            
+            $log->debug($length1."vs".$length2);
 
             my $query_type = "SELECT sso.type FROM sso, app WHERE app.id = ? AND sso.id = app.sso_forward_id";
             $log->debug($query_type);

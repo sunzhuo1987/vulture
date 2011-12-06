@@ -310,7 +310,7 @@ sub handler {
                 #Destroy useless handlers
         		$r->set_handlers(PerlAuthenHandler => undef);
         		$r->set_handlers(PerlAuthzHandler => undef);
-                $r->err_headers_out->add('Set-Cookie' => $r->dir_config('VultureAppCookieName')."=".$session_app{_session_id}."; path=/; domain=".$r->hostname);
+                $r->err_headers_out->add('Set-Cookie' => $r->dir_config('VultureAppCookieName')."=".$session_app{_session_id}."; path=/; domain=.".$r->hostname);
                 return Apache2::Const::OK;
             }
 		}
@@ -347,7 +347,7 @@ sub handler {
 		}
 
         #Set cookie for SSO portal
-		$r->err_headers_out->add('Set-Cookie' => $r->dir_config('VultureProxyCookieName')."=".$session_SSO{_session_id}."; path=/; domain=".$r->hostname);
+		$r->err_headers_out->add('Set-Cookie' => $r->dir_config('VultureProxyCookieName')."=".$session_SSO{_session_id}."; path=/; domain=.".$r->hostname);
 
 		$r->pnotes('id_session_SSO' => $SSO_cookie_name);
 		

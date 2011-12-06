@@ -156,24 +156,28 @@ sub forward{
     #Get the form page
     my $response = $mech->get($app->{url}.$app->{logon_url});
     
+    $log->debug($response->as_string);
+    
     #Get profile
     my %results = %{get_profile($r, $log, $dbh, $app, $user)};
     
     $log->debug(Dumper(%results));
+    
+    $log->debug(Dumper($mech->forms()));
     
     #Get form which contains fields set in admin
     $form = $mech->form_with_fields(keys %results) if %results;
     #$log->debug(Dumper(\$form));
     
     #Fill form with profile
-	if (%results){
+	if ($form and %results){
 	    while (($key, $value) = each(%results)){
 	        $mech->field($key, $value);
 	    }
     }
     
     #Simulate click
-    $request = $form->click();
+    $request = $form->click() if $form;
     
     #Setting headers
     
