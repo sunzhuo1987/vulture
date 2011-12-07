@@ -190,7 +190,9 @@ sub handler {
 				my $output = '';
 				my $status = deflate \$ctx->{data} => \$output or die "deflate failed: $DeflateError\n";
 				$ctx->{data} = $output;
-			}
+			} else {
+        $ctx->{data} = '';
+      }
 			$f->ctx($ctx);
 
 			# Dump datas out
