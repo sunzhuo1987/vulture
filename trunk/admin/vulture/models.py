@@ -469,7 +469,7 @@ class App(models.Model):
     
     def isWildCard (self):
 		    return self.alias.startswith('*')
-		
+
 	  def hasHeaderHost (self):
 	      return Header.objects.filter(app_id = self.id).filter(name__iexact="Host").exists()
 
