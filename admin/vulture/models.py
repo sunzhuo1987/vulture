@@ -89,7 +89,7 @@ class Intf(models.Model):
                      "serverroot" : settings.SERVERROOT,
                      "www_user" : settings.WWW_USER,
                      "httpd_custom" : settings.HTTPD_CUSTOM,
-                     "app_list" : App.objects.filter(intf=self.id).order_by('name'),
+                     "app_list" : App.objects.filter(intf=self.id).order_by('-name'),
                      "intf" : self,
                      })
         return t.render(c)
