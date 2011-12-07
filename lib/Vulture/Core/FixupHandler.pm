@@ -29,8 +29,6 @@ sub proxy_redirect {
 	my $app = $r->pnotes('app');
 
 	$log->debug("Mod_proxy is working. Redirecting to ".$url);
-
-	$r->err_headers_out->set('Host' => $app->{'url'});
 	
 	#Cleaning up cookies
     #Don't send VultureApp && VultureProxy cookies
