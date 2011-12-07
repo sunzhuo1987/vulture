@@ -184,11 +184,6 @@ sub handler {
 		    
 		    #Getting headers to forward
 			my $sth = $dbh->prepare("SELECT name, type, value FROM header WHERE app_id= ?");
-			my $parsed_uri = APR::URI->parse($r->pool, $app->{'url'});
-			my $host = $parsed_uri->hostname ;
-	
-            #Replace host
-			$r->headers_in->set("Host" => $host);
             $sth->execute($app->{id});
             while (my ($name, $type, $value) = $sth->fetchrow) {
                 if ($type eq "REMOTE_ADDR"){
@@ -239,11 +234,6 @@ sub handler {
 			
 			#Getting headers to forward
 		    my $sth = $dbh->prepare("SELECT name, type, value FROM header WHERE app_id= ?");
-			my $parsed_uri = APR::URI->parse($r->pool, $app->{'url'});
-            my $host = $parsed_uri->hostname ;
-
-            #Replace host
-			$r->headers_in->set("Host" => $host);
             $sth->execute($app->{id});
             while (my ($name, $type, $value) = $sth->fetchrow) {
                 if ($type eq "REMOTE_ADDR"){
