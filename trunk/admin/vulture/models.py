@@ -466,6 +466,12 @@ class App(models.Model):
     virtualhost_directives = models.TextField(blank=1,null=1)
     timeout = models.IntegerField(null=1,blank=1)
     update_access_time = models.BooleanField(default=0)
+    
+    def isWildCard (self):
+		    return self.alias.startswith('*')
+		
+	  def hasHeaderHost (self):
+	      return Header.objects.filter(app_id = self.id).filter(name__iexact="Host").exists()
 
     def getCookieDomain (self):
         p = re.compile ('https?://(.*)/?')
