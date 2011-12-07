@@ -120,21 +120,24 @@ sub	get_cookie {
 sub	get_app {
 	my ($log, $host, $dbh, $intf) = @_;
     my ($query, $sth, $ref);
-
-    #Getting app
+    
+    #Getting app and wildcards
     return {} unless ($host and $intf and $dbh);
-    $query = "SELECT app.id, app.name, app.alias, app.url, app.log_id, app.sso_forward_id AS sso_forward, app.logon_url, app.logout_url, intf.port, app.remote_proxy, app.up, app.auth_basic, app.display_portal, app.canonicalise_url, app.timeout, app.update_access_time FROM app, intf, app_intf WHERE app_intf.intf_id= ? AND app.id = app_intf.app_id AND (app.name = ? OR app.name LIKE '*%') AND intf.id= ?";
+    $query = "SELECT app.id, app.name, app.alias, app.url, app.log_id, app.sso_forward_id AS sso_forward, app.logon_url, app.logout_url, intf.port, app.remote_proxy, app.up, app.auth_basic, app.display_portal, app.canonicalise_url, app.timeout, app.update_access_time FROM app, intf, app_intf WHERE intf.id = ? AND app_intf.intf_id = intf.id AND app.id = app_intf.app_id";
 	$log->debug($query);
 	$sth = $dbh->prepare($query);
-	$sth->execute($intf, $host, $intf);
+	$sth->execute($intf);
     $apps = $sth->fetchall_hashref('name');
     $sth->finish();
-    
+
     while ( my ($name, $hashref) = each(%$apps) ) {
+        #Exact matching
         if ($name eq $host) {
             $ref = $apps->{$name};
             last;
         }
+        
+        #Wildcard
         my $cpy = $hashref->{alias};
         $cpy =~ s|\*|\(\.\*\)|g;
         if ($host =~ /$cpy/) {
