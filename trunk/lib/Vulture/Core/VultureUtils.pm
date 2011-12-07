@@ -123,22 +123,22 @@ sub	get_app {
 
     #Getting app
     return {} unless ($host and $intf and $dbh);
-    $query = "SELECT app.id, app.name, app.url, app.log_id, app.sso_forward_id AS sso_forward, app.logon_url, app.logout_url, intf.port, app.remote_proxy, app.up, app.auth_basic, app.display_portal, app.canonicalise_url, app.timeout, app.update_access_time FROM app, intf, app_intf WHERE app_intf.intf_id= ? AND app.id = app_intf.app_id AND (app.name = ? OR app.name LIKE '*%') AND intf.id= ?";
+    $query = "SELECT app.id, app.name, app.alias, app.url, app.log_id, app.sso_forward_id AS sso_forward, app.logon_url, app.logout_url, intf.port, app.remote_proxy, app.up, app.auth_basic, app.display_portal, app.canonicalise_url, app.timeout, app.update_access_time FROM app, intf, app_intf WHERE app_intf.intf_id= ? AND app.id = app_intf.app_id AND (app.name = ? OR app.name LIKE '*%') AND intf.id= ?";
 	$log->debug($query);
 	$sth = $dbh->prepare($query);
 	$sth->execute($intf, $host, $intf);
     $apps = $sth->fetchall_hashref('name');
     $sth->finish();
     
-    for (keys %$apps){
-        if ($_ eq $host) {
-            $ref = $apps->{$_};
+    while ( my ($name, $hashref) = each(%$apps) ) {
+        if ($name eq $host) {
+            $ref = $apps->{$name};
             last;
         }
-        my $cpy = $_;
-        $_ =~ s|\*|\(\.\*\)|g;
-        if ($host =~ /$_/) {
-            $ref = $apps->{$cpy};
+        my $cpy = $hashref->{alias};
+        $cpy =~ s|\*|\(\.\*\)|g;
+        if ($host =~ /$cpy/) {
+            $ref = $apps->{$name};
             $ref->{name} = $host;
             last;
         }
