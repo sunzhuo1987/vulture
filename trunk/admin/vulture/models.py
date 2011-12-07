@@ -89,42 +89,42 @@ class Intf(models.Model):
                      "serverroot" : settings.SERVERROOT,
                      "www_user" : settings.WWW_USER,
                      "httpd_custom" : settings.HTTPD_CUSTOM,
-                     "app_list" : App.objects.filter(intf=self.id),
+                     "app_list" : App.objects.filter(intf=self.id).order_by('name'),
                      "intf" : self,
                      })
         return t.render(c)
 
     def write(self):
-        f=open("%s/%s.conf" % (settings.CONF_PATH, self.id), 'w')
+        f=open("%s%s.conf" % (settings.CONF_PATH, self.id), 'w')
         f.write(self.conf())
         f.close()
         if self.cert:
-            f=open("%s/%s.crt" % (settings.CONF_PATH, self.id), 'w')
+            f=open("%s%s.crt" % (settings.CONF_PATH, self.id), 'w')
             f.write(self.cert)
             f.close()
         if self.key:
-            f=open("%s/%s.key" % (settings.CONF_PATH, self.id), 'w')
+            f=open("%s%s.key" % (settings.CONF_PATH, self.id), 'w')
             f.write(self.key)
             f.close()
         if self.ca:
-            f=open("%s/%s.chain" % (settings.CONF_PATH, self.id), 'w')
+            f=open("%s%s.chain" % (settings.CONF_PATH, self.id), 'w')
             f.write(self.ca)
             f.close()
         if self.cacert:
-            f=open("%s/%s.cacrt" % (settings.CONF_PATH, self.id), 'w')
+            f=open("%s%s.cacrt" % (settings.CONF_PATH, self.id), 'w')
             f.write(self.cacert)
             f.close()
 	for app in App.objects.filter(intf=self.id).all():
 	    auth_list=app.auth.all()
 	    for auth in auth_list:
 	        if auth.auth_type == 'ssl':
-	            f=open("%s/%s.ca" % (settings.CONF_PATH, str(self.id)+'-'+app.name), 'w')
+	            f=open("%s%s.ca" % (settings.CONF_PATH, str(self.id)+'-'+app.name), 'w')
                     f.write(auth.getAuth().crt)
                     f.close()
 
     def checkIfEqual(self):
         try:
-            f=open("%s/%s.conf" % (settings.CONF_PATH, self.id), 'r')
+            f=open("%s%s.conf" % (settings.CONF_PATH, self.id), 'r')
             content=f.read()
             content2 = self.conf()
         except:
@@ -133,7 +133,7 @@ class Intf(models.Model):
             
     def pid(self):
         try:
-            pid = string.strip((open("sudo %s/%s.pid" % (settings.CONF_PATH, self.id), 'r').read()))
+            pid = string.strip((open("%s%s.pid" % (settings.CONF_PATH, self.id), 'r').read()))
         except:
             return None
         pidof = str(os.popen("pidof %s" % settings.HTTPD_PATH).read()).split()
@@ -143,35 +143,35 @@ class Intf(models.Model):
 
     def need_restart(self):
         try:
-            f=open("%s/%s.conf" % (settings.CONF_PATH, self.id), 'r')
+            f=open("%s%s.conf" % (settings.CONF_PATH, self.id), 'r')
         except:
             return True
         if f.read() != self.conf() :
             return True
         if self.ca:
 	        try:
-	            f=open("%s/%s.chain" % (settings.CONF_PATH, self.id), 'r')
+	            f=open("%s%s.chain" % (settings.CONF_PATH, self.id), 'r')
 	        except:
 	            return True
 	        if f.read() != self.ca :
 	            return True
         if self.cert:
 	        try:
-	            f=open("%s/%s.crt" % (settings.CONF_PATH, self.id), 'r')
+	            f=open("%s%s.crt" % (settings.CONF_PATH, self.id), 'r')
 	        except:
 	            return True
 	        if f.read() != self.cert :
 	            return True
         if self.key:
 	        try:
-	            f=open("%s/%s.key" % (settings.CONF_PATH, self.id), 'r')
+	            f=open("%s%s.key" % (settings.CONF_PATH, self.id), 'r')
 	        except:
 	            return True
 	        if f.read() != self.key :
 	            return True
         if self.cacert:
 	        try:
-	            f=open("%s/%s.cacrt" % (settings.CONF_PATH, self.id), 'r')
+	            f=open("%s%s.cacrt" % (settings.CONF_PATH, self.id), 'r')
 	        except:
 	            return True
 	        if f.read() != self.cacert :
@@ -181,7 +181,7 @@ class Intf(models.Model):
             for auth in auth_list:
                 if auth.auth_type == 'ssl':
 		    try:
-                        f=open("%s/%s.ca" % (settings.CONF_PATH, str(self.id)+'-'+app.name), 'r')
+                        f=open("%s%s.ca" % (settings.CONF_PATH, str(self.id)+'-'+app.name), 'r')
 	            except:
 	                return True
 	            if f.read() != auth.getAuth().crt :
@@ -189,7 +189,7 @@ class Intf(models.Model):
         f.close()
     
     def k(self, cmd):
-        return os.popen("%s -f %s/%s.conf -k %s 2>&1" % (settings.HTTPD_PATH, settings.CONF_PATH, self.id, cmd)).read()
+        return os.popen("%s -f %s%s.conf -k %s 2>&1" % (settings.HTTPD_PATH, settings.CONF_PATH, self.id, cmd)).read()
     
     def __str__(self):
         return self.name
