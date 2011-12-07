@@ -432,6 +432,7 @@ class App(models.Model):
         ('script', 'script'),
         )
     name = models.CharField(max_length=128,unique=1)
+    alias = models.CharField(max_length=128, unique=1, blank=1,null=1)
     url = models.CharField(max_length=256)
     intf = models.ManyToManyField('Intf',db_table='app_intf')
     log = models.ForeignKey('Log')
