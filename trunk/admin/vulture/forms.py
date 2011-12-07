@@ -58,6 +58,10 @@ class AppForm(forms.ModelForm):
     class Meta:
         model = App
 
+class AppCopy(forms.Form):
+    app = forms.ModelChoiceField(required=True, queryset=App.objects.all())
+    name = forms.CharField()
+
 class ACLForm(forms.ModelForm):
     auth = forms.ModelChoiceField(required=False, queryset=Auth.objects.filter(auth_type__in=['sql','ldap']))
     class Meta:
