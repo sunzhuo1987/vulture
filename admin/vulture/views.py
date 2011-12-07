@@ -199,6 +199,20 @@ def edit_app(request,object_id=None):
     return render_to_response('vulture/app_form.html', {'form': form, 'user' : request.user})
 
 @login_required
+def copy_app(request,object_id=None):
+    form = AppCopy(request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        a1 = App.objects.get(name=form.cleaned_data['app'])
+        a1.pk = None
+        a1.name = form.cleaned_data['name']
+        try:
+            a1.save()
+        except:
+            pass
+        return HttpResponseRedirect('/app/')
+    return render_to_response('vulture/app_copy.html', {'form': form, 'user' : request.user})
+
+@login_required
 def edit_sso(request,object_id=None):
     form = SSOForm(request.POST or None,instance=object_id and SSO.objects.get(id=object_id))
     form.post = Field.objects.order_by("-id").filter(sso=object_id)    
