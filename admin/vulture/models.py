@@ -467,10 +467,11 @@ class App(models.Model):
     update_access_time = models.BooleanField(default=0)
 
     def getCookieDomain (self):
-        p = re.compile ('https?://(.*)/')
-	domain=p.findall(self.url)
-	if domain:
-           return "ProxyPassReverseCookieDomain "+domain+" "+self.name
+        p = re.compile ('https?://(.*)/?')
+        match=p.match(self.url)
+        domain = match.group(1)
+        if domain:
+            return "ProxyPassReverseCookieDomain "+domain+" "+self.name
         return " "
     def __str__(self):
         return self.name
