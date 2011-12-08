@@ -55,7 +55,6 @@ sub checkAuth{
 		$log->debug($user . " routed to ". $url ." via mod_proxy");
 	}
     
-    $ldap_chpass_attr
     if($ldap_chpass_attr and (my ($need_change_password) = $object->get_value($ldap_chpass_attr))) {
         $r->pnotes('auth_message' => 'NEED_CHANGE_PASS');
         $log->debug("User $user need to change password");
