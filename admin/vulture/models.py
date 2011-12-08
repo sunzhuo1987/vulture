@@ -114,13 +114,13 @@ class Intf(models.Model):
             f=open("%s%s.cacrt" % (settings.CONF_PATH, self.id), 'w')
             f.write(self.cacert)
             f.close()
-    for app in App.objects.filter(intf=self.id).all():
-        auth_list=app.auth.all()
-        for auth in auth_list:
-            if auth.auth_type == 'ssl':
-                f=open("%s%s.ca" % (settings.CONF_PATH, str(self.id)+'-'+app.name), 'w')
-                f.write(auth.getAuth().crt)
-                f.close()
+        for app in App.objects.filter(intf=self.id).all():
+            auth_list=app.auth.all()
+            for auth in auth_list:
+                if auth.auth_type == 'ssl':
+                    f=open("%s%s.ca" % (settings.CONF_PATH, str(self.id)+'-'+app.name), 'w')
+                    f.write(auth.getAuth().crt)
+                    f.close()
 
     def checkIfEqual(self):
         try:
@@ -148,6 +148,7 @@ class Intf(models.Model):
             return True
         if f.read() != self.conf() :
             return True
+
         if self.ca:
             try:
                 f=open("%s%s.chain" % (settings.CONF_PATH, self.id), 'r')
@@ -155,6 +156,7 @@ class Intf(models.Model):
                 return True
             if f.read() != self.ca :
                 return True
+
         if self.cert:
             try:
                 f=open("%s%s.crt" % (settings.CONF_PATH, self.id), 'r')
@@ -162,6 +164,7 @@ class Intf(models.Model):
                 return True
             if f.read() != self.cert :
                 return True
+
         if self.key:
             try:
                 f=open("%s%s.key" % (settings.CONF_PATH, self.id), 'r')
@@ -169,6 +172,7 @@ class Intf(models.Model):
                 return True
             if f.read() != self.key :
                 return True
+
         if self.cacert:
             try:
                 f=open("%s%s.cacrt" % (settings.CONF_PATH, self.id), 'r')
@@ -176,16 +180,17 @@ class Intf(models.Model):
                 return True
             if f.read() != self.cacert :
                 return True
-    for app in App.objects.filter(intf=self.id).all():
+
+        for app in App.objects.filter(intf=self.id).all():
             auth_list=app.auth.all()
             for auth in auth_list:
                 if auth.auth_type == 'ssl':
-            try:
+                    try:
                         f=open("%s%s.ca" % (settings.CONF_PATH, str(self.id)+'-'+app.name), 'r')
-                except:
-                    return True
-                if f.read() != auth.getAuth().crt :
-                    return True
+                    except:
+                        return True
+                    if f.read() != auth.getAuth().crt :
+                        return True
         f.close()
     
     def k(self, cmd):
@@ -225,9 +230,9 @@ class Auth(models.Model):
         else:
             return None
     def is_ssl(self):
-    if self.auth_type == 'ssl':
-        return True
-    return False
+        if self.auth_type == 'ssl':
+            return True
+        return False
     def __str__(self):
         return self.name
     class Meta:
