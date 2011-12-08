@@ -488,7 +488,7 @@ class App(models.Model):
         return self.alias.startswith('*')
 
     def hasHeaderHost (self):
-        return Header.objects.filter(app_id = self.id).filter(name__iexact="Host").exists()
+        return Header.objects.filter(app = self).filter(name__iexact="Host")
 
     def getCookieDomain (self):
         p = re.compile ('https?://(.*)/?')
@@ -585,7 +585,7 @@ class Header(models.Model):
     ('SSL_CLIENT_S_DN_D', 'SSL_CLIENT_S_DN_D'),
     ('SSL_CLIENT_S_DN_UID', 'SSL_CLIENT_S_DN_UID'),
     )
-    name = models.CharField(max_length=128,unique=1)
+    name = models.CharField(max_length=128)
     type = models.CharField(max_length=20,choices=HEADER_TYPE)
     value = models.CharField(max_length=128,blank=1)
     app = models.ForeignKey('App')
