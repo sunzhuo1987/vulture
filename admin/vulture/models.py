@@ -658,10 +658,8 @@ class LDAP(models.Model):
         return sorted(result_set_cleaned, key=operator.itemgetter(1))
 
     def user_ko(self, user_ok):
-        if self.user_filter:
-            user_filter = "(&"+self.user_filter
-        else:
-            user_filter =  "(|(objectclass=posixAccount)(objectclass=inetOrgPerson)(objectclass=person))"
+        user_filter = "(&"
+        user_filter += self.user_filter or "(|(objectclass=posixAccount)(objectclass=inetOrgPerson)(objectclass=person))"
         for user in user_ok:
             name = user.user
             user_filter += "(!("+self.user_attr+"="+name.decode('utf-8')+"))"
@@ -669,24 +667,13 @@ class LDAP(models.Model):
         ret = self.search(self.user_ou or self.base_dn, self.user_scope, user_filter, [ str(self.user_attr) ])
         return ret
 
-    def group_ok(self, dn):
-        if self.group_filter:
-            group_filter = "(&"+self.group_filter
-        else:
-            group_filter =  "(|(objectclass=posixGroup)(objectclass=group)(objectclass=groupofuniquenames))"
-        group_filter += "(member="+dn+"))"
-        ret = self.search(self.group_ou or self.base_dn, self.group_scope, group_filter, [ str(self.group_attr) ])
-        return ret
-
     def all_groups(self):
         ret = self.search(self.group_ou or self.base_dn, self.group_scope, self.group_filter, [ str(self.group_attr) ])
         return ret
 
     def group_ko(self, group_ok):
-        if self.group_filter:
-            group_filter = "(&"+self.group_filter
-        else:
-            group_filter =  "(|(objectclass=posixGroup)(objectclass=group)(objectclass=groupofuniquenames))"
+        group_filter = "(&"
+        group_filter += self.group_filter or "(|(objectclass=posixGroup)(objectclass=group)(objectclass=groupofuniquenames))"
         for group in group_ok:
             name = group.group
             group_filter += "(!("+self.group_attr+"="+name.decode('utf-8')+"))"
