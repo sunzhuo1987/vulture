@@ -124,7 +124,7 @@ sub	get_app {
     return {} unless ($host and $intf and $dbh);
     
     #Use memcached if possible
-    my $obj = get_memcached("$host:$intf:app");
+    my $obj = get_memcached("$host:app");
 	return $obj if $obj;
     
     #Getting app and wildcards
@@ -181,7 +181,7 @@ sub	get_app {
 	$sth->finish();
 
     #Caching app if possible 
-    set_memcached("$host:$intf:app", $ref);
+    set_memcached("$host:app", $ref);
 	return $ref;
 }
 
