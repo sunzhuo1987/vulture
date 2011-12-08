@@ -148,6 +148,10 @@ sub forward{
 	my ($mech, $response, $request);
     $mech = WWW::Mechanize->new;
     
+    #Push user-agent, etc.
+    $mech->delete_header('User-Agent');
+	$mech->add_header('User-Agent' => $r->headers_in->{'User-Agent'});
+    
     #Host header
     $mech->delete_header('Host');
     $mech->add_header('Host' => $r->headers_in->{'Host'});
@@ -208,6 +212,18 @@ sub forward{
 
     $request->push_header('X-Forwarded-Host' => $r->hostname());
     $request->push_header('X-Forwarded-Server' => $r->hostname());
+    
+    #Accept* headers
+    $request->push_header('Accept' => $r->headers_in->{'Accept'});
+    $request->push_header('Accept-Language' => $r->headers_in->{'Accept-Language'});
+    $request->push_header('Accept-Encoding' => $r->headers_in->{'Accept-Encoding'});
+    $request->push_header('Accept-Charset' => $r->headers_in->{'Accept-Charset'});
+    
+    #We need to parse referer to replace @ IP by hostname
+    my $parsed_uri = APR::URI->parse($r->pool, $request->header{'Referer'});
+    my $host = $r->headers_in{'Host'};
+    $parsed_uri->hostname($host);
+    $request->push_header('Referer' => $parsed_uri->unparse);
 
     #Getting custom headers defined in admin
     my $sth = $dbh->prepare("SELECT name, type, value FROM header WHERE app_id = ?");
