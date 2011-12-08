@@ -16,6 +16,7 @@
         <table>
             <tr>
                 <th>{% trans "Internet name" %}</th>
+                <th>{% trans "Alias" %}</th>
                 <th>{% trans "Private URL" %}</th>
                 <th>{% trans "Authentications Methods" %}</th>
                 <th>{% trans "Network interface" %}</th>
@@ -25,6 +26,7 @@
             {% for object in object_list %}
                 <tr>
                     <td>{{ object.name }}</td>
+                    <td>{{ object.alias }}</td>
                     <td>{{ object.url }}</td>
                     <td>{{ object.auth.all|join:", " }}</td>
                     <td>{{ object.intf.all|join:", " }}</td>
