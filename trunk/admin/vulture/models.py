@@ -127,6 +127,7 @@ class Intf(models.Model):
             f=open("%s%s.conf" % (settings.CONF_PATH, self.id), 'r')
             content=f.read()
             content2 = self.conf()
+            f.close()
         except:
             return False
         return (content == content2)
@@ -144,41 +145,51 @@ class Intf(models.Model):
     def need_restart(self):
         try:
             f=open("%s%s.conf" % (settings.CONF_PATH, self.id), 'r')
+            content = f.read()
+            f.close()
+            if content != self.conf() :
+                return True
         except:
-            return True
-        if f.read() != self.conf() :
             return True
 
         if self.ca:
             try:
                 f=open("%s%s.chain" % (settings.CONF_PATH, self.id), 'r')
+                content = f.read()
+                f.close()
+                if content != self.ca :
+                    return True
             except:
-                return True
-            if f.read() != self.ca :
                 return True
 
         if self.cert:
             try:
                 f=open("%s%s.crt" % (settings.CONF_PATH, self.id), 'r')
+                content = f.read()
+                f.close()
+                if content != self.cert :
+                    return True
             except:
-                return True
-            if f.read() != self.cert :
                 return True
 
         if self.key:
             try:
                 f=open("%s%s.key" % (settings.CONF_PATH, self.id), 'r')
+                content = f.read()
+                f.close()
+                if content != self.key :
+                    return True
             except:
-                return True
-            if f.read() != self.key :
                 return True
 
         if self.cacert:
             try:
                 f=open("%s%s.cacrt" % (settings.CONF_PATH, self.id), 'r')
+                content = f.read()
+                f.close()
+                if content != self.cacert :
+                    return True
             except:
-                return True
-            if f.read() != self.cacert :
                 return True
 
         for app in App.objects.filter(intf=self.id).all():
@@ -187,11 +198,12 @@ class Intf(models.Model):
                 if auth.auth_type == 'ssl':
                     try:
                         f=open("%s%s.ca" % (settings.CONF_PATH, str(self.id)+'-'+app.name), 'r')
+                        content = f.read()
+                        f.close()
+                        if content != auth.getAuth().crt :
+                            return True
                     except:
                         return True
-                    if f.read() != auth.getAuth().crt :
-                        return True
-        f.close()
     
     def k(self, cmd):
         return os.popen("%s -f %s%s.conf -k %s 2>&1" % (settings.HTTPD_PATH, settings.CONF_PATH, self.id, cmd)).read()
