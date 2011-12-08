@@ -147,6 +147,10 @@ sub forward{
 	#Setting browser
 	my ($mech, $response, $request);
     $mech = WWW::Mechanize->new;
+    
+    #Host header
+    $mech->delete_header('Host');
+    $mech->add_header('Host' => $r->headers_in->{'Host'});
 
 	#Setting proxy if needed
 	if ($app->{remote_proxy} ne ''){
@@ -186,10 +190,9 @@ sub forward{
     
     #Push user-agent, etc.
 	$request->push_header('User-Agent' => $r->headers_in->{'User-Agent'});
-	
-	my $parsed_uri = APR::URI->parse($r->pool, $app->{'url'});
-    my $host = $parsed_uri->hostname ;
-    $request->push_header('Host' => $host);
+
+    #Host header
+    $request->push_header('Host' => $r->headers_in->{'Host'});
 	#$request->push_header('Host' => $app->{url}.':'.$app->{port});
 	
     if (defined($r->headers_in->{'Max-Forwards'})) {
