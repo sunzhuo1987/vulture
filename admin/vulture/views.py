@@ -184,7 +184,7 @@ def edit_app(request,object_id=None):
         mc = pylibmc.Client(["127.0.0.1:9091"])
         intfs = Intf.objects.all()
         for intf in intfs :
-            mc.delete(app.name + ':' + intf.id + ':app')
+            mc.delete(app.name + ':app')
         
         #Delete old headers
         headers = Header.objects.filter(app=object_id)
