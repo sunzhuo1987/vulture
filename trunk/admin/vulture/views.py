@@ -19,6 +19,7 @@ from time import sleep
 import datetime
 import time
 import re
+import pylibmc
 from django.db.models import Q
 from django.db import connection
 import ldap
@@ -173,9 +174,17 @@ def edit_app(request,object_id=None):
     form.header = Header.objects.order_by("-id").filter(app=object_id)
     # Save new/edited app
     if request.method == 'POST' and form.is_valid():
+        
+        
         dataPosted = request.POST
         #app = form.save(commit=False)
-        app = form.save()    
+        app = form.save()
+        
+        # Delete memcached records to update config
+        mc = pylibmc.Client(["127.0.0.1:9091"])
+        intfs = Intf.objects.all()
+        for intf in intfs :
+            mc.delete(app.name + ':' + intf.id + ':app')
         
         #Delete old headers
         headers = Header.objects.filter(app=object_id)
