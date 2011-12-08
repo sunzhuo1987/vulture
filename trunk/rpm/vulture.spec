@@ -17,6 +17,7 @@ Buildarch: %{_target_cpu} noarch
 Source0: %{name}-%{version}.tar.bz2
 Source1: http://media.djangoproject.com/releases/1.3/Django-1.3.1.tar.gz
 Source2: http://ovh.dl.sourceforge.net/sourceforge/pyopenssl/pyOpenSSL-0.6.tar.gz
+Source3: http://pypi.python.org/packages/source/p/pylibmc/pylibmc-1.2.2.tar.gz#md5=94ea743e50103fcb7792e11ca62291b0
 Patch0: http://arnaud.desmons.free.fr/pyOpenSSL-0.6-pkcs12.patch
 Patch1: http://arnaud.desmons.free.fr/pyOpenSSL-0.6-pkcs12_cafile.patch
 Patch2: http://arnaud.desmons.free.fr/pyOpenSSL-0.6-crl.patch
@@ -34,7 +35,7 @@ BuildRequires: perl gcc gcc-c++ sqlite python-devel openssl-devel
 Vulture Reverse Proxy
 
 %prep
-%setup -c -a 0 -a 1 -a 2
+%setup -c -a 0 -a 1 -a 2 -a 3
 %patch0 -p1 -b .old
 %patch1 -p0 -b .old
 %patch2 -p0 -b .old
@@ -53,6 +54,8 @@ Vulture Reverse Proxy
 		python setup.py install --prefix=$RPM_BUILD_ROOT%{serverroot}/%{name}/usr
 	cd ../pyOpenSSL-0.6 && PYTHONPATH=$RPM_BUILD_ROOT%{serverroot}/%{name}%{python_sitearch}/ \
 		python setup.py install --prefix=$RPM_BUILD_ROOT%{serverroot}/%{name}/usr
+    cd ../pylibmc-1.2.2 && PYTHONPATH=$RPM_BUILD_ROOT%{serverroot}/%{name}%{python_sitearch}/ \
+        python setup.py install
 
 
 %install
