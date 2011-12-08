@@ -96,30 +96,30 @@ class Intf(models.Model):
 
     def write(self):
         f=open("%s%s.conf" % (settings.CONF_PATH, self.id), 'w')
-        f.write(self.conf())
+        f.write(str(self.conf()))
         f.close()
         if self.cert:
             f=open("%s%s.crt" % (settings.CONF_PATH, self.id), 'w')
-            f.write(self.cert)
+            f.write(str(self.cert))
             f.close()
         if self.key:
             f=open("%s%s.key" % (settings.CONF_PATH, self.id), 'w')
-            f.write(self.key)
+            f.write(str(self.key))
             f.close()
         if self.ca:
             f=open("%s%s.chain" % (settings.CONF_PATH, self.id), 'w')
-            f.write(self.ca)
+            f.write(str(self.ca))
             f.close()
         if self.cacert:
             f=open("%s%s.cacrt" % (settings.CONF_PATH, self.id), 'w')
-            f.write(self.cacert)
+            f.write(str(self.cacert))
             f.close()
         for app in App.objects.filter(intf=self.id).all():
             auth_list=app.auth.all()
             for auth in auth_list:
                 if auth.auth_type == 'ssl':
                     f=open("%s%s.ca" % (settings.CONF_PATH, str(self.id)+'-'+app.name), 'w')
-                    f.write(auth.getAuth().crt)
+                    f.write(str(auth.getAuth().crt))
                     f.close()
 
     def checkIfEqual(self):
