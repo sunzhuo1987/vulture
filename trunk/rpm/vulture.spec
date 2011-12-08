@@ -3,7 +3,7 @@ Requires: openssl python-ldap vulture-common >= 3
 Vendor: Advens
 %define release 1
 %define name vulture
-%define version 2.0.2
+%define version 2.0.1
 AutoReqProv: no
 
 Summary: Vulture Reverse Proxy
@@ -72,11 +72,13 @@ Vulture Reverse Proxy
 	$RPM_BUILD_ROOT%{serverroot}/%{name}/admin/settings.py
      install -d -m0755 $RPM_BUILD_ROOT%{serverroot}/%{name}/conf
      install -m0644 rpm/httpd.conf\
-	$RPM_BUILD_ROOT%{serverroot}/%{name}/conf/httpd-profiles.conf
+	$RPM_BUILD_ROOT%{serverroot}/%{name}/conf/httpd.conf
      install -m0644 rpm/vulture.wsgi\
         $RPM_BUILD_ROOT%{serverroot}/%{name}/conf/vulture.wsgi
      install -m0644 conf/openssl.cnf\
-	$RPM_BUILD_ROOT%{serverroot}/%{name}/conf/openssl.cnf 
+	$RPM_BUILD_ROOT%{serverroot}/%{name}/conf/openssl.cnf
+     install -m0644 debian/aes-encrypt-key.key\
+	$RPM_BUILD_ROOT%{serverroot}/%{name}/conf/aes-encrypt-key.key	
 %clean
      rm -rf $RPM_BUILD_ROOT
 
@@ -105,12 +107,6 @@ Vulture Reverse Proxy
         BASE_RULE=`%{serverroot}/%{name}/sqlite/bin/sqlite3 %{serverroot}/%{name}/admin/db "SELECT count(*) from modsecurity"`
         if [ $BASE_RULE = 0 ]; then
             %{serverroot}/%{name}/sqlite/bin/sqlite3 %{serverroot}/%{name}/admin/db < %{serverroot}/%{name}/admin/vulture/sql/modsecurity.sql
-        fi
-    fi
-    if [ -f %{serverroot}/%{name}/admin/vulture/sql/user.sql ] ; then
-        BASE_RULE=`%{serverroot}/%{name}/sqlite/bin/sqlite3 %{serverroot}/%{name}/admin/db "SELECT count(*) from auth_user"`
-        if [ $BASE_RULE = 0 ]; then
-            %{serverroot}/%{name}/sqlite/bin/sqlite3 %{serverroot}/%{name}/admin/db < %{serverroot}/%{name}/admin/vulture/sql/user.sql
         fi
     fi
     chown apache. %{serverroot}/%{name}/admin/db
@@ -158,26 +154,8 @@ Vulture Reverse Proxy
 
 
 %changelog
-* Wed Nov 23 2011 Arnaud Desmons <logarno@gmail.com> 2.0.1-1
-- 2.0.2
-- New user management
-- Attach action to message such as LOGIN_FAILED, etc.
-- SSO Forward make one GET before POSTing infos (get pseudo-random token CSRF)
-- Parse SSO Forward response and do actions
-- New packaging DEB/RPM
-- New Config manager
-- Remote proxy belongs to app (no more to intf)
 * Fri Oct 7 2011 Arnaud Desmons <logarno@gmail.com> 2.0.1-1
 - 2.0.1
-- New graphical UI
-- Add VirtualHost directives
-- Add CAS client / Server
-- Fix bugs
-- Add templates such as ACL failed, app down, ...
-- Add event viewer
-- Export / Import configuration database
-- Translate graphical UI
-- Display help in graphical UI
 
 * Fri Jul 29 2011 Arnaud Desmons <logarno@gmail.com> 2.0-1
 - admin Django

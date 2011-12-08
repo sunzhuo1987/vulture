@@ -1,7 +1,7 @@
 Summary: Vulture-common
 Name: vulture-common
 Version: 3.1
-Release: 1
+Release: 153.1
 License: GPL
 Group: Productivity/Networking/Security
 URL: http://vulture.googlecode.com
@@ -12,7 +12,7 @@ Source1: http://apache.cict.fr/httpd/httpd-2.2.21.tar.bz2
 Source2: http://www.modsecurity.org/download/modsecurity-apache_2.6.2.tar.gz
 Source3: http://modwsgi.googlecode.com/files/mod_wsgi-3.3.tar.gz
 Source4: http://perl.apache.org/dist/mod_perl-2.0.5.tar.gz
-Source5: http://lwp.linpro.no/lwp/libwww-perl-5.805.tar.gz
+Source5: http://search.cpan.org/CPAN/authors/id/G/GA/GAAS/libwww-perl-5.837.tar.gz
 Source6: http://search.cpan.org/CPAN/authors/id/G/GB/GBARR/perl-ldap-0.33.tar.gz
 Source7: http://search.cpan.org/CPAN/authors/id/T/TI/TIMB/DBI-1.607.tar.gz
 Source8: http://search.cpan.org/CPAN/authors/id/M/MS/MSERGEANT/DBD-SQLite2-0.33.tar.gz
@@ -105,7 +105,7 @@ Requires: perl postgresql-libs curl libxml2 libtool perl-HTML-Parser perl-HTML-T
 		%if 0%{?centos_version} > 599
 BuildRequires: perl-devel perl-ExtUtils-Embed
                 %endif
-BuildRequires: chrpath gcc postgresql-devel libxml2-devel flex gcc-c++ libidn-devel pcre-devel make autoconf libtool tcl-devel python python-devel sqlite-devel expat-devel perl cyrus-sasl-devel openldap-devel glibc-headers mysql-devel curl-devel > 7.10.55
+BuildRequires: chrpath gcc postgresql-devel libxml2-devel flex gcc-c++ libidn-devel pcre-devel make autoconf libtool tcl-devel python python-devel sqlite-devel expat-devel perl cyrus-sasl-devel openldap-devel glibc-headers mysql-devel curl-devel > 7.10.55 redhat-rpm-config
 Requires: perl postgresql-libs curl libxml2 libtool perl-HTML-Parser perl-HTML-Tagset libtool-ltdl
 	%endif
 
@@ -350,7 +350,7 @@ Development headers and libraries for vulture-common. Needed to create modules.
 		make &&\
 		make DESTDIR=$RPM_BUILD_ROOT/opt/vulture SITEPREFIX= PERLPREFIX= install &&\
 		make clean &&\
-	cd ../libwww-perl-5.805 &&\
+	cd ../libwww-perl-5.837 &&\
 		perl -I $RPM_BUILD_ROOT/opt/vulture/lib/x86_64-linux-thread-multi\
 		-I $RPM_BUILD_ROOT/opt/vulture/lib/i386-linux-thread-multi\
 		-I $RPM_BUILD_ROOT/opt/vulture/lib\
