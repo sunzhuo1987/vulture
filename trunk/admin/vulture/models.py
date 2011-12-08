@@ -114,13 +114,13 @@ class Intf(models.Model):
             f=open("%s%s.cacrt" % (settings.CONF_PATH, self.id), 'w')
             f.write(self.cacert)
             f.close()
-	for app in App.objects.filter(intf=self.id).all():
-	    auth_list=app.auth.all()
-	    for auth in auth_list:
-	        if auth.auth_type == 'ssl':
-	            f=open("%s%s.ca" % (settings.CONF_PATH, str(self.id)+'-'+app.name), 'w')
-                    f.write(auth.getAuth().crt)
-                    f.close()
+    for app in App.objects.filter(intf=self.id).all():
+        auth_list=app.auth.all()
+        for auth in auth_list:
+            if auth.auth_type == 'ssl':
+                f=open("%s%s.ca" % (settings.CONF_PATH, str(self.id)+'-'+app.name), 'w')
+                f.write(auth.getAuth().crt)
+                f.close()
 
     def checkIfEqual(self):
         try:
@@ -149,43 +149,43 @@ class Intf(models.Model):
         if f.read() != self.conf() :
             return True
         if self.ca:
-	        try:
-	            f=open("%s%s.chain" % (settings.CONF_PATH, self.id), 'r')
-	        except:
-	            return True
-	        if f.read() != self.ca :
-	            return True
+            try:
+                f=open("%s%s.chain" % (settings.CONF_PATH, self.id), 'r')
+            except:
+                return True
+            if f.read() != self.ca :
+                return True
         if self.cert:
-	        try:
-	            f=open("%s%s.crt" % (settings.CONF_PATH, self.id), 'r')
-	        except:
-	            return True
-	        if f.read() != self.cert :
-	            return True
+            try:
+                f=open("%s%s.crt" % (settings.CONF_PATH, self.id), 'r')
+            except:
+                return True
+            if f.read() != self.cert :
+                return True
         if self.key:
-	        try:
-	            f=open("%s%s.key" % (settings.CONF_PATH, self.id), 'r')
-	        except:
-	            return True
-	        if f.read() != self.key :
-	            return True
+            try:
+                f=open("%s%s.key" % (settings.CONF_PATH, self.id), 'r')
+            except:
+                return True
+            if f.read() != self.key :
+                return True
         if self.cacert:
-	        try:
-	            f=open("%s%s.cacrt" % (settings.CONF_PATH, self.id), 'r')
-	        except:
-	            return True
-	        if f.read() != self.cacert :
-	            return True
-	for app in App.objects.filter(intf=self.id).all():
+            try:
+                f=open("%s%s.cacrt" % (settings.CONF_PATH, self.id), 'r')
+            except:
+                return True
+            if f.read() != self.cacert :
+                return True
+    for app in App.objects.filter(intf=self.id).all():
             auth_list=app.auth.all()
             for auth in auth_list:
                 if auth.auth_type == 'ssl':
-		    try:
+            try:
                         f=open("%s%s.ca" % (settings.CONF_PATH, str(self.id)+'-'+app.name), 'r')
-	            except:
-	                return True
-	            if f.read() != auth.getAuth().crt :
-	                return True
+                except:
+                    return True
+                if f.read() != auth.getAuth().crt :
+                    return True
         f.close()
     
     def k(self, cmd):
@@ -225,9 +225,9 @@ class Auth(models.Model):
         else:
             return None
     def is_ssl(self):
-	if self.auth_type == 'ssl':
-		return True
-	return False
+    if self.auth_type == 'ssl':
+        return True
+    return False
     def __str__(self):
         return self.name
     class Meta:
@@ -251,7 +251,7 @@ class UserOK(models.Model):
         return self.user
     class Meta:
         db_table = 'userok'
-		
+
 class GroupOK(models.Model):
     group = models.CharField(max_length=20,unique=1)
     def __str__(self):
@@ -468,10 +468,10 @@ class App(models.Model):
     update_access_time = models.BooleanField(default=0)
     
     def isWildCard (self):
-		    return self.alias.startswith('*')
+        return self.alias.startswith('*')
 
-	  def hasHeaderHost (self):
-	      return Header.objects.filter(app_id = self.id).filter(name__iexact="Host").exists()
+    def hasHeaderHost (self):
+        return Header.objects.filter(app_id = self.id).filter(name__iexact="Host").exists()
 
     def getCookieDomain (self):
         p = re.compile ('https?://(.*)/?')
@@ -487,9 +487,9 @@ class App(models.Model):
 
 class Plugin(models.Model):
     PLUGIN_TYPES = (
-	('Static', 'Static'),
+    ('Static', 'Static'),
     ('Rewrite', 'Rewrite'),
-	('Block', 'Block'),
+    ('Block', 'Block'),
     ('Logout', 'Logout'),
     ('CAS','CAS'),
     )
@@ -509,7 +509,7 @@ class BlackIP(models.Model):
         return self.ip
     class Meta:
         db_table = 'blackip'
-		
+
 class SSL(models.Model):
     SSL_REQUIRE = (
         ('optional', 'optional'),
@@ -852,9 +852,9 @@ class Appearance(models.Model):
 
 class Plugincontent(models.Model):
     PLUGIN_TYPES = (
-	('Header Add', 'Header Add'),
+    ('Header Add', 'Header Add'),
     ('Header Modify', 'Header Modify'),
-	('Header Replacement', 'Header Replacement'),
+    ('Header Replacement', 'Header Replacement'),
     ('Mime Forbiden', 'Mime Forbiden'),
     ('Header Unset','Header Unset'),
     ('Header to link','Header to link'),
