@@ -220,8 +220,8 @@ sub forward{
     $request->push_header('Accept-Charset' => $r->headers_in->{'Accept-Charset'});
     
     #We need to parse referer to replace @ IP by hostname
-    my $parsed_uri = APR::URI->parse($r->pool, $request->header{'Referer'});
-    my $host = $r->headers_in{'Host'};
+    my $parsed_uri = APR::URI->parse($r->pool, $request->headers_in->{'Referer'});
+    my $host = $r->headers_in->{'Host'};
     $parsed_uri->hostname($host);
     $request->push_header('Referer' => $parsed_uri->unparse);
 
