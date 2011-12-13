@@ -190,7 +190,7 @@ sub forward{
     #Setting headers
     
     #Cookies get from form page
-    $request->push_header('Cookie' => $response->headers->header('Set-Cookie'));
+    $request->push_header('Cookie' => $response->header('Set-Cookie'));
     
     #Push user-agent, etc.
 	$request->push_header('User-Agent' => $r->headers_in->{'User-Agent'});
@@ -219,9 +219,12 @@ sub forward{
     $request->push_header('Accept-Encoding' => $r->headers_in->{'Accept-Encoding'});
     $request->push_header('Accept-Charset' => $r->headers_in->{'Accept-Charset'});
     
-    #We need to parse referer to replace @ IP by hostname
-    my $parsed_uri = APR::URI->parse($r->pool, $request->headers_in->{'Referer'});
+    #We need to parse referer to replace @ IP by hostnames
     my $host = $r->headers_in->{'Host'};
+    my $parsed_uri = APR::URI->parse($r->pool, $app->{url}.$app->{logon_url});
+    $parsed_uri->scheme('http');
+    $parsed_uri->scheme('https') if $r->is_https;
+    $parsed_uri->port($r->get_server_port());
     $parsed_uri->hostname($host);
     $request->push_header('Referer' => $parsed_uri->unparse);
 
@@ -238,6 +241,7 @@ sub forward{
         
         #Try to push custom headers
         eval {
+            $request->remove_header($name);
             $request->push_header($name => $value);
             $log->debug("Pushing custom header $name => $value");
         };
@@ -252,15 +256,24 @@ sub forward{
     $log->debug($request->as_string);
         
     #Send request (POST)
-    $response = $mech->request($request);
+    $post_response = $mech->request($request);
     
-    $log->debug($response->as_string);
+    $log->debug($post_response->as_string);
 
-	#Cookie coming from response
+	#Cookie coming from response and from POST response
 	my %cookies_app;
-	if ($response->headers->header('Set-Cookie')){
+	if ($response->header('Set-Cookie') or $post_response->header('Set-Cookie')){
+    
+        #Cookies coming from GET response are the older ones. They can be erase by POST response. Handle them before
+        foreach ($response->header('Set-Cookie')) {
+			if (/([^,; ]+)=([^,; ]+)/) {
+				$cookies_app{$1} = $2;		# adding/replace
+				$log->debug("ADD/REPLACE ".$1."=".$2);
+				
+			}
+		}
 		# Adding new couples (name, value) thanks to POST response
-		foreach ($response->headers->header('Set-Cookie')) {
+		foreach ($post_response->header('Set-Cookie')) {
 			if (/([^,; ]+)=([^,; ]+)/) {
 				$cookies_app{$1} = $2;		# adding/replace
 				$log->debug("ADD/REPLACE ".$1."=".$2);
@@ -269,7 +282,7 @@ sub forward{
 		}
         
         #Fill session with cookies returned by app (for logout)
-		$session_app{cookie} = $response->headers->header('Set-Cookie');
+		$session_app{cookie} = join('; ', map { "'$_'=\"${cookies_app{$_}}\"" } keys %cookies_app), "\n";
 	}
 	foreach my $k (keys %cookies_app){
 		$r->err_headers_out->add('Set-Cookie' => $k."=".$cookies_app{$k}."; domain=".$r->hostname."; path=/");  # Send cookies to browser's client
@@ -277,6 +290,6 @@ sub forward{
 	}
     
     #trigger action needed
-    return handle_action($r, $log, $dbh, $app, $response);
+    return handle_action($r, $log, $dbh, $app, $post_response);
 }
 1;
