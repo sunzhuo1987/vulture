@@ -111,24 +111,24 @@ sub handler:method
         #Check type and use good auth module
         my $ret = Apache2::Const::HTTP_UNAUTHORIZED;
 
-        my $auths = $app->{'auth'};
+        my $auths = defined ($app->{'auth'}) ? $app->{'auth'} : $intf->{'auth'};
 
         my $ntlm = undef;
         my $cas = undef;
         foreach my $row (@$auths) {
             if (uc(@$row[1]) eq "NTLM" ) {
-                $ret = multipleAuth($r, $log, $dbh, $app, $user, $password, $class, 1);
+                $ret = multipleAuth($r, $log, $dbh, $auths, $app, $user, $password, $class, 1);
                 $ntlm = 1;
                 last;
             } elsif (uc(@$row[1]) eq "CAS" ) {
                 $log->debug("CAS mode");
-                $ret = multipleAuth($r, $log, $dbh, $app, $user, $password, $class, 1);
+                $ret = multipleAuth($r, $log, $dbh, $auths, $app, $user, $password, $class, 1);
                 $cas = 1;
                 last;
             }
         }
 
-        $ret = multipleAuth($r, $log, $dbh, $app, $user, $password, 0, 0) if ($user and ($token eq $session_SSO{random_token} or $app->{'auth_basic'} or not $cas));
+        $ret = multipleAuth($r, $log, $dbh, $auths, $app, $user, $password, 0, 0) if ($user and ($token eq $session_SSO{random_token} or $app->{'auth_basic'} or not $cas));
 
         #Trigger action when change pass is needed / auth failed
         handle_action($r, $log, $dbh, $app, 'NEED_CHANGE_PASS', 'You need to change your password') if(uc($r->pnotes('auth_message')) eq 'NEED_CHANGE_PASS');
@@ -216,10 +216,9 @@ sub getRequestData {
 }
 
 sub multipleAuth {
-    my ($r, $log, $dbh, $app, $user, $password, $class, $is_transparent) = @_;
+    my ($r, $log, $dbh, $auths, $app, $user, $password, $class, $is_transparent) = @_;
 
     my $ret = Apache2::Const::FORBIDDEN;
-	my $auths = $app->{'auth'};
 
 	foreach my $row (@$auths) {
 		my $module_name = "Auth::Auth_".uc(@$row[1]);

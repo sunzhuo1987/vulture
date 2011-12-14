@@ -74,6 +74,7 @@ class Intf(models.Model):
     cas_portal = models.CharField(max_length=256,blank=1,null=1)
     cas_auth = models.ManyToManyField('Auth',null=1,blank=1,db_table='intf_auth_multiple')
     cas_st_timeout = models.IntegerField(blank=1,null=1)
+    cas_redirect = models.CharField(max_length=256,blank=1,null=1)
     cert = models.TextField(blank=1,null=1)
     key = models.TextField(blank=1,null=1)
     ca = models.TextField(blank=1,null=1)
@@ -557,6 +558,7 @@ class RADIUS(models.Model):
     port = models.IntegerField()
     secret = models.CharField(max_length=64)
     timeout = models.IntegerField()
+    url_attr = models.CharField(max_length=32, blank=1)
     def __str__(self):
         return self.name
     class Meta:

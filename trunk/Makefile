@@ -107,16 +107,28 @@ install:
 	for i in '$(DIRS)'; do \
 		for j in `find $$i`; do \
 		if [ -f $$j ]; then \
-			$(INSTALL) $(UID) $(GID) $$j $(DESTDIR)$(PREFIX)/$(NAME)/$$j; \
+			if [ -e /etc/debian_version ]; then \
+				$(INSTALL) $(UID) $(GID) $$j $(DESTDIR)$(PREFIX)/$(NAME)/$$j; \
+			else \
+				$(INSTALL) $$j $(DESTDIR)$(PREFIX)/$(NAME)/$$j; \
+			fi; \
 		fi; \
 		done; \
 	done
-	/usr/bin/install -d -m0755 $(UID) $(GID) $(DESTDIR)$(PREFIX)/$(NAME)/sql
+	if [ -e /etc/debian_version ]; then \
+		/usr/bin/install -d -m0755 $(UID) $(GID) $(DESTDIR)$(PREFIX)/$(NAME)/sql; \
+	else \
+		/usr/bin/install -d -m0755 $(DESTDIR)$(PREFIX)/$(NAME)/sql; \
+	fi
 	for i in '$(DIRSLIB)'; do \
 		cd lib/Vulture; \
 		for j in `find $$i`; do \
 		if [ -f $$j ]; then \
-			$(INSTALL) $(UID) $(GID) $$j $(DESTDIR)$(PREFIXLIB)/$(NAME)/lib/i386-linux-thread-multi/Vulture/$$j; \
+			if [ -e /etc/debian_version ]; then \
+				$(INSTALL) $(UID) $(GID) $$j $(DESTDIR)$(PREFIXLIB)/$(NAME)/lib/i386-linux-thread-multi/Vulture/$$j; \
+			else \
+				$(INSTALL) $$j $(DESTDIR)$(PREFIXLIB)/$(NAME)/lib/i386-linux-thread-multi/Vulture/$$j; \
+			fi; \
 		fi; \
 		done; \
 		cd ../..; \
