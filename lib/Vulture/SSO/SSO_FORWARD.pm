@@ -256,7 +256,7 @@ sub forward{
     $log->debug($request->as_string);
         
     #Send request (POST)
-    $post_response = $mech->request($request);
+    $post_response = $mech->simple_request($request);
     
     $log->debug($post_response->as_string);
 
