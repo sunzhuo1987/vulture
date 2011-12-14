@@ -37,6 +37,7 @@ sub checkAuth{
 					$log->debug($user . " routed to ". $a->{'Value'});
 				}
 			}
+    }
 		return Apache2::Const::OK;
 	}
     return Apache2::Const::FORBIDDEN;
