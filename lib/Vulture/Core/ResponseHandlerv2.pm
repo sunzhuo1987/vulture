@@ -26,6 +26,7 @@ sub handler {
 	#Getting data from pnotes
 	my $app = $r->pnotes('app');
 	my $dbh = $r->pnotes('dbh');
+    my $intf = $r->pnotes('intf');
 
 	#$user may not be set if Authentication is done via Apache (ex: mod_auth_kerb)
 	my $user = $r->pnotes('username') || $r->user;
@@ -93,7 +94,7 @@ sub handler {
             my $href = SSO::ProfileManager::get_profile($r, $log, $dbh, $app, $user);
             
 			my $length1 = $dbh->selectrow_array($query, undef, $app->{id});
-            my $length2 = keys %$href;
+            my $length2 = grep { $_ ne "" } values %$href;
             
             $log->debug($length1."vs".$length2);
 
@@ -151,7 +152,12 @@ sub handler {
 		    return Apache2::Const::REDIRECT;
 
         } else {
-            my $html = "<html><head><title>Successful login</title></head><body>You are successfull loged on SSO</body></html>";
+            my $html;
+            if($intf->{'cas_redirect'}){
+                $html = '<html><head><meta http-equiv="Refresh" content="0; url='.$intf->{'cas_redirect'}.'"></head></html>';
+            } else {
+                $html = "<html><head><title>Successful login</title></head><body>You are successfull loged on SSO</body></html>";
+            }
             $r->print($html);
             $r->content_type('text/html');
             return Apache2::Const::OK;

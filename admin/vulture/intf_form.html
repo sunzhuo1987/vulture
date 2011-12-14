@@ -38,7 +38,8 @@
             <table>
                 <tr><th>{% trans "CAS Portal" %}</th><td class="input">{{ form.cas_portal }}{% if form.cas_portal %}<div class="error">{{ form.cas_portal.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
                 <tr><th>{% trans "CAS auth" %}</th><td class="input">{{ form.cas_auth }}{% if form.cas_auth %}<div class="error">{{ form.cas_auth.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-                <tr><th>{% trans "CAS Service ticket timeout" %}</th><td class="input">{{ form.cas_st_timeout }}{% if form.cas_st_timeout %}<div class="error">{{ form.cas_st_timeout.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+                <tr><th>{% trans "CAS Service ticket timeout" %}</th><td class="input">{{ form.cas_st_timeout }}{% if form.cas_st_timeout.errors %}<div class="error">{{ form.cas_st_timeout.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+                <tr><th>{% trans "Redirect after login" %}</th><td class="input">{{form.cas_redirect}}{% if form.cas_redirect.errors %}<div class="error">{{ form.cas_redirect.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
             </table>
         </div>
 

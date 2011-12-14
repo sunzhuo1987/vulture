@@ -16,7 +16,7 @@ sub checkAuth{
 
 	$log->debug("########## Auth_RADIUS ##########");
 
-	my $query = "SELECT host, port, secret, timeout FROM radius WHERE id= ?";
+	my $query = "SELECT host, port, secret, timeout, url_attr FROM radius WHERE id= ?";
 	my $sth = $dbh->prepare($query);
 	$sth->execute($id_method);
 	my ($host, $port, $secret, $timeout, $url_attr) = $sth->fetchrow;
@@ -28,6 +28,15 @@ sub checkAuth{
 	return Apache2::Const::FORBIDDEN if (!defined $radius);
 	if ($radius->check_pwd($user,$password))
 	{
+		if (defined $url_attr) {
+			Authen::Radius->load_dictionary();
+			for $a ($radius->get_attributes) {
+				$log->debug("Attribut list". $a->{'Name'});
+				if ($a->{'Name'} eq $url_attr ) {
+					$r->pnotes('response_content') = '<html><head><meta http-equiv="Refresh" content="0; url='.$a->{'Value'}.'"></head></html>';
+					$log->debug($user . " routed to ". $a->{'Value'});
+				}
+			}
 		return Apache2::Const::OK;
 	}
     return Apache2::Const::FORBIDDEN;
