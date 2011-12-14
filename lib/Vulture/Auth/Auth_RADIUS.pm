@@ -26,9 +26,8 @@ sub checkAuth{
 					 TimeOut => $timeout
 					);
 	return Apache2::Const::FORBIDDEN if (!defined $radius);
-	if ($radius->check_pwd($user,$password))
-	{
-		if (defined $url_attr) {
+	if ($radius->check_pwd($user,$password)){
+		if (defined $url_attr){
 			Authen::Radius->load_dictionary();
 			for $a ($radius->get_attributes) {
 				$log->debug("Attribut list". $a->{'Name'});
@@ -37,7 +36,8 @@ sub checkAuth{
 					$log->debug($user . " routed to ". $a->{'Value'});
 				}
 			}
-    }
+
+        }
 		return Apache2::Const::OK;
 	}
     return Apache2::Const::FORBIDDEN;
