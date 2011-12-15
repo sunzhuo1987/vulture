@@ -135,62 +135,77 @@ sub forward{
 
 	#Getting SSO type
 	$log->debug("Getting data from database");
-	my $query = "SELECT sso.type FROM sso, app WHERE app.id=? AND sso.id = app.sso_forward_id";
+	my $query = "SELECT sso.type, sso.follow_get_redirect FROM sso, app WHERE app.id=? AND sso.id = app.sso_forward_id";
     $log->debug($query);
 
 	my $sth = $dbh->prepare($query);
 	$sth->execute($app->{id});
-	my ($sso_forward_type) = $sth->fetchrow;
+	my ($sso_forward_type, $sso_follow_get_redirect) = $sth->fetchrow;
 	$sth->finish();
 	$log->debug("SSO_FORWARD_TYPE=".$sso_forward_type);
 
 	#Setting browser
-	my ($mech, $response, $request);
+	my ($mech, $response, $post_response, $request);
     $mech = WWW::Mechanize->new;
-    
-    #Push user-agent, etc.
-    $mech->delete_header('User-Agent');
-	$mech->add_header('User-Agent' => $r->headers_in->{'User-Agent'});
-    
-    #Host header
-    $mech->delete_header('Host');
-    $mech->add_header('Host' => $r->headers_in->{'Host'});
 
 	#Setting proxy if needed
 	if ($app->{remote_proxy} ne ''){
 		$mech->proxy(['http', 'https'], $app->{remote_proxy});
 	}
+    
+    if($sso_forward_type eq 'sso_forward_htaccess'){
+        $request = HTTP::Request->new(GET => $app->{url}.$app->{logon_url});
 
-    #Get the form page
-    my $response = $mech->get($app->{url}.$app->{logon_url});
-    
-    $log->debug($response->as_string);
-    
-    #Get profile
-    my %results = %{get_profile($r, $log, $dbh, $app, $user)};
-    
-    $log->debug(Dumper(%results));
-    
-    $log->debug(Dumper($mech->forms()));
-    
-    #Get form which contains fields set in admin
-    $form = $mech->form_with_fields(keys %results) if %results;
-    #$log->debug(Dumper(\$form));
-    
-    #Fill form with profile
-	if ($form and %results){
-	    while (($key, $value) = each(%results)){
-	        $mech->field($key, $value);
-	    }
+        #Sending Authorization header if needed by SSO forward type
+        $request->push_header('Authorization' => "Basic " . encode_base64($user.':'.$password));
+        
+    } else {
+        #Push user-agent, etc.
+        $request = HTTP::Request->new(GET => $app->{url}.$app->{logon_url});
+        $request->remove_header('User-Agent');
+        $request->push_header('User-Agent' => $r->headers_in->{'User-Agent'});
+        
+        #Host header
+        $request->remove_header('Host');
+        $request->push_header('Host' => $r->headers_in->{'Host'});
+
+        #Get the form page if no redirect follow
+        unless ($sso_follow_get_redirect){
+            $response = $mech->simple_request($request);
+        } else {
+            $response = $mech->request($request);
+        }
+        
+        $log->debug($response->as_string);
+        
+        #Get profile
+        my %results = %{get_profile($r, $log, $dbh, $app, $user)};
+        
+        $log->debug(Dumper(%results));
+        
+        $log->debug(Dumper($mech->forms()));
+        
+        #Get form which contains fields set in admin
+        $form = $mech->form_with_fields(keys %results) if %results;
+        #$log->debug(Dumper(\$form));
+        
+        #Fill form with profile
+        if ($form and %results){
+            while (($key, $value) = each(%results)){
+                $mech->field($key, $value);
+            }
+        }
+        
+        #Simulate click
+        $request = $form->click() if $form;
+        
+        #Cookies get from form page
+        $request->push_header('Cookie' => $response->header('Set-Cookie')) if $request;
     }
     
-    #Simulate click
-    $request = $form->click() if $form;
+    #Setting headers for both htaccess and normal way
     
-    #Setting headers
     
-    #Cookies get from form page
-    $request->push_header('Cookie' => $response->header('Set-Cookie'));
     
     #Push user-agent, etc.
 	$request->push_header('User-Agent' => $r->headers_in->{'User-Agent'});
@@ -247,31 +262,28 @@ sub forward{
         };
 	}
     $sth->finish();
-
-    #Sending Authorization header if needed by SSO forward type
-    if($sso_forward_type eq 'sso_forward_htaccess'){
-        $request->push_header('Authorization' => "Basic " . encode_base64($user.':'.$password));    
-    }
     
     $log->debug($request->as_string);
         
-    #Send request (POST)
+    #Send request (POST or GET (htaccess))
     $post_response = $mech->simple_request($request);
     
     $log->debug($post_response->as_string);
 
 	#Cookie coming from response and from POST response
 	my %cookies_app;
-	if ($response->header('Set-Cookie') or $post_response->header('Set-Cookie')){
+	if (($response and $response->header('Set-Cookie')) or $post_response->header('Set-Cookie')){
     
         #Cookies coming from GET response are the older ones. They can be erase by POST response. Handle them before
-        foreach ($response->header('Set-Cookie')) {
-			if (/([^,; ]+)=([^,; ]+)/) {
-				$cookies_app{$1} = $2;		# adding/replace
-				$log->debug("ADD/REPLACE ".$1."=".$2);
-				
-			}
-		}
+        if($response){
+            foreach ($response->header('Set-Cookie')) {
+                if (/([^,; ]+)=([^,; ]+)/) {
+                    $cookies_app{$1} = $2;		# adding/replace
+                    $log->debug("ADD/REPLACE ".$1."=".$2);
+                    
+                }
+            }
+        }
 		# Adding new couples (name, value) thanks to POST response
 		foreach ($post_response->header('Set-Cookie')) {
 			if (/([^,; ]+)=([^,; ]+)/) {

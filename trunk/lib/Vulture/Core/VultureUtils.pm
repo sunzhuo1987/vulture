@@ -177,7 +177,7 @@ sub	get_app {
 	$sth->finish();
     
     #Getting actions
-    $query = "SELECT login_failed_action, login_failed_options, need_change_pass_action, need_change_pass_options, acl_failed_action, acl_failed_options FROM app WHERE app.id = ?";
+    $query = "SELECT auth_server_failure_action, auth_server_failure_options, account_locked_action, account_locked_options, login_failed_action, login_failed_options, need_change_pass_action, need_change_pass_options, acl_failed_action, acl_failed_options FROM app WHERE app.id = ?";
     $log->debug($query);
     $sth = $dbh->prepare($query);
 	$sth->execute($ref->{id});
@@ -238,7 +238,7 @@ sub get_DB_object{
 sub get_LDAP_object{
 	my ($log, $dbh, $id_method) = @_;
 
-	my $query = "SELECT host, port, scheme, cacert_path, dn, password, base_dn, user_ou, user_scope, user_attr, user_filter, group_ou, group_scope, group_attr, group_filter, group_member, are_members_dn, url_attr, protocol, chpass_attr FROM ldap WHERE id = ?";
+	my $query = "SELECT host, port, scheme, cacert_path, dn, password, base_dn, user_ou, user_scope, user_attr, user_filter, group_ou, group_scope, group_attr, group_filter, group_member, are_members_dn, url_attr, protocol, chpass_attr, user_account_locked_attr FROM ldap WHERE id = ?";
 	$log->debug($query);
 	my $sth = $dbh->prepare($query);
 	$sth->execute($id_method);
@@ -247,7 +247,7 @@ sub get_LDAP_object{
         $ldap_user_ou, $ldap_user_scope, $ldap_uid_attr, $ldap_user_filter, 
         $ldap_group_ou, $ldap_group_scope, $ldap_group_attr,
 	    $ldap_group_filter, $ldap_group_member, $ldap_group_is_dn,
-	    $ldap_url_attr, $ldap_protocol, $ldap_chpass_attr) = $sth->fetchrow;
+	    $ldap_url_attr, $ldap_protocol, $ldap_chpass_attr, $ldap_account_locked_attr) = $sth->fetchrow;
 
 	$ldap_cacert_path="/var/www/vulture/conf/cacerts" if ($ldap_cacert_path eq '');
 	$ldap_user_filter = "(|(objectclass=posixAccount)(objectclass=inetOrgPerson)(objectclass=person))"
@@ -290,7 +290,7 @@ sub get_LDAP_object{
 		$log->error("Unable to bind with $ldap_bind_dn on $ldap_server");
 		return ;
 	}
-	return ($ldap, $ldap_url_attr, $ldap_uid_attr, $ldap_user_ou, $ldap_group_ou, $ldap_user_filter, $ldap_group_filter, $ldap_user_scope, $ldap_group_scope, $ldap_base_dn, $ldap_group_member, $ldap_group_is_dn, $ldap_group_attr, $ldap_chpass_attr);
+	return ($ldap, $ldap_url_attr, $ldap_uid_attr, $ldap_user_ou, $ldap_group_ou, $ldap_user_filter, $ldap_group_filter, $ldap_user_scope, $ldap_group_scope, $ldap_base_dn, $ldap_group_member, $ldap_group_is_dn, $ldap_group_attr, $ldap_chpass_attr, $ldap_account_locked_attr);
 }
 
 sub get_style {
