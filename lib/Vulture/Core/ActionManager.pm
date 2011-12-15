@@ -16,7 +16,7 @@ sub handle_action {
     my ($query, $sth, $action, $options, $html);
     
     $log->debug($type);
-    my @messages = qw/LOGIN_FAILED NEED_CHANGE_PASS ACL_FAILED/;
+    my @messages = qw/AUTH_SERVER_FAILURE ACCOUNT_LOCKED LOGIN_FAILED NEED_CHANGE_PASS ACL_FAILED/;
     #If type is in messages array
     if(grep $_ eq uc($type), @messages){
         $action = $app->{'actions'}->{lc($type).'_action'};

@@ -135,7 +135,7 @@ class Intf(models.Model):
             
     def pid(self):
         try:
-            pid = string.strip((open("%s%s.pid" % (settings.CONF_PATH, self.id), 'r').read()))
+            pid = str(os.popen("sudo /bin/cat %s%s.pid" % (settings.CONF_PATH, self.id).read()))
         except:
             return None
         pidof = str(os.popen("pidof %s" % settings.HTTPD_PATH).read()).split()
@@ -384,6 +384,7 @@ class SSO(models.Model):
     base_dn_mapped = models.CharField(max_length=128, blank=1, null=1)
     user_mapped = models.CharField(max_length=128, blank=1, null=1)
     app_mapped = models.CharField(max_length=128, blank=1, null=1)
+    follow_get_redirect = models.BooleanField(default=0)
     is_info = models.CharField(max_length=128, blank=1, null=1, choices=ACTIONS, default='nothing')
     is_info_options = models.CharField(max_length=128, blank=1, null=1)
     is_success = models.CharField(max_length=128, blank=1, null=1, choices=ACTIONS, default='nothing')
@@ -467,6 +468,10 @@ class App(models.Model):
     auth= models.ManyToManyField('Auth',null=1,blank=1,db_table='auth_multiple')
     auth_basic = models.BooleanField(default=0)
     display_portal = models.BooleanField()
+    auth_server_failure_action = models.CharField(max_length=128, blank=1, null=1, choices=ACTIONS, default='nothing')
+    auth_server_failure_options = models.CharField(max_length=128, blank=1, null=1)
+    account_locked_action = models.CharField(max_length=128, blank=1, null=1, choices=ACTIONS, default='nothing')
+    account_locked_options = models.CharField(max_length=128, blank=1, null=1)
     login_failed_action = models.CharField(max_length=128, blank=1, null=1, choices=RESTRICTED_ACTIONS, default='template')
     login_failed_options = models.CharField(max_length=128, blank=1, null=1)
     need_change_pass_action = models.CharField(max_length=128, blank=1, null=1, choices=ACTIONS, default='nothing')
@@ -624,6 +629,7 @@ class LDAP(models.Model):
     user_attr = models.CharField(max_length=32)
     user_scope = models.IntegerField(choices=LDAP_SCOPE)
     user_filter = models.CharField(max_length=128, blank=1, null=1)
+    user_account_locked_attr = models.CharField(max_length=128, blank=1, null=1)
     group_ou = models.CharField(max_length=128, blank=1, null=1)
     group_attr = models.CharField(max_length=32)
     group_scope = models.IntegerField(choices=LDAP_SCOPE)
