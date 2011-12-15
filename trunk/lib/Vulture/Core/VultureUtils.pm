@@ -155,6 +155,10 @@ sub	get_app {
                 $ref->{name} = $host;
                 last;
             }
+			elsif ($hashref->{alias} =~ m|$host|i) {
+				$ref = $apps->{$name};
+				last;
+			}
         }
     }
     return {} unless $ref->{id};
