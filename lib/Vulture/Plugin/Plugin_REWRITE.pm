@@ -23,8 +23,8 @@ sub plugin{
 
 	#Redirect
 	} elsif($options =~ /(.+)\[R\]/){
-	    $log->debug("Redirecting to http://".$r->hostname.":".$r->get_server_port.$1);
-		$r->err_headers_out->set('Location' => 'http://'.$r->hostname.':'.$r->get_server_port.$1);
+	    $log->debug("Redirecting to ".$1);
+		$r->err_headers_out->set('Location' => $1);
 		return Apache2::Const::REDIRECT;
 	}
 }
