@@ -18,6 +18,7 @@ use Core::VultureUtils qw(&get_DB_object &get_LDAP_object);
 
 use Net::LDAP;
 use DBI;
+use MIME::Base64;
 
 use Data::Dumper;
 
@@ -58,7 +59,7 @@ sub get_profile{
         } else {
 		    if($need_decryption){
 		        $log->debug("Decrypting $var");
-                $value = decrypt($value);
+                $value = decrypt(decode_base64($value));
 		    }
             $return->{$var} = $field_prefix.$value.$field_suffix;        
         }
@@ -98,7 +99,7 @@ sub get_profile{
 	            if(defined $ref->{$mapping}){
 	                #Decryption is needed
 	                if($need_decryption){
-	                    $return->{$var} = $field_prefix.decrypt($r, $ref->{$mapping}).$field_suffix;
+	                    $return->{$var} = $field_prefix.decrypt($r, decode_base64($ref->{$mapping})).$field_suffix;
 	                } else {
 	                    $return->{$var} = $field_prefix.$ref->{$mapping}.$field_suffix;
 	                }
@@ -135,7 +136,12 @@ sub get_profile{
                 my ($var, $mapping, $need_decryption, $value, $field_prefix, $field_suffix) = @$field;
                 $log->debug("Checking access for property $mapping");
                 if($entry->exists($mapping)){
-                    $return->{$var} = $field_prefix.$entry->get_value($mapping).$field_suffix;
+                    #Decryption is needed
+	                if($need_decryption){
+	                    $return->{$var} = $field_prefix.decrypt($r, decode_base64($entry->get_value($mapping))).$field_suffix;
+	                } else {
+	                    $return->{$var} = $field_prefix.$entry->get_value($mapping).$field_suffix;
+	                }
                 } else {
                     $return->{$var} = $field_prefix.$value.$field_suffix;
                 }
@@ -178,7 +184,7 @@ sub set_profile{
 		        my $value = param($var);
 		        if($need_encryption){
                     $log->debug("Encrypting $var");
-                    $value = encrypt($r, $value);
+                    $value = encode_base64(encrypt($r, $value));
                 }
                 $log->debug("Pushing ".$prefix.$value.$suffix." into column $mapped");
                 $columns .= ", ".$mapped;
@@ -235,7 +241,7 @@ sub set_profile{
 		        my $value = param($var);
 		        if($need_encryption){
                     $log->debug("Encrypting $var");
-                    $value = encrypt($r, $value);
+                    $value = encode_base64(encrypt($r, $value));
                 }
                 $log->debug("Replacing ".$prefix.$value.$suffix." into $mapped");
                 
