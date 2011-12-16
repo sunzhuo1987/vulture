@@ -42,6 +42,9 @@
                         {% endif %}
                         <a href="/app/{{ object.id }}/del/"><img src="/img/vulture2/trash.png" alt="delete" /></a>
                         <a href="/app/{{ object.id }}"><img src="/img/vulture2/edit.png" alt="edit" /></a>
+						{% if object.isWildCard %}
+						    <img src="/img/vulture2/star.png" alt="wildcard" />
+						{% endif %}
                     </td>
                 </tr>
             {% empty %}
