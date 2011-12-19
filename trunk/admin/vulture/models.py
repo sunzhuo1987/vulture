@@ -75,6 +75,7 @@ class Intf(models.Model):
     cas_auth = models.ManyToManyField('Auth',null=1,blank=1,db_table='intf_auth_multiple')
     cas_st_timeout = models.IntegerField(blank=1,null=1)
     cas_redirect = models.CharField(max_length=256,blank=1,null=1)
+    cas_display_portal = models.BooleanField(default=0);
     cert = models.TextField(blank=1,null=1)
     key = models.TextField(blank=1,null=1)
     ca = models.TextField(blank=1,null=1)
@@ -134,10 +135,7 @@ class Intf(models.Model):
         return (content == content2)
             
     def pid(self):
-        try:
-            pid = str(os.popen("sudo /bin/cat %s%s.pid" % (settings.CONF_PATH, self.id).read()))
-        except:
-            return None
+        pid = string.strip(os.popen("sudo /bin/cat %s%s.pid" % (settings.CONF_PATH, self.id)).read())
         pidof = str(os.popen("pidof %s" % settings.HTTPD_PATH).read()).split()
         if len(pidof) and pid not in pidof:
             return None
@@ -896,7 +894,7 @@ class Plugincontent(models.Model):
 
 class Pluginheader(models.Model):
     PLUGIN_TYPES = (
-    ('Header Modify', 'Header Modify'),
+    ('Header Modify', 'Header Mcodify'),
     ('Header Replacement', 'Header Replacement'),
     ('Header Unset','Header Unset'),
     )

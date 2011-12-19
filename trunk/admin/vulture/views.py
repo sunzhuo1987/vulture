@@ -68,8 +68,15 @@ def stop_intf(request, intf_id):
 
 @login_required
 def reload_intf(request, intf_id):
-    Intf.objects.get(pk=intf_id).write()
-    k_output = Intf.objects.get(pk=intf_id).k('graceful')
+    intf = Intf.objects.get(pk=intf_id)
+    intf.write()
+    k_output = intf.k('graceful')
+    
+    apps = App.objects.get(intf=intf)
+    mc = pylibmc.Client(["127.0.0.1:9091"])
+    for app in apps:
+        # Delete memcached records to update config
+        mc.delete(app.name + ':app')
     return render_to_response('vulture/intf_list.html',
                               {'object_list': Intf.objects.all(), 'k_output': k_output, 'user' : request.user})
                               
@@ -80,6 +87,11 @@ def reload_all_intfs(request):
         if intf.need_restart:
             intf.write()
             intf.k('graceful')
+            apps = App.objects.get(intf=intf)
+            mc = pylibmc.Client(["127.0.0.1:9091"])
+            for app in apps:
+                # Delete memcached records to update config
+                mc.delete(app.name + ':app')
     else:
         return render_to_response('vulture/intf_list.html', {'object_list': intfs, 'user' : request.user})
 
@@ -175,16 +187,9 @@ def edit_app(request,object_id=None):
     # Save new/edited app
     if request.method == 'POST' and form.is_valid():
         
-        
         dataPosted = request.POST
         #app = form.save(commit=False)
         app = form.save()
-        
-        # Delete memcached records to update config
-        mc = pylibmc.Client(["127.0.0.1:9091"])
-        intfs = Intf.objects.all()
-        for intf in intfs :
-            mc.delete(app.name + ':app')
         
         #Delete old headers
         headers = Header.objects.filter(app=object_id)
