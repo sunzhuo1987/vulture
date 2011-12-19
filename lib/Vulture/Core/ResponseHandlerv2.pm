@@ -153,6 +153,9 @@ sub handler {
 
         } else {
             my $html;
+            if($intf->{'cas_display_portal'}){
+                $html = display_portal ($r,$log,$dbh, $app);
+            }
             if($intf->{'cas_redirect'}){
                 $html = '<html><head><meta http-equiv="Refresh" content="0; url='.$intf->{'cas_redirect'}.'"></head></html>';
             } else {
