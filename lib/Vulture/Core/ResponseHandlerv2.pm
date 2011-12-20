@@ -155,8 +155,7 @@ sub handler {
             my $html;
             if($intf->{'cas_display_portal'}){
                 $html = display_portal ($r,$log,$dbh, $app);
-            }
-            if($intf->{'cas_redirect'}){
+            } elsif($intf->{'cas_redirect'}){
                 $html = '<html><head><meta http-equiv="Refresh" content="0; url='.$intf->{'cas_redirect'}.'"></head></html>';
             } else {
                 $html = "<html><head><title>Successful login</title></head><body>You are successfull loged on SSO</body></html>";
