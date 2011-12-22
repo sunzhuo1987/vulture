@@ -164,7 +164,7 @@ sub handler {
             
 		}	
 	#If application exists and is not down, check auth
-	if($app and $app->{'up'}){
+	if($app and $app->{'up'} and ($app->{'intf'} eq $r->dir_config('VultureID'))){
 		my $proxy_url;
 	    if ($uri =~ /^(http|https|ftp):\/\//) {
             	$proxy_url = $uri;

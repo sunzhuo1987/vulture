@@ -161,6 +161,7 @@ sub	get_app {
 			}
         }
     }
+	$ref->{'intf'} = $intf;
     return {} unless $ref->{id};
 	
     #Getting auth
