@@ -125,6 +125,17 @@ sub	get_app {
     
     #Use memcached if possible
     my $obj = get_memcached("$host:app");
+	if ($obj) {
+		$query = "SELECT intf.id FROM app, intf, app_intf WHERE app.name = ? AND app_intf.intf_id = intf.id AND app.id = app_intf.app_id";
+        $log->debug($query);
+		$sth = $dbh->prepare($query);
+		$sth->execute($host);
+		while ($var = $sth->fetchrow) {
+			if ($var eq $intf) {
+				$obj->{'intf'} = $intf;
+			}
+		}
+	}
 	return $obj if $obj;
     
     #Getting app and wildcards
