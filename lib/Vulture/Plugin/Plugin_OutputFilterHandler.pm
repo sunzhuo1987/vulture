@@ -148,54 +148,54 @@ sub handler {
 			$f->ctx($ctx);
 		}
 		# Thing we do at end
-		if ($f->seen_eos) { 
-			# Skip content that should not have links
-			my $parsed_uri = $f->r->construct_url();
-			my $encoding = $f->r->headers_out->{'Content-Encoding'} || '';
-				# if Accept-Encoding: gzip,deflate try to uncompress
-			if ($encoding =~ /gzip|deflate|x-compress|x-gzip/) {
-				use IO::Uncompress::AnyInflate qw(anyinflate $AnyInflateError);
-				my $output = '';
-				anyinflate  \$ctx->{data} => \$output or print STDERR "anyinflate failed: $AnyInflateError\n";
-				if ($ctx->{data} ne $output) {
-					$ctx->{data} = $output;
-				} else {
-					$encoding = '';
+		if ($f->seen_eos) {
+			if (($ctx->{pattern}) || ( $ctx->{rewrite} )) {
+				# Skip content that should not have links
+				my $parsed_uri = $f->r->construct_url();
+				my $encoding = $f->r->headers_out->{'Content-Encoding'} || '';
+					# if Accept-Encoding: gzip,deflate try to uncompress
+				if ($encoding =~ /gzip|deflate|x-compress|x-gzip/) {
+					use IO::Uncompress::AnyInflate qw(anyinflate $AnyInflateError);
+					my $output = '';
+					anyinflate  \$ctx->{data} => \$output or print STDERR "anyinflate failed: $AnyInflateError\n";
+					if ($ctx->{data} ne $output) {
+						$ctx->{data} = $output;
+					} else {
+						$encoding = '';
+					}
 				}
-			}
-			if ($r->content_type =~ /(text\/xml|text\/html|application\/vnd.ogc.wms_xml|text\/css|application\/x-javascript)/) {
-				# Replace links if pattern match
-				foreach my $p (@{$ctx->{pattern}}) {
-					my ($match, $substitute) = split (/ => /, $p);
-					$log->debug($match);
-					$log->debug($substitute);
-					&link_replacement(\$ctx->{data}, $match, $substitute, $parsed_uri);
+				if ($r->content_type =~ /(text\/xml|text\/html|application\/vnd.ogc.wms_xml|text\/css|application\/x-javascript)/) {
+					# Replace links if pattern match
+					foreach my $p (@{$ctx->{pattern}}) {
+						my ($match, $substitute) = split (/ => /, $p);
+						$log->debug($match);
+						$log->debug($substitute);
+						&link_replacement(\$ctx->{data}, $match, $substitute, $parsed_uri);
+					}
+					 # Rewrite content if pattern match
+					foreach my $p (@{$ctx->{rewrite}}) {
+						my ($match, $substitute) = split (/ => /, $p);
+						$log->debug($match);
+						$log->debug($substitute);
+						&rewrite_content(\$ctx->{data}, $match, $substitute, $parsed_uri);
+					}
 				}
-				 # Rewrite content if pattern match
-				foreach my $p (@{$ctx->{rewrite}}) {
-					my ($match, $substitute) = split (/ => /, $p);
-					$log->debug($match);
-					$log->debug($substitute);
-					&rewrite_content(\$ctx->{data}, $match, $substitute, $parsed_uri);
-				}
-			}
 
-			if ($encoding =~ /gzip|x-gzip/) {
-				use IO::Compress::Gzip qw(gzip $GzipError);
-				my $output = '';
-				my $status = gzip \$ctx->{data} => \$output or die "gzip failed: $GzipError\n";
-				$ctx->{data} = $output;
-			} elsif ($encoding =~ /deflate|x-compress/) {
-				use IO::Compress::Deflate qw(deflate $DeflateError);
-				my $output = '';
-				my $status = deflate \$ctx->{data} => \$output or die "deflate failed: $DeflateError\n";
-				$ctx->{data} = $output;
+				if ($encoding =~ /gzip|x-gzip/) {
+					use IO::Compress::Gzip qw(gzip $GzipError);
+					my $output = '';
+					my $status = gzip \$ctx->{data} => \$output or die "gzip failed: $GzipError\n";
+					$ctx->{data} = $output;
+				} elsif ($encoding =~ /deflate|x-compress/) {
+					use IO::Compress::Deflate qw(deflate $DeflateError);
+					my $output = '';
+					my $status = deflate \$ctx->{data} => \$output or die "deflate failed: $DeflateError\n";
+					$ctx->{data} = $output;
+				}
+				unless (defined $ctx->{data}){
+					$ctx->{data} = '';
+				}
 			}
-            
-            unless (defined $ctx->{data}){
-                $ctx->{data} = '';
-            }
-            
 			$f->ctx($ctx);
 
 			# Dump datas out
@@ -209,7 +209,6 @@ sub handler {
 				$ctx->{pattern} = ();
 				$ctx->{keepalives} = $c->keepalives;
 			}
-				
 		}
 	return Apache2::Const::OK;
 	}
