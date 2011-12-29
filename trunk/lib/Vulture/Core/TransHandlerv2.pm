@@ -218,7 +218,7 @@ sub handler {
 			#Setting username && password for FixupHandler and ResponseHandler
 			$r->pnotes('username' => $session_app{username});
 			$r->pnotes('password' => $session_app{password});
-			
+			$r->user($session_app{username});
 			$log->debug("This app : ".$r->hostname." is secured or display portal is on. User has a valid cookie for this app");
 			
 			#Destroy useless handlers
