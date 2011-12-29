@@ -10,6 +10,8 @@ use DBI;
 
 use Apache2::Const -compile => qw(FORBIDDEN OK);
 
+use Net::IP::Match::Regexp qw( create_iprange_regexp match_ip );
+
 #Particular IP blacklisting (in Application) (different from PreConnectionHandler (global blacklisting))
 sub handler {
 	my $r = shift;
@@ -27,12 +29,21 @@ sub handler {
 	my $dbh = $r->pnotes('dbh');
 	my $app_id = $r->pnotes('app')->{'id'} if defined($r->pnotes('app'));
 
-	my $query = "SELECT count(*) FROM blackip WHERE ip=? AND app_id=?";
-	if (not $dbh or not $app_id or $dbh->selectrow_array(($query, undef, $c->remote_ip, $app_id))){
-		$log->warn('IP '.$c->remote_ip.' is blocked');
-	 	return Apache2::Const::FORBIDDEN;	
+	my $query = "SELECT ip FROM blackip WHERE app_id=?";
+	$sth = $dbh->prepare($query);
+	$sth->execute($app_id);
+	$ip = $sth->fetchrow_array;
+	if (not $dbh or not $app_id or $ip) {
+		my @IP = split / /, $ip;
+		foreach my $ip (@IP){
+			my $regexp = create_iprange_regexp($ip);
+			if (match_ip($c->remote_ip, $regexp)) {
+				$log->warn('IP '.$c->remote_ip.' is blocked');
+				return Apache2::Const::FORBIDDEN;
+			}
+		}
 	} else {
-		$log->debug('White IP '.$c->remote_ip);
+		$log->warn('White IP '.$c->remote_ip);
 		$r->status(200);
 		return Apache2::Const::OK;
 	}
