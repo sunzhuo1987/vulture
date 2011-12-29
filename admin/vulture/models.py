@@ -302,6 +302,7 @@ class SQL(models.Model):
     SQL_DRIVERS = (
         ('SQLite', 'SQLite'),
         ('Pg', 'PostgreSQL'),
+        ('mysql', 'MySQL'),
         )
     SQL_ALGOS = (
         ('plain', 'plain'),
