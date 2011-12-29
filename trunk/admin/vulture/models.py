@@ -495,6 +495,9 @@ class App(models.Model):
     def hasHeaderHost (self):
         return Header.objects.filter(app = self).filter(name__iexact="Host")
 
+    def hasBlackIp (self):
+        return BlackIP.objects.filter(app = self)
+
     def getCookieDomain (self):
         p = re.compile ('https?://(.*)/?')
         match=p.match(self.url)
@@ -525,8 +528,8 @@ class Plugin(models.Model):
         db_table = 'plugin'
 
 class BlackIP(models.Model):
-    app = models.ForeignKey('App')
-    ip = models.IPAddressField()
+    app = models.ForeignKey(App,unique=1)
+    ip = models.CharField(max_length=200, null=1, blank=1)
     def __str__(self):
         return self.ip
     class Meta:
