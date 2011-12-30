@@ -77,94 +77,68 @@ sub handler:method
 	    return Apache2::Const::HTTP_UNAUTHORIZED;
 	}
 
-	#Check if credentials are good. If they are, give a vulture_proxy cookie and go to AuthzHandler for a vulture_app cookie
-	if($session_SSO{is_auth}){
-		$log->debug("User is already authorized to access this SSO");
+    $log->debug(Dumper(\%session_SSO));
+    
+    
+    #If user is not logged in SSO, skip this code
+    #Check if credentials are good. If they are, give a vulture_proxy cookie and go to AuthzHandler for a vulture_app cookie
+    if($session_SSO{is_auth}){
+        my $diff_count = 0;
+        $log->debug("User is logged in SSO. Check if auths are the same");
+        #Foreach app where user is currently logged in
+        foreach my $key (keys %session_SSO){
+            $log->debug($key);
 
-		$r->pnotes('username' => $session_SSO{username});
-		$r->pnotes('password' => $session_SSO{password});
+            #Reject bad app key
+            my @wrong_keys = qw/is_auth username password last_access_time last_access_time _session_id random_token/;
+            unless(grep $_ eq $key, @wrong_keys){ 
+                my $id_app = $session_SSO{$key};
+                my (%current_app);
+                session(\%current_app, undef, $id_app);
 
-		#Setting Memcached table
-        my (%users);
-        %users = %{get_memcached('vulture_users_in')};
-        $users{$session_SSO{username}} = {'SSO' => $r->pnotes('id_session_SSO')};
+                $log->debug(Dumper(\%current_app));
 
-        #Generate new service ticket
-        my $st = 'ST-'.generate_random_string(29);
-        my $service = param('service');
-        if(defined $service){
-            $log->debug("Creating new service ticket");
-            $users{$session_SSO{username}}->{'ticket'} = $st;
-            $users{$session_SSO{username}}->{'ticket_service'} = $service;
-            $users{$session_SSO{username}}->{'ticket_created'} = time();
-        }
-        $r->pnotes('url_to_redirect' => $service.'/?ticket='.$st) if defined $service;
-        set_memcached('vulture_users_in', \%users);
+                #Getting all auths methods used previously to compare with current app auths
+                $query = "SELECT auth.name, auth.auth_type, auth.id_method FROM app, intf, auth, auth_multiple WHERE app.name = ? AND intf.id = ? AND auth_multiple.app_id = app.id AND auth_multiple.auth_id = auth.id";
+                $log->debug($query);
+                my @auths = @{$dbh->selectall_arrayref($query, undef, $current_app{app_name}, $intf->{id})};
+                my @current_auths = @{defined ($app->{'auth'}) ? $app->{'auth'} : $intf->{'auth'}};
 
-		#Authentified, cookie is valid, let user go and check ACL (next step)
-		return Apache2::Const::OK;
+                use Data::Dumper;
+                $log->debug(Dumper(\@auths));
+                $log->debug(Dumper(\@current_auths));
+                
+                my @difference = ();
+                %count = ();
+                foreach $element (@auths, @current_auths) { $count{@$element[0]}++ }
+                foreach $element (keys %count) {
+                    push @{ \@difference if $count{$element} <= 1 }, $element;
+                }
+                $log->debug(Dumper(\@difference));
 
-	#Not authentified
-	} else {
-        $log->debug("Try to authenticate user");
-        
-        #Check type and use good auth module
-        my $ret = Apache2::Const::HTTP_UNAUTHORIZED;
-
-        my $auths = defined ($app->{'auth'}) ? $app->{'auth'} : $intf->{'auth'};
-
-        my $ntlm = undef;
-        my $cas = undef;
-        foreach my $row (@$auths) {
-            if (uc(@$row[1]) eq "NTLM" ) {
-                $ret = multipleAuth($r, $log, $dbh, $auths, $app, $user, $password, $class, 1);
-                $ntlm = 1;
-                last;
-            } elsif (uc(@$row[1]) eq "CAS" ) {
-                $log->debug("CAS mode");
-                $ret = multipleAuth($r, $log, $dbh, $auths, $app, $user, $password, $class, 1);
-                $cas = 1;
-                last;
+                $log->debug("Before $diff_count");
+                $diff_count += scalar @difference;
+                $log->debug("Auth not in common $diff_count");
             }
         }
-
-        $ret = multipleAuth($r, $log, $dbh, $auths, $app, $user, $password, 0, 0) if ($user and ($token eq $session_SSO{random_token} or $app->{'auth_basic'} or not $cas));
-
-        $log->debug("Return from auth => ".$r->pnotes('auth_message'));
-        #Trigger action when change pass is needed / auth failed
-        handle_action($r, $log, $dbh, $app, 'NEED_CHANGE_PASS', 'You need to change your password') if(uc($r->pnotes('auth_message')) eq 'NEED_CHANGE_PASS');
-        handle_action($r, $log, $dbh, $app, 'ACCOUNT_LOCKED', 'You need to unlock your password') if(uc($r->pnotes('auth_message')) eq 'ACCOUNT_LOCKED');
-        handle_action($r, $log, $dbh, $app, 'AUTH_SERVER_FAILURE', 'Vulture can\'t contact authentication server') if(uc($r->pnotes('auth_message')) eq 'AUTH_SERVER_FAILURE');
-        handle_action($r, $log, $dbh, $app, 'LOGIN_FAILED', 'Login failed') if (!$r->pnotes('auth_message') and $ret != scalar Apache2::Const::OK and ($user or $password));
         
-        if(defined $ret and $ret == scalar Apache2::Const::OK){
-            $log->debug("Good user/password");
+        #Same auths
+        if($diff_count == 0){
+            $log->debug("User is already authorized to access this SSO");
 
-            #Get new username and password ... ex : CAS
-            $user = $r->pnotes('username') || $r->user() || $user;
-            $password = $r->pnotes('password') || $password;
-
-            #Setting user for AuthzHandler
-            $r->pnotes('username' => $user);
-            $r->pnotes('password' => $password);
-
-            $log->debug('Validate SSO session');
-            $session_SSO{is_auth} = 1;
-            $session_SSO{username} = $user;
-            $session_SSO{password} = $password;
+            $r->pnotes('username' => $session_SSO{username});
+            $r->pnotes('password' => $session_SSO{password});
 
             #Setting Memcached table
             my (%users);
-            %users = %{get_memcached('vulture_users_in') or {}};
-            $users{$user} = {'SSO' => $r->pnotes('id_session_SSO')};
-
-            notify($dbh, undef, $user, 'connection', scalar(keys %users));
+            %users = %{get_memcached('vulture_users_in')};
+            $users{$session_SSO{username}} = {'SSO' => $r->pnotes('id_session_SSO')};
 
             #Generate new service ticket
             my $st = 'ST-'.generate_random_string(29);
             my $service = param('service');
             if(defined $service){
-                $log->debug("Creating new ticket");
+                $log->debug("Creating new service ticket");
                 $users{$session_SSO{username}}->{'ticket'} = $st;
                 $users{$session_SSO{username}}->{'ticket_service'} = $service;
                 $users{$session_SSO{username}}->{'ticket_created'} = time();
@@ -172,41 +146,112 @@ sub handler:method
             $r->pnotes('url_to_redirect' => $service.'/?ticket='.$st) if defined $service;
             set_memcached('vulture_users_in', \%users);
 
+            #Authentified, cookie is valid, let user go and check ACL (next step)
             return Apache2::Const::OK;
-        } else {
-            unless ($ntlm) {
-                my (%users);
-                %users = %{get_memcached('vulture_users_in') or {}};
+        }
+    }
 
-                notify($dbh, undef, $user, 'connection_failed', scalar(keys %users));
+	#Not authentified
+    
+    $log->debug("Try to authenticate user");
+    
+    #Check type and use good auth module
+    my $ret = Apache2::Const::HTTP_UNAUTHORIZED;
 
-                $r->user('');
-                $log->warn("Login failed in AuthenHandler for user $user") if ($password and $user);
+    my $auths = defined ($app->{'auth'}) ? $app->{'auth'} : $intf->{'auth'};
 
-                #Create error message if no auth_message
-                unless($r->pnotes('auth_message')){
-                    $r->pnotes('auth_message' => "MISSING_USER") if $password;
-                    $r->pnotes('auth_message' => "MISSING_PASSWORD") if $user;
-                    $r->pnotes('auth_message' => "LOGIN_FAILED") if ($password and $user);
-                }
-            }
+    my $ntlm = undef;
+    my $cas = undef;
+    foreach my $row (@$auths) {
+        if (uc(@$row[1]) eq "NTLM" ) {
+            $ret = multipleAuth($r, $log, $dbh, $auths, $app, $user, $password, $class, 1);
+            $ntlm = 1;
+            last;
+        } elsif (uc(@$row[1]) eq "CAS" ) {
+            $log->debug("CAS mode");
+            $ret = multipleAuth($r, $log, $dbh, $auths, $app, $user, $password, $class, 1);
+            $cas = 1;
+            last;
+        }
+    }
 
-            #Unfinite loop for basic auth
-            if($app and $app->{'auth_basic'}){
-                $log->warn("Login failed (basic mode) in AuthenHandler for user $user") if ($password and $user);
-                $r->note_basic_auth_failure;
-                return Apache2::Const::HTTP_UNAUTHORIZED;
-            } else {
+    $ret = multipleAuth($r, $log, $dbh, $auths, $app, $user, $password, 0, 0) if ($user and ($token eq $session_SSO{random_token} or $app->{'auth_basic'} or not $cas));
 
-                #IF NTLM is used, we immediatly return the results of MultipleAuth();
-                return $ret if ($ntlm);
+    $log->debug("Return from auth => ".$r->pnotes('auth_message'));
+    #Trigger action when change pass is needed / auth failed
+    handle_action($r, $log, $dbh, $app, 'NEED_CHANGE_PASS', 'You need to change your password') if(uc($r->pnotes('auth_message')) eq 'NEED_CHANGE_PASS');
+    handle_action($r, $log, $dbh, $app, 'ACCOUNT_LOCKED', 'You need to unlock your password') if(uc($r->pnotes('auth_message')) eq 'ACCOUNT_LOCKED');
+    handle_action($r, $log, $dbh, $app, 'AUTH_SERVER_FAILURE', 'Vulture can\'t contact authentication server') if(uc($r->pnotes('auth_message')) eq 'AUTH_SERVER_FAILURE');
+    handle_action($r, $log, $dbh, $app, 'LOGIN_FAILED', 'Login failed') if (!$r->pnotes('auth_message') and $ret != scalar Apache2::Const::OK and ($user or $password));
+    
+    if(defined $ret and $ret == scalar Apache2::Const::OK){
+        $log->debug("Good user/password");
 
-                $log->debug("No user / password... ask response handler to display the logon form");
-                return Apache2::Const::OK;
+        #Get new username and password ... ex : CAS
+        $user = $r->pnotes('username') || $r->user() || $user;
+        $password = $r->pnotes('password') || $password;
+
+        #Setting user for AuthzHandler
+        $r->pnotes('username' => $user);
+        $r->pnotes('password' => $password);
+
+        $log->debug('Validate SSO session');
+        $session_SSO{is_auth} = 1;
+        $session_SSO{username} = $user;
+        $session_SSO{password} = $password;
+
+        #Setting Memcached table
+        my (%users);
+        %users = %{get_memcached('vulture_users_in') or {}};
+        $users{$user} = {'SSO' => $r->pnotes('id_session_SSO')};
+
+        notify($dbh, undef, $user, 'connection', scalar(keys %users));
+
+        #Generate new service ticket
+        my $st = 'ST-'.generate_random_string(29);
+        my $service = param('service');
+        if(defined $service){
+            $log->debug("Creating new ticket");
+            $users{$session_SSO{username}}->{'ticket'} = $st;
+            $users{$session_SSO{username}}->{'ticket_service'} = $service;
+            $users{$session_SSO{username}}->{'ticket_created'} = time();
+        }
+        $r->pnotes('url_to_redirect' => $service.'/?ticket='.$st) if defined $service;
+        set_memcached('vulture_users_in', \%users);
+
+        return Apache2::Const::OK;
+    } else {
+        unless ($ntlm) {
+            my (%users);
+            %users = %{get_memcached('vulture_users_in') or {}};
+
+            notify($dbh, undef, $user, 'connection_failed', scalar(keys %users));
+
+            $r->user('');
+            $log->warn("Login failed in AuthenHandler for user $user") if ($password and $user);
+
+            #Create error message if no auth_message
+            unless($r->pnotes('auth_message')){
+                $r->pnotes('auth_message' => "MISSING_USER") if $password;
+                $r->pnotes('auth_message' => "MISSING_PASSWORD") if $user;
+                $r->pnotes('auth_message' => "LOGIN_FAILED") if ($password and $user);
             }
         }
-	}
-	return Apache2::Const::HTTP_UNAUTHORIZED;
+
+        #Unfinite loop for basic auth
+        if($app and $app->{'auth_basic'}){
+            $log->warn("Login failed (basic mode) in AuthenHandler for user $user") if ($password and $user);
+            $r->note_basic_auth_failure;
+            return Apache2::Const::HTTP_UNAUTHORIZED;
+        } else {
+
+            #IF NTLM is used, we immediatly return the results of MultipleAuth();
+            return $ret if ($ntlm);
+
+            $log->debug("No user / password... ask response handler to display the logon form");
+            return Apache2::Const::OK;
+        }
+    }
 }
 
 sub getRequestData {
