@@ -104,7 +104,7 @@ $(BZ2): $(TAR)
 clean:
 	rm -rf $(GZ) $(TAR) $(BZ2) $(NAME)-$(VERSION)
 	#for d in Apache2-ModProxyPerlHtml-3.0 Authen-Radius-0.12 Crypt-CBC-2.30 Crypt-OpenSSL-AES-0.01 Data-HexDump-0.02 SSLLookup Apache-Session-Memcached-0.03 Vulture NTLM-1.05; do \
-	for d in Apache2-ModProxyPerlHtml-3.0 Authen-Radius-0.12 Crypt-CBC-2.30 Crypt-OpenSSL-AES-0.01 Data-HexDump-0.02 SSLLookup Apache-Session-Memcached-0.03 Vulture NTLM-1.05; do \
+	for d in Apache2-ModProxyPerlHtml-3.0 Authen-Radius-0.12 Crypt-CBC-2.30 Crypt-OpenSSL-AES-0.01 Data-HexDump-0.02 SSLLookup Apache-Session-Memcached-0.03 Vulture NTLM-1.05 Net-IP-Match-Regexp-1.01; do \
 		if  [ -f lib/$$d/Makefile ]; then \
 			make -C lib/$$d clean; \
 		fi; \
@@ -148,6 +148,7 @@ install:
 		make -C lib/Crypt-OpenSSL-AES-0.01 install && \
 		make -C lib/Apache-Session-Memcached-0.03 install && \
 		make -C lib/NTLM-1.05 install && \
+        make -C lib/Net-IP-Match-Regexp-1.01 && \
 		cd lib/modsecurity-apache_2.6.1 && ./configure --prefix=$(PREFIXLIB)/$(NAME)/ --exec-prefix=$(PREFIXLIB)/$(NAME)/ && \
 		cd apache2 && make clean && make install && \
 		cd ../../../ &&  \
