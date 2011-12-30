@@ -14,21 +14,24 @@ sub plugin{
 	my @captured = @{$options};
 	
 	$log->debug("########## Plugin_STATIC ##########");
+    if($r->hostname =~ $intf->{'sso_portal'}){
+        #Destroy useless handlers
+        $r->set_handlers(PerlAccessHandler => undef);
+        $r->set_handlers(PerlAuthenHandler => undef);
+        $r->set_handlers(PerlAuthzHandler => undef);
+        $r->set_handlers(PerlFixupHandler => undef);
+        #$r->set_handlers(PerlResponseHandler => sub { return });
 
-	#Destroy useless handlers
-	$r->set_handlers(PerlAccessHandler => undef);
-	$r->set_handlers(PerlAuthenHandler => undef);
-	$r->set_handlers(PerlAuthzHandler => undef);
-	$r->set_handlers(PerlFixupHandler => undef);
-	#$r->set_handlers(PerlResponseHandler => sub { return });
-
-	$log->debug("Serving ".$captured[0]);
-	$log->debug($r->dir_config('VultureStaticPath').$1);
-	$r->filename($r->dir_config('VultureStaticPath').$1);
-	# or $r->status(404);
-	$r->content_type('image/jpeg');
-	$r->pnotes('static' => 1);
-	return Apache2::Const::OK;
+        $log->debug("Serving ".$captured[0]);
+        $log->debug($r->dir_config('VultureStaticPath').$1);
+        $r->filename($r->dir_config('VultureStaticPath').$1);
+        # or $r->status(404);
+        $r->content_type('image/jpeg');
+        $r->pnotes('static' => 1);
+        return Apache2::Const::OK;
+    } else {
+        $log->debug("Serving static file belongs to proxyfied app");
+    }
 }
 
 1;
