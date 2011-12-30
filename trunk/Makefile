@@ -71,6 +71,13 @@ all:
                                 LIB=$(PREFIXLIB)/$(NAME)/lib && cd ../../;\
                 fi; \
 		make -C lib/NTLM-1.05/; \
+        if [ ! -f lib/Net-IP-Match-Regexp-1.01/Makefile ]; then \
+                        cd lib/Net-IP-Match-Regexp-1.01 && perl -I $(PREFIXLIB)/$(NAME)/lib Makefile.PL INSTALLDIRS=site \
+                                INSTALLSITELIB=$(PREFIXLIB)/$(NAME)/lib/i386-linux-thread-multi \
+                                INSTALLSITEARCH=$(PREFIXLIB)/$(NAME)/lib/i386-linux-thread-multi PREFIX=$(PREFIXLIB)/$(NAME) \
+                                LIB=$(PREFIXLIB)/$(NAME)/lib && cd ../../;\
+                fi; \
+		make -C lib/Net-IP-Match-Regexp-1.01/; \
 	else \
 		cd lib/Vulture && perl Makefile.PL $(OPT) && make; \
 	fi
