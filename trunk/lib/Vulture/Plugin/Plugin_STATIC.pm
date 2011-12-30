@@ -23,14 +23,15 @@ sub plugin{
         #$r->set_handlers(PerlResponseHandler => sub { return });
 
         $log->debug("Serving ".$captured[0]);
-        $log->debug($r->dir_config('VultureStaticPath').$1);
-        $r->filename($r->dir_config('VultureStaticPath').$1);
+        $log->debug($r->dir_config('VultureStaticPath').$captured[0]);
+        $r->filename($r->dir_config('VultureStaticPath').$captured[0]);
         # or $r->status(404);
         $r->content_type('image/jpeg');
         $r->pnotes('static' => 1);
         return Apache2::Const::OK;
     } else {
         $log->debug("Serving static file belongs to proxyfied app");
+        return undef;
     }
 }
 
