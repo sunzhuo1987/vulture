@@ -413,6 +413,7 @@ class Field(models.Model):
         ('checkbox', 'checkbox'),
         ('radio', 'radio'),
         ('button', 'button'),
+        ('cookie', 'cookie'),
         ('current user', 'autologon_user'),
         ('current password', 'autologon_password'),
         )
