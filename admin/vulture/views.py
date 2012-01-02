@@ -61,7 +61,8 @@ def start_intf(request, intf_id):
 
 @login_required
 def stop_intf(request, intf_id):
-    k_output = Intf.objects.get(pk=intf_id).k('stop')
+    intf = Intf.objects.get(pk=intf_id)
+    k_output = intf.k('stop')
     apps = App.objects.filter(intf=intf).all()
     mc = pylibmc.Client(["127.0.0.1:9091"])
     for app in apps:
