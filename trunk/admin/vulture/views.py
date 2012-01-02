@@ -62,6 +62,11 @@ def start_intf(request, intf_id):
 @login_required
 def stop_intf(request, intf_id):
     k_output = Intf.objects.get(pk=intf_id).k('stop')
+    apps = App.objects.filter(intf=intf).all()
+    mc = pylibmc.Client(["127.0.0.1:9091"])
+    for app in apps:
+        # Delete memcached records to update config
+        mc.delete(app.name + ':app')
 #    sleep(1)
     return render_to_response('vulture/intf_list.html',
                               {'object_list': Intf.objects.all(), 'k_output': k_output, 'user' : request.user})
@@ -72,7 +77,7 @@ def reload_intf(request, intf_id):
     intf.write()
     k_output = intf.k('graceful')
     
-    apps = App.objects.get(intf=intf)
+    apps = App.objects.filter(intf=intf).all()
     mc = pylibmc.Client(["127.0.0.1:9091"])
     for app in apps:
         # Delete memcached records to update config
