@@ -1,6 +1,6 @@
-diff -ruN vulture-2.0.1.ori/admin/vulture_httpd.conf vulture-2.0.1/admin/vulture_httpd.conf
---- vulture-2.0.1.ori/admin/vulture_httpd.conf	2011-12-07 19:02:26.000000000 +0100
-+++ vulture-2.0.1/admin/vulture_httpd.conf	2011-12-07 20:35:54.000000000 +0100
+diff -ruN vulture-2.0.2.ori/admin/vulture_httpd.conf vulture-2.0.2/admin/vulture_httpd.conf
+--- vulture-2.0.2.ori/admin/vulture_httpd.conf	2011-12-07 19:02:26.000000000 +0100
++++ vulture-2.0.2/admin/vulture_httpd.conf	2011-12-07 20:35:54.000000000 +0100
 @@ -24,7 +24,7 @@
  user {{ www_user }}
  group {{ www_user }}

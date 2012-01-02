@@ -1,6 +1,6 @@
 Summary: Vulture-common
 Name: vulture-common
-Version: 3.1
+Version: 3.2
 Release: 153.1
 License: GPL
 Group: Productivity/Networking/Security
@@ -41,7 +41,7 @@ Source30: http://search.cpan.org/CPAN/authors/id/R/RS/RSOD/IPC-Run-0.80.tar.gz
 Source31: http://search.cpan.org/CPAN/authors/id/M/MS/MSERGEANT/DBD-SQLite-1.13.tar.gz
 Source32: http://www.zdziarski.com/projects/mod_evasive/mod_evasive_1.10.1.tar.gz
 Source33: https://github.com/downloads/libevent/libevent/libevent-2.0.15-stable.tar.gz
-Source34: http://memcached.googlecode.com/files/memcached-1.4.7.tar.gz
+Source34: http://memcached.googlecode.com/files/memcached-1.4.10.tar.gz
 Source35: http://search.cpan.org/CPAN/authors/id/B/BR/BRADFITZ/Cache-Memcached-1.24.tar.gz
 Source36: http://search.cpan.org/CPAN/authors/id/E/EN/ENRYS/Apache-Session-Memcached-0.03.tar.gz
 Source37: http://search.cpan.org/CPAN/authors/id/S/SO/SOENKE/String-CRC32-1.4.tar.gz
@@ -68,16 +68,22 @@ Source57: http://search.cpan.org/CPAN/authors/id/P/PM/PMQS/IO-Compress-2.043.tar
 Source58: http://search.cpan.org/CPAN/authors/id/P/PM/PMQS/Compress-Raw-Bzip2-2.043.tar.gz
 Source59: http://search.cpan.org/CPAN/authors/id/P/PM/PMQS/Compress-Raw-Zlib-2.043.tar.gz
 Source60: http://search.cpan.org/CPAN/authors/id/F/FL/FLORA/ExtUtils-Command-1.17.tar.gz
+Source61: http://search.cpan.org/CPAN/authors/id/J/JE/JESSE/WWW-Mechanize-1.71.tar.gz
+Source62: http://launchpad.net/libmemcached/1.0/1.0.2/+download/libmemcached-1.0.2.tar.gz
+Source63: http://pypi.python.org/packages/source/p/pylibmc/pylibmc-1.2.2.tar.gz
+Source64: http://search.cpan.org/CPAN/authors/id/P/PE/PEGI/WWW-Mechanize-GZip-0.12.tar.gz
+Source65: http://search.cpan.org/CPAN/authors/id/C/CD/CDOLAN/Net-IP-Match-Regexp-1.01.tar.gz
 
 Patch0: Apache-SSLLookup-2.00_04.patch
 Patch1: httpd_mod_rewrite.patch
 Patch2: freetds.patch
 Patch3: ModProxyPerlHtml.patch
-Patch4: memcached-1.4.7.patch
+#Patch4: memcached-1.4.7.patch
 Patch5: Crypt-Blowfish.patch
 Patch6: Apache2-AuthenNTLM-0.02.implicit-fortify-decl.patch
 Patch7: libapreq2.patch
 
+%define python_ver python	
 	%if 0%{?mdkversion}
 BuildRequires: chrpath gcc postgresql-devel libxml2-devel flex gcc-c++ libidn-devel pcre-devel make autoconf libtool tcl-devel python python-devel sqlite-devel expat-devel perl-devel libldap2.4_2-devel libsasl2-devel
 	%endif
@@ -95,17 +101,23 @@ BuildRequires: chrpath gcc postgresql-devel libxml2-devel flex gcc-c++ libidn-de
 Requires: perl postgresql-libs curl libxml2 libtool perl-HTML-Parser perl-HTML-Tagset libtool-ltdl
 	%endif
 	%if 0%{?rhel_version}
-		%if 0%{?rhel_version} > 599 
-BuildRequires: perl-devel perl-ExtUtils-Embed
+		%if 0%{?rhel_version} > 599
+BuildRequires: perl-devel perl-ExtUtils-Embed python python-devel
+		%else
+BuildRequires: python26 python26-devel
+%define python_ver python26	
 		%endif
-BuildRequires: chrpath gcc postgresql-devel libxml2-devel flex gcc-c++ libidn-devel pcre-devel make autoconf libtool tcl-devel python python-devel sqlite-devel expat-devel perl cyrus-sasl-devel openldap-devel glibc-headers mysql-devel curl-devel > 7.10.55
+BuildRequires: chrpath gcc postgresql-devel libxml2-devel flex gcc-c++ libidn-devel pcre-devel make autoconf libtool tcl-devel sqlite-devel expat-devel perl cyrus-sasl-devel openldap-devel glibc-headers mysql-devel curl-devel > 7.10.55
 Requires: perl postgresql-libs curl libxml2 libtool perl-HTML-Parser perl-HTML-Tagset libtool-ltdl
 	%endif
 	%if 0%{?centos_version}
 		%if 0%{?centos_version} > 599
-BuildRequires: perl-devel perl-ExtUtils-Embed
-                %endif
-BuildRequires: chrpath gcc postgresql-devel libxml2-devel flex gcc-c++ libidn-devel pcre-devel make autoconf libtool tcl-devel python python-devel sqlite-devel expat-devel perl cyrus-sasl-devel openldap-devel glibc-headers mysql-devel curl-devel > 7.10.55 redhat-rpm-config
+BuildRequires: perl-devel perl-ExtUtils-Embed python python-devel
+		%else
+BuildRequires: python26 python26-devel
+%define python_ver python26
+		%endif
+BuildRequires: chrpath gcc postgresql-devel libxml2-devel flex gcc-c++ libidn-devel pcre-devel make autoconf libtool tcl-devel sqlite-devel expat-devel perl cyrus-sasl-devel openldap-devel glibc-headers mysql-devel curl-devel > 7.10.55 redhat-rpm-config
 Requires: perl postgresql-libs curl libxml2 libtool perl-HTML-Parser perl-HTML-Tagset libtool-ltdl
 	%endif
 
@@ -129,12 +141,12 @@ Requires: expat-devel  glibc-devel
 Development headers and libraries for vulture-common. Needed to create modules.
 
 %prep
-%setup -c -a 0 -a 1 -a 2 -a 3 -a 4 -a 5 -a 6 -a 7 -a 8 -a 9 -a 10 -a 11 -a 12 -a 13 -a 14 -a 15 -a 16 -a 17 -a 18 -a 19 -a 20 -a 21 -a 22 -a 23 -a 24 -a 25 -a 26 -a 29 -a 30 -a 31 -a 32 -a 33 -a 34 -a 35 -a 36 -a 37 -a 38 -a 39 -a 40 -a 41 -a 42 -a 43 -a 44 -a 45 -a 46 -a 47 -a 48 -a 49 -a 50 -a 51 -a 52 -a 53 -a 54 -a 55 -a 56 -a 57 -a 58 -a 59 -a 60
+%setup -c -a 0 -a 1 -a 2 -a 3 -a 4 -a 5 -a 6 -a 7 -a 8 -a 9 -a 10 -a 11 -a 12 -a 13 -a 14 -a 15 -a 16 -a 17 -a 18 -a 19 -a 20 -a 21 -a 22 -a 23 -a 24 -a 25 -a 26 -a 29 -a 30 -a 31 -a 32 -a 33 -a 34 -a 35 -a 36 -a 37 -a 38 -a 39 -a 40 -a 41 -a 42 -a 43 -a 44 -a 45 -a 46 -a 47 -a 48 -a 49 -a 50 -a 51 -a 52 -a 53 -a 54 -a 55 -a 56 -a 57 -a 58 -a 59 -a 60 -a 61 -a 62 -a 63 -a 64 -a 65
 %patch0 -p0 -b .old
 %patch1 -p0 -b .old
 %patch2 -p0 -b .old
 %patch3 -p0 -b .old
-%patch4 -p0 -b .old
+#%patch4 -p0 -b .old
 %patch5 -p0 -b .old
 %patch6 -p0 -b .old
 %patch7 -p0 -b .old
@@ -154,7 +166,7 @@ Development headers and libraries for vulture-common. Needed to create modules.
 		make CPPFLAGS="%{optflags} -DSSL_EXPERIMENTAL_ENGINE" &&\
 		make install &&\
 		make clean &&\
-		export LD_LIBRARY_PATH="$RPM_BUILD_ROOT/opt/vulture/openssl/lib:$LD_LIBRARY_PATH" &&\
+		export LD_LIBRARY_PATH="$RPM_BUILD_ROOT/opt/vulture/openssl/lib:$RPM_BUILD_ROOT/opt/vulture/lib:$LD_LIBRARY_PATH" &&\
 	cd ../httpd-2.2.21 &&\
 %ifarch x86_64
 		mv srclib/apr-util/configure srclib/apr-util/configure.bak &&\
@@ -242,17 +254,17 @@ Development headers and libraries for vulture-common. Needed to create modules.
 	cd ../mod_qos-9.68 &&\
 		$RPM_BUILD_ROOT/opt/vulture/httpd/bin/apxs -cia apache2/mod_qos.c &&\
 	cd ../mod_wsgi-3.3 &&\
-		./configure --with-apxs=$RPM_BUILD_ROOT/opt/vulture/httpd/bin/apxs
+		./configure --with-python=%python_ver --with-apxs=$RPM_BUILD_ROOT/opt/vulture/httpd/bin/apxs
 		make &&\
 		make install &&\
 		make clean &&\
 		install -m 755 -d $RPM_BUILD_ROOT/opt/vulture/etc/ &&\
 	cd ../Imaging-1.1.7 &&\
-		python setup.py install --prefix=$RPM_BUILD_ROOT/opt/vulture/usr &&\
+		%python_ver setup.py install --prefix=$RPM_BUILD_ROOT/opt/vulture/usr &&\
 	cd ../pysqlite-2.6.0 &&\
-		python setup.py install --prefix=$RPM_BUILD_ROOT/opt/vulture/usr &&\
+		%python_ver setup.py install --prefix=$RPM_BUILD_ROOT/opt/vulture/usr &&\
 	cd ../hashlib-20081119 &&\
-		python setup.py install --prefix=$RPM_BUILD_ROOT/opt/vulture/usr &&\
+		%python_ver setup.py install --prefix=$RPM_BUILD_ROOT/opt/vulture/usr &&\
 	cd ../modsecurity-apache_2.6.2 &&\
 		./configure --with-apxs=$RPM_BUILD_ROOT/opt/vulture/httpd/bin/apxs \
 		--prefix=$RPM_BUILD_ROOT/opt/vulture \
@@ -355,6 +367,33 @@ Development headers and libraries for vulture-common. Needed to create modules.
 		-I $RPM_BUILD_ROOT/opt/vulture/lib/i386-linux-thread-multi\
 		-I $RPM_BUILD_ROOT/opt/vulture/lib\
 		Makefile.PL LIB=/lib -n &&\
+		make &&\
+		make DESTDIR=$RPM_BUILD_ROOT/opt/vulture SITEPREFIX= PERLPREFIX= install &&\
+		make clean &&\
+	cd ../WWW-Mechanize-1.71 &&\
+		perl -I $RPM_BUILD_ROOT/opt/vulture/lib/x86_64-linux-thread-multi\
+		-I $RPM_BUILD_ROOT/opt/vulture/lib/i386-linux-thread-multi\
+		-I $RPM_BUILD_ROOT/opt/vulture/lib\
+		Makefile.PL\
+		LIB=/lib &&\
+		make &&\
+		make DESTDIR=$RPM_BUILD_ROOT/opt/vulture SITEPREFIX= PERLPREFIX= install &&\
+		make clean &&\
+	cd ../WWW-Mechanize-GZip-0.12 &&\
+		perl -I $RPM_BUILD_ROOT/opt/vulture/lib/x86_64-linux-thread-multi\
+		-I $RPM_BUILD_ROOT/opt/vulture/lib/i386-linux-thread-multi\
+		-I $RPM_BUILD_ROOT/opt/vulture/lib\
+		Makefile.PL\
+		LIB=/lib &&\
+		make &&\
+		make DESTDIR=$RPM_BUILD_ROOT/opt/vulture SITEPREFIX= PERLPREFIX= install &&\
+		make clean &&\
+	cd ../Net-IP-Match-Regexp-1.01 &&\
+		perl -I $RPM_BUILD_ROOT/opt/vulture/lib/x86_64-linux-thread-multi\
+		-I $RPM_BUILD_ROOT/opt/vulture/lib/i386-linux-thread-multi\
+		-I $RPM_BUILD_ROOT/opt/vulture/lib\
+		Makefile.PL\
+		LIB=/lib &&\
 		make &&\
 		make DESTDIR=$RPM_BUILD_ROOT/opt/vulture SITEPREFIX= PERLPREFIX= install &&\
 		make clean &&\
@@ -465,7 +504,7 @@ Development headers and libraries for vulture-common. Needed to create modules.
 		make &&\
 		make DESTDIR=$RPM_BUILD_ROOT/opt/vulture SITEPREFIX= PERLPREFIX= install &&\
 		make clean  &&\
-	cd ../memcached-1.4.7 &&\
+	cd ../memcached-1.4.10 &&\
 		./configure LDFLAGS=-L$RPM_BUILD_ROOT/opt/vulture/lib --prefix=$RPM_BUILD_ROOT/opt/vulture &&\
 		make &&\
 		make install &&\
@@ -478,6 +517,12 @@ Development headers and libraries for vulture-common. Needed to create modules.
 		PREFIX=$RPM_BUILD_ROOT/opt/vulture LIB=$RPM_BUILD_ROOT/opt/vulture/lib &&\
 		make &&\
 		make install &&\
+	cd ../libmemcached-1.0.2 &&\
+		./configure LDFLAGS=-L$RPM_BUILD_ROOT/opt/vulture/lib --with-memcached=$RPM_BUILD_ROOT/opt/vulture/bin --prefix=$RPM_BUILD_ROOT/opt/vulture &&\
+		make &&\
+		make install &&\
+	cd ../pylibmc-1.2.2 &&\
+		%python_ver setup.py install --with-libmemcached=$RPM_BUILD_ROOT/opt/vulture --prefix=$RPM_BUILD_ROOT/opt/vulture/usr &&\
 	cd ../Apache-Session-Memcached-0.03 &&\
 		perl -I $RPM_BUILD_ROOT/opt/vulture/lib/x86_64-linux-thread-multi\
 		-I $RPM_BUILD_ROOT/opt/vulture/lib/i386-linux-thread-multi\
