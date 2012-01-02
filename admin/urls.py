@@ -9,7 +9,7 @@ admin.autodiscover()
 
 urlpatterns = patterns('',
   (r'^accounts/login/$',                      'vulture.views.logon'),
-  (r'^/?$',                                    'vulture.views.vulture_object_list_adm', dict({'queryset': App.objects.all()}, allow_empty=1)),
+  (r'^/?$',                                    'vulture.views.vulture_object_list_adm', dict({'queryset': App.objects.all().order_by('name')}, allow_empty=1)),
   (r'^user/$',                                'vulture.views.vulture_object_list_adm', dict({'queryset': User.objects.all()}, template_name='vulture/user_list.html')),
   (r'^user/(?P<object_id>\d+)/$',             'vulture.views.edit_user'),
   (r'^user/(?P<object_id>\d+)/password/$',    'vulture.views.edit_user_password'),
