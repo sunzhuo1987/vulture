@@ -1,9 +1,9 @@
-Requires: openssl python-ldap vulture-common >= 3
+Requires: openssl vulture-common >= 3.2
 %define serverroot /opt
 Vendor: Advens
 %define release 1
 %define name vulture
-%define version 2.0.1
+%define version 2.0.2
 AutoReqProv: no
 
 Summary: Vulture Reverse Proxy
@@ -17,16 +17,21 @@ Buildarch: %{_target_cpu} noarch
 Source0: %{name}-%{version}.tar.bz2
 Source1: http://media.djangoproject.com/releases/1.3/Django-1.3.1.tar.gz
 Source2: http://ovh.dl.sourceforge.net/sourceforge/pyopenssl/pyOpenSSL-0.6.tar.gz
-Source3: http://pypi.python.org/packages/source/p/pylibmc/pylibmc-1.2.2.tar.gz#md5=94ea743e50103fcb7792e11ca62291b0
 Patch0: http://arnaud.desmons.free.fr/pyOpenSSL-0.6-pkcs12.patch
 Patch1: http://arnaud.desmons.free.fr/pyOpenSSL-0.6-pkcs12_cafile.patch
 Patch2: http://arnaud.desmons.free.fr/pyOpenSSL-0.6-crl.patch
 Patch3: database_path.patch
-Patch4: rpm.patch
-Patch5: lib.patch
+Patch4: lib.patch
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
-BuildRequires: perl gcc gcc-c++ sqlite python-devel openssl-devel
+BuildRequires: perl gcc gcc-c++ sqlite openssl-devel
+%if 0%{?rhel_version} == 501 || 0%{?centos_version} == 504
+BuildRequires: python26 python26-devel
+Requires: python26 python26-ldap
+%else
+BuildRequires: python-devel python
+Requires: python-ldap 
+%endif
 %if ! (0%{?fedora} > 12 || 0%{?rhel} > 5)
 %{!?python_sitelib: %global python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
 %{!?python_sitearch: %global python_sitearch %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(1))")}
@@ -35,36 +40,31 @@ BuildRequires: perl gcc gcc-c++ sqlite python-devel openssl-devel
 Vulture Reverse Proxy
 
 %prep
-%setup -c -a 0 -a 1 -a 2 -a 3
+%setup -c -a 0 -a 1 -a 2
 %patch0 -p1 -b .old
 %patch1 -p0 -b .old
 %patch2 -p0 -b .old
 %patch3 -p0 -b .old
-%patch4 -p0 -b .old
 %ifarch x86_64
-%patch5 -p0 -b .old
+%patch4 -p0 -b .old
 %endif
 
 
 %build
 	rm -rf $RPM_BUILD_ROOT
-	cd %name-%{version} &&\
-	install -d -m0755 $RPM_BUILD_ROOT%{serverroot}/%{name}%{python_sitearch}/
-	cd ../Django-1.3.1 && PYTHONPATH=$RPM_BUILD_ROOT%{serverroot}/%{name}%{python_sitearch}/ \
-		python setup.py install --prefix=$RPM_BUILD_ROOT%{serverroot}/%{name}/usr
-	cd ../pyOpenSSL-0.6 && PYTHONPATH=$RPM_BUILD_ROOT%{serverroot}/%{name}%{python_sitearch}/ \
-		python setup.py install --prefix=$RPM_BUILD_ROOT%{serverroot}/%{name}/usr
-    cd ../pylibmc-1.2.2 && PYTHONPATH=$RPM_BUILD_ROOT%{serverroot}/%{name}%{python_sitearch}/ \
-        python setup.py install
-
 
 %install
-     cd %{name}-%{version} &&\
+     install -d -m0755 $RPM_BUILD_ROOT%{serverroot}/%{name}%{python_sitearch}/
+     cd Django-1.3.1 && PYTHONPATH=$RPM_BUILD_ROOT%{serverroot}/%{name}%{python_sitearch}/ \
+         python setup.py install --prefix=$RPM_BUILD_ROOT%{serverroot}/%{name}/usr
+     cd ../pyOpenSSL-0.6 && PYTHONPATH=$RPM_BUILD_ROOT%{serverroot}/%{name}%{python_sitearch}/ \
+         python setup.py install --prefix=$RPM_BUILD_ROOT%{serverroot}/%{name}/usr
+     cd ../%{name}-%{version}
      make PREFIX=$RPM_BUILD_ROOT%{serverroot} PREFIXLIB=$RPM_BUILD_ROOT%{serverroot} UID='-o apache' GID='-g apache' install
      rm -f $RPM_BUILD_ROOT%{serverroot}/%{name}/lib/x86_64-linux-thread-multi/perllocal.pod
      rm -f $RPM_BUILD_ROOT%{serverroot}/%{name}/lib/i386-linux-thread-multi/perllocal.pod
      install -d -m0700 $RPM_BUILD_ROOT/etc/init.d
-	 %if 0%{?suse_version}
+     %if 0%{?suse_version}
      install -m0755 rpm/vulture.suse $RPM_BUILD_ROOT/etc/init.d/vulture
      %else
      install -m0755 rpm/vulture $RPM_BUILD_ROOT/etc/init.d/vulture
@@ -72,16 +72,16 @@ Vulture Reverse Proxy
      install -d -m0755 $RPM_BUILD_ROOT%{serverroot}/%{name}
      cp -r admin $RPM_BUILD_ROOT%{serverroot}/%{name}
      install -m0644 rpm/settings.py\
-	$RPM_BUILD_ROOT%{serverroot}/%{name}/admin/settings.py
+     $RPM_BUILD_ROOT%{serverroot}/%{name}/admin/settings.py
      install -d -m0755 $RPM_BUILD_ROOT%{serverroot}/%{name}/conf
      install -m0644 rpm/httpd.conf\
-	$RPM_BUILD_ROOT%{serverroot}/%{name}/conf/httpd.conf
+     $RPM_BUILD_ROOT%{serverroot}/%{name}/conf/httpd.conf
      install -m0644 rpm/vulture.wsgi\
-        $RPM_BUILD_ROOT%{serverroot}/%{name}/conf/vulture.wsgi
+     $RPM_BUILD_ROOT%{serverroot}/%{name}/conf/vulture.wsgi
      install -m0644 conf/openssl.cnf\
-	$RPM_BUILD_ROOT%{serverroot}/%{name}/conf/openssl.cnf
+     $RPM_BUILD_ROOT%{serverroot}/%{name}/conf/openssl.cnf
      install -m0644 debian/aes-encrypt-key.key\
-	$RPM_BUILD_ROOT%{serverroot}/%{name}/conf/aes-encrypt-key.key	
+     $RPM_BUILD_ROOT%{serverroot}/%{name}/conf/aes-encrypt-key.key	
 %clean
      rm -rf $RPM_BUILD_ROOT
 
