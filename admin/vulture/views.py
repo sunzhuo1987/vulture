@@ -87,7 +87,7 @@ def reload_all_intfs(request):
         if intf.need_restart:
             intf.write()
             intf.k('graceful')
-            apps = App.objects.get(intf=intf)
+            apps = App.objects.filter(intf=intf).all()
             mc = pylibmc.Client(["127.0.0.1:9091"])
             for app in apps:
                 # Delete memcached records to update config
