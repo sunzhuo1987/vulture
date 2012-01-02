@@ -88,18 +88,18 @@ def reload_intf(request, intf_id):
                               
 @login_required
 def reload_all_intfs(request):
+    k_output = ''
     intfs = Intf.objects.all()
     for intf in intfs :
         if intf.need_restart:
             intf.write()
-            intf.k('graceful')
+            k_output += intf.name + ' : ' + intf.k('graceful')
             apps = App.objects.filter(intf=intf).all()
             mc = pylibmc.Client(["127.0.0.1:9091"])
             for app in apps:
                 # Delete memcached records to update config
                 mc.delete(app.name + ':app')
-    else:
-        return render_to_response('vulture/intf_list.html', {'object_list': intfs, 'user' : request.user})
+    return render_to_response('vulture/intf_list.html', {'object_list': intfs, 'k_output': k_output, 'user' : request.user})
 
 @user_passes_test(lambda u: u.is_staff)
 def vulture_update_object_adm(*args, **kwargs):
