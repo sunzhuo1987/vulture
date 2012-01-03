@@ -45,13 +45,13 @@ def logon(request):
     logout(request)
     return render_to_response('logon.html', { 'next' : request.GET.get('next')})
 
-@login_required
+@permission_required('vulture.can_modsecurity')
 def update_security(request):
     k_output = os.popen("/bin/sh %s/update-rules.sh 2>&1" % (settings.BIN_PATH)).read()
     return render_to_response('vulture/modsecurity_list.html',
                               {'object_list': ModSecurity.objects.all(), 'k_output': k_output, 'user' : request.user })
 
-@login_required
+@permission_required('vulture.reload_intf')
 def start_intf(request, intf_id):
     Intf.objects.get(pk=intf_id).write()
     k_output = Intf.objects.get(pk=intf_id).k('start')
@@ -59,7 +59,7 @@ def start_intf(request, intf_id):
     return render_to_response('vulture/intf_list.html',
                               {'object_list': Intf.objects.all(), 'k_output': k_output, 'user' : request.user })
 
-@login_required
+@permission_required('vulture.reload_intf')
 def stop_intf(request, intf_id):
     intf = Intf.objects.get(pk=intf_id)
     k_output = intf.k('stop')
@@ -72,7 +72,7 @@ def stop_intf(request, intf_id):
     return render_to_response('vulture/intf_list.html',
                               {'object_list': Intf.objects.all(), 'k_output': k_output, 'user' : request.user})
 
-@login_required
+@permission_required('vulture.reload_intf')
 def reload_intf(request, intf_id):
     intf = Intf.objects.get(pk=intf_id)
     intf.write()
@@ -86,7 +86,7 @@ def reload_intf(request, intf_id):
     return render_to_response('vulture/intf_list.html',
                               {'object_list': Intf.objects.all(), 'k_output': k_output, 'user' : request.user})
                               
-@login_required
+@permission_required('vulture.reload_intf')
 def reload_all_intfs(request):
     k_output = ''
     intfs = Intf.objects.all()
@@ -117,21 +117,21 @@ def vulture_delete_object_adm(*args, **kwargs):
 def vulture_object_list_adm(*args, **kwargs):
     return object_list(*args, **kwargs)
 
-@login_required
+@permission_required('vulture.reload_app')
 def start_app(request,object_id):
     app = get_object_or_404(App, id=object_id)
     app.up = 1
     app.save()
     return HttpResponseRedirect("/app/")
 
-@login_required
+@permission_required('vulture.reload_app')
 def stop_app(request,object_id):
     app = get_object_or_404(App, id=object_id)
     app.up = 0
     app.save()
     return HttpResponseRedirect("/app/")
 
-@login_required
+@permission_required('vulture.change_auth')
 def edit_auth(request, url, object_id=None):
     if url == 'sql':
         form = SQLForm(request.POST or None,instance=object_id and SQL.objects.get(id=object_id))
@@ -162,7 +162,7 @@ def edit_auth(request, url, object_id=None):
 
     return render_to_response('vulture/'+ url +'_form.html', {'form': form, 'user' : request.user})
 
-@login_required
+@permission_required('vulture.delete_auth')
 def remove_auth(request, url, object_id=None):
     if url == 'sql':
         object = get_object_or_404(SQL, id=object_id)
@@ -186,7 +186,7 @@ def remove_auth(request, url, object_id=None):
         return HttpResponseRedirect('/'+ url +'/')
     return render_to_response('vulture/generic_confirm_delete.html', {'object':object, 'category' : 'Authentication', 'name' : url.capitalize(),'url' : '/' + url, 'user' : request.user})
 
-@login_required
+@permission_required('vulture.change_app')
 def edit_app(request,object_id=None):
     form = AppForm(request.POST or None,instance=object_id and App.objects.get(id=object_id))
     form.header = Header.objects.order_by("-id").filter(app=object_id)
@@ -218,7 +218,7 @@ def edit_app(request,object_id=None):
 
     return render_to_response('vulture/app_form.html', {'form': form, 'user' : request.user})
 
-@login_required
+@permission_required('vulture.add_app')
 def copy_app(request,object_id=None):
     form = AppCopy(request.POST or None)
     if request.method == 'POST' and form.is_valid():
@@ -232,7 +232,7 @@ def copy_app(request,object_id=None):
         return HttpResponseRedirect('/app/')
     return render_to_response('vulture/app_copy.html', {'form': form, 'user' : request.user})
 
-@login_required
+@permission_required('vulture.change_sso')
 def edit_sso(request,object_id=None):
     form = SSOForm(request.POST or None,instance=object_id and SSO.objects.get(id=object_id))
     form.post = Field.objects.order_by("-id").filter(sso=object_id)    
@@ -270,7 +270,7 @@ def edit_sso(request,object_id=None):
         return HttpResponseRedirect('/sso/')
     return render_to_response('vulture/sso_form.html', {'form': form, 'user' : request.user})
 
-@login_required
+@permission_required('vulture.change_acl')
 def edit_acl(request,object_id=None):
     form = ACLForm(request.POST or None,instance=object_id and ACL.objects.get(id=object_id))
     if object_id:
@@ -348,7 +348,7 @@ def edit_user_password(request,object_id=None):
         return HttpResponseRedirect('/user/')
     return render_to_response('vulture/userpassword_form.html', {'form': form, 'user' : request.user})
     
-@login_required
+@permission_required('vulture.change_localization')
 def edit_localization(request,object_id=None):
     form = LocalizationForm(request.POST or None,instance=object_id and Localization.objects.get(id=object_id))
         
