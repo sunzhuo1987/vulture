@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-01-03 08:10-0600\n"
+"POT-Creation-Date: 2012-01-03 08:36-0600\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -271,7 +271,7 @@ msgstr "Groupes autorisés"
 #: vulture/radius_form.html:26 vulture/sql_form.html:43
 #: vulture/ssl_form.html:24 vulture/sso_form.html:173
 #: vulture/template_form.html:34 vulture/user_form.html:25
-#: vulture/useredit_form.html:24 vulture/userpassword_form.html:22
+#: vulture/useredit_form.html:31 vulture/userpassword_form.html:22
 msgid "Save settings"
 msgstr "Enregistrer"
 
@@ -288,7 +288,7 @@ msgstr "Enregistrer"
 #: vulture/radius_form.html:27 vulture/sql_form.html:44
 #: vulture/ssl_form.html:25 vulture/sso_form.html:174
 #: vulture/template_form.html:35 vulture/user_form.html:26
-#: vulture/useredit_form.html:25 vulture/userpassword_form.html:23
+#: vulture/useredit_form.html:32 vulture/userpassword_form.html:23
 msgid "Cancel"
 msgstr "Annuler"
 
@@ -1084,11 +1084,11 @@ msgstr "Nom d'utilisateur"
 msgid "Confirm password"
 msgstr "Confirmer le mot de passe"
 
-#: vulture/user_form.html:20 vulture/useredit_form.html:19
+#: vulture/user_form.html:20 vulture/useredit_form.html:20
 msgid "Administrator"
 msgstr "Administrateur"
 
-#: vulture/user_form.html:21 vulture/useredit_form.html:20
+#: vulture/user_form.html:21 vulture/useredit_form.html:21
 msgid "Super Administrator"
 msgstr "Super Administrateur"
 
@@ -1108,6 +1108,14 @@ msgstr "Admin"
 msgid "Super Admin"
 msgstr "Admin"
 
+#: vulture/useredit_form.html:11
+msgid "Manage permissions"
+msgstr "Gérer les permissions"
+
+#: vulture/useredit_form.html:27
+msgid "Permissions"
+msgstr "Permissions"
+
 #: vulture/userpassword_form.html:5
 msgid "User password change"
 msgstr "Changement du mot de passe"
@@ -1119,7 +1127,3 @@ msgstr "Nouveau mot de passe"
 #: vulture/userpassword_form.html:18
 msgid "Confirm new password"
 msgstr "Confirmer le nouveau mot de passe"
-
-
-
-
