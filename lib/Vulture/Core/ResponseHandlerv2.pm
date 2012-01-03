@@ -88,7 +88,6 @@ sub handler {
 
 		#SSO Forwarding once
 		if(not defined $session_app{SSO_Forwarding} and $app->{sso_forward}){
-			#If results are the same, it means user has already complete the SSO Learning phase
 			my $query = "SELECT count(*) FROM field, sso, app WHERE field.sso_id = sso.id AND sso.id = app.sso_forward_id AND app.id=?";
 			$log->debug($query);
             my $href = SSO::ProfileManager::get_profile($r, $log, $dbh, $app, $user);
@@ -103,6 +102,7 @@ sub handler {
 			my $type = $dbh->selectrow_array($query_type, undef, $app->{id});
 
             #Learning ok or no need of learning
+			#If results are the same, it means user has already complete the SSO Learning phase
             if ($length1 == 0 or $type eq 'sso_forward_htaccess' or $length2 == $length1){
                 $log->debug("Getting pass for SSO Forward");
                 $session_app{SSO_Forwarding} = 'FORWARD';

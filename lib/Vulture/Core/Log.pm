@@ -11,6 +11,7 @@ BEGIN {
 use Apache2::Log;
 use Apache2::Reload;
 
+# use same constant as in Apache
 use constant {
 	EMERG => "emerg",
 	ALERT => "alert",
@@ -44,6 +45,7 @@ sub handle_log {
 	$message .= $desc;
 	$message .= ' | User : '.$user if defined $user;
 
+	#if no log level are specified , use debug level
 	unless(defined $log_level){
 		$log->debug($message);
 		return;

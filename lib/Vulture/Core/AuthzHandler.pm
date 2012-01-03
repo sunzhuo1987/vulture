@@ -70,6 +70,8 @@ sub handler {
 				$ret = $module_name->checkACL($r, $log, $dbh, $app, $user, $app->{'acl'}->{'id_method'});
                 handle_action($r, $log, $dbh, $intf, $app, 'ACL_FAILED', 'ACL failed') if ($ret != scalar Apache2::Const::OK);
 				
+				#Check if User can access to the specified app
+				#If yes validate the app session 
 				if (defined $ret and $ret == scalar Apache2::Const::OK){
 					$log->debug("User $user has credentials for this app regarding ACL. Validate app session");
 

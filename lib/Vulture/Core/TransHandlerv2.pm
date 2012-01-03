@@ -22,6 +22,7 @@ use DBI;
 
 use Module::Load;
 
+#All headers variables for SSL
 my %headers_vars = (
 		    2 => 'SSL_CLIENT_I_DN',
 		    3 => 'SSL_CLIENT_M_SERIAL',

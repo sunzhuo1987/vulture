@@ -28,6 +28,7 @@ sub	version_check {
 	return ($config->get_key('version') eq $VERSION);
 }
 
+#get information stored in memcached
 sub	get_memcached {
 	my ($key) = @_; 
 	my $memd = Cache::Memcached->new(
@@ -37,7 +38,7 @@ sub	get_memcached {
 	) unless defined $memd;
 	return $memd->get($key);
 }
-
+#set information into memcached
 sub	set_memcached {
 	my ($key, $value, $exptime) = @_; 
 	my $memd = Cache::Memcached->new(
@@ -46,6 +47,7 @@ sub	set_memcached {
 	  compress_threshold => 10_000,
 	) unless defined $memd;
 
+	#limit expiration time to 6000
 	$exptime= $exptime || 6_000;
         if ( $exptime > 6_000 ) {
                 $exptime= 6_000;
@@ -124,9 +126,10 @@ sub	get_app {
     return {} unless ($host and $intf and $dbh);
     
     #Use memcached if possible
-    my $obj = get_memcached("$host:app");
+	my $obj = get_memcached("$host:app");
+	#$query = "SELECT intf.id FROM app, intf, app_intf WHERE app.name = ? AND app_intf.intf_id = intf.id AND app.id = app_intf.app_id";
+	$query = 'SELECT intf.id FROM intf JOIN app_intf ON intf.id = app_intf.intf_id JOIN app ON app_intf.app_id = app.id WHERE app.name=?';
 	if ($obj) {
-		$query = "SELECT intf.id FROM app, intf, app_intf WHERE app.name = ? AND app_intf.intf_id = intf.id AND app.id = app_intf.app_id";
         $log->debug($query);
 		$sth = $dbh->prepare($query);
 		$sth->execute($host);
@@ -139,7 +142,8 @@ sub	get_app {
 	return $obj if $obj;
     
     #Getting app and wildcards
-    $query = "SELECT app.id, app.name, app.alias, app.url, app.log_id, app.sso_forward_id AS sso_forward, app.logon_url, app.logout_url, intf.port, app.remote_proxy, app.up, app.auth_basic, app.display_portal, app.canonicalise_url, app.timeout, app.update_access_time FROM app, intf, app_intf WHERE intf.id = ? AND app_intf.intf_id = intf.id AND app.id = app_intf.app_id";
+    #$query = "SELECT app.id, app.name, app.alias, app.url, app.log_id, app.sso_forward_id AS sso_forward, app.logon_url, app.logout_url, intf.port, app.remote_proxy, app.up, app.auth_basic, app.display_portal, app.canonicalise_url, app.timeout, app.update_access_time FROM app, intf, app_intf WHERE intf.id = ? AND app_intf.intf_id = intf.id AND app.id = app_intf.app_id";
+	$query = 'SELECT app.id, app.name, app.alias, app.url, app.log_id, app.sso_forward_id AS sso_forward, app.logon_url, app.logout_url, intf.port, app.remote_proxy, app.up, app.auth_basic, app.display_portal, app.canonicalise_url, app.timeout, app.update_access_time FROM app JOIN app_intf ON app.id = app_intf.app_id JOIN intf ON app_intf.intf_id = intf.id WHERE intf.id = ?';
 	$log->debug($query);
 	$sth = $dbh->prepare($query);
 	$sth->execute($intf);
@@ -176,12 +180,14 @@ sub	get_app {
     return {} unless $ref->{id};
 	
     #Getting auth
-    $query = "SELECT auth.name, auth.auth_type, auth.id_method FROM auth, auth_multiple WHERE auth_multiple.app_id = ? AND auth_multiple.auth_id = auth.id";
+    #$query = "SELECT auth.name, auth.auth_type, auth.id_method FROM auth, auth_multiple WHERE auth_multiple.app_id = ? AND auth_multiple.auth_id = auth.id";
+	$query = ' SELECT auth.name, auth.auth_type, auth.id_method FROM auth JOIN auth_multiple ON auth.id = auth_multiple.auth_id WHERE auth_multiple.app_id = ?';
     $log->debug($query);
     $ref->{'auth'} = $dbh->selectall_arrayref($query, undef, $ref->{id});
 
     #Getting ACL
-    $query = "SELECT acl.id, acl.name, auth.auth_type AS acl_type, auth.id_method FROM acl, auth, app WHERE app.id = ? AND acl.id = app.acl_id AND auth.id = acl.auth_id";
+    #$query = "SELECT acl.id, acl.name, auth.auth_type AS acl_type, auth.id_method FROM acl, auth, app WHERE app.id = ? AND acl.id = app.acl_id AND auth.id = acl.auth_id";
+	$query = 'SELECT acl.id, acl.name, auth.auth_type AS acl_type, auth.id_method FROM acl JOIN auth ON acl.id = auth.id JOIN app ON acl.id = app.acl_id WHERE app.id = ?';
     $log->debug($query);
     $sth = $dbh->prepare($query);
 	$sth->execute($ref->{id});
@@ -215,8 +221,9 @@ sub	get_intf {
 	$sth->finish();
     
     #Getting auth (CAS)
-    $query = "SELECT auth.name, auth.auth_type, auth.id_method FROM auth, intf_auth_multiple WHERE intf_auth_multiple.intf_id = ? AND intf_auth_multiple.auth_id = auth.id";
-    $log->debug($query);
+    #$query = "SELECT auth.name, auth.auth_type, auth.id_method FROM auth, intf_auth_multiple WHERE intf_auth_multiple.intf_id = ? AND intf_auth_multiple.auth_id = auth.id";
+    $query = 'SELECT auth.name, auth.auth_type, auth.id_method FROM auth JOIN intf_auth_multiple ON auth.id = intf_auth_multiple.auth_id WHERE intf_auth_multiple.intf_id = ?';
+	$log->debug($query);
     $ref->{'auth'} = $dbh->selectall_arrayref($query, undef, $ref->{id});
     
     #Getting actions

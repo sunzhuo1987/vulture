@@ -16,6 +16,7 @@ sub checkAuth{
 
 	$log->debug("########## Auth_RADIUS ##########");
 
+	#get Radius info
 	my $query = "SELECT host, port, secret, timeout, url_attr FROM radius WHERE id= ?";
 	my $sth = $dbh->prepare($query);
 	$sth->execute($id_method);
