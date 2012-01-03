@@ -177,7 +177,7 @@ sub handler:method
 
     $ret = multipleAuth($r, $log, $dbh, $auths, $app, $user, $password, 0, 0) if ($user and ($token eq $session_SSO{random_token} or $app->{'auth_basic'} or not $cas));
 
-    $log->debug("Return from auth => ".$r->pnotes('auth_message'));
+    $log->debug("Return from auth => ".$r->pnotes('auth_message')) if defined $r->pnotes('auth_message');
 
     #Trigger action when change pass is needed / auth failed
     handle_action($r, $log, $dbh, $intf, $app, 'NEED_CHANGE_PASS', 'You need to change your password') if(uc($r->pnotes('auth_message')) eq 'NEED_CHANGE_PASS');
@@ -223,6 +223,7 @@ sub handler:method
         set_memcached('vulture_users_in', \%users);
 
         return Apache2::Const::OK;
+    #Authentication failed for some reasons
     } else {
         unless ($ntlm) {
             my (%users);
