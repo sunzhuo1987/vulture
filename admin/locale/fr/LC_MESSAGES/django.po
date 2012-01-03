@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-01-03 08:36-0600\n"
+"POT-Creation-Date: 2012-01-03 10:05-0600\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -889,19 +889,15 @@ msgstr "Paramètres des plugins"
 
 #: vulture/plugin_form.html:17
 msgid "URL pattern"
-msgstr "Schéma d'URL"
+msgstr "Motif d'URL"
 
-#: vulture/plugincontent_form.html:19
-msgid "pattern"
-msgstr "Schéma d'URL"
+#: vulture/plugincontent_form.html:19 vulture/pluginheader_form.html:19
+msgid "Pattern"
+msgstr "Motif à rechercher"
 
 #: vulture/plugincontent_form.html:21 vulture/pluginheader_form.html:21
 msgid "Options1"
 msgstr "Options1"
-
-#: vulture/pluginheader_form.html:19
-msgid "Pattern"
-msgstr "Schéma d'URL"
 
 #: vulture/radius_form.html:5
 msgid "RADIUS settings"
@@ -913,7 +909,7 @@ msgstr "Secret"
 
 #: vulture/radius_form.html:22
 msgid "URL attribute"
-msgstr "Attribut de l'utilisateur"
+msgstr "Attribut URL"
 
 #: vulture/sql_form.html:5
 msgid "SQL settings"

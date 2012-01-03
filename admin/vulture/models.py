@@ -413,7 +413,7 @@ class SSO(models.Model):
     base_dn_mapped = models.CharField(max_length=128, blank=1, null=1)
     user_mapped = models.CharField(max_length=128, blank=1, null=1)
     app_mapped = models.CharField(max_length=128, blank=1, null=1)
-    follow_get_redirect = models.BooleanField(default=0)
+    follow_get_redirect = models.BooleanField(default=1)
     is_info = models.CharField(max_length=128, blank=1, null=1, choices=ACTIONS, default='nothing')
     is_info_options = models.CharField(max_length=128, blank=1, null=1)
     is_success = models.CharField(max_length=128, blank=1, null=1, choices=ACTIONS, default='nothing')
@@ -932,7 +932,7 @@ class Plugincontent(models.Model):
 
 class Pluginheader(models.Model):
     PLUGIN_TYPES = (
-    ('Header Modify', 'Header Mcodify'),
+    ('Header Modify', 'Header Modify'),
     ('Header Replacement', 'Header Replacement'),
     ('Header Unset','Header Unset'),
     )

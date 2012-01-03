@@ -3,13 +3,14 @@
         <username>Nom de l'utilisateur</username>
         <password>Mot de passe de l'utilisateur</password>
         <c_password>Mot de passe (confirmation)</c_password>
-        <is_admin>Autoriser l'utilisateur à administrer Vulture</is_admin>
+        <is_staff>Autoriser l'utilisateur à se connecter à l'interface d'administration de Vulture</is_staff>
+        <is_superuser>Autoriser l'utilisateur à administrer COMPLÉTEMENT Vulture</is_superuser>
     </user>
     <log>
         <name>Nom du log</name>
         <level>Voir la documentation d'Apache pour plus d'informations</level>
-        <format>Une chaine de caractère valide</format>
-        <dir>Endroit où mettre les logs</dir>
+        <format>Voir la documentation d'Apache pour plus d'informations</format>
+        <dir>Chemin complet du répertoire de logs</dir>
     </log>
     <log_viewer>
         <file>Nom de l'application</file>
@@ -22,27 +23,27 @@
         <ip>Adresse IP sur laquelle Apache doit écouter</ip>
         <port>Port d'écoute d'Apache</port>
         <log>Format de log pour l'interface</log>
-        <appearance>Apparence des différents éléments (écrasée par l'application)</appearance>
+        <appearance>Apparence des différents éléments (écrasée par les préférences de l'application)</appearance>
         <remote_proxy>Adresse du proxy par lequel Vulture doit passer pour accèder à l'application en interne</remote_proxy>
         <sso_portal>Adresse du portail SSO (sous la forme "portail.fr")</sso_portal>
-        <sso_timeout>Durée avant déconnexion de l'utilisateur (en secondes)</sso_timeout>
+        <sso_timeout>Durée avant la déconnexion de l'utilisateur (en secondes)</sso_timeout>
         <sso_update_access_time>Relancer le décompte de déconnexion à chaque action de l'utilisateur sur le portail</sso_update_access_time>
-        <!--
-        <ssl_engine></ssl_engine>
-        <cert></cert>
-        <key></key>
-        <ca></ca>
-        <remote_proxy_SSLProxyMachineCertificateFile></remote_proxy_SSLProxyMachineCertificateFile>
-        <remote_proxy_SSLProxyCACertificateFile></remote_proxy_SSLProxyCACertificateFile>
-        <remote_proxy_SSLProxyCARevocationFile></remote_proxy_SSLProxyCARevocationFile>
-        <remote_proxy_SSLProxyVerify></remote_proxy_SSLProxyVerify>
-        -->
+        <cas_portal>Adresse du portail CAS (sous la forme "portailcas.fr")</cas_portal>
+        <cas_auth>Authentification liée à l'interface et au portail CAS (utilisée si l'application n'est pas définie)</cas_auth>
+        <cas_st_timeout>Durée d'expiration du Service Ticket CAS</cas_st_timeout>
+        <cas_redirect>Adressse de redirection après l'authentification (URL complète)</cas_redirect>
+        <cas_display_portal>Afficher le portail (liste des applications) après l'authentification (prend la priorité par rapport à l'option ci-dessus)</cas_display_portal>
+        <ssl_engine>Voir la documentation d'Apache pour plus d'informations (SSLCryptoDevice)</ssl_engine>
+        <cert>Voir la documentation d'Apache pour plus d'informations (SSLCertificateFile)</cert>
+        <key>Voir la documentation d'Apache pour plus d'informations (SSLCertificateKeyFile)</key>
+        <ca>Voir la documentation d'Apache pour plus d'informations (SSLCertificateChainFile)</ca>
+        <cacert>Voir la documentation d'Apache pour plus d'informations (SSLCACertificateFile)</cacert>
         <virtualhost_directives>Ajouter des directives Apache pour l'interface</virtualhost_directives>
     </intf>
     <localization>
-        <country>Langue à traduire</country>
-        <message>Message à traduire</message>
-        <translation>Traduction</translation>
+        <country>Langue à traduire (si vous souhaitez rajouter une autre langue, se rapprocher de la mailing-list Vulture)</country>
+        <message>Message à traduire (utilisé ensuite dans les templates lors de l'affichage d'un message d'erreur)</message>
+        <translation>Traduction (dans la langue)</translation>
     </localization>
     <importexport>
         <path>Chemin complet du fichier d'import / export de la base de données Vulture</path>
@@ -70,6 +71,8 @@
         <group_ou>Unité organisationnelle des groupes (dn complet)</group_ou>
         <group_member>Attribut qui fait que l'utilisateur recherché appartient au groupe</group_member>
         <are_members_dn>L'attribut de recherche est un DN complet</are_members_dn>
+        <chpass_attr>Vulture peut vérifier que le mot de passe d'un utilisateur est à changer et effectuer une action le cas échéant. L'attribut à vérifier doit être indiqué ici</chpass_attr>
+        <user_account_locked_attr>Comme pour le mot de passe, il est possible de vérifier que le compte n'est pas verrouillé</user_account_locked_attr>
     </ldap>
     <ntlm>
         <name>Nom de la méthode d'authentification</name>
@@ -104,13 +107,20 @@
         <port>Port réservé à l'authentification sur le serveur RADIUS (par défaut 1812)</port>
         <secret>Secret partagé entre le serveur RADIUS et Vulture</secret>
         <timeout>Durée avant déconnexion du serveur RADIUS</timeout>
+        <url_attr>Attribut "URL" pour la redirection</url_attr>
     </radius>
+    <cas>
+        <name>Nom de la méthode d'authentification</name>
+        <url_login>URL de login (forme complète)</url_login>
+        <url_validate>URL de validation (forme complète)</url_validate>
+    </cas>
     <acl>
         <name>Nom du contrôle d'accès</name>
         <auth>Méthode d'authentification sur lequel repose le contrôle d'accès pour aller chercher les utilisateurs et les groupes (SQL ou LDAP)</auth>
     </acl>
     <sso>
         <name>Nom du Web SSO (Single Sign On)</name>
+        <follow_get_redirect>Avant d'envoyer les données du formulaire, Vulture va d'abord chercher la page du formulaire. Cette case permet d'éviter de suivre les redirections lors de cette étape.</follow_get_redirect>
         <auth>Méthode d'authentification sur lequel repose le Web SSO pour enregistrer les données de profils (SQL ou LDAP)</auth>
         <table_mapped>Nom de la table qui contient les informations de profils</table_mapped>
         <app_mapped>Champ de la table qui correspond à l'identifiant de l'application</app_mapped>
@@ -118,14 +128,24 @@
     </sso>
     <security>
         <name>Nom de la règle de sécurité</name>
-        <rules>Directives mod_security (attention à la syntaxe)</rules>
+        <rules>Directives mod_security (voir la documentation mod_security pour plus d'informations)</rules>
     </security>
+    <app_copy>
+        <app>Nom internet de l'application à copier</app>
+        <name>Nouveau nom internet de l'application copiée</name>
+    </app_copy>
     <app>
         <name>Nom internet de l'application (sous la forme "app1.fr")</name>
-        <intf>Interface(s) associée(s) à l'application. Il est possible d'en spécifier plusieures. Pour désélectionner, appuyez sur Ctrl en cliquant sur un espace vide</intf>
+        <alias>Voir la documentation d'Apache pour plus d'informations (ServerAlias)</alias>
+        <intf>Interface(s) associée(s) à l'application. Il est possible d'en spécifier plusieures. Pour désélectionner, appuyer sur Ctrl en cliquant sur un espace vide</intf>
         <url>Nom internet de l'application protégée par Vulture (sous la forme "http://*****" /!\ pas de / final)</url>
         <log>Format de log pour l'application</log>
         <appearance>Apparence des différents éléments</appearance>
+        <remote_proxy>URL du serveur proxy entre Vulture et l'application en backend</remote_proxy>
+        <remote_proxy_SSLProxyMachineCertificateFile>Voir la documentation d'Apache pour plus d'informations (SSLProxyMachineCertificateFile)</remote_proxy_SSLProxyMachineCertificateFile>
+        <remote_proxy_SSLProxyCACertificateFile>Voir la documentation d'Apache pour plus d'informations (SSLProxyCACertificateFile)</remote_proxy_SSLProxyCACertificateFile>
+        <remote_proxy_SSLProxyCARevocationFile>Voir la documentation d'Apache pour plus d'informations (SSLProxyCARevocationFile)</remote_proxy_SSLProxyCARevocationFile>
+        <remote_proxy_SSLProxyVerify>Voir la documentation d'Apache pour plus d'informations (SSLProxyVerify)</remote_proxy_SSLProxyVerify>
         <auth>Méthode(s) d'authentification associée(s) à l'application. De même que pour le champ Interface, il est possible d'en spécifier plusieures</auth>
         <auth_basic>Affiche une pop-up demandant le nom d'utilisateur et le mot de passe au lieu d'un formulaire</auth_basic>
         <display_portal>Affiche la liste de toutes les applications de l'interface après une connexion réussie au lieu de rediriger vers l'application interne</display_portal>
@@ -169,4 +189,20 @@
         <app>Portée de l'expression régulière. Laisser vide pour appliquer à toutes les interfaces et toutes les applications</app>
         <options>Pour le mode Rewrite, il est nécessaire de préciser l'url de redirection</options>
     </plugin>
+    <plugincontent>
+        <app>Application pour laquelle s'applique cette règle (laisser vide pour appliquer à toutes les applications)</app>
+        <type>Type de modification : Ajout d'en-tête, remplacement d'en-tête ou suppression d'en-tête</type>
+        <pattern>Motif à rechercher</pattern>
+        <options>Remplacer par la chaine</options>
+    </plugincontent>
+    <pluginheader>
+        <app>Application pour laquelle s'applique cette règle (laisser vide pour appliquer à toutes les applications)</app>
+        <type>Type de modification : Ajout d'en-tête, remplacement d'en-tête ou suppression d'en-tête</type>
+        <pattern>Motif à rechercher</pattern>
+        <options>Remplacer par la chaine</options>
+    </pluginheader>
+    <blackip>
+        <app>Application pour laquelle s'applique cette règle (laisser vide pour appliquer à toutes les applications)</app>
+        <ip>Cela peut être une liste (séparée par un espace) d'adresse IP, ou de réseau (notation CIDR)</ip>
+    </blackip>
 </xml>
