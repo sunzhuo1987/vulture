@@ -96,14 +96,9 @@ sub handler {
         
 		if((@result) = ($uri =~ /$exp/)){
 			$log->debug("Pattern ".$exp." matches with URI");
-			
-			if (@$row[1] eq 'Rewrite'){
-				$module_name = 'Plugin::Plugin_REWRITE';
-				$options = @$row[2];
-			} else {
-				$module_name = 'Plugin::Plugin_'.uc(@$row[1]);
-				$options = \@result;
-            }
+            $module_name = 'Plugin::Plugin_'.uc(@$row[1]);
+			$options = @$row[2];
+            $options ||= \@result;
 			$log->debug("Load $module_name");
     
             #Calling associated plugin
@@ -113,7 +108,7 @@ sub handler {
 			my $ret = $module_name->plugin($r, $log, $dbh, $intf, $app, $options);
             
             #Return all code returns (means that OK from plugin will skip all of the TransHandler process)
-            return $ret if($ret or (uc(@$row[1]) eq "STATIC") or (uc(@$row[1]) eq "SAML") or (uc(@$row[1]) eq "LOGOUT") or (uc(@$row[1]) eq "CAS"));
+            return $ret if defined $ret;
 		}
 	}	
 	#Rewrite content
