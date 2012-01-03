@@ -239,6 +239,9 @@ class Intf(models.Model):
         
     class Meta:
         db_table = 'intf'
+        permissions = (
+            ("reload_intf", "Can stop/start interface"),
+        )
         
 class Profile(models.Model):
     app = models.ForeignKey('App')
@@ -537,6 +540,9 @@ class App(models.Model):
         return self.name
     class Meta:
         db_table = 'app'
+        permissions = (
+            ("reload_app", "Can stop/start application"),
+        )
 
 class Plugin(models.Model):
     PLUGIN_TYPES = (

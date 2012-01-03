@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from vulture.models import *
 from django import forms
+from django.contrib.auth.models import Permission
 from django.utils.translation import gettext as _
 from django.contrib.auth.forms import UserCreationForm, SetPasswordForm, UserChangeForm
 import hashlib
@@ -29,8 +30,9 @@ class UserProfileForm(UserCreationForm):
         return user
         
 class MyUserChangeForm(UserChangeForm):
-    #Bug in django
+    #Bug in django (must send at least one field)
     edit = forms.BooleanField()
+    permissions = forms.ModelMultipleChoiceField(queryset=Permission.objects.filter(content_type__app_label="vulture"), widget=forms.CheckboxSelectMultiple, required=False)
     def __init__(self, *args, **kwargs):
         super(MyUserChangeForm, self).__init__(*args, **kwargs)
         del self.fields['username']
