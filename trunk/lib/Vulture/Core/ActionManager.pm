@@ -11,16 +11,17 @@ BEGIN {
 }
 
 sub handle_action {
-    my ($r, $log, $dbh, $app, $type, $title, $fields) = @_;
+    my ($r, $log, $dbh, $intf, $app, $type, $title, $fields) = @_;
     my ($package, $filename, $line) = caller;
     my ($query, $sth, $action, $options, $html);
     
     $log->debug($type);
     my @messages = qw/AUTH_SERVER_FAILURE ACCOUNT_LOCKED LOGIN_FAILED NEED_CHANGE_PASS ACL_FAILED/;
     #If type is in messages array
-    if(grep $_ eq uc($type), @messages){
-        $action = $app->{'actions'}->{lc($type).'_action'};
-        $options = $app->{'actions'}->{lc($type).'_options'};
+
+    if(grep $_ eq uc($type), @messages ){
+        $action = defined $app->{'actions'} ? $app->{'actions'}->{lc($type).'_action'} : $intf->{'actions'}->{lc($type).'_action'};
+        $options = defined $app->{'actions'} ? $app->{'actions'}->{lc($type).'_options'} : $intf->{'actions'}->{lc($type).'_options'};
     }
     
     #Handle action to do
