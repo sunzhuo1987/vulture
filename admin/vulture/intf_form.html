@@ -1,6 +1,8 @@
 {% extends "base.html" %}
 {% load i18n %}
 
+
+
 {% block title %}
 	{% trans "System" %} - <small>{% trans "Interface settings" %}</small>
 {% endblock %}
@@ -15,6 +17,80 @@
 {% endblock %}
 
 {% block content %}
+<script type='text/javascript'>
+     (function($) {
+         $(document).ready( function() {
+           $(".actions tr").each(function() {
+                    var tr = $(this);
+                    tr.find(":input:last").hide();
+                    var input = tr.find("select");
+                    //Initial state
+                    switch(input.attr('value')){
+                        case "script":
+                            __textareaIfy(tr.find(":input:last"));
+                            tr.find(":input:last").show();
+                            break;
+                        case "message":
+                        case "redirect":
+                            __inputIfy(tr.find(":input:last"));
+                            tr.find(":input:last").show();
+                            break;
+                        default:
+                            tr.find(":input:last").hide().val('');
+                            break;
+                    }
+                    //On select change
+                    input.change(function(){
+                        switch($(this).attr('value')){
+                            case "script":
+                                __textareaIfy(tr.find(":input:last"));
+                                tr.find(":input:last").show();
+                                break;
+                            case "message":
+                            case "redirect":
+                                __inputIfy(tr.find(":input:last"));
+                                tr.find(":input:last").show();
+                                break;
+                            default:
+                                tr.find(":input:last").hide().val('');
+                                break;
+                        }
+                    });
+                });
+                });
+            function __textareaIfy(element) {
+               var textarea = $('<textarea>')
+                 .attr('cols', '20')
+                 .attr('rows', '8')
+                 .val($(element).val());
+               for (var i=0, len=element.get(0).attributes.length; i < len; i++) {
+                  if (element.get(0).attributes[i].nodeName != 'type') {
+                     textarea.attr(element.get(0).attributes[i].nodeName, element.get(0).attributes[i].nodeValue);
+                  }
+               }
+
+               textarea.insertBefore(element);
+
+               $(element).remove();
+
+            }
+
+            function __inputIfy(element) {
+               var input = $('<input>')
+                 .val($(element).val());
+               for (var i=0, len=element.get(0).attributes.length; i < len; i++) {
+                  if (!/cols|rows|size/.test(element.get(0).attributes[i].nodeName)) {
+                     input.attr(element.get(0).attributes[i].nodeName, element.get(0).attributes[i].nodeValue);
+                  }
+               }
+
+               input.insertBefore(element);
+
+               $(element).remove();
+            }
+        })(jQuery);
+</script>
+
     <form method="post" action="." id="intf">
         <div id="main_content_1" class="main_content">
             <table>
@@ -41,6 +117,13 @@
                 <tr><th>{% trans "CAS Service ticket timeout" %}</th><td class="input">{{ form.cas_st_timeout }}{% if form.cas_st_timeout.errors %}<div class="error">{{ form.cas_st_timeout.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
                 <tr><th>{% trans "Redirect after login" %}</th><td class="input">{{form.cas_redirect}}{% if form.cas_redirect.errors %}<div class="error">{{ form.cas_redirect.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
                 <tr><th>{% trans "Display portal after authentication" %}</th><td class="input">{{form.cas_display_portal}}{% if form.cas_display_portal.errors %}<div class="error">{{ form.cas_display_portal.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+            </table>
+            <table class="actions">
+                <tr><th></th><th>{% trans "Action" %}</th><th>{% trans "Options" %}</th></tr>
+                <tr><th>{% trans "Authentication server failure" %}</th><td class="input">{{ form.auth_server_failure_action }}</td><td class="input">{{ form.auth_server_failure_options }}</td></tr>
+                <tr><th>{% trans "Login failed" %}</th><td class="input">{{ form.login_failed_action }}</td><td class="input">{{ form.login_failed_options }}</td></tr>
+                <tr><th>{% trans "Account locked" %}</th><td class="input">{{ form.account_locked_action }}</td><td class="input">{{ form.account_locked_options }}</td></tr>
+                <tr><th>{% trans "Need change password" %}</th><td class="input">{{ form.need_change_pass_action }}</td><td class="input">{{ form.need_change_pass_options }}</td></tr>
             </table>
         </div>
 

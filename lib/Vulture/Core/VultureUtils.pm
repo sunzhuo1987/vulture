@@ -218,6 +218,20 @@ sub	get_intf {
     $query = "SELECT auth.name, auth.auth_type, auth.id_method FROM auth, intf_auth_multiple WHERE intf_auth_multiple.intf_id = ? AND intf_auth_multiple.auth_id = auth.id";
     $log->debug($query);
     $ref->{'auth'} = $dbh->selectall_arrayref($query, undef, $ref->{id});
+    
+    #Getting actions
+    $query = "SELECT auth_server_failure_action, auth_server_failure_options, account_locked_action, account_locked_options, login_failed_action, login_failed_options, need_change_pass_action, need_change_pass_options FROM intf WHERE intf.id = ?";
+    $log->debug($query);
+    $sth = $dbh->prepare($query);
+	$sth->execute($ref->{id});
+    $ref->{'actions'} = $sth->fetchrow_hashref;
+	$sth->finish();
+	
+
+
+
+
+
 	return $ref;
 }
 

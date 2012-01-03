@@ -178,11 +178,14 @@ sub handler:method
     $ret = multipleAuth($r, $log, $dbh, $auths, $app, $user, $password, 0, 0) if ($user and ($token eq $session_SSO{random_token} or $app->{'auth_basic'} or not $cas));
 
     $log->debug("Return from auth => ".$r->pnotes('auth_message'));
+
     #Trigger action when change pass is needed / auth failed
-    handle_action($r, $log, $dbh, $app, 'NEED_CHANGE_PASS', 'You need to change your password') if(uc($r->pnotes('auth_message')) eq 'NEED_CHANGE_PASS');
-    handle_action($r, $log, $dbh, $app, 'ACCOUNT_LOCKED', 'You need to unlock your password') if(uc($r->pnotes('auth_message')) eq 'ACCOUNT_LOCKED');
-    handle_action($r, $log, $dbh, $app, 'AUTH_SERVER_FAILURE', 'Vulture can\'t contact authentication server') if(uc($r->pnotes('auth_message')) eq 'AUTH_SERVER_FAILURE');
-    handle_action($r, $log, $dbh, $app, 'LOGIN_FAILED', 'Login failed') if (!$r->pnotes('auth_message') and $ret != scalar Apache2::Const::OK and ($user or $password));
+    handle_action($r, $log, $dbh, $intf, $app, 'NEED_CHANGE_PASS', 'You need to change your password') if(uc($r->pnotes('auth_message')) eq 'NEED_CHANGE_PASS');
+    handle_action($r, $log, $dbh, $intf, $app, 'ACCOUNT_LOCKED', 'You need to unlock your password') if(uc($r->pnotes('auth_message')) eq 'ACCOUNT_LOCKED');
+    handle_action($r, $log, $dbh, $intf, $app, 'AUTH_SERVER_FAILURE', 'Vulture can\'t contact authentication server') if(uc($r->pnotes('auth_message')) eq 'AUTH_SERVER_FAILURE');
+    handle_action($r, $log, $dbh, $intf, $app, 'LOGIN_FAILED', 'Login failed') if (!$r->pnotes('auth_message') and $ret != scalar Apache2::Const::OK and ($user or $password));
+
+
     
     if(defined $ret and $ret == scalar Apache2::Const::OK){
         $log->debug("Good user/password");

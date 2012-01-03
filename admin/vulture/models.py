@@ -62,6 +62,21 @@ class Intf(models.Model):
         ('sureware', 'SureWare'),
         ('4758cca',  'IBM 4758 CCA'),
         )
+
+        #Actions to be used to handle login problems
+    ACTIONS = (
+        ('nothing', 'nothing'),
+        ('template', 'template'),
+        ('log', 'log'),
+        ('message', 'message'),
+        ('redirect', 'redirect'),
+        ('script', 'script'),
+        )
+    RESTRICTED_ACTIONS = (
+        ('message', 'message'),
+        ('redirect', 'redirect'),
+        ('script', 'script'),
+        )
     name = models.CharField(max_length=128, unique=1)
     ip = models.IPAddressField()
     port = models.IntegerField()
@@ -76,11 +91,23 @@ class Intf(models.Model):
     cas_st_timeout = models.IntegerField(blank=1,null=1)
     cas_redirect = models.CharField(max_length=256,blank=1,null=1)
     cas_display_portal = models.BooleanField(default=0);
+
+    #handle login problem like in a app
+    auth_server_failure_action = models.CharField(max_length=128, blank=1, null=1, choices=ACTIONS, default='nothing')
+    auth_server_failure_options = models.CharField(max_length=128, blank=1, null=1)
+    account_locked_action = models.CharField(max_length=128, blank=1, null=1, choices=ACTIONS, default='nothing')
+    account_locked_options = models.CharField(max_length=128, blank=1, null=1)
+    login_failed_action = models.CharField(max_length=128, blank=1, null=1, choices=RESTRICTED_ACTIONS, default='template')
+    login_failed_options = models.CharField(max_length=128, blank=1, null=1)
+    need_change_pass_action = models.CharField(max_length=128, blank=1, null=1, choices=ACTIONS, default='nothing')
+    need_change_pass_options = models.CharField(max_length=128, blank=1, null=1)
+
     cert = models.TextField(blank=1,null=1)
     key = models.TextField(blank=1,null=1)
     ca = models.TextField(blank=1,null=1)
     cacert = models.TextField(blank=1,null=1)
     virtualhost_directives = models.TextField(blank=1,null=1)
+
 
     def conf(self):
         t = get_template("vulture_httpd.conf")
@@ -753,7 +780,7 @@ def add_member(con2, uid, groups):
             query = "UPDATE utilisateur SET actif='Y' WHERE login='%s'" % uid
             cur.execute(query.encode('latin-1'))
             con.commit()
-        if group == 'Gestion Insertion' or group == u'Requête Insertion' or group == 'Administrateur Insertion':
+        if group == 'Gestion Insertion' or group == u'Requ??te Insertion' or group == 'Administrateur Insertion':
             cur = con2.cursor()
             query = "UPDATE webmasters SET actif=1 WHERE web_user='%s'" % uid
             cur.execute(query.encode('latin-1'))
@@ -768,7 +795,7 @@ def del_member(con2, uid, groups):
             query = "UPDATE utilisateur SET actif='N' WHERE login='%s'" % uid
             cur.execute(query.encode('latin-1'))
             con.commit()
-        if group == 'Gestion Insertion' or group == u'Requête Insertion' or group == 'Administrateur Insertion':
+        if group == 'Gestion Insertion' or group == u'Requ??te Insertion' or group == 'Administrateur Insertion':
             cur = con2.cursor()
             query = "UPDATE webmasters SET actif=0 WHERE web_user='%s'" % uid
             cur.execute(query.encode('latin-1'))
@@ -831,7 +858,7 @@ class Image(models.Model):
 class Localization(models.Model):
     COUNTRY_CHOICES = (
         ('en','English'),
-        ('fr','Français'),
+        ('fr','Fran??ais'),
         ('de','Deutch'),
         ('es','Espanol'),
         ('it','Italiano'),
