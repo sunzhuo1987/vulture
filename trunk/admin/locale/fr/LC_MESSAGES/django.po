@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-10-27 11:16-0500\n"
+"POT-Creation-Date: 2012-01-03 08:10-0600\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,8 +18,8 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 
 #: base.html:7 base.html.py:48 base.html.py:50 vulture/acl_form.html:5
-#: vulture/acl_form.html.py:62 vulture/acl_list.html:5
-#: vulture/app_form.html:11 vulture/app_form.html.py:83
+#: vulture/acl_form.html.py:70 vulture/acl_list.html:5
+#: vulture/app_form.html:12 vulture/app_form.html.py:172
 #: vulture/cas_form.html:5 vulture/kerberos_form.html:5
 #: vulture/ldap_form.html:5 vulture/ntlm_form.html:5
 #: vulture/radius_form.html:5 vulture/sql_form.html:5
@@ -35,7 +35,7 @@ msgstr "Dernière connexion"
 msgid "Logout"
 msgstr "Déconnexion"
 
-#: base.html:22
+#: base.html:22 vulture/conf_form.html:5
 msgid "Configuration"
 msgstr "Configuration"
 
@@ -43,10 +43,11 @@ msgstr "Configuration"
 msgid "Reload needed"
 msgstr "Relancer les interfaces"
 
-#: base.html:38 vulture/event_list.html:5 vulture/exportimport_form.html:5
-#: vulture/intf_form.html:5 vulture/intf_list.html:5
-#: vulture/localization_form.html:5 vulture/log_form.html:5
-#: vulture/user_form.html:5 vulture/user_list.html:5
+#: base.html:38 vulture/conf_form.html:5 vulture/event_list.html:5
+#: vulture/exportimport_form.html:5 vulture/intf_form.html:7
+#: vulture/intf_list.html:5 vulture/localization_form.html:5
+#: vulture/log_form.html:5 vulture/user_form.html:5 vulture/user_list.html:5
+#: vulture/useredit_form.html:5 vulture/userpassword_form.html:5
 msgid "System"
 msgstr "Système"
 
@@ -90,7 +91,7 @@ msgstr "NTLM"
 msgid "SQL"
 msgstr "SQL"
 
-#: base.html:56 vulture/intf_form.html:14
+#: base.html:56 vulture/intf_form.html:15
 msgid "SSL"
 msgstr "SSL"
 
@@ -98,7 +99,11 @@ msgstr "SSL"
 msgid "RADIUS"
 msgstr "RADIUS"
 
-#: base.html:61 vulture/app_form.html:12 vulture/app_form.html.py:91
+#: base.html:58
+msgid "CAS"
+msgstr "CAS"
+
+#: base.html:61 vulture/app_form.html:13 vulture/app_form.html.py:187
 msgid "ACL"
 msgstr "ACL"
 
@@ -106,12 +111,19 @@ msgstr "ACL"
 msgid "Web SSO"
 msgstr "Web SSO"
 
+#: base.html:65 vulture/modsecurity_form.html:5
+#: vulture/modsecurity_list.html:5
+msgid "Web Firewall"
+msgstr "Web Firewall"
+
 #: base.html:67
 msgid "mod_security"
 msgstr "Mod security"
 
-#: base.html:70 vulture/app_form.html:5 vulture/app_list.html:5
-#: vulture/appearance_form.html:5 vulture/plugin_form.html:5
+#: base.html:70 vulture/app_copy.html:5 vulture/app_form.html:5
+#: vulture/app_list.html:5 vulture/appearance_form.html:5
+#: vulture/plugin_form.html:5 vulture/plugincontent_form.html:5
+#: vulture/pluginheader_form.html:5
 msgid "Web Applications"
 msgstr "Applications web"
 
@@ -119,8 +131,8 @@ msgstr "Applications web"
 msgid "Applications"
 msgstr "Applications"
 
-#: base.html:73 vulture/app_form.html:77 vulture/css_form.html:5
-#: vulture/image_form.html:5 vulture/intf_form.html:27
+#: base.html:73 vulture/app_form.html:156 vulture/css_form.html:5
+#: vulture/image_form.html:5 vulture/intf_form.html:101
 #: vulture/template_form.html:5
 msgid "Appearance"
 msgstr "Apparence"
@@ -141,7 +153,23 @@ msgstr "Image"
 msgid "Plugins"
 msgstr "Plugins"
 
+#: base.html:82
+msgid "Plugins TransHandler"
+msgstr "Plugins TransHandler"
+
 #: base.html:83
+msgid "Plugins Content Rewrite"
+msgstr "Plugin de réécriture de contenu"
+
+#: base.html:84
+msgid "Plugins Header Input"
+msgstr "Plugin des entêtes entrantes"
+
+#: base.html:85
+msgid "Plugins BlackList IP"
+msgstr "Plugin de liste noire d'IP"
+
+#: base.html:89
 msgid "Vulture 2 is released under GNU Public Licence Version 3"
 msgstr "Vulture 2 est placé sous la Licence Publique GNU version 3"
 
@@ -153,31 +181,37 @@ msgstr "Connexion"
 msgid "ACL settings"
 msgstr "Paramètres du contrôle d'accès"
 
-#: vulture/acl_form.html:9 vulture/acl_list.html:9 vulture/app_form.html:9
-#: vulture/app_list.html:9 vulture/appearance_form.html:9
-#: vulture/cas_form.html:9 vulture/css_form.html:9
+#: vulture/acl_form.html:9 vulture/acl_list.html:9 vulture/app_copy.html:9
+#: vulture/app_form.html:9 vulture/app_list.html:9
+#: vulture/appearance_form.html:9 vulture/blackip_form.html:9
+#: vulture/cas_form.html:9 vulture/conf_form.html:9 vulture/css_form.html:9
 #: vulture/generic_confirm_delete.html:9 vulture/generic_list.html:10
-#: vulture/image_form.html:9 vulture/intf_form.html:9 vulture/intf_list.html:9
-#: vulture/kerberos_form.html:9 vulture/ldap_form.html:9
-#: vulture/localization_form.html:9 vulture/log_form.html:9
-#: vulture/modsecurity_form.html:9 vulture/modsecurity_list.html:9
-#: vulture/ntlm_form.html:9 vulture/plugin_form.html:9
-#: vulture/radius_form.html:9 vulture/sql_form.html:9 vulture/ssl_form.html:9
-#: vulture/sso_form.html:9 vulture/template_form.html:9
-#: vulture/user_form.html:9 vulture/user_list.html:9
+#: vulture/image_form.html:9 vulture/intf_form.html:11
+#: vulture/intf_list.html:9 vulture/kerberos_form.html:9
+#: vulture/ldap_form.html:9 vulture/localization_form.html:9
+#: vulture/log_form.html:9 vulture/modsecurity_form.html:9
+#: vulture/modsecurity_list.html:9 vulture/ntlm_form.html:9
+#: vulture/plugin_form.html:9 vulture/plugincontent_form.html:9
+#: vulture/pluginheader_form.html:9 vulture/radius_form.html:9
+#: vulture/sql_form.html:9 vulture/ssl_form.html:9 vulture/sso_form.html:9
+#: vulture/template_form.html:9 vulture/user_form.html:9
+#: vulture/user_list.html:9 vulture/useredit_form.html:9
+#: vulture/userpassword_form.html:9
 msgid "List"
 msgstr "Liste"
 
 #: vulture/acl_form.html:10 vulture/app_form.html:10
-#: vulture/appearance_form.html:10 vulture/cas_form.html:10
-#: vulture/css_form.html:10 vulture/image_form.html:10
-#: vulture/intf_form.html:10 vulture/kerberos_form.html:10
-#: vulture/ldap_form.html:10 vulture/localization_form.html:10
-#: vulture/log_form.html:10 vulture/modsecurity_form.html:10
-#: vulture/ntlm_form.html:10 vulture/plugin_form.html:10
-#: vulture/radius_form.html:10 vulture/sql_form.html:10
-#: vulture/ssl_form.html:10 vulture/sso_form.html:10
+#: vulture/appearance_form.html:10 vulture/blackip_form.html:10
+#: vulture/cas_form.html:10 vulture/conf_form.html:10 vulture/css_form.html:10
+#: vulture/image_form.html:10 vulture/intf_form.html:12
+#: vulture/kerberos_form.html:10 vulture/ldap_form.html:10
+#: vulture/localization_form.html:10 vulture/log_form.html:10
+#: vulture/modsecurity_form.html:10 vulture/ntlm_form.html:10
+#: vulture/plugin_form.html:10 vulture/plugincontent_form.html:10
+#: vulture/pluginheader_form.html:10 vulture/radius_form.html:10
+#: vulture/sql_form.html:10 vulture/ssl_form.html:10 vulture/sso_form.html:10
 #: vulture/template_form.html:10 vulture/user_form.html:10
+#: vulture/useredit_form.html:10 vulture/userpassword_form.html:10
 msgid "Main settings"
 msgstr "Paramètres principaux"
 
@@ -189,63 +223,72 @@ msgstr "Utilisateurs"
 msgid "Groups"
 msgstr "Groupes"
 
-#: vulture/acl_form.html:61 vulture/acl_list.html:17
+#: vulture/acl_form.html:69 vulture/acl_list.html:17
 #: vulture/appearance_form.html:18 vulture/cas_form.html:17
 #: vulture/css_form.html:17 vulture/generic_list.html:18
-#: vulture/image_form.html:17 vulture/intf_form.html:23
+#: vulture/image_form.html:17 vulture/intf_form.html:97
 #: vulture/intf_list.html:18 vulture/kerberos_form.html:17
 #: vulture/ldap_form.html:20 vulture/log_form.html:17
 #: vulture/modsecurity_form.html:17 vulture/modsecurity_list.html:22
 #: vulture/ntlm_form.html:17 vulture/radius_form.html:17
-#: vulture/sql_form.html:19 vulture/ssl_form.html:17 vulture/sso_form.html:90
-#: vulture/template_form.html:27
+#: vulture/sql_form.html:19 vulture/ssl_form.html:17 vulture/sso_form.html:102
+#: vulture/template_form.html:28
 msgid "Name"
 msgstr "Nom"
 
-#: vulture/acl_form.html:69
+#: vulture/acl_form.html:77
 msgid "You can't add user or group until you have saved this acl"
-msgstr "Vous ne pouvez pas ajouter d'utilisateurs ou de groupes avant d'avoir "
+msgstr ""
+"Vous ne pouvez pas ajouter d'utilisateurs ou de groupes avant d'avoir "
 "sauvegardé ce contrôle d'accès"
 
-#: vulture/acl_form.html:80
+#: vulture/acl_form.html:88
 msgid "Available users"
 msgstr "Utilisateurs disponibles"
 
-#: vulture/acl_form.html:82 vulture/acl_list.html:20
+#: vulture/acl_form.html:90 vulture/acl_list.html:20
 msgid "Users ok"
 msgstr "Utilisateurs autorisés"
 
-#: vulture/acl_form.html:112
+#: vulture/acl_form.html:120
 msgid "Available groups"
 msgstr "Groupes disponibles"
 
-#: vulture/acl_form.html:114 vulture/acl_list.html:19
+#: vulture/acl_form.html:122 vulture/acl_list.html:19
 msgid "Groups ok"
 msgstr "Groupes autorisés"
 
-#: vulture/acl_form.html:140 vulture/app_form.html:149
-#: vulture/appearance_form.html:30 vulture/cas_form.html:23
-#: vulture/css_form.html:22 vulture/exportimport_form.html:23
-#: vulture/image_form.html:22 vulture/intf_form.html:77
-#: vulture/kerberos_form.html:22 vulture/ldap_form.html:57
-#: vulture/localization_form.html:23 vulture/log_form.html:24
-#: vulture/modsecurity_form.html:22 vulture/ntlm_form.html:24
-#: vulture/plugin_form.html:24 vulture/radius_form.html:25
-#: vulture/sql_form.html:43 vulture/ssl_form.html:24 vulture/sso_form.html:149
-#: vulture/template_form.html:34 vulture/user_form.html:24
+#: vulture/acl_form.html:148 vulture/app_copy.html:23
+#: vulture/app_form.html:249 vulture/appearance_form.html:30
+#: vulture/blackip_form.html:22 vulture/cas_form.html:23
+#: vulture/conf_form.html:22 vulture/css_form.html:22
+#: vulture/exportimport_form.html:23 vulture/image_form.html:22
+#: vulture/intf_form.html:146 vulture/kerberos_form.html:22
+#: vulture/ldap_form.html:59 vulture/localization_form.html:23
+#: vulture/log_form.html:24 vulture/modsecurity_form.html:22
+#: vulture/ntlm_form.html:24 vulture/plugin_form.html:24
+#: vulture/plugincontent_form.html:25 vulture/pluginheader_form.html:25
+#: vulture/radius_form.html:26 vulture/sql_form.html:43
+#: vulture/ssl_form.html:24 vulture/sso_form.html:173
+#: vulture/template_form.html:34 vulture/user_form.html:25
+#: vulture/useredit_form.html:24 vulture/userpassword_form.html:22
 msgid "Save settings"
 msgstr "Enregistrer"
 
-#: vulture/acl_form.html:141 vulture/app_form.html:150
-#: vulture/appearance_form.html:31 vulture/cas_form.html:24
-#: vulture/css_form.html:23 vulture/exportimport_form.html:24
-#: vulture/image_form.html:23 vulture/intf_form.html:78
-#: vulture/kerberos_form.html:23 vulture/ldap_form.html:58
-#: vulture/localization_form.html:24 vulture/log_form.html:25
-#: vulture/modsecurity_form.html:23 vulture/ntlm_form.html:25
-#: vulture/plugin_form.html:25 vulture/radius_form.html:26
-#: vulture/sql_form.html:44 vulture/ssl_form.html:25 vulture/sso_form.html:150
-#: vulture/template_form.html:35 vulture/user_form.html:25
+#: vulture/acl_form.html:149 vulture/app_copy.html:24
+#: vulture/app_form.html:250 vulture/appearance_form.html:31
+#: vulture/blackip_form.html:23 vulture/cas_form.html:24
+#: vulture/conf_form.html:23 vulture/css_form.html:23
+#: vulture/exportimport_form.html:24 vulture/image_form.html:23
+#: vulture/intf_form.html:147 vulture/kerberos_form.html:23
+#: vulture/ldap_form.html:60 vulture/localization_form.html:24
+#: vulture/log_form.html:25 vulture/modsecurity_form.html:23
+#: vulture/ntlm_form.html:25 vulture/plugin_form.html:25
+#: vulture/plugincontent_form.html:26 vulture/pluginheader_form.html:26
+#: vulture/radius_form.html:27 vulture/sql_form.html:44
+#: vulture/ssl_form.html:25 vulture/sso_form.html:174
+#: vulture/template_form.html:35 vulture/user_form.html:26
+#: vulture/useredit_form.html:25 vulture/userpassword_form.html:23
 msgid "Cancel"
 msgstr "Annuler"
 
@@ -253,7 +296,7 @@ msgstr "Annuler"
 msgid "ACL list"
 msgstr "Liste des contrôles d'accès"
 
-#: vulture/acl_list.html:10 vulture/app_list.html:10
+#: vulture/acl_list.html:10 vulture/app_copy.html:10 vulture/app_list.html:10
 #: vulture/generic_list.html:11 vulture/intf_list.html:10
 #: vulture/modsecurity_list.html:10 vulture/user_list.html:10
 msgid "Add"
@@ -263,104 +306,174 @@ msgstr "Ajouter"
 msgid "Authentication method"
 msgstr "Méthode d'authentification"
 
-#: vulture/acl_list.html:26 vulture/app_list.html:45
-#: vulture/generic_list.html:34 vulture/intf_list.html:43
-#: vulture/modsecurity_list.html:31 vulture/user_list.html:28
+#: vulture/acl_list.html:26 vulture/app_list.html:51
+#: vulture/generic_list.html:33 vulture/intf_list.html:43
+#: vulture/modsecurity_list.html:31 vulture/user_list.html:30
 msgid "The list is empty. You can add an item "
 msgstr "La liste est vide. Vous pouvez rajouter un élément "
 
-#: vulture/acl_list.html:26 vulture/app_list.html:45
-#: vulture/generic_list.html:34 vulture/intf_list.html:43
-#: vulture/modsecurity_list.html:31 vulture/user_list.html:28
+#: vulture/acl_list.html:26 vulture/app_list.html:51
+#: vulture/generic_list.html:33 vulture/intf_list.html:43
+#: vulture/modsecurity_list.html:31 vulture/user_list.html:30
 msgid "here"
 msgstr "ici"
+
+#: vulture/app_copy.html:5 vulture/app_copy.html.py:11
+msgid "App Copy"
+msgstr "Copie d'application"
+
+#: vulture/app_copy.html:18 vulture/blackip_form.html:17
+#: vulture/plugin_form.html:19 vulture/plugincontent_form.html:18
+#: vulture/pluginheader_form.html:18 vulture/sso_form.html:111
+msgid "App"
+msgstr "Application"
+
+#: vulture/app_copy.html:19 vulture/app_form.html:151 vulture/app_list.html:18
+msgid "Internet name"
+msgstr "Nom internet"
 
 #: vulture/app_form.html:5
 msgid "Application's settings"
 msgstr "Paramètres de l'application"
 
-#: vulture/app_form.html:13 vulture/app_form.html.py:97
+#: vulture/app_form.html:11 vulture/app_form.html.py:162
+msgid "Remote proxy"
+msgstr "Proxy distant"
+
+#: vulture/app_form.html:14 vulture/app_form.html.py:197
 msgid "SSO Forward"
 msgstr "Web SSO"
 
-#: vulture/app_form.html:14 vulture/app_form.html.py:105
+#: vulture/app_form.html:15 vulture/app_form.html.py:205
 msgid "Mod security"
 msgstr "Mod security"
 
-#: vulture/app_form.html:15
+#: vulture/app_form.html:16
 msgid "Headers"
 msgstr "En-têtes"
 
-#: vulture/app_form.html:16 vulture/radius_form.html:21
+#: vulture/app_form.html:17 vulture/radius_form.html:21
 msgid "Timeout"
-msgstr "Timeout"
+msgstr "Temps d'expiration"
 
-#: vulture/app_form.html:17 vulture/intf_form.html:16
+#: vulture/app_form.html:18 vulture/intf_form.html:16
 msgid "Advanced settings"
 msgstr "Avancé"
 
-#: vulture/app_form.html:73 vulture/app_list.html:17
-msgid "Internet name"
-msgstr "Nom internet"
+#: vulture/app_form.html:152 vulture/app_list.html:19
+msgid "Alias"
+msgstr "Alias"
 
-#: vulture/app_form.html:74
+#: vulture/app_form.html:153
 msgid "Interface"
 msgstr "Interface"
 
-#: vulture/app_form.html:75 vulture/app_list.html:18
+#: vulture/app_form.html:154 vulture/app_list.html:20
 msgid "Private URL"
 msgstr "URL privée"
 
-#: vulture/app_form.html:76 vulture/event_list.html:10
-#: vulture/intf_form.html:26
+#: vulture/app_form.html:155 vulture/event_list.html:10
+#: vulture/intf_form.html:100
 msgid "Log"
 msgstr "Log"
 
-#: vulture/app_form.html:84
+#: vulture/app_form.html:163
+msgid "Machine Certificate file (full path)"
+msgstr "Fichier (chemin complet) vers le certificat Machine"
+
+#: vulture/app_form.html:164
+msgid "CA Certificate file (full path)"
+msgstr "Fichier (chemin complet) vers le certificat CA"
+
+#: vulture/app_form.html:165
+msgid "CA Revocation file (full path)"
+msgstr "Fichier (chemin complet) vers le certificat CA Revocation"
+
+#: vulture/app_form.html:166
+msgid "Verify Remote Certificate"
+msgstr "Vérifier le certificat distant"
+
+#: vulture/app_form.html:173
 msgid "Basic Auth"
 msgstr "Authentification basique"
 
-#: vulture/app_form.html:85
+#: vulture/app_form.html:174
 msgid "Display portal"
 msgstr "Afficher le portail"
 
-#: vulture/app_form.html:98
+#: vulture/app_form.html:177 vulture/app_form.html.py:190
+#: vulture/intf_form.html:122 vulture/sso_form.html:163
+msgid "Action"
+msgstr "Action"
+
+#: vulture/app_form.html:177 vulture/app_form.html.py:190
+#: vulture/intf_form.html:122 vulture/plugin_form.html:20
+#: vulture/plugincontent_form.html:20 vulture/pluginheader_form.html:20
+#: vulture/sso_form.html:163
+msgid "Options"
+msgstr "Options"
+
+#: vulture/app_form.html:178 vulture/intf_form.html:123
+msgid "Authentication server failure"
+msgstr "Méthodes d'authentification"
+
+#: vulture/app_form.html:179 vulture/intf_form.html:124
+msgid "Login failed"
+msgstr "Échec de l'authentification"
+
+#: vulture/app_form.html:180 vulture/intf_form.html:125
+msgid "Account locked"
+msgstr "Compte bloqué"
+
+#: vulture/app_form.html:181 vulture/intf_form.html:126
+msgid "Need change password"
+msgstr "Besoin de changer de mot de passe"
+
+#: vulture/app_form.html:191
+msgid "ACL failed"
+msgstr "Echec ACL"
+
+#: vulture/app_form.html:198
 msgid "Logon URL"
 msgstr "URL de connexion"
 
-#: vulture/app_form.html:99
+#: vulture/app_form.html:199
 msgid "Logout URL"
 msgstr "URL de déconnexion"
 
-#: vulture/app_form.html:114
+#: vulture/app_form.html:214
 msgid "Header name"
 msgstr "Nom de l'en-tête"
 
-#: vulture/app_form.html:115 vulture/event_list.html:33
-#: vulture/plugin_form.html:18 vulture/sql_form.html:20
+#: vulture/app_form.html:215 vulture/event_list.html:33
+#: vulture/plugin_form.html:18 vulture/plugincontent_form.html:17
+#: vulture/pluginheader_form.html:17 vulture/sql_form.html:20
 #: vulture/template_form.html:29
 msgid "Type"
 msgstr "Type"
 
-#: vulture/app_form.html:116
+#: vulture/app_form.html:216 vulture/conf_form.html:18
 msgid "Value"
 msgstr "Valeur"
 
-#: vulture/app_form.html:137
+#: vulture/app_form.html:237
 msgid "Timeout for user session (leave blank for no timeout)"
-msgstr "Durée avant déconnexion de l'utilisateur (laisser vide pour annuler ce "
-"paramètre)"
+msgstr ""
+"La session utilisateur a expiré (laisser vide pour ne pas mettre "
+"'expirationDurée avant déconnexion de l'utilisateur (laisser vide pour "
+"annuler ce paramètre)"
 
-#: vulture/app_form.html:138
+#: vulture/app_form.html:238
 msgid "Update user session timeout each time he does smth"
-msgstr "Relancer le décompte de déconnexion à chaque action de l'utilisateur sur le "
+msgstr ""
+"Relancer le décompte de déconnexion à chaque action de l'utilisateur sur le "
 "portail"
 
-#: vulture/app_form.html:144
+#: vulture/app_form.html:244
 msgid "Canonicalise URL"
 msgstr "Canonicalise URL"
 
-#: vulture/app_form.html:145 vulture/intf_form.html:73
+#: vulture/app_form.html:245 vulture/intf_form.html:142
 msgid "Add VirtualHost directives"
 msgstr "Ajouter des directives VirtualHost"
 
@@ -368,15 +481,19 @@ msgstr "Ajouter des directives VirtualHost"
 msgid "Application list"
 msgstr "Liste d'applications"
 
-#: vulture/app_list.html:19
+#: vulture/app_list.html:11
+msgid "Copy"
+msgstr "Copier"
+
+#: vulture/app_list.html:21
 msgid "Authentications Methods"
 msgstr "Méthodes d'authentification"
 
-#: vulture/app_list.html:20
+#: vulture/app_list.html:22
 msgid "Network interface"
 msgstr "Interfaces"
 
-#: vulture/app_list.html:21 vulture/intf_list.html:21
+#: vulture/app_list.html:23 vulture/intf_list.html:21
 msgid "Status"
 msgstr "Statut"
 
@@ -384,13 +501,46 @@ msgstr "Statut"
 msgid "Appearance settings"
 msgstr "Paramètres d'apparence"
 
-#: vulture/appearance_form.html:24 vulture/css_form.html:18
+#: vulture/appearance_form.html:19
+msgid "App down template"
+msgstr "Application hors service"
+
+#: vulture/appearance_form.html:20 vulture/template_form.html:21
+msgid "Login Template"
+msgstr "Mire d'authentification"
+
+#: vulture/appearance_form.html:21 vulture/template_form.html:22
+msgid "ACL Template"
+msgstr "Contrôle d'accès (ACL) refusé"
+
+#: vulture/appearance_form.html:22 vulture/template_form.html:23
+msgid "Portal Template"
+msgstr "Portail SSO"
+
+#: vulture/appearance_form.html:23 vulture/template_form.html:24
+msgid "SSO Learning Template"
+msgstr "Apprentissage"
+
+#: vulture/appearance_form.html:24 vulture/template_form.html:25
+msgid "Logout Template"
+msgstr "Déconnexion"
+
+#: vulture/appearance_form.html:25 vulture/css_form.html:18
 msgid "CSS"
 msgstr "CSS"
 
-#: vulture/appearance_form.html:25 vulture/image_form.html:18
+#: vulture/appearance_form.html:26 vulture/image_form.html:18
 msgid "Image"
 msgstr "Image"
+
+#: vulture/blackip_form.html:5
+msgid "Black IP"
+msgstr "IP interdites"
+
+#: vulture/blackip_form.html:18 vulture/intf_form.html:98
+#: vulture/intf_list.html:19
+msgid "IP"
+msgstr "IP"
 
 #: vulture/cas_form.html:5
 msgid "CAS settings"
@@ -403,6 +553,10 @@ msgstr "URL de connexion"
 #: vulture/cas_form.html:19
 msgid "URL Validate"
 msgstr "URL de validation"
+
+#: vulture/conf_form.html:17
+msgid "Variable"
+msgstr "Variable"
 
 #: vulture/css_form.html:5
 msgid "CSS settings"
@@ -466,22 +620,6 @@ msgstr "Chemin pour %(type)ser le fichier"
 msgid "%(name_t)s list"
 msgstr "Liste %(name_t)s"
 
-#: vulture/generic_list.html:20
-msgid "URI Pattern"
-msgstr "Schéma d'URL"
-
-#: vulture/generic_list.html:20
-msgid "Level"
-msgstr "Sévérité"
-
-#: vulture/generic_list.html:20
-msgid "Primary DC"
-msgstr "Contrôleur primaire"
-
-#: vulture/generic_list.html:20
-msgid "Secondary DC"
-msgstr "Contrôleur secondaire"
-
 #: vulture/generic_confirm_delete.html:10
 msgid "Delete"
 msgstr "Supprimer"
@@ -502,83 +640,67 @@ msgstr "oui"
 msgid "Image settings"
 msgstr "Paramètres d'image"
 
-#: vulture/intf_form.html:5
+#: vulture/intf_form.html:7
 msgid "Interface settings"
 msgstr "Paramètres d'interface"
 
-#: vulture/intf_form.html:11 vulture/intf_form.html.py:33
-msgid "Remote proxy"
-msgstr "Proxy distant"
-
-#: vulture/intf_form.html:12 vulture/intf_form.html.py:39
+#: vulture/intf_form.html:13 vulture/intf_form.html.py:107
 #: vulture/intf_list.html:20
 msgid "SSO Portal"
 msgstr "Portail SSO"
 
-#: vulture/intf_form.html:13 vulture/intf_form.html.py:47
+#: vulture/intf_form.html:14 vulture/intf_form.html.py:115
 msgid "CAS Portal"
 msgstr "Portail CAS"
 
-#: vulture/intf_form.html:15
-msgid "Proxy SSL"
-msgstr "Proxy SSL"
-
-#: vulture/intf_form.html:24 vulture/intf_list.html:19
-msgid "IP"
-msgstr "IP"
-
-#: vulture/intf_form.html:25 vulture/ldap_form.html:22
+#: vulture/intf_form.html:99 vulture/ldap_form.html:22
 #: vulture/radius_form.html:19 vulture/sql_form.html:28
 msgid "Port"
 msgstr "Port"
 
-#: vulture/intf_form.html:40
+#: vulture/intf_form.html:108
 msgid "Timeout for user session"
 msgstr "Durée avant déconnexion de l'utilisateur"
 
-#: vulture/intf_form.html:41
+#: vulture/intf_form.html:109
 msgid "Update user session timeout"
 msgstr "Relancer le décompte de déconnexion à chaque action de l'utilisateur"
 
-#: vulture/intf_form.html:48
+#: vulture/intf_form.html:116
 msgid "CAS auth"
 msgstr "Authentification CAS"
 
-#: vulture/intf_form.html:49
+#: vulture/intf_form.html:117
 msgid "CAS Service ticket timeout"
 msgstr "Temps d'expiration du Ticket Service CAS"
 
-#: vulture/intf_form.html:55
+#: vulture/intf_form.html:118
+msgid "Redirect after login"
+msgstr "Redirection après connexion"
+
+#: vulture/intf_form.html:119
+msgid "Display portal after authentication"
+msgstr "Afficher le portail après authentification"
+
+#: vulture/intf_form.html:132
 msgid "SSL engine"
 msgstr "Moteur SSL"
 
-#: vulture/intf_form.html:56
+#: vulture/intf_form.html:133
 msgid "PEM certificat"
 msgstr "Certificat PEM"
 
-#: vulture/intf_form.html:57
+#: vulture/intf_form.html:134
 msgid "PEM key"
 msgstr "Clé PEM"
 
-#: vulture/intf_form.html:58
+#: vulture/intf_form.html:135
 msgid "PEM certification chain"
 msgstr "Chaine de certification PEM"
 
-#: vulture/intf_form.html:64
-msgid "Machine Certificate file (full path)"
-msgstr "Fichier (chemin complet) vers le certificat Machine"
-
-#: vulture/intf_form.html:65
-msgid "CA Certificate file (full path)"
-msgstr "Fichier (chemin complet) vers le certificat CA"
-
-#: vulture/intf_form.html:66
-msgid "CA Revocation file (full path)"
-msgstr "Fichier (chemin complet) vers le certificat CA Revocation"
-
-#: vulture/intf_form.html:67
-msgid "Verify Remote Certificate"
-msgstr "Vérifier le certificat distant"
+#: vulture/intf_form.html:136
+msgid "PEM-encoded CA Certificates"
+msgstr "Certificat CA"
 
 #: vulture/intf_list.html:5
 msgid "Interface list"
@@ -604,7 +726,8 @@ msgstr "Paramètres LDAP"
 msgid "Connection"
 msgstr "Connexion"
 
-#: vulture/ldap_form.html:12 vulture/sql_form.html:29 vulture/sso_form.html:99
+#: vulture/ldap_form.html:12 vulture/sql_form.html:29
+#: vulture/sso_form.html:112
 msgid "User"
 msgstr "Utilisateur"
 
@@ -615,7 +738,7 @@ msgstr "Groupe"
 #: vulture/ldap_form.html:21 vulture/radius_form.html:18
 #: vulture/sql_form.html:27
 msgid "Host"
-msgstr ""
+msgstr "Hôte"
 
 #: vulture/ldap_form.html:23
 msgid "Protocol"
@@ -657,27 +780,35 @@ msgstr "Attribut d'URL"
 msgid "User OU"
 msgstr "Unité organisationnelle des utilisateurs"
 
-#: vulture/ldap_form.html:48
+#: vulture/ldap_form.html:43
+msgid "Change password attribute"
+msgstr "Attribut 'Changement de mot de passe'"
+
+#: vulture/ldap_form.html:44
+msgid "Account locked attribute"
+msgstr "Attribut 'Compte bloqué'"
+
+#: vulture/ldap_form.html:50
 msgid "Group attribute"
 msgstr "Attribut du group"
 
-#: vulture/ldap_form.html:49
+#: vulture/ldap_form.html:51
 msgid "LDAP filter for groups"
 msgstr "Filtre LDAP pour les groupes"
 
-#: vulture/ldap_form.html:50
+#: vulture/ldap_form.html:52
 msgid "Searching scope for groups"
 msgstr "Champ d'action de recherche pour les groupes"
 
-#: vulture/ldap_form.html:51
+#: vulture/ldap_form.html:53
 msgid "Group OU"
 msgstr "Unité organisationnelle des groupes"
 
-#: vulture/ldap_form.html:52
+#: vulture/ldap_form.html:54
 msgid "Searching attribute in groups"
 msgstr "Attribut de recherche dans le group"
 
-#: vulture/ldap_form.html:53
+#: vulture/ldap_form.html:55
 msgid "Searching attribute is a DN"
 msgstr "L'attribut cherché est un DN"
 
@@ -713,10 +844,6 @@ msgstr "Format du log d'accès"
 msgid "Directory where to place Logfiles"
 msgstr "Répertoire pour les fichiers de logs"
 
-#: vulture/modsecurity_form.html:5 vulture/modsecurity_list.html:5
-msgid "Web Firewall"
-msgstr "Web Firewall"
-
 #: vulture/modsecurity_form.html:5
 msgid "Mod security settings"
 msgstr "Paramètres de mod_security"
@@ -735,7 +862,8 @@ msgstr "Cliquez ici pour revenir à la liste"
 
 #: vulture/modsecurity_list.html:19
 msgid "Click here to download/update security rules from modsecurity.org"
-msgstr "Cliquez ici pour télécharger / mettre à jour les règles depuis modsecurity."
+msgstr ""
+"Cliquez ici pour télécharger / mettre à jour les règles depuis modsecurity."
 "org"
 
 #: vulture/ntlm_form.html:5
@@ -754,7 +882,8 @@ msgstr "Contrôleur de domaine primaire"
 msgid "Secondary Domain Controler"
 msgstr "Contrôleur de domaine secondaire"
 
-#: vulture/plugin_form.html:5
+#: vulture/plugin_form.html:5 vulture/plugincontent_form.html:5
+#: vulture/pluginheader_form.html:5
 msgid "Plugin settings"
 msgstr "Paramètres des plugins"
 
@@ -762,13 +891,17 @@ msgstr "Paramètres des plugins"
 msgid "URL pattern"
 msgstr "Schéma d'URL"
 
-#: vulture/plugin_form.html:19 vulture/sso_form.html:98
-msgid "App"
-msgstr "Application"
+#: vulture/plugincontent_form.html:19
+msgid "pattern"
+msgstr "Schéma d'URL"
 
-#: vulture/plugin_form.html:20
-msgid "Options"
-msgstr "Options"
+#: vulture/plugincontent_form.html:21 vulture/pluginheader_form.html:21
+msgid "Options1"
+msgstr "Options1"
+
+#: vulture/pluginheader_form.html:19
+msgid "Pattern"
+msgstr "Schéma d'URL"
 
 #: vulture/radius_form.html:5
 msgid "RADIUS settings"
@@ -777,6 +910,10 @@ msgstr "Paramètres RADIUS"
 #: vulture/radius_form.html:20
 msgid "Secret"
 msgstr "Secret"
+
+#: vulture/radius_form.html:22
+msgid "URL attribute"
+msgstr "Attribut de l'utilisateur"
 
 #: vulture/sql_form.html:5
 msgid "SQL settings"
@@ -812,7 +949,7 @@ msgstr "Paramètres SSL"
 
 #: vulture/ssl_form.html:18
 msgid "Require"
-msgstr "Require"
+msgstr "Requis"
 
 #: vulture/ssl_form.html:19
 msgid "CA Certificate"
@@ -820,7 +957,7 @@ msgstr "Certificat CA"
 
 #: vulture/ssl_form.html:20
 msgid "Constraint"
-msgstr "Constraint"
+msgstr "Contrainte"
 
 #: vulture/sso_form.html:5
 msgid "Web SSO settings"
@@ -830,50 +967,92 @@ msgstr "Paramètres de Web SSO"
 msgid "Fields"
 msgstr "Champs"
 
-#: vulture/sso_form.html:91
+#: vulture/sso_form.html:14
+msgid "Advanced"
+msgstr "Avancé"
+
+#: vulture/sso_form.html:103
+msgid "Follow get redirect"
+msgstr "Suivre la redirection GET"
+
+#: vulture/sso_form.html:104
 msgid "Referential"
 msgstr "Référentiel"
 
-#: vulture/sso_form.html:97
+#: vulture/sso_form.html:110
 msgid "Table"
 msgstr "Table"
 
-#: vulture/sso_form.html:105
+#: vulture/sso_form.html:118
 msgid "You don't have any fields to fill in LDAP (recovered from auth LDAP)"
-msgstr "Vous n'avez pas à remplir ces champs pour du LDAP (ils sont récupérés depuis "
+msgstr ""
+"Vous n'avez pas à remplir ces champs pour du LDAP (ils sont récupérés depuis "
 "l'authentification LDAP)"
 
-#: vulture/sso_form.html:113
+#: vulture/sso_form.html:126
 msgid "Field desc"
 msgstr "Description du champ"
 
-#: vulture/sso_form.html:114
+#: vulture/sso_form.html:127
 msgid "Field name (unique)"
 msgstr "Nom du champ (unique)"
 
-#: vulture/sso_form.html:115
+#: vulture/sso_form.html:128
 msgid "Mapped"
 msgstr "Relié à"
 
-#: vulture/sso_form.html:116
+#: vulture/sso_form.html:129
 msgid "Field type"
 msgstr "Type"
 
-#: vulture/sso_form.html:117
+#: vulture/sso_form.html:130
 msgid "Encrypted"
 msgstr "Encrypté"
 
-#: vulture/sso_form.html:118
+#: vulture/sso_form.html:131
 msgid "Field value (optional)"
 msgstr "Valeur (optionnel)"
 
-#: vulture/sso_form.html:119
+#: vulture/sso_form.html:132
 msgid "Field prefix (optional)"
 msgstr "Préfixe (optionnel)"
 
-#: vulture/sso_form.html:120
+#: vulture/sso_form.html:133
 msgid "Field suffix (optional)"
 msgstr "Suffixe (optionnel)"
+
+#: vulture/sso_form.html:163
+msgid "Regexp"
+msgstr "Expression Régulière"
+
+#: vulture/sso_form.html:164
+msgid "In page"
+msgstr "Dans la page"
+
+#: vulture/sso_form.html:165
+msgid "In URL"
+msgstr "URL de connexion"
+
+#: vulture/sso_form.html:166
+msgid "Information"
+msgstr "Configuration"
+
+#: vulture/sso_form.html:166 vulture/sso_form.html.py:167
+#: vulture/sso_form.html:168 vulture/sso_form.html.py:169
+msgid "headers"
+msgstr "En-têtes"
+
+#: vulture/sso_form.html:167
+msgid "Success"
+msgstr "Réussite"
+
+#: vulture/sso_form.html:168
+msgid "Redirect"
+msgstr "Redirection"
+
+#: vulture/sso_form.html:169
+msgid "Error"
+msgstr "Erreur"
 
 #: vulture/template_form.html:5
 msgid "Template settings"
@@ -881,44 +1060,19 @@ msgstr "Paramètres de modèle de page"
 
 #: vulture/template_form.html:17
 msgid "The italic items below refer to translations"
-msgstr "Les éléments ci-dessous en italique font références à des éléments traduits "
+msgstr ""
+"Les éléments ci-dessous en italique font références à des éléments traduits "
 "automatiquement par Vulture"
 
 #: vulture/template_form.html:19
 msgid "All"
 msgstr "Tous"
 
-#: vulture/appearance_form.html:19
 #: vulture/template_form.html:20
 msgid "App down Template"
 msgstr "Application hors service"
 
-#: vulture/template_form.html:21
-#: vulture/appearance_form.html:20
-msgid "Login Template"
-msgstr "Mire d'authentification"
-
-#: vulture/appearance_form.html:21
-#: vulture/template_form.html:22
-msgid "ACL Template"
-msgstr "Contrôle d'accès (ACL) refusé"
-
-#: vulture/template_form.html:23
-#: vulture/appearance_form.html:22
-msgid "Portal Template"
-msgstr "Portail SSO"
-
-#: vulture/appearance_form.html:23
-#: vulture/template_form.html:24
-msgid "SSO Learning Template"
-msgstr "Apprentissage"
-
-#: vulture/appearance_form.html:24
-#: vulture/template_form.html:25
-msgid "Logout Template"
-msgstr "Déconnexion"
-
-#: vulture/user_form.html:5
+#: vulture/user_form.html:5 vulture/useredit_form.html:5
 msgid "User settings"
 msgstr "Paramètres d'utilisateur"
 
@@ -930,9 +1084,13 @@ msgstr "Nom d'utilisateur"
 msgid "Confirm password"
 msgstr "Confirmer le mot de passe"
 
-#: vulture/user_form.html:20
+#: vulture/user_form.html:20 vulture/useredit_form.html:19
 msgid "Administrator"
 msgstr "Administrateur"
+
+#: vulture/user_form.html:21 vulture/useredit_form.html:20
+msgid "Super Administrator"
+msgstr "Super Administrateur"
 
 #: vulture/user_list.html:5
 msgid "User list"
@@ -945,3 +1103,23 @@ msgstr "Nom d'utilisateur"
 #: vulture/user_list.html:18
 msgid "Admin"
 msgstr "Admin"
+
+#: vulture/user_list.html:19
+msgid "Super Admin"
+msgstr "Admin"
+
+#: vulture/userpassword_form.html:5
+msgid "User password change"
+msgstr "Changement du mot de passe"
+
+#: vulture/userpassword_form.html:17
+msgid "New password"
+msgstr "Nouveau mot de passe"
+
+#: vulture/userpassword_form.html:18
+msgid "Confirm new password"
+msgstr "Confirmer le nouveau mot de passe"
+
+
+
+
