@@ -21,6 +21,7 @@ sub handler {
 
 	my $c = $r->connection(); 
 	
+	#check if we have remote ip, if not we refuse access
 	unless (defined $c and $c->remote_ip){
 	    $log->warn("Can't read remote ip");
 	    return Apache2::Const::FORBIDDEN;
@@ -29,6 +30,7 @@ sub handler {
 	my $dbh = $r->pnotes('dbh');
 	my $app_id = $r->pnotes('app')->{'id'} if defined($r->pnotes('app'));
 
+	#we get BlackIP related to an app
 	my $query = "SELECT ip FROM blackip WHERE app_id=?";
 	$sth = $dbh->prepare($query);
 	$sth->execute($app_id);
@@ -37,6 +39,7 @@ sub handler {
 		my @IP = split / /, $ip;
 		foreach my $ip (@IP){
 			my $regexp = create_iprange_regexp($ip);
+			#refused connection from BlackIP
 			if (match_ip($c->remote_ip, $regexp)) {
 				$log->warn('IP '.$c->remote_ip.' is blocked');
 				return Apache2::Const::FORBIDDEN;

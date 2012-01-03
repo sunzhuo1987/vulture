@@ -258,6 +258,7 @@ sub handler:method
     }
 }
 
+#get the Data from Vulture login page
 sub getRequestData {
 	my ($r) = @_;
 	my $login = param('vulture_login');
@@ -279,6 +280,7 @@ sub multipleAuth {
 		load $module_name;
 
 		#Get return
+		#for NTML and other authentification method without login or password
 		if ($is_transparent==0) {
 			$log-> debug ("multipleAuth: Classic Authentication");
 			$ret = $module_name->checkAuth($r, $log, $dbh, $app, $user, $password, @$row[2]);
