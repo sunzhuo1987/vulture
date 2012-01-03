@@ -26,7 +26,7 @@ sub plugin{
 
 	$r->add_output_filter(\&Plugin::Plugin_OutputFilterHandler::handler);
 	
-	return Apache2::Const::OK;
+	return undef;
 }
 
 1;

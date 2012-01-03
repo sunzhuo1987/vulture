@@ -19,7 +19,7 @@ sub plugin{
 		#Mod_proxy with apache : user will not see anything
 		$log->debug("Getting url to mod_proxy");
 		$r->pnotes('url_to_mod_proxy' => $app->{'url'}.$1);
-		return Apache2::Const::OK;
+		return undef;
 
 	#Redirect
 	} elsif($options =~ /(.+)\[R\]/){
