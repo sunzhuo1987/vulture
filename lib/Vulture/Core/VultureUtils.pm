@@ -127,9 +127,9 @@ sub	get_app {
     
     #Use memcached if possible
 	my $obj = get_memcached("$host:app");
-	#$query = "SELECT intf.id FROM app, intf, app_intf WHERE app.name = ? AND app_intf.intf_id = intf.id AND app.id = app_intf.app_id";
-	$query = 'SELECT intf.id FROM intf JOIN app_intf ON intf.id = app_intf.intf_id JOIN app ON app_intf.app_id = app.id WHERE app.name=?';
 	if ($obj) {
+        #$query = "SELECT intf.id FROM app, intf, app_intf WHERE app.name = ? AND app_intf.intf_id = intf.id AND app.id = app_intf.app_id";
+        $query = 'SELECT intf.id FROM intf JOIN app_intf ON intf.id = app_intf.intf_id JOIN app ON app_intf.app_id = app.id WHERE app.name=?';
         $log->debug($query);
 		$sth = $dbh->prepare($query);
 		$sth->execute($host);
