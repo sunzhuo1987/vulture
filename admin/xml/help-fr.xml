@@ -41,7 +41,7 @@
         <virtualhost_directives>Ajouter des directives Apache pour l'interface</virtualhost_directives>
     </intf>
     <localization>
-        <country>Langue à traduire (si vous souhaitez rajouter une autre langue, se rapprocher de la mailing-list Vulture)</country>
+        <country>Langue à traduire (pour rajouter une autre langue, se rapprocher de la mailing-list Vulture)</country>
         <message>Message à traduire (utilisé ensuite dans les templates lors de l'affichage d'un message d'erreur)</message>
         <translation>Traduction (dans la langue)</translation>
     </localization>
@@ -72,7 +72,7 @@
         <group_member>Attribut qui fait que l'utilisateur recherché appartient au groupe</group_member>
         <are_members_dn>L'attribut de recherche est un DN complet</are_members_dn>
         <chpass_attr>Vulture peut vérifier que le mot de passe d'un utilisateur est à changer et effectuer une action le cas échéant. L'attribut à vérifier doit être indiqué ici</chpass_attr>
-        <user_account_locked_attr>Comme pour le mot de passe, il est possible de vérifier que le compte n'est pas verrouillé</user_account_locked_attr>
+        <user_account_locked_attr>Comme pour le mot de passe, il est possible de vérifier que le compte est verrouillé</user_account_locked_attr>
     </ldap>
     <ntlm>
         <name>Nom de la méthode d'authentification</name>
@@ -157,7 +157,7 @@
         <timeout>Durée avant déconnexion de l'utilisateur (en secondes)</timeout>
         <update_access_time>Relancer le décompte de déconnexion à chaque action de l'utilisateur sur l'application</update_access_time>
         <canonicalise_url>Transmettre l'URL pour l'application interne sous sa forme brute. /!\ Cela peut poser des problèmes de sécurité</canonicalise_url>
-        <virtualhost_directives>Ajouter des directives Apache pour l'interface</virtualhost_directives>
+        <virtualhost_directives>Ajouter des directives Apache pour l'application</virtualhost_directives>
     </app>
     <appearance>
         <name>Nom de l'apparence</name>
@@ -191,7 +191,7 @@
     </plugin>
     <plugincontent>
         <app>Application pour laquelle s'applique cette règle (laisser vide pour appliquer à toutes les applications)</app>
-        <type>Type de modification : Ajout d'en-tête, remplacement d'en-tête ou suppression d'en-tête</type>
+        <type>Type de modification : Ajout d'en-tête/contenu, remplacement d'en-tête/contenu ou suppression d'en-tête/contenu</type>
         <pattern>Motif à rechercher</pattern>
         <options>Remplacer par la chaine</options>
     </plugincontent>

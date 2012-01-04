@@ -233,6 +233,9 @@ class Intf(models.Model):
     
     def k(self, cmd):
         return os.popen("%s -f %s%s.conf -k %s 2>&1" % (settings.HTTPD_PATH, settings.CONF_PATH, self.id, cmd)).read()
+        
+    def hasBlackIp (self):
+        return BlackIP.objects.filter(app__isnull = True)
     
     def __str__(self):
         return self.name
@@ -562,7 +565,7 @@ class Plugin(models.Model):
         db_table = 'plugin'
 
 class BlackIP(models.Model):
-    app = models.ForeignKey(App,unique=1)
+    app = models.ForeignKey(App,unique=1,null=1,blank=1)
     ip = models.CharField(max_length=200, null=1, blank=1)
     def __str__(self):
         return self.ip

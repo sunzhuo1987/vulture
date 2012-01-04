@@ -148,7 +148,7 @@ install:
 		make -C lib/Crypt-OpenSSL-AES-0.01 install && \
 		make -C lib/Apache-Session-Memcached-0.03 install && \
 		make -C lib/NTLM-1.05 install && \
-        make -C lib/Net-IP-Match-Regexp-1.01 && \
+        make -C lib/Net-IP-Match-Regexp-1.01 install && \
 		cd lib/modsecurity-apache_2.6.1 && ./configure --prefix=$(PREFIXLIB)/$(NAME)/ --exec-prefix=$(PREFIXLIB)/$(NAME)/ && \
 		cd apache2 && make clean && make install && \
 		cd ../../../ &&  \
