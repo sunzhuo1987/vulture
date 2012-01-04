@@ -1,6 +1,12 @@
 #file:ACL/ACL_LDAP.pm
 #---------------------------------
+#!/usr/bin/perl
+
+
 package ACL::ACL_LDAP;
+
+use strict;
+use warnings;
 
 use Apache2::Reload;
 use Apache2::Log;

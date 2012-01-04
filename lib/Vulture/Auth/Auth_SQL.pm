@@ -1,6 +1,10 @@
 #file:Auth/Auth_SQL.pm
 #---------------------------------
+#!/usr/bin/perl
 package Auth::Auth_SQL;
+
+use strict;
+use warnings;
 
 use Apache2::RequestRec ();
 use Apache2::RequestIO ();

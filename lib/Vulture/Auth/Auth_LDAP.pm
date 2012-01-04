@@ -1,6 +1,10 @@
 #file:Auth/Auth_LDAP.pm
 #---------------------------------
+#!/usr/bin/perl
 package Auth::Auth_LDAP;
+
+use strict;
+use warnings;
 
 use Apache2::Reload;
 use Apache2::Log;

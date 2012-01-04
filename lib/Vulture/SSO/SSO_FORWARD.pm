@@ -1,6 +1,10 @@
 #file:SSO/SSO_FORWARD.pm
 #-------------------------
+#!/usr/bin/perl
 package SSO::SSO_FORWARD;
+
+#use strict;
+#use warnings;
 
 use Apache2::RequestRec ();
 use Apache2::RequestIO ();
@@ -77,18 +81,22 @@ sub handle_action{
     } else{
         # 10x headers
         if ($response->is_info){
-            $query = 'SELECT is_info, is_info_options FROM sso, app WHERE app.id = ? AND sso.id = app.sso_forward_id';
+            #$query = 'SELECT is_info, is_info_options FROM sso, app WHERE app.id = ? AND sso.id = app.sso_forward_id';
+	    $query = 'SELECT is_info, is_info_options FROM sso JOIN app ON sso.id = app.sso_forward_id WHERE app.id = ?';
         # 20x headers
         } elsif ($response->is_success){
-            $query = 'SELECT is_success, is_success_options FROM sso, app WHERE app.id = ? AND sso.id = app.sso_forward_id';
+            #$query = 'SELECT is_success, is_success_options FROM sso, app WHERE app.id = ? AND sso.id = app.sso_forward_id';
+	    $query = 'SELECT is_success, is_success_options FROM sso JOIN app ON sso.id = app.sso_forward_id WHERE app.id = ?';
 
         # 30x headers
         } elsif ($response->is_redirect) { 
-            $query = 'SELECT is_redirect, is_redirect_options FROM sso, app WHERE app.id = ? AND sso.id = app.sso_forward_id';
+            #$query = 'SELECT is_redirect, is_redirect_options FROM sso, app WHERE app.id = ? AND sso.id = app.sso_forward_id';
+	    $query = 'SELECT is_redirect, is_redirect_options FROM sso JOIN app ON sso.id = app.sso_forward_id WHERE app.id = ?';
         
         # 40x and 50x headers
         } elsif ($response->is_error) {
-            $query = 'SELECT is_error, is_error_options FROM sso, app WHERE app.id = ? AND sso.id = app.sso_forward_id';
+            #$query = 'SELECT is_error, is_error_options FROM sso, app WHERE app.id = ? AND sso.id = app.sso_forward_id';
+	    $query = 'SELECT is_error, is_error_options FROM sso JOIN app ON sso.id = app.sso_forward_id WHERE app.id = ?';
         # No action defined
         }
         
@@ -137,7 +145,7 @@ sub handle_action{
 sub forward{
 	my ($package_name, $r, $log, $dbh, $app, $user, $password) = @_;
 
-    my $r = Apache::SSLLookup->new($r);
+    $r = Apache::SSLLookup->new($r);
 
 	my (%session_app);
 	session(\%session_app, undef, $r->pnotes('id_session_app'), $log, $app->{update_access_time});
@@ -248,7 +256,7 @@ sub forward{
         my %results = %{get_profile($r, $log, $dbh, $app, $user)};
 
         #Get form which contains fields set in admin
-		while (($key, $value) = each(%results)){
+		while (my ($key, $value) = each(%results)){
 			$log->debug($key);
 			if ($key eq "cookie") {
 				$cookies = $value;
@@ -256,11 +264,11 @@ sub forward{
 			}
 		}
 
-        $form = $mech->form_with_fields(keys %results) if %results;
+        my $form = $mech->form_with_fields(keys %results) if %results;
 
         #Fill form with profile
         if ($form and %results){
-            while (($key, $value) = each(%results)){
+            while (my ($key, $value) = each(%results)){
                 $mech->field($key, $value);
             }
             
@@ -306,7 +314,7 @@ sub forward{
     $request->push_header('Referer' => $parsed_uri->unparse);
 
     #Getting custom headers defined in admin
-    my $sth = $dbh->prepare("SELECT name, type, value FROM header WHERE app_id = ?");
+    $sth = $dbh->prepare("SELECT name, type, value FROM header WHERE app_id = ?");
     $sth->execute($app->{id});
     while (my ($name, $type, $value) = $sth->fetchrow) {
         if ($type eq "REMOTE_ADDR"){
@@ -339,7 +347,7 @@ sub forward{
     $post_response = $mech->request($request);
 
 	#Cookie coming from response and from POST response
-    %cookies_app;
+    our %cookies_app;
     $log->debug($mech->cookie_jar->as_string);
 	$mech->cookie_jar->scan( \&callback );
 

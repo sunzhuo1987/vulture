@@ -1,6 +1,10 @@
 #file:Core/CleanupHandler.pm
 #---------------------------------
+#!/usr/bin/perl
 package Core::CleanupHandler;
+
+use strict;
+use warnings;
   
 use Apache2::Access ();
 use Apache2::Reload;

@@ -1,6 +1,10 @@
 #file:Core/AuthenHandler.pm
 #---------------------------------
+#!/usr/bin/perl
 package Core::AuthenHandler;
+
+use strict;
+use warnings;
 
 use Apache2::RequestRec ();
 use Apache2::RequestIO ();
@@ -99,7 +103,7 @@ sub handler:method
                 $log->debug(Dumper(\%current_app));
 
                 #Getting all auths methods used previously to compare with current app auths
-                $query = "SELECT auth.name, auth.auth_type, auth.id_method FROM app, intf, auth, auth_multiple WHERE app.name = ? AND intf.id = ? AND auth_multiple.app_id = app.id AND auth_multiple.auth_id = auth.id";
+                my $query = "SELECT auth.name, auth.auth_type, auth.id_method FROM app, intf, auth, auth_multiple WHERE app.name = ? AND intf.id = ? AND auth_multiple.app_id = app.id AND auth_multiple.auth_id = auth.id";
                 $log->debug($query);
                 my @auths = @{$dbh->selectall_arrayref($query, undef, $current_app{app_name}, $intf->{id})};
                 my @current_auths = @{defined ($app->{'auth'}) ? $app->{'auth'} : $intf->{'auth'}};
@@ -109,7 +113,8 @@ sub handler:method
                 $log->debug(Dumper(\@current_auths));
                 
                 my @difference = ();
-                %count = ();
+                my %count = ();
+				my $element;
                 foreach $element (@auths, @current_auths) { $count{@$element[0]}++ }
                 foreach $element (keys %count) {
                     push @{ \@difference if $count{$element} <= 1 }, $element;

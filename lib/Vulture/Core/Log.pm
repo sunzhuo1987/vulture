@@ -1,6 +1,10 @@
 #file:Core/Log.pm
 #-------------------------
+#!/usr/bin/perl
 package Core::Log;
+
+use strict;
+use warnings;
 
 BEGIN {
     use Exporter ();

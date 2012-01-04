@@ -1,6 +1,10 @@
 #file:Core/TransHandlerv2.pm
 #-------------------------
+#!/usr/bin/perl
 package Core::TransHandlerv2;
+
+use strict;
+use warnings;
 
 use Apache2::Reload;
 use Apache2::Response ();
@@ -89,8 +93,8 @@ sub handler {
     my $query = 'SELECT uri_pattern, type, options FROM plugin WHERE app_id = ? OR app_id IS NULL ORDER BY type';
     $log->debug($query);
 	my $plugins = $dbh->selectall_arrayref($query, undef, $app->{id});
+	my $module_name;
 	foreach my $row (@$plugins) {
-		my $module_name;
         my $options;
         my @result;
         my $exp = @$row[0];
@@ -113,9 +117,9 @@ sub handler {
 		}
 	}	
 	#Rewrite content
-    my $query = 'SELECT pattern, type, options, options1 FROM plugincontent WHERE (app_id = ?  OR app_id IS NULL) ORDER BY type';
+    $query = 'SELECT pattern, type, options, options1 FROM plugincontent WHERE (app_id = ?  OR app_id IS NULL) ORDER BY type';
     $log->debug($query);
-	my $plugins = $dbh->selectall_arrayref($query, undef, $app->{id});
+	$plugins = $dbh->selectall_arrayref($query, undef, $app->{id});
 	my $i = 0;
 	$log->debug($plugins);
 	foreach my $row (@$plugins) {
@@ -129,7 +133,6 @@ sub handler {
  	}
 	$log->debug($module_name);
 	if ($r->pnotes('type0')) {
-		my $module_name;
 		$module_name = 'Plugin::Plugin_REWRITE_CONTENT';
 
 		$log->debug("Load $module_name");
@@ -140,11 +143,10 @@ sub handler {
 		my $ret = $module_name->plugin($r, $log, $dbh, $intf, $app);
 	}
 	#Header input modify
-    my $query = 'SELECT pattern, type, options, options1 FROM pluginheader WHERE app_id = ? OR app_id IS NULL ORDER BY type';
+    $query = 'SELECT pattern, type, options, options1 FROM pluginheader WHERE app_id = ? OR app_id IS NULL ORDER BY type';
     $log->debug($query);
-	my $plugins = $dbh->selectall_arrayref($query, undef, $app->{id});
+	$plugins = $dbh->selectall_arrayref($query, undef, $app->{id});
 	foreach my $row (@$plugins) {
-		my $module_name;
 		my $header = @$row[0];
 		my $type = @$row[1];
 		my $options = @$row[2];
@@ -320,7 +322,8 @@ sub handler {
         }
         
         #Getting SSO session if exists.
-		my $SSO_cookie_name = get_cookie($r->headers_in->{Cookie}, $r->dir_config('VultureProxyCookieName').'=([^;]*)') or '';
+		my $SSO_cookie_name = '';
+		$SSO_cookie_name = get_cookie($r->headers_in->{'Cookie'}, $r->dir_config('VultureProxyCookieName').'=([^;]*)');
 
 		my (%session_SSO);
 		

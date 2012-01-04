@@ -1,4 +1,10 @@
+#!/usr/bin/perl
+
 package Plugin::Plugin_OutputFilterHandler;
+
+use strict;
+use warnings;
+
 use base qw(Apache2::Filter);
 use Apache2::Const qw(OK DECLINED FORBIDDEN :conn_keepalive);
 use Apache2::Connection ();
@@ -68,6 +74,7 @@ sub handler {
 						my @valhead = $r->headers_out->get($exp);
 						my $value = $r->pnotes('options'.$i);
 						my $replacementheader = $r->pnotes('options1'.$i);
+						my $headval;
 						foreach $headval (@valhead)
 						{
 							if ($headval && $headval =~ /$value/x)
@@ -117,6 +124,7 @@ sub handler {
 						}
 						$f->ctx($ct);
 					}
+					my $linkval;
 					if (($type eq "Rewrite Link") or (defined($linkval)) ) {
 						$log->debug("Rewrite Link");
 						my $options = $r->pnotes('options'.$i);
@@ -202,9 +210,10 @@ sub handler {
 			$f->print($f->ctx->{data});
 			my $c = $f->c;
 			if ($c->keepalive == Apache2::Const::CONN_KEEPALIVE && $ctx->{data} && $c->keepalives > $ctx->{keepalives}) {
-				if ($debug) {
-					warn "[ModProxyPerlHtml] cleaning context for keep alive request\n";
-				}
+				#unused variable debug
+				#if ($debug) {
+				#	warn "[ModProxyPerlHtml] cleaning context for keep alive request\n";
+				#}
 				$ctx->{data} = '';
 				$ctx->{pattern} = ();
 				$ctx->{keepalives} = $c->keepalives;

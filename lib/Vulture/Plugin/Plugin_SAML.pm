@@ -1,6 +1,10 @@
 #file:Plugin/Plugin_SAML.pm
 #-------------------------
+#!/usr/bin/perl
 package Plugin::Plugin_SAML;
+
+use strict;
+use warnings;
 
 use Apache2::Log;
 use Apache2::Reload;
@@ -15,7 +19,7 @@ sub plugin{
 	$log->debug("########## Plugin_SAML ##########");
 
 	my ($action, $app_name, $intf_id, $login, $password);
-	my $req = Apache2::Request->new($r);	
+		my $req = Apache2::Request->new($r);	
 	
 	#Get parameters	
 	$action = $req->param('action');

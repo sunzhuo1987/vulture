@@ -1,6 +1,10 @@
 #file:Plugin/Plugin_BLOCK.pm
 #-------------------------
+#!/usr/bin/perl
 package Plugin::Plugin_BLOCK;
+
+use strict;
+use warnings;
 
 use Apache2::Log;
 use Apache2::Reload;
