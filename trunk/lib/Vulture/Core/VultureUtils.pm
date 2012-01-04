@@ -164,7 +164,7 @@ sub	get_app {
         while ( my ($name, $hashref) = each(%$apps) ) {
             
             my $cpy = $hashref->{alias};
-            $cpy =~ s|\*|\(\.\*\)|g;
+            $cpy =~ s|\*|\(\.\*\)\\|g;
             if ($host =~ /$cpy/) {
                 $ref = $apps->{$name};
                 $ref->{name} = $host;
