@@ -49,6 +49,7 @@ Vulture Reverse Proxy
 %ifarch x86_64
 %patch4 -p0 -b .old
 %endif
+%patch5 -p0 -b .old
 
 
 %build
