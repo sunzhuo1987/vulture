@@ -22,6 +22,7 @@ Patch1: http://arnaud.desmons.free.fr/pyOpenSSL-0.6-pkcs12_cafile.patch
 Patch2: http://arnaud.desmons.free.fr/pyOpenSSL-0.6-crl.patch
 Patch3: database_path.patch
 Patch4: lib.patch
+Patch5: PreConnectionHandler.patch
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildRequires: perl gcc gcc-c++ sqlite openssl-devel
