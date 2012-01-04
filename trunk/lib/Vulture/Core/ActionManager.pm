@@ -1,6 +1,10 @@
 #file:Core/ActionManager.pm
 #-------------------------
+#!/usr/bin/perl
 package Core::ActionManager;
+
+use strict;
+use warnings;
 
 use Core::VultureUtils qw(&get_translations &get_style);
 

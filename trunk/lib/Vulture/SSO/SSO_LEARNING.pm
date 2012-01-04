@@ -1,6 +1,10 @@
 #file:SSO/SSO_LEARNING.pm
 #-------------------------
+#!/usr/bin/perl
 package SSO::SSO_LEARNING;
+
+use strict;
+use warnings;
 
 use Apache2::RequestRec ();
 use Apache2::RequestIO ();

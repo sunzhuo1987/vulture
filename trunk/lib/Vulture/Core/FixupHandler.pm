@@ -1,6 +1,10 @@
 #file:Core/FixupHandler.pm
 #---------------------------------
+#!/usr/bin/perl
 package Core::FixupHandler;
+  
+use strict;
+use warnings;
   
 use Apache2::Access ();
 use Apache2::Reload;
@@ -33,7 +37,7 @@ sub proxy_redirect {
 	#Cleaning up cookies
     #Don't send VultureApp && VultureProxy cookies
     my $cookies = $r->headers_in->{Cookie};
-    my $cleaned_cookies;
+    my $cleaned_cookies = '';
     foreach (split(';', $cookies)) {
         if (/([^,; ]+)=([^,; ]+)/) {
             if ($1 ne $r->dir_config('VultureAppCookieName') and $1 ne $r->dir_config('VultureProxyCookieName')){

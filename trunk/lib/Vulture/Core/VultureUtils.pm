@@ -1,6 +1,11 @@
 #file:Core/VultureUtils.pm
 #-------------------------
+#!/usr/bin/perl
 package Core::VultureUtils;
+
+use strict;
+use warnings;
+
 our $VERSION = '2.0.2';
 
 BEGIN {
@@ -133,6 +138,7 @@ sub	get_app {
         $log->debug($query);
 		$sth = $dbh->prepare($query);
 		$sth->execute($host);
+		my $var;
 		while ($var = $sth->fetchrow) {
 			if ($var eq $intf) {
 				$obj->{'intf'} = $intf;
@@ -147,7 +153,7 @@ sub	get_app {
 	$log->debug($query);
 	$sth = $dbh->prepare($query);
 	$sth->execute($intf);
-    $apps = $sth->fetchall_hashref('name');
+    my $apps = $sth->fetchall_hashref('name');
     $sth->finish();
     
     #Exact matching

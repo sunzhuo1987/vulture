@@ -1,6 +1,10 @@
 #file:Core/ResponseHandlerv2.pm
 #---------------------------------
+#!/usr/bin/perl
 package Core::ResponseHandlerv2;
+
+use strict;
+use warnings;
 
 use Apache2::Access ();
 use Apache2::Reload;
@@ -152,6 +156,7 @@ sub handler {
 		    return Apache2::Const::REDIRECT;
 
         } else {
+		#Redirect to CAS
             my $html;
             if($intf->{'cas_display_portal'}){
                 $html = display_portal ($r,$log,$dbh, $app);
@@ -218,8 +223,10 @@ sub display_auth_form {
 </div>
 FOO
 ;
-
-    return get_style($r, $log, $dbh, $app, 'LOGIN', 'Please authenticate', {FORM => $form, ERRORS => $translations->{$message}{'translation'}}, $translations);
+	if (defined $translations->{$message}) {
+		return get_style($r, $log, $dbh, $app, 'LOGIN', 'Please authenticate', {FORM => $form, ERRORS => $translations->{$message}{'translation'}}, $translations);
+	}
+	return get_style($r, $log, $dbh, $app, 'LOGIN', 'Please authenticate', {FORM => $form, ERRORS => "", $translations});
 }
 
 sub display_portal {

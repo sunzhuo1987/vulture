@@ -1,6 +1,11 @@
 #file:ACL/ACL_SQL.pm
 #---------------------------------
+#!/usr/bin/perl
+
 package ACL::ACL_SQL;
+
+use strict;
+use warnings;
 
 use Apache2::Reload;
 use Apache2::Log;

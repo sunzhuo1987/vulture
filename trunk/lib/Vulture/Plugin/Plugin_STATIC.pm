@@ -1,6 +1,10 @@
 #file:Plugin/Plugin_STATIC.pm
 #-------------------------
+#!/usr/bin/perl
 package Plugin::Plugin_STATIC;
+
+use strict;
+use warnings;
 
 use Apache2::Log;
 use Apache2::Reload;
@@ -14,6 +18,7 @@ sub plugin{
 	my @captured = @{$options};
 	
 	$log->debug("########## Plugin_STATIC ##########");
+	#check if we are serving static content from sso_portal
     if($r->hostname =~ $intf->{'sso_portal'}){
         #Destroy useless handlers
         $r->set_handlers(PerlAccessHandler => undef);

@@ -1,6 +1,10 @@
 #file:Auth/Auth_CAS.pm
 #---------------------------------
+#!/usr/bin/perl
 package Auth::Auth_CAS;
+
+use strict;
+use warnings;
 
 use Apache2::RequestRec ();
 use Apache2::RequestIO ();
@@ -9,7 +13,7 @@ use Apache2::Log;
 use Apache2::Reload;
 use Apache2::Request;
 
-use Apache2::Const -compile => qw(OK FORBIDDEN);
+use Apache2::Const -compile => qw(OK FORBIDDEN REDIRECT);
 
 use LWP::UserAgent;
 
@@ -39,7 +43,7 @@ sub checkAuth{
     }
     
     #Build service
-    my $r = Apache::SSLLookup->new($r);
+    $r = Apache::SSLLookup->new($r);
     my $incoming_uri = $app->{name};
     if ($incoming_uri !~ /^(http|https):\/\/(.*)/ ) {
         #Fake scheme for making APR::URI parse
@@ -58,7 +62,6 @@ sub checkAuth{
         $log->debug("Querying url".$url);
         
         #Get answer
-        $request = HTTP::Request->new('GET', , undef, $post);
         my $ua = LWP::UserAgent->new;
         
         #Setting proxy if needed
@@ -66,7 +69,7 @@ sub checkAuth{
             $ua->proxy(['http', 'https'], $app->{remote_proxy});
         }
         
-        $response = $ua->get($url);
+        my $response = $ua->get($url);
         
         $log->debug($response->decoded_content);
         

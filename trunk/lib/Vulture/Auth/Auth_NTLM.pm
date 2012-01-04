@@ -1,6 +1,10 @@
 #file:Auth/Auth_NTLM.pm
 #---------------------------------
+#!/usr/bin/perl
 package Auth::Auth_NTLM;
+
+use strict;
+use warnings;
 
 use Apache2::RequestRec ();
 use Apache2::RequestIO ();
@@ -193,6 +197,7 @@ sub checkAuth{
     my $pdc         = $ref->{'primary_dc'};
     my $bdc         = $ref->{'secondary_dc'};
     my $protocol    = $ref->{'protocol'};
+	my $t;
 
     my $auth_line 	=  $r->headers_in->{'Authorization'} ;
     my $data	= undef;
@@ -208,7 +213,7 @@ sub checkAuth{
         return Apache2::Const::HTTP_UNAUTHORIZED ;
 	}
 
-	my ($protocol, $t) = unpack ('Z8C', $data) ;
+	($protocol, $t) = unpack ('Z8C', $data) ;
 	my ($type, $accept_unicode, $username, $usernthash, $userdomain) = undef;
 	if ($t == 1) {
         ($type,$accept_unicode) = get_msg1 ($r, $log, $data, $domain);

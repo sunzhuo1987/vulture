@@ -1,6 +1,10 @@
 #file:Core/AuthzHandler.pm
 #---------------------------------
+#!/usr/bin/perl
 package Core::AuthzHandler;
+  
+use strict;
+use warnings;
   
 use Apache2::Access ();
 use Apache2::Reload;

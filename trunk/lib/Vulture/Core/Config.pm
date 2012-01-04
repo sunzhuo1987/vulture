@@ -1,6 +1,10 @@
 #file:Core/Config.pm
 #-------------------------
+#!/usr/bin/perl
 package Core::Config;
+
+use strict;
+use warnings;
 
 BEGIN {
     use Exporter ();

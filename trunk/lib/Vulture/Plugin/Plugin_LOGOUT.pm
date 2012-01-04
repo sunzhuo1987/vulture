@@ -1,6 +1,10 @@
 #file:Plugin/Plugin_LOGOUT.pm
 #-------------------------
+#!/usr/bin/perl
 package Plugin::Plugin_LOGOUT;
+
+use strict;
+use warnings;
 
 use Apache2::Log;
 use Apache2::Reload;
@@ -62,11 +66,11 @@ sub plugin{
                 notify($dbh, $id_app, $session_SSO{username}, 'deconnection', scalar(keys %users));
 				
 				#Getting url to logout
-				my $query = "SELECT url, remote_proxy, logout_url FROM app, intf WHERE app.name = ? AND intf.id = ?";
+				my $query = "SELECT app.name, url, remote_proxy, logout_url FROM app, intf WHERE app.name = ? AND intf.id = ?";
 				$log->debug($query);
                 my $sth = $dbh->prepare($query);
 				$sth->execute($current_app{app_name}, $intf->{id});
-				my ($url, $remote_proxy, $logout_url) = $sth->fetchrow_array;
+				my ($host, $url, $remote_proxy, $logout_url) = $sth->fetchrow_array;
                 if ($url and $logout_url){
 					#Setting fake user agent
 					my ($ua, $response, $request);
@@ -138,7 +142,7 @@ sub plugin{
     my $translations = get_translations($r, $log, $dbh, "DISCONNECTED");
     
     #If no html, send form
-    my $html = get_style($r, $log, $dbh, $app, 'LOGOUT', 'Logout from Vulture', {FORM => $form}, $translations);
+    my $html = get_style($r, $log, $dbh, $app, 'LOGOUT', 'Logout from Vulture', {FORM => ''}, $translations);
     $r->pnotes('response_content' => $html);
     $r->pnotes('response_content_type' => 'text/html');
 	return Apache2::Const::OK;

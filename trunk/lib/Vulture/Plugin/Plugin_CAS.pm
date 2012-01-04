@@ -1,6 +1,10 @@
 #file:Plugin/Plugin_CAS.pm
 #-------------------------
+#!/usr/bin/perl
 package Plugin::Plugin_CAS;
+
+use strict;
+use warnings;
 
 use Apache2::Log;
 use Apache2::Reload;
@@ -22,7 +26,7 @@ sub plugin{
 	#Get parameters	
     $action = @$options[0];
     
-    $url = $req->param('url');
+    my $url = $req->param('url');
 	$service = $req->param('service');
 	$ticket = $req->param('ticket');
 
@@ -78,7 +82,8 @@ sub plugin{
         $log->debug("Validate ticket");
         my $res = "no\n\n";
         #Each user has an hash like { ticket => id_ticket, ticket_service => service, ticket_created => timestamp, SSO => id_session_SSO }
-        while (($key, $hashref) = each %users){
+		
+        while (my ($key, $hashref) = each %users){
             my %user_hash = %$hashref;
             #Delete old ticket if too old
             if ($intf->{cas_st_timeout} > 0 and (time() - $user_hash{ticket_created} > $intf->{cas_st_timeout})){
@@ -90,7 +95,8 @@ sub plugin{
             
             #Check if parameter matches with stored tickets
             if(exists $user_hash{ticket} and $user_hash{ticket} eq $ticket and exists $user_hash{ticket_service} and $user_hash{ticket_service} eq $service and exists $user_hash{ticket_created}){
-                $res = "yes\n$login\n";
+                my $login;
+				$res = "yes\n$login\n";
 
                 #Unvalidate ticket
                 delete $hashref->{ticket};
@@ -126,7 +132,7 @@ sub plugin{
         $errorCode = "INVALID_REQUEST";
         } else {
             #Each user has an hash like { ticket => id_ticket, ticket_service => service, ticket_created => timestamp, SSO => id_session_SSO }
-            while (($login, $hashref) = each %users){
+            while (my ($login, $hashref) = each %users){
                 my %user_hash = %$hashref;
                 #Delete old ticket if too old
                 if ($intf->{cas_st_timeout} > 0 and (time() - $hashref->{ticket_created} > $intf->{cas_st_timeout})){

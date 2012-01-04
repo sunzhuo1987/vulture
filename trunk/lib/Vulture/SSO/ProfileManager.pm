@@ -1,6 +1,10 @@
 #file:SSO/ProfileManager.pm
 #-------------------------
+#!/usr/bin/perl
 package SSO::ProfileManager;
+
+use strict;
+use warnings;
 
 use Apache2::RequestRec ();
 use Apache2::RequestIO ();
@@ -24,8 +28,8 @@ use Data::Dumper;
 
 BEGIN {
     use Exporter ();
-    @ISA = qw(Exporter);
-    @EXPORT_OK = qw(&get_profile &set_profile &delete_profile &encrypt &decrypt);
+    my @ISA = qw(Exporter);
+    my @EXPORT_OK = qw(&get_profile &set_profile &delete_profile &encrypt &decrypt);
 }
 
 sub get_profile{
@@ -33,14 +37,15 @@ sub get_profile{
     
     $log->debug("########## Profile Manager ##########");
     
-    my $user = $r->pnotes('username') || $r->user;
+    $user = $r->pnotes('username') || $r->user;
 	my $password = $r->pnotes('password');
     
     #Return hash with all values (profile + fields like autologon_ or hidden)
     my $return = {};
     
     #Getting specials fields like "autologon_* or hidden fields"
-    my $query = "SELECT field_var, field_type, field_encrypted, field_value, field_prefix, field_suffix FROM field, sso, app WHERE field.sso_id = sso.id AND sso.id = app.sso_forward_id AND app.id=? AND (field_type = 'autologon_password' OR field_type = 'autologon_user' OR field_type = 'hidden')";
+    #my $query = "SELECT field_var, field_type, field_encrypted, field_value, field_prefix, field_suffix FROM field, sso, app WHERE field.sso_id = sso.id AND sso.id = app.sso_forward_id AND app.id=? AND (field_type = 'autologon_password' OR field_type = 'autologon_user' OR field_type = 'hidden')";
+	my $query = "SELECT field_var, field_type, field_encrypted, field_value, field_prefix, field_suffix FROM field JOIN  sso ON field.sso_id=sso.id JOIN  app ON sso.id = app.sso_forward_id WHERE app.id=? AND (field_type = 'autologon_password' OR field_type = 'autologon_user' OR field_type = 'hidden')"; 
 	$log->debug($query);
     my $sth = $dbh->prepare($query);
 	$sth->execute($app->{id});
@@ -88,7 +93,7 @@ sub get_profile{
             $log->debug($query);
             $sth->execute;
             
-            my $ref = $sth->fetchrow_hashref;
+            $ref = $sth->fetchrow_hashref;
             $sth->finish();
             $new_dbh->disconnect;
 
@@ -295,12 +300,12 @@ sub encrypt{
     my $key = $lines[0];
     
     #Encrypting
-    $cipher = Crypt::CBC->new(
+    my $cipher = Crypt::CBC->new(
                         -key    => $key,
                         -cipher => "Crypt::OpenSSL::AES"
 #			-header => 'none'
                 );             
-    $value = $cipher->encrypt($value_to_encrypt);
+    my $value = $cipher->encrypt($value_to_encrypt);
     close $fh or die $!;
     return $value;
 }
@@ -314,12 +319,12 @@ sub decrypt{
     my $key = $lines[0];
     
     #Encrypting
-    $cipher = Crypt::CBC->new(
+    my $cipher = Crypt::CBC->new(
                         -key    => $key,
                         -cipher => "Crypt::OpenSSL::AES"
 #			-header => 'none'
                 );             
-    $value = $cipher->decrypt($value_to_decrypt);
+    my $value = $cipher->decrypt($value_to_decrypt);
     close $fh or die $!;
     return $value;
 

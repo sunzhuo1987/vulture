@@ -1,6 +1,10 @@
 #file:Plugin/Plugin_REWRITE_CONTENT.pm
 #-------------------------
+#!/usr/bin/perl
 package Plugin::Plugin_REWRITE_CONTENT;
+
+use strict;
+use warnings;
 
 use Apache2::Log;
 use Apache2::Reload;

@@ -1,6 +1,10 @@
 #file:Core/AccessHandler.pm
 #-------------------------
+#!/usr/bin/perl
 package Core::AccessHandler;
+
+use strict;
+use warnings;
 
 use Apache2::RequestRec ();
 use Apache2::Reload;
@@ -32,9 +36,9 @@ sub handler {
 
 	#we get BlackIP related to an app
 	my $query = "SELECT ip FROM blackip WHERE app_id=?";
-	$sth = $dbh->prepare($query);
+	my $sth = $dbh->prepare($query);
 	$sth->execute($app_id);
-	$ip = $sth->fetchrow_array;
+	my $ip = $sth->fetchrow_array;
 	if (not $dbh or not $app_id or $ip) {
 		my @IP = split / /, $ip;
 		foreach my $ip (@IP){
