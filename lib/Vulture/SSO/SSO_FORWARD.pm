@@ -3,8 +3,8 @@
 #!/usr/bin/perl
 package SSO::SSO_FORWARD;
 
-#use strict;
-#use warnings;
+use strict;
+use warnings;
 
 use Apache2::RequestRec ();
 use Apache2::RequestIO ();
@@ -253,7 +253,7 @@ sub forward{
         $log->debug($response->as_string);
 
         #Get profile
-        my %results = %{get_profile($r, $log, $dbh, $app, $user)};
+        my %results = %{SSO::ProfileManager::get_profile($r, $log, $dbh, $app, $user)};
 
         #Get form which contains fields set in admin
 		while (my ($key, $value) = each(%results)){

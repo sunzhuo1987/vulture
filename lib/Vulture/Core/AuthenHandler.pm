@@ -117,7 +117,9 @@ sub handler:method
 				my $element;
                 foreach $element (@auths, @current_auths) { $count{@$element[0]}++ }
                 foreach $element (keys %count) {
-                    push @{ \@difference if $count{$element} <= 1 }, $element;
+                    if (int( $count{$element}) <= 1) {
+		   	 push (@{ \@difference }, $element);
+		    }
                 }
                 $log->debug(Dumper(\@difference));
 
