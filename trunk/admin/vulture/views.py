@@ -453,9 +453,9 @@ def export_import_config (request, type):
     if 'path' in query:
         path = query['path']
         if type == 'import':
-            content = os.popen("if `sudo /bin/cp %s %s/db`; then echo 'Import database is complete'; fi 2>&1" % (path, settings.DATABASE_PATH)).read()
+            content = os.popen("if `/bin/cp %s %s/db`; then echo 'Import database is complete'; fi 2>&1" % (path, settings.DATABASE_PATH)).read()
         elif type == 'export':
-            content = os.popen("if `sudo /bin/cp %s/db %s`; then echo 'Export database is complete'; fi 2>&1" % (settings.DATABASE_PATH, path)).read()
+            content = os.popen("if `/bin/cp %s/db %s`; then echo 'Export database is complete'; fi 2>&1" % (settings.DATABASE_PATH, path)).read()
         else:
             content = 'You had not specify type'
     return render_to_response('vulture/exportimport_form.html', {'type': type, 'path': path, 'content': content})
