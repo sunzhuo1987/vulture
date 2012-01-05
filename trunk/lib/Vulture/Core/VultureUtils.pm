@@ -63,8 +63,9 @@ sub	set_memcached {
 
 sub	session {
 	my ($session, $timeout, $id, $log, $update_access_time, $n) = @_;
-
-	die if ($n and $n > 2); # avoid deep recursion
+    $update_access_time ||= 0;
+	$n ||= 0;
+	die if ($n and int $n > 2); # avoid deep recursion
 #	eval {
 #		tie %$session,'Apache::Session::Flex',$id,{
 #							   Store => 'MySQL',
@@ -82,7 +83,7 @@ sub	session {
 				          Serialize => 'Storable',
 				          Servers => '127.0.0.1:9091',
 				         };
-    } or session($session, $timeout, undef, $log, $update_access_time, $n + 1);
+    } or session($session, $timeout, undef, $log, $update_access_time, int $n + 1);
     
     #Session starting this time or previous session connection time was valid
     if(not defined $id or ($update_access_time == 1 and $timeout and $timeout > 0 and (time() - $session->{last_access_time} < $timeout))){

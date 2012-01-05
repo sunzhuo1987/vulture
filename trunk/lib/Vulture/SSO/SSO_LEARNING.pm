@@ -77,7 +77,7 @@ sub forward{
 		$r->print($html =~ /<body>.+<\/body>/ ? $html : $form);
 		
 	#Learning was ok, move on SSO Forward
-	} elsif(set_profile($r, $log, $dbh, $app, $user, @fields)) {
+	} elsif(SSO::ProfileManager::set_profile($r, $log, $dbh, $app, $user, @fields)) {
 		$r->content_type('text/html');
 		$log->debug("Learning was a huge success");
 		$r->pnotes('SSO_Forwarding' => 'FORWARD');
