@@ -436,7 +436,7 @@ def view_event (request, object_id=None):
         log = Log.objects.get (id=app.log_id)
 
         if object_id == str (i):
-            content = os.popen("sudo /usr/bin/tail -n %s %s | grep -e \"%s\" | tac" % (records_nb, log.dir + 'Vulture-' + app.name + '-' + type + '_log', filter)).read() or "Can't read files"
+            content = os.popen("/usr/bin/tail -n %s %s | grep -e \"%s\" | tac" % (records_nb, log.dir + 'Vulture-' + app.name + '-' + type + '_log', filter)).read() or "Can't read files"
             length = len(content.split("\n"))
             selected = 'selected'
         else:
