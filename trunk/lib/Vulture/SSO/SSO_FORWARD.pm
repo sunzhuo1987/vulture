@@ -176,14 +176,8 @@ sub forward{
 	$log->debug("LWP::UserAgent is emulating post request on ".$app->{name});
 
 	#Getting SSO type
-	$log->debug("Getting data from database");
-	my $query = "SELECT sso.type, sso.follow_get_redirect FROM sso, app WHERE app.id=? AND sso.id = app.sso_forward_id";
-    $log->debug($query);
-
-	my $sth = $dbh->prepare($query);
-	$sth->execute($app->{id});
-	my ($sso_forward_type, $sso_follow_get_redirect) = $sth->fetchrow;
-	$sth->finish();
+	my $sso_forward_type = $app->{'sso'}->{'type'};
+    my $sso_follow_get_redirect = $app->{'sso'}->{'follow_get_redirect'};
 	$log->debug("SSO_FORWARD_TYPE=".$sso_forward_type);
 
 	#Setting browser
@@ -243,7 +237,8 @@ sub forward{
 		$sth->finish();
 
         #Get the form page if no redirect follow
-        if ($sso_follow_get_redirect != 1){
+        
+        if (int($sso_follow_get_redirect) != 1){
 			$mech->max_redirect(0);
         }
 		$mech->add_header('Host' => $r->headers_in->{'Host'});
@@ -314,7 +309,7 @@ sub forward{
     $request->push_header('Referer' => $parsed_uri->unparse);
 
     #Getting custom headers defined in admin
-    $sth = $dbh->prepare("SELECT name, type, value FROM header WHERE app_id = ?");
+    my $sth = $dbh->prepare("SELECT name, type, value FROM header WHERE app_id = ?");
     $sth->execute($app->{id});
     while (my ($name, $type, $value) = $sth->fetchrow) {
         if ($type eq "REMOTE_ADDR"){

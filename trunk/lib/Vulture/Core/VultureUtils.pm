@@ -208,6 +208,14 @@ sub	get_app {
 	$sth->execute($ref->{id});
     $ref->{'actions'} = $sth->fetchrow_hashref;
 	$sth->finish();
+    
+    #Getting SSO
+    $query = "SELECT sso.type, sso.follow_get_redirect FROM sso JOIN app ON sso.id = app.sso_forward_id WHERE app.id=?";
+    $log->debug($query);
+	$sth = $dbh->prepare($query);
+	$sth->execute($ref->{id});
+	$ref->{'sso'} = $sth->fetchrow_hashref;
+    $sth->finish();
 
     #Caching app if possible 
     set_memcached("$host:app", $ref);

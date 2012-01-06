@@ -17,6 +17,8 @@ use Apache2::Const -compile => qw(OK DECLINED FORBIDDEN REDIRECT DONE NOT_FOUND)
 use Core::VultureUtils qw(&get_app &get_intf &version_check &get_cookie &session &get_translations &get_style);
 use Core::Log qw(&new &debug &error);
 use Core::Config qw(&new);
+use MIME::Base64;
+
 
 use APR::URI;
 use APR::Table;
@@ -218,6 +220,11 @@ sub handler {
 			$r->pnotes('password' => $session_app{password});
 			$r->user($session_app{username});
 			$log->debug("This app : ".$r->hostname." is secured or display portal is on. User has a valid cookie for this app");
+            
+            #Add Authorization header for htaccess
+            if ($app->{'sso'}->{'type'} and $app->{'sso'}->{'type'} eq "sso_forward_htaccess") {
+                $r->headers_in->set('Authorization' => "Basic " . encode_base64($session_app{username}.':'.$session_app{password}));
+            }
 			
 			#Destroy useless handlers
     		$r->set_handlers(PerlAuthenHandler => undef);
@@ -324,7 +331,7 @@ sub handler {
         #Getting SSO session if exists.
 		my $SSO_cookie_name = '';
 		$SSO_cookie_name = get_cookie($r->headers_in->{'Cookie'}, $r->dir_config('VultureProxyCookieName').'=([^;]*)');
-
+        $SSO_cookie_name ||= '';
 		my (%session_SSO);
 		
 		session(\%session_SSO, $intf->{sso_timeout}, $SSO_cookie_name, $log, $intf->{sso_update_access_time});
