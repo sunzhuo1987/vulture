@@ -11,7 +11,7 @@ use Apache2::RequestIO ();
 use Apache2::Connection ();
 use Apache2::Log;
 use Apache2::Reload;
-use CGI qw/:standard/;
+use Apache2::Request;
 use Apache2::Access;
 
 use Authen::Smb;
@@ -52,6 +52,7 @@ sub get_nonce
 sub handler:method
 {
 	my ($class, $r) = @_ ;
+    my $req = Apache2::Request->new($r);
 
 	my $log = $r->pnotes('log');
 	my $dbh = $r->pnotes('dbh');
@@ -143,7 +144,7 @@ sub handler:method
 
             #Generate new service ticket
             my $st = 'ST-'.generate_random_string(29);
-            my $service = param('service');
+            my $service = $req->param('service');
             if(defined $service){
                 $log->debug("Creating new service ticket");
                 $users{$session_SSO{username}}->{'ticket'} = $st;
@@ -219,7 +220,7 @@ sub handler:method
 
         #Generate new service ticket
         my $st = 'ST-'.generate_random_string(29);
-        my $service = param('service');
+        my $service = $req->param('service');
         if(defined $service){
             $log->debug("Creating new ticket");
             $users{$session_SSO{username}}->{'ticket'} = $st;
@@ -268,9 +269,10 @@ sub handler:method
 #get the Data from Vulture login page
 sub getRequestData {
 	my ($r) = @_;
-	my $login = param('vulture_login');
-	my $password = param('vulture_password');
-    my $token = param('vulture_token');
+    my $req = Apache2::Request->new($r);
+	my $login = $req->param('vulture_login');
+	my $password = $req->param('vulture_password');
+    my $token = $req->param('vulture_token');
 
 	return ($login, $password, $token);
 }

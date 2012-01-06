@@ -11,7 +11,7 @@ use Apache2::RequestIO ();
 
 use Apache2::Log;
 use Apache2::Reload;
-use CGI qw/:standard/;
+use Apache2::Request;
 
 use LWP;
 
@@ -71,7 +71,9 @@ sub forward{
     my $html = get_style($r, $log, $dbh, $app, 'LEARNING', 'Please fill these fields', {FORM => $form}, $translations);
 	
     #Print form
-	if(not param('vulture_learning')){
+    #Getting values posted & set it into profile 
+    my $req = Apache2::Request->new($r);
+	if(not $req->param('vulture_learning')){
 		$r->pnotes('SSO_Forwarding' => 'LEARNING');
 		$r->content_type('text/html');	
 		$r->print($html =~ /<body>.+<\/body>/ ? $html : $form);
