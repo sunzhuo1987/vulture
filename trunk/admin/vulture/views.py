@@ -93,7 +93,12 @@ def reload_all_intfs(request):
     for intf in intfs :
         if intf.need_restart:
             intf.write()
-            k_output += intf.name + ' : ' + intf.k('graceful')
+            output = intf.k('graceful')
+            k_output += intf.name + ' : '
+            if output:
+                k_ouput += output
+            else:
+                k_output += 'everything ok'
             apps = App.objects.filter(intf=intf).all()
             mc = pylibmc.Client(["127.0.0.1:9091"])
             for app in apps:
