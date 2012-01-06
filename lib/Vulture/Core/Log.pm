@@ -46,7 +46,7 @@ sub handle_log {
 	#Setting message
 	my $message = $package."(".$line."): ";
 	$message .= $type.' | Desc : ' if defined $type;
-	$message .= $desc;
+	$message .= $desc if defined $desc;
 	$message .= ' | User : '.$user if defined $user;
 
 	#if no log level are specified , use debug level

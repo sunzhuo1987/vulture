@@ -1,5 +1,5 @@
 NAME		= vulture
-VERSION		= 2.0.1
+VERSION		= 2.0.2
 PREFIX		= /var/www
 PREFIXLIB	= /opt
 UID		= -o www-data
@@ -85,7 +85,7 @@ all:
 dist: clean $(GZ)
 
 $(TAR):
-	for j in `find . ! -type l ! -name '*~'  ! -name '#*' ! -name 'db' ! -path 'ebuild/Manifest' ! -path 'ebuild/files' ! -path '*/.svn/*'`; do \
+	for j in `find . ! -type l ! -name '*~'  ! -name '#*' ! -name 'db' ! -path 'ebuild/Manifest' ! -path 'ebuild/files' ! -path '*/.svn/*' !  -path '*/.svn'`; do \
 		if [ -f $$j ]; then \
 			$(INSTALL) $$j $(NAME)-$(VERSION)/$$j; \
 		fi; \
@@ -96,7 +96,7 @@ $(TAR):
 $(GZ): $(TAR)
 	gzip -f $(TAR)
 
-bz2:	clean $(BZ2)
+bz2: clean $(BZ2)
 
 $(BZ2): $(TAR)
 	bzip2 $(TAR)
@@ -112,7 +112,7 @@ clean:
 
 install:
 	for i in '$(DIRS)'; do \
-		for j in `find $$i`; do \
+		for j in `find $$i ! -path '*/.svn/*' !  -path '*/.svn'`; do \
 		if [ -f $$j ]; then \
 			if [ -e /etc/debian_version ]; then \
 				$(INSTALL) $(UID) $(GID) $$j $(DESTDIR)$(PREFIX)/$(NAME)/$$j; \
@@ -129,7 +129,7 @@ install:
 	fi
 	for i in '$(DIRSLIB)'; do \
 		cd lib/Vulture; \
-		for j in `find $$i`; do \
+		for j in `find $$i ! -path '*/.svn/*' !  -path '*/.svn'`; do \
 		if [ -f $$j ]; then \
 			if [ -e /etc/debian_version ]; then \
 				$(INSTALL) $(UID) $(GID) $$j $(DESTDIR)$(PREFIXLIB)/$(NAME)/lib/i386-linux-thread-multi/Vulture/$$j; \
@@ -159,9 +159,7 @@ install:
 		chmod 744 $(DESTDIR)$(PREFIX)/$(NAME)/admin/manage.py; \
 	fi; \
 
-rpm:	clean $(TAR)
+rpm: clean $(TAR)
 	make $(BZ2)
 	rpmbuild -ta --target noarch $(BZ2)
 	make clean
-
-
