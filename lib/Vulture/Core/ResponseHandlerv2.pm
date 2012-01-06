@@ -10,7 +10,7 @@ use Apache2::Access ();
 use Apache2::Reload;
 use Apache2::RequestUtil ();
 use Apache2::Log;
-use CGI qw/:standard/;
+use Apache2::Request;
 use DBI;
 
 use Apache2::Const -compile => qw(OK DECLINED REDIRECT HTTP_UNAUTHORIZED);
@@ -185,14 +185,15 @@ sub handler {
 }
 
 sub display_auth_form {
-        my ($r, $log, $dbh, $app) = @_;
-        
-        #CAS
-        my $service = param('service');
-        #END CAS
-    
-        my $uri = $r->unparsed_uri;
-        my $message = $r->pnotes("auth_message");    
+    my ($r, $log, $dbh, $app) = @_;
+    my $req = Apache2::Request->new($r);
+    #CAS
+    my $service = $req->param('service');
+    #END CAS
+
+    my $uri = $r->unparsed_uri;
+    my $message = $r->pnotes("auth_message");
+    $message ||= '';
     my $translated_message;
 
     #Get session SSO for filling random token
@@ -226,7 +227,7 @@ FOO
 	if (defined $translations->{$message}) {
 		return get_style($r, $log, $dbh, $app, 'LOGIN', 'Please authenticate', {FORM => $form, ERRORS => $translations->{$message}{'translation'}}, $translations);
 	}
-	return get_style($r, $log, $dbh, $app, 'LOGIN', 'Please authenticate', {FORM => $form, ERRORS => "", $translations});
+	return get_style($r, $log, $dbh, $app, 'LOGIN', 'Please authenticate', {FORM => $form, $translations});
 }
 
 sub display_portal {
@@ -261,6 +262,7 @@ sub display_portal {
     
     #Get style
     my $html = get_style($r, $log, $dbh, $app, 'PORTAL', 'SSO portal', {APPS => $html_apps}, $translations);
+    $html ||= '';
     return $html =~ /<body>.+<\/body>/ ? $html : $html_apps;
 }
 1;
