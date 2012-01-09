@@ -60,7 +60,7 @@ sub rewrite_uri { # Rewrite uri for being valid
 } 
 
 sub handle_action{
-    my ($r, $log, $dbh, $app, $response) = @_;
+    my ($r, $log, $dbh, $app, $response, $user) = @_;
     
     my($query, $type, $options);
     $query = 'SELECT is_in_url, is_in_url_action, is_in_url_options, is_in_page, is_in_page_action, is_in_page_options FROM sso, app WHERE app.id = ? AND sso.id = app.sso_forward_id';
@@ -125,7 +125,16 @@ sub handle_action{
             $r->headers_out->set('Location' => $options);
             $r->status(302);
             return Apache2::Const::REDIRECT;
-        }
+        } elsif($type eq 'relearning') {
+			SSO::ProfileManager::delete_profile($r, $log, $dbh, $app, $user);
+			$log->debug('Pattern detected, deleting profile and relearning credentials');
+			$r->pnotes('SSO_Forwarding' => 'LEARNING');
+			$r->headers_out->add('Location' => $r->unparsed_uri);	
+
+			#Set status
+			$r->status(302);
+			return Apache2::Const::REDIRECT;
+		}
     }
     
     #If no action defined, redirect client to Location header (if defined) or to the /
@@ -357,7 +366,7 @@ sub forward{
 	}
     
     #Handle action needed
-    return handle_action($r, $log, $dbh, $app, $post_response);
+    return handle_action($r, $log, $dbh, $app, $post_response, $user);
 }
 sub callback {
   my($version, $key, $val, $path, $domain, $port, $path_spec, $secure, $expire, $discard, $hash) = @_;
