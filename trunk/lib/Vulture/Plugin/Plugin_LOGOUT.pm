@@ -24,7 +24,7 @@ use Data::Dumper;
 sub plugin{
 	my ($package_name, $r, $log, $dbh, $intf, $app, $options) = @_;
 
-	my $r = Apache::SSLLookup->new($r);
+	$r = Apache::SSLLookup->new($r);
 	
 	$log->debug("########## Plugin_LOGOUT ##########");
 
@@ -63,6 +63,9 @@ sub plugin{
                 
                 $log->debug(Dumper(\%current_app));
                 
+				#Logout user
+				$current_app{'is_auth'} = undef;
+				
                 notify($dbh, $id_app, $session_SSO{username}, 'deconnection', scalar(keys %users));
 				
 				#Getting url to logout
@@ -142,9 +145,27 @@ sub plugin{
     my $translations = get_translations($r, $log, $dbh, "DISCONNECTED");
     
     #If no html, send form
+	
     my $html = get_style($r, $log, $dbh, $app, 'LOGOUT', 'Logout from Vulture', {FORM => ''}, $translations);
-    $r->pnotes('response_content' => $html);
-    $r->pnotes('response_content_type' => 'text/html');
+	$html ||= '';
+	if ($html =~  /<body>.+<\/body>/) {
+		$r->pnotes('response_content' => $html);
+		$r->pnotes('response_content_type' => 'text/html');
+	}
+	else {
+		my $name = $app->{'name'};
+		if ($name !~ /^(http|https):\/\/(.*)/ ) {
+            #Fake scheme for making APR::URI parse
+            $name = 'http://'.$name;
+        }
+		my $rewrite_app = APR::URI->parse($r->pool, $name);
+            
+        $rewrite_app->scheme('http');
+        $rewrite_app->scheme('https') if $r->is_https;
+        $rewrite_app->port($r->get_server_port());
+		$r->pnotes('response_content' => '<html><head><meta http-equiv="Refresh" content="0; url='.$rewrite_app->unparse.'"></head></html>');
+        $r->pnotes('response_content_type' => 'text/html');
+	}	
 	return Apache2::Const::OK;
 }
 
