@@ -408,6 +408,7 @@ class SSO(models.Model):
         ('log', 'log'),
         ('message', 'message'),
         ('redirect', 'redirect'),
+		('relearning' , 'relearning'),
         )
     name = models.CharField(max_length=128, unique=1)
     type = models.CharField(max_length=20, choices=SSO_TYPES, blank=1)
