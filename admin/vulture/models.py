@@ -554,6 +554,7 @@ class Plugin(models.Model):
     ('Rewrite', 'Rewrite'),
     ('Block', 'Block'),
     ('Logout', 'Logout'),
+    ('Logout_ALL', 'Logout_ALL'),
     ('CAS','CAS'),
     )
     app = models.ForeignKey(App,null=1,blank=1)
