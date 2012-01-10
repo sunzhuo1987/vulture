@@ -228,7 +228,7 @@ sub	get_intf {
     my ($query, $sth, $ref);
     
     #Getting intf
-	$query = "SELECT id, ip, port, ssl_engine, log_id, sso_portal, sso_timeout, sso_update_access_time, cert, key, ca, cas_portal, cas_st_timeout, cas_redirect FROM intf WHERE id = ?";
+	$query = "SELECT id, ip, port, ssl_engine, log_id, sso_portal, sso_timeout, sso_update_access_time, cert, key, ca, cas_portal, cas_auth_basic AS auth_basic, cas_st_timeout, cas_redirect FROM intf WHERE id = ?";
 	$log->debug($query);
     $sth = $dbh->prepare($query);
 	$sth->execute($intf);

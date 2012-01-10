@@ -68,9 +68,12 @@ sub handler:method
     my $token;
 
 	$log->debug("########## AuthenHandler ##########");
+    
+    use Data::Dumper;
+    $log->debug(Dumper($intf));
 
 	#Basic authentification
-	if($app and $app->{'auth_basic'}){
+	if(($app and $app->{'auth_basic'}) or ($intf and $intf->{'auth_basic'})){
        $log->debug('Basic mode');
        ($status, $password) = $r->get_basic_auth_pw;
        $user = $r->user;
@@ -251,7 +254,7 @@ sub handler:method
         }
 
         #Unfinite loop for basic auth
-        if($app and $app->{'auth_basic'}){
+        if(($app and $app->{'auth_basic'}) or ($intf and $intf->{'auth_basic'})){
             $log->warn("Login failed (basic mode) in AuthenHandler for user $user") if ($password and $user);
             $r->note_basic_auth_failure;
             return Apache2::Const::HTTP_UNAUTHORIZED;

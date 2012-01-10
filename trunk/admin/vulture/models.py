@@ -88,6 +88,7 @@ class Intf(models.Model):
     appearance = models.ForeignKey('Appearance', blank=1, null=1)
     cas_portal = models.CharField(max_length=256,blank=1,null=1)
     cas_auth = models.ManyToManyField('Auth',null=1,blank=1,db_table='intf_auth_multiple')
+    cas_auth_basic = models.BooleanField(default=0)
     cas_st_timeout = models.IntegerField(blank=1,null=1)
     cas_redirect = models.CharField(max_length=256,blank=1,null=1)
     cas_display_portal = models.BooleanField(default=0);
