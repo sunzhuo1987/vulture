@@ -261,7 +261,7 @@ sub handler {
 			return Apache2::Const::OK;
 		
 		#Not authentified in this app. Setting cookie for app. Redirecting to SSO Portal.
-		}else{
+		} else {
 			$log->debug("App ".$r->hostname." is secured and user is not authentified in app. Let's have fun with AuthenHandler / redirect to SSO Portal ".$intf->{'sso_portal'});
 			$r->status(200);
 			
@@ -301,6 +301,8 @@ sub handler {
                 $r->set_handlers(PerlAuthzHandler => undef);
                 $r->set_handlers(PerlFixupHandler => undef);
 			    return Apache2::Const::OK;
+            
+            #A plugin has send a $r->pnotes('url_to_mod_proxy') => proxify
             } else {
                 #Destroy useless handlers
         		$r->set_handlers(PerlAuthenHandler => undef);
@@ -363,6 +365,7 @@ sub handler {
         #Custom error message
         my $translations = get_translations($r, $log, $dbh, "APP_DOWN");
         my $html = get_style($r, $log, $dbh, $app, 'DOWN', 'App is down', {}, $translations);
+        $html |= '';
         $log->debug($html);
         $r->custom_response(Apache2::Const::NOT_FOUND, $html) if $html =~ /<body>.+<\/body>/;
                 return Apache2::Const::NOT_FOUND;
