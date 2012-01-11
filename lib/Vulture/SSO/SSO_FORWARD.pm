@@ -140,7 +140,7 @@ sub handle_action{
     #If no action defined, redirect client to Location header (if defined) or to the /
     my $redirect = $r->unparsed_uri;
     if ($response->headers->header('Location')){
-        $redirect = rewrite_uri($r,$app,$response->headers->header('Location'),$app->{url}.$app->{logon_url},$log);
+        $redirect = SSO::SSO_FORWARD::rewrite_uri($r,$app,$response->headers->header('Location'),$app->{url}.$app->{logon_url},$log);
         $log->debug("Changing redirect to $redirect");
     }
     
@@ -353,7 +353,7 @@ sub forward{
 	#Cookie coming from response and from POST response
     our %cookies_app;
     $log->debug($mech->cookie_jar->as_string);
-	$mech->cookie_jar->scan( \&callback );
+	$mech->cookie_jar->scan( \&SSO::SSO_FORWARD::callback );
 
 
     #Keep cookies to be able to log out
@@ -366,7 +366,7 @@ sub forward{
 	}
     
     #Handle action needed
-    return handle_action($r, $log, $dbh, $app, $post_response, $user);
+    return SSO::SSO_FORWARD::handle_action($r, $log, $dbh, $app, $post_response, $user);
 }
 sub callback {
   my($version, $key, $val, $path, $domain, $port, $path_spec, $secure, $expire, $discard, $hash) = @_;
