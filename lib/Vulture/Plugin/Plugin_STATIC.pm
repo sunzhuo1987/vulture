@@ -25,7 +25,7 @@ sub plugin{
 	
 	$log->debug("########## Plugin_STATIC ##########");
 	#check if we are serving static content from sso_portal
-    if($r->hostname =~ $intf->{'sso_portal'} or ($unparsed_uri =~ /vulture_app=([^;]*)/ and Core::VultureUtils::get_app($log, $r->hostname, $dbh, $intf->{id}))){
+    if($r->hostname =~ $intf->{'sso_portal'} or $r->hostname =~ $intf->{'cas_portal'} or ($unparsed_uri =~ /vulture_app=([^;]*)/ and $app)){
         #Destroy useless handlers
         $r->set_handlers(PerlAccessHandler => undef);
         $r->set_handlers(PerlAuthenHandler => undef);
