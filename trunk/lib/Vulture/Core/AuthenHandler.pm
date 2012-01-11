@@ -68,9 +68,6 @@ sub handler:method
     my $token;
 
 	$log->debug("########## AuthenHandler ##########");
-    
-    use Data::Dumper;
-    $log->debug(Dumper($intf));
 
 	#Basic authentification
 	if(($app and $app->{'auth_basic'}) or ($intf and $intf->{'auth_basic'})){
@@ -168,6 +165,7 @@ sub handler:method
     
     #Check type and use good auth module
     my $ret = Apache2::Const::HTTP_UNAUTHORIZED;
+    my $ret ||= '';
 
     my $auths = defined ($app->{'auth'}) ? $app->{'auth'} : $intf->{'auth'};
 
