@@ -6,10 +6,16 @@ package Plugin::Plugin_STATIC;
 use strict;
 use warnings;
 
+BEGIN {
+    use Exporter ();
+    our @ISA = qw(Exporter);
+    our @EXPORT_OK = qw(&plugin);
+}
+
 use Apache2::Log;
 use Apache2::Reload;
 
-
+use Core::VultureUtils qw(&get_app);
 use Apache2::Const -compile => qw(OK FORBIDDEN);
 
 sub plugin{
@@ -19,7 +25,7 @@ sub plugin{
 	
 	$log->debug("########## Plugin_STATIC ##########");
 	#check if we are serving static content from sso_portal
-    if($r->hostname =~ $intf->{'sso_portal'}){
+    if($r->hostname =~ $intf->{'sso_portal'} or ($unparsed_uri =~ /vulture_app=([^;]*)/ and Core::VultureUtils::get_app($log, $r->hostname, $dbh, $intf->{id}))){
         #Destroy useless handlers
         $r->set_handlers(PerlAccessHandler => undef);
         $r->set_handlers(PerlAuthenHandler => undef);
