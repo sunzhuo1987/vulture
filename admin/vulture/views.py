@@ -96,7 +96,7 @@ def reload_all_intfs(request):
             output = intf.k('graceful')
             k_output += intf.name + ' : '
             if output:
-                k_ouput += output
+                k_output += output
             else:
                 k_output += 'everything ok'
             apps = App.objects.filter(intf=intf).all()
