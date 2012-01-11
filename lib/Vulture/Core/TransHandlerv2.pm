@@ -71,7 +71,7 @@ sub handler {
 	$log->debug("########## TransHandler ##########");
 
 	#Version check
-	unless (version_check($config)){
+	unless (Core::VultureUtils::version_check($config)){
 		$log->error("Database version is not up-to-date. Can't load Vulture. Please check versions");
 		return Apache2::Const::FORBIDDEN;	
 	} else {
@@ -85,10 +85,10 @@ sub handler {
 	}
 
 	#If URI matches with app adress, get app and interface
-    my $intf = get_intf($log, $dbh, $r->dir_config('VultureID'));
+    my $intf = Core::VultureUtils::get_intf($log, $dbh, $r->dir_config('VultureID'));
     $r->pnotes('intf' => $intf) if defined $intf;
 
-	my $app = get_app($log, $r->hostname, $dbh, $intf->{id}) if ($unparsed_uri !~ /vulture_app=([^;]*)/);
+	my $app = Core::VultureUtils::get_app($log, $r->hostname, $dbh, $intf->{id}) if ($unparsed_uri !~ /vulture_app=([^;]*)/);
 	$r->pnotes('app' => $app) if defined $app;
     
 	#Plugin or Rewrite (according to URI)
@@ -207,9 +207,9 @@ sub handler {
     	}
     	
     	#Getting session app if exists. If not, creating one
-        my ($id_app) = get_cookie($r->headers_in->{Cookie}, $r->dir_config('VultureAppCookieName').'=([^;]*)');
+        my ($id_app) = Core::VultureUtils::get_cookie($r->headers_in->{Cookie}, $r->dir_config('VultureAppCookieName').'=([^;]*)');
 		my (%session_app);
-		session(\%session_app, $app->{timeout}, $id_app, $log, $app->{update_access_time});
+		Core::VultureUtils::session(\%session_app, $app->{timeout}, $id_app, $log, $app->{update_access_time});
 		$r->pnotes('id_session_app' => $id_app);
 		
 		# We have authorization for this app so let's go with mod_proxy
@@ -313,7 +313,7 @@ sub handler {
 		}
 	
 	#SSO Portal
-	} elsif ($r->hostname =~ $intf->{'sso_portal'} or ($unparsed_uri =~ /vulture_app=([^;]*)/ and get_app($log, $r->hostname, $dbh, $intf->{id}))){
+	} elsif ($r->hostname =~ $intf->{'sso_portal'} or ($unparsed_uri =~ /vulture_app=([^;]*)/ and Core::VultureUtils::get_app($log, $r->hostname, $dbh, $intf->{id}))){
 
 		$log->debug('Entering SSO Portal mode.');
         
@@ -322,8 +322,8 @@ sub handler {
             my $app_cookie_name = $1;
             my (%session_app);
             #Get app
-            session(\%session_app, $app->{timeout}, $app_cookie_name, $log, $app->{update_access_time});
-            my $app = get_app($log, $session_app{app_name}, $dbh, $intf->{id});
+            Core::VultureUtils::session(\%session_app, $app->{timeout}, $app_cookie_name, $log, $app->{update_access_time});
+            my $app = Core::VultureUtils::get_app($log, $session_app{app_name}, $dbh, $intf->{id});
             
             #Send app if exists.
             $r->pnotes('app' => $app) if $app;
@@ -332,11 +332,11 @@ sub handler {
         
         #Getting SSO session if exists.
 		my $SSO_cookie_name = '';
-		$SSO_cookie_name = get_cookie($r->headers_in->{'Cookie'}, $r->dir_config('VultureProxyCookieName').'=([^;]*)');
+		$SSO_cookie_name = Core::VultureUtils::get_cookie($r->headers_in->{'Cookie'}, $r->dir_config('VultureProxyCookieName').'=([^;]*)');
         $SSO_cookie_name ||= '';
 		my (%session_SSO);
 		
-		session(\%session_SSO, $intf->{sso_timeout}, $SSO_cookie_name, $log, $intf->{sso_update_access_time});
+		Core::VultureUtils::session(\%session_SSO, $intf->{sso_timeout}, $SSO_cookie_name, $log, $intf->{sso_update_access_time});
 		
 		#Get session id if not exists
 		if($SSO_cookie_name ne $session_SSO{_session_id}){
@@ -363,8 +363,8 @@ sub handler {
                 $log->error('Trying to redirect to '.$r->hostname.' but failed because '.$r->hostname.' is down');
                 $r->status(Apache2::Const::NOT_FOUND);
         #Custom error message
-        my $translations = get_translations($r, $log, $dbh, "APP_DOWN");
-        my $html = get_style($r, $log, $dbh, $app, 'DOWN', 'App is down', {}, $translations);
+        my $translations = Core::VultureUtils::get_translations($r, $log, $dbh, "APP_DOWN");
+        my $html = Core::VultureUtils::get_style($r, $log, $dbh, $app, 'DOWN', 'App is down', {}, $translations);
         $html |= '';
         $log->debug($html);
         $r->custom_response(Apache2::Const::NOT_FOUND, $html) if $html =~ /<body>.+<\/body>/;
