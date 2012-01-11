@@ -6,6 +6,12 @@ package SSO::SSO_FORWARD;
 use strict;
 use warnings;
 
+BEGIN {
+    use Exporter ();
+    our @ISA = qw(Exporter);
+    our @EXPORT_OK = qw(&forward);
+}
+
 use Apache2::RequestRec ();
 use Apache2::RequestIO ();
 use Apache2::Connection ();
@@ -357,7 +363,7 @@ sub forward{
 
 
     #Keep cookies to be able to log out
-    $session_app{cookie} = join('; ', map { "'$_'=\"${cookies_app{$_}}\"" } keys %cookies_app), "\n";
+    #$session_app{cookie} = join('; ', map { "'$_'=\"${cookies_app{$_}}\"" } keys %cookies_app), "\n";
 
     #Pre-send cookies to client after parsing
 	foreach my $k (keys %cookies_app){

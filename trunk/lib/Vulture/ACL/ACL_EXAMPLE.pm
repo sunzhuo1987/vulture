@@ -1,6 +1,16 @@
 #file:ACL/ACL_EXAMPLE.pm
 #---------------------------------
+#!/usr/bin/perl
 package ACL::ACL_EXAMPLE;
+
+use strict;
+use warnings;
+
+BEGIN {
+    use Exporter ();
+    our @ISA = qw(Exporter);
+    our @EXPORT_OK = qw(&checkACL);
+}
 
 use Apache2::Reload;
 use Apache2::Log;

@@ -6,6 +6,17 @@ package Plugin::Plugin_SAML;
 use strict;
 use warnings;
 
+BEGIN {
+    use Exporter ();
+    our @ISA = qw(Exporter);
+    our @EXPORT_OK = qw(&plugin);
+}
+
+use Apache2::Log;
+use Apache2::Reload;
+
+use Core::VultureUtils qw(&session &get_memcached &set_memcached);
+
 use Apache2::Const -compile => qw(OK FORBIDDEN);
 
 sub plugin {

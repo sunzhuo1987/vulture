@@ -6,6 +6,12 @@ package SSO::SSO_LEARNING;
 use strict;
 use warnings;
 
+BEGIN {
+    use Exporter ();
+    our @ISA = qw(Exporter);
+    our @EXPORT_OK = qw(&forward);
+}
+
 use Apache2::RequestRec ();
 use Apache2::RequestIO ();
 

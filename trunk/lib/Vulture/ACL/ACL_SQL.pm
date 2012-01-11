@@ -1,11 +1,16 @@
 #file:ACL/ACL_SQL.pm
 #---------------------------------
 #!/usr/bin/perl
-
 package ACL::ACL_SQL;
 
 use strict;
 use warnings;
+
+BEGIN {
+    use Exporter ();
+    our @ISA = qw(Exporter);
+    our @EXPORT_OK = qw(&checkACL);
+}
 
 use Apache2::Reload;
 use Apache2::Log;
