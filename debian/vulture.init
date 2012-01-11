@@ -1,5 +1,5 @@
 ### BEGIN INIT INFO
-# Provides: 
+# Provides: vulture
 # Required-Start: $local_fs $network $named 
 # Required-Stop: $local_fs $remote_fs $named
 # Default-Start: 2 3 4 5
