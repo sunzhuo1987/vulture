@@ -11,7 +11,7 @@ use Apache2::Reload;
 use Apache2::Request;
 use APR::URI;
 
-use Core::VultureUtils qw(&session &get_memcached &set_memcached &get_cookie &get_app &generate_random_string);
+use Core::VultureUtils qw(&session &get_memcached &set_memcached &get_cookie &get_app);
 
 use Apache2::Const -compile => qw(OK FORBIDDEN);
 
@@ -32,7 +32,7 @@ sub plugin{
 
 	#Get memcached data
 	my (%users);
-	%users = %{get_memcached('vulture_users_in')};
+	%users = %{Core::VultureUtils::get_memcached('vulture_users_in')};
         
     #CAS Portal doesn't have auth
     my $auths = $intf->{'auth'};
@@ -49,17 +49,17 @@ sub plugin{
         my $host = $parsed_service->hostname ;
 
         #Get app
-        my $app = get_app($log, $host, $dbh, $intf->{id}) if defined $host;
+        my $app = Core::VultureUtils::get_app($log, $host, $dbh, $intf->{id}) if defined $host;
 
         $app->{'auth'} = $auths;            
         #Send app if exists.
         $r->pnotes('app' => $app);
 
         #Getting SSO session if exists.
-        my $SSO_cookie_name = get_cookie($r->headers_in->{Cookie}, $r->dir_config('VultureProxyCookieName').'=([^;]*)');
+        my $SSO_cookie_name = Core::VultureUtils::get_cookie($r->headers_in->{Cookie}, $r->dir_config('VultureProxyCookieName').'=([^;]*)');
         my (%session_SSO);
 
-        session(\%session_SSO, $intf->{sso_timeout}, $SSO_cookie_name, $log, $intf->{sso_update_access_time});
+        Core::VultureUtils::session(\%session_SSO, $intf->{sso_timeout}, $SSO_cookie_name, $log, $intf->{sso_update_access_time});
 
         #Get session id if not exists
         if($SSO_cookie_name ne $session_SSO{_session_id}){
@@ -108,7 +108,7 @@ sub plugin{
             }
         }
         #Commit changes
-        set_memcached('vulture_users_in', \%users);
+        Core::VultureUtils::set_memcached('vulture_users_in', \%users);
         
         #Display result in ResponseHandler
         $r->pnotes('response_content' => $res);
@@ -161,7 +161,7 @@ sub plugin{
             }
         }
         #Commit changes
-        set_memcached('vulture_users_in', \%users);
+        Core::VultureUtils::set_memcached('vulture_users_in', \%users);
         
         unless($user_found){
             $xml .= "<cas:authenticationFailure code=\"$errorCode\"></cas:authenticationFailure>";

@@ -8,7 +8,6 @@ use warnings;
 use Apache2::Log;
 use Apache2::Reload;
 
-use Apache2::Const -compile => qw(DECLINED);
 
 sub plugin {
 	my ($package_name, $r, $log, $dbh, $intf, $app, $header, $type, $options, $options1) = @_;
