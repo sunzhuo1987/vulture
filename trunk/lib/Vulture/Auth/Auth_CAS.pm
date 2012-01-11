@@ -37,7 +37,7 @@ sub checkAuth{
     #Ticket is into session $session_app{url_to_redirect}
     my (%session_app);
     my $ticket;
-	session(\%session_app, $app->{timeout}, $r->pnotes('id_session_app'), $log, $app->{update_access_time});
+	Core::VultureUtils::session(\%session_app, $app->{timeout}, $r->pnotes('id_session_app'), $log, $app->{update_access_time});
     if($session_app{url_to_redirect} =~ s/[?&]ticket=(\S+)\s*//g){
         $ticket = $1;
     }

@@ -24,7 +24,7 @@ sub forward{
 	my ($package_name, $r, $log, $dbh, $app, $user, $password) = @_;
 
 	my (%session_SSO);
-	session(\%session_SSO, $app->{timeout}, $r->pnotes('id_session_SSO'), $log, $app->{update_access_time});
+	Core::VultureUtils::session(\%session_SSO, $app->{timeout}, $r->pnotes('id_session_SSO'), $log, $app->{update_access_time});
 
 	$log->debug("########## SSO_Learning ##########");
 
@@ -65,10 +65,10 @@ sub forward{
 	}
 	$form .= "<tr><td></td><td><input type=\"submit\"></td></tr>";
 	$form .= "</form></table>";
-    my $translations = get_translations($r, $log, $dbh, "SSO_LEARNING");
+    my $translations = Core::VultureUtils::get_translations($r, $log, $dbh, "SSO_LEARNING");
     
     #If no html, send form
-    my $html = get_style($r, $log, $dbh, $app, 'LEARNING', 'Please fill these fields', {FORM => $form}, $translations);
+    my $html = Core::VultureUtils::get_style($r, $log, $dbh, $app, 'LEARNING', 'Please fill these fields', {FORM => $form}, $translations);
 	
     #Print form
     #Getting values posted & set it into profile 

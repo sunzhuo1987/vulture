@@ -38,9 +38,9 @@ sub handler {
 
 	#Session data
 	my (%session_app);
-	session(\%session_app, $app->{timeout}, $r->pnotes('id_session_app'), $log, $app->{update_access_time});
+	Core::VultureUtils::session(\%session_app, $app->{timeout}, $r->pnotes('id_session_app'), $log, $app->{update_access_time});
 	my (%session_SSO);
-	session(\%session_SSO, $intf->{sso_timeout}, $r->pnotes('id_session_SSO'), $log, $intf->{sso_update_access_time});
+	Core::VultureUtils::session(\%session_SSO, $intf->{sso_timeout}, $r->pnotes('id_session_SSO'), $log, $intf->{sso_update_access_time});
 
 	#Bypass for Vulture Auth
 	if(not $session_SSO{is_auth} and not $r->user){
@@ -59,7 +59,7 @@ sub handler {
 		
         #Get users list to notify
         my (%users);
-        %users = %{get_memcached('vulture_users_in') or {}};
+        %users = %{Core::VultureUtils::get_memcached('vulture_users_in') or {}};
 
 		#Check if ACL is on. If not, let user go.
 		if($app->{'acl'}){
@@ -72,14 +72,14 @@ sub handler {
 				
 				#Get return
 				$ret = $module_name->checkACL($r, $log, $dbh, $app, $user, $app->{'acl'}->{'id_method'});
-                handle_action($r, $log, $dbh, $intf, $app, 'ACL_FAILED', 'ACL failed') if ($ret != scalar Apache2::Const::OK);
+                Core::ActionManager::handle_action($r, $log, $dbh, $intf, $app, 'ACL_FAILED', 'ACL failed') if ($ret != scalar Apache2::Const::OK);
 				
 				#Check if User can access to the specified app
 				#If yes validate the app session 
 				if (defined $ret and $ret == scalar Apache2::Const::OK){
 					$log->debug("User $user has credentials for this app regarding ACL. Validate app session");
 
-                    notify($dbh, $app->{id}, $user, 'connection', scalar(keys %users));
+                    Core::VultureUtils::notify($dbh, $app->{id}, $user, 'connection', scalar(keys %users));
 
 					#Setting app session
 					$session_app{is_auth} = 1;
@@ -97,21 +97,21 @@ sub handler {
 				} else {
 					$log->warn("Regarding to ACL, user $user is not authorized to access to this app.");
 					
-                    notify($dbh, $app->{id}, $user, 'connection_failed', scalar(keys %users));
+                    Core::VultureUtils::notify($dbh, $app->{id}, $user, 'connection_failed', scalar(keys %users));
                     
 					$session_app{is_auth} = 0;
 					$r->pnotes('username' => undef);
 					$r->pnotes('password' => undef);
                     
                     #Trigger action
-                    handle_action($r, $log, $dbh, $app, "ACL_FAILED");
+                    Core::ActionManager::handle_action($r, $log, $dbh, $app, "ACL_FAILED");
 				}
 			}
 			return Apache2::Const::HTTP_UNAUTHORIZED;
 		} else {
 			$log->debug("No ACL in this app. Validate app session for user $user");
             
-            notify($dbh, $app->{id}, $user, 'connection', scalar(keys %users));
+            Core::VultureUtils::notify($dbh, $app->{id}, $user, 'connection', scalar(keys %users));
 			
 			#Setting app session
 			$session_app{is_auth} = 1;

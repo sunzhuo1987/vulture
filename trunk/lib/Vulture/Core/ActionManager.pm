@@ -34,8 +34,8 @@ sub handle_action {
         
         if($action eq 'template'){
             #Get translations
-            my $translations = get_translations($r, $log, $dbh, $type);
-            $html = get_style($r, $log, $dbh, $app, $type, $title, {}, $translations);
+            my $translations = Core::VultureUtils::get_translations($r, $log, $dbh, $type);
+            $html = Core::VultureUtils::get_style($r, $log, $dbh, $app, $type, $title, {}, $translations);
         } elsif($action eq 'message'){
             $html = '<html><head><meta http-equiv="Content-type" content="text/html; charset=utf-8"></head><body>'.$options.'</body></html>';
         } elsif($action eq 'log'){

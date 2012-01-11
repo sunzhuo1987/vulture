@@ -42,9 +42,9 @@ sub handler {
 	if (not $dbh or not $app_id or $ip) {
 		my @IP = split / /, $ip;
 		foreach my $ip (@IP){
-			my $regexp = create_iprange_regexp($ip);
+			my $regexp = Net::IP::Match::Regexp::create_iprange_regexp($ip);
 			#refused connection from BlackIP
-			if (match_ip($c->remote_ip, $regexp)) {
+			if (Net::IP::Match::Regexp::match_ip($c->remote_ip, $regexp)) {
 				$log->warn('IP '.$c->remote_ip.' is blocked');
 				return Apache2::Const::FORBIDDEN;
 			}

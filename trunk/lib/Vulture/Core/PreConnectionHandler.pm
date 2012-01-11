@@ -34,9 +34,9 @@ sub handler {
 	while (my $ip = $sth->fetchrow) {
         my @IP = split / /, $ip;
 		foreach my $ip (@IP){
-			my $regexp = create_iprange_regexp($ip);
+			my $regexp = Net::IP::Match::Regexp::create_iprange_regexp($ip);
 			#refused connection from global BlackIP
-			if (match_ip($c->remote_ip, $regexp)) {
+			if (Net::IP::Match::Regexp::match_ip($c->remote_ip, $regexp)) {
 				warn('IP '.$c->remote_ip.' is blocked by PreConnectionHandler\n');
 				return Apache2::Const::FORBIDDEN;
 			}

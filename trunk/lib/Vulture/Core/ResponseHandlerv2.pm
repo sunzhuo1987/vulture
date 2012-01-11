@@ -15,7 +15,7 @@ use DBI;
 
 use Apache2::Const -compile => qw(OK DECLINED REDIRECT HTTP_UNAUTHORIZED);
 
-use Core::VultureUtils qw(&session &get_style &get_translations &generate_random_string &get_style &get_translations);
+use Core::VultureUtils qw(&session &get_style &get_translations &generate_random_string);
 use SSO::ProfileManager qw(&get_profile);
 
 use Apache::SSLLookup;
@@ -37,9 +37,9 @@ sub handler {
 	my $password = $r->pnotes('password');
 
 	my (%session_app);
-	session(\%session_app, $app->{timeout}, $r->pnotes('id_session_app'), $log, $app->{update_access_time});
+	Core::VultureUtils::session(\%session_app, $app->{timeout}, $r->pnotes('id_session_app'), $log, $app->{update_access_time});
 	my (%session_SSO);
-	session(\%session_SSO, $app->{timeout}, $r->pnotes('id_session_SSO'), $log, $app->{update_access_time});
+	Core::VultureUtils::session(\%session_SSO, $app->{timeout}, $r->pnotes('id_session_SSO'), $log, $app->{update_access_time});
 
 	#Query counter
 	#my $query = "UPDATE stats SET value=value+1 WHERE var='responsehandler_counter'";
@@ -198,17 +198,17 @@ sub display_auth_form {
 
     #Get session SSO for filling random token
     my (%session_SSO);
-    session(\%session_SSO, $app->{timeout}, $r->pnotes('id_session_SSO'), $log, $app->{update_access_time});
+    Core::VultureUtils::session(\%session_SSO, $app->{timeout}, $r->pnotes('id_session_SSO'), $log, $app->{update_access_time});
 
         #if($r->unparsed_uri =~ /vulture_app=([^;]*)/){
         #       $uri = $1;
         #}
     
     #Get translations
-    my $translations = get_translations($r, $log, $dbh, $message);
+    my $translations = Core::VultureUtils::get_translations($r, $log, $dbh, $message);
     
     #Avoid bot request (token)
-    my $token = generate_random_string(32);
+    my $token = Core::VultureUtils::generate_random_string(32);
     $session_SSO{random_token} = $token;
     
     #Get style
@@ -225,9 +225,9 @@ sub display_auth_form {
 FOO
 ;
 	if (defined $translations->{$message}) {
-		return get_style($r, $log, $dbh, $app, 'LOGIN', 'Please authenticate', {FORM => $form, ERRORS => $translations->{$message}{'translation'}}, $translations);
+		return Core::VultureUtils::get_style($r, $log, $dbh, $app, 'LOGIN', 'Please authenticate', {FORM => $form, ERRORS => $translations->{$message}{'translation'}}, $translations);
 	}
-	return get_style($r, $log, $dbh, $app, 'LOGIN', 'Please authenticate', {FORM => $form, $translations});
+	return Core::VultureUtils::get_style($r, $log, $dbh, $app, 'LOGIN', 'Please authenticate', {FORM => $form, $translations});
 }
 
 sub display_portal {
@@ -240,7 +240,7 @@ sub display_portal {
     my $all_apps = $dbh->selectall_arrayref($query, undef, $intf_id);
     
     #Get translations
-    my $translations = get_translations($r, $log, $dbh, 'APPLICATION');
+    my $translations = Core::VultureUtils::get_translations($r, $log, $dbh, 'APPLICATION');
     
     #Get all apps
     my $html_apps = "<ul>";
@@ -261,7 +261,7 @@ sub display_portal {
     $html_apps .= "</ul>";
     
     #Get style
-    my $html = get_style($r, $log, $dbh, $app, 'PORTAL', 'SSO portal', {APPS => $html_apps}, $translations);
+    my $html = Core::VultureUtils::get_style($r, $log, $dbh, $app, 'PORTAL', 'SSO portal', {APPS => $html_apps}, $translations);
     $html ||= '';
     return $html =~ /<body>.+<\/body>/ ? $html : $html_apps;
 }
