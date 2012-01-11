@@ -157,7 +157,7 @@ sub forward{
     $r = Apache::SSLLookup->new($r);
 
 	my (%session_app);
-	session(\%session_app, undef, $r->pnotes('id_session_app'), $log, $app->{update_access_time});
+	Core::VultureUtils::session(\%session_app, undef, $r->pnotes('id_session_app'), $log, $app->{update_access_time});
 
     my %headers_vars = (
 		    2 => 'SSL_CLIENT_I_DN',

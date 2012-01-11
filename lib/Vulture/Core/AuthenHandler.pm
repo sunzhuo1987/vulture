@@ -61,7 +61,7 @@ sub handler:method
     my $intf = $r->pnotes('intf');
 
 	my (%session_SSO);
-	session(\%session_SSO, $intf->{sso_timeout}, $r->pnotes('id_session_SSO'), $log, $intf->{sso_update_access_time});
+	Core::VultureUtils::session(\%session_SSO, $intf->{sso_timeout}, $r->pnotes('id_session_SSO'), $log, $intf->{sso_update_access_time});
 
 	my ($status, $password);
 	my $user;
@@ -102,7 +102,7 @@ sub handler:method
             unless(grep $_ eq $key, @wrong_keys){ 
                 my $id_app = $session_SSO{$key};
                 my (%current_app);
-                session(\%current_app, undef, $id_app);
+                Core::VultureUtils::session(\%current_app, undef, $id_app);
 
                 $log->debug(Dumper(\%current_app));
 
@@ -142,11 +142,11 @@ sub handler:method
 
             #Setting Memcached table
             my (%users);
-            %users = %{get_memcached('vulture_users_in')};
+            %users = %{Core::VultureUtils::get_memcached('vulture_users_in')};
             $users{$session_SSO{username}} = {'SSO' => $r->pnotes('id_session_SSO')};
 
             #Generate new service ticket
-            my $st = 'ST-'.generate_random_string(29);
+            my $st = 'ST-'.Core::VultureUtils::generate_random_string(29);
             my $service = $req->param('service');
             if(defined $service){
                 $log->debug("Creating new service ticket");
@@ -155,7 +155,7 @@ sub handler:method
                 $users{$session_SSO{username}}->{'ticket_created'} = time();
             }
             $r->pnotes('url_to_redirect' => $service.'/?ticket='.$st) if defined $service;
-            set_memcached('vulture_users_in', \%users);
+            Core::VultureUtils::set_memcached('vulture_users_in', \%users);
 
             #Authentified, cookie is valid, let user go and check ACL (next step)
             return Apache2::Const::OK;
@@ -191,10 +191,10 @@ sub handler:method
     $log->debug("Return from auth => ".$r->pnotes('auth_message')) if defined $r->pnotes('auth_message');
 
     #Trigger action when change pass is needed / auth failed
-    handle_action($r, $log, $dbh, $intf, $app, 'NEED_CHANGE_PASS', 'You need to change your password') if(uc($r->pnotes('auth_message')) eq 'NEED_CHANGE_PASS');
-    handle_action($r, $log, $dbh, $intf, $app, 'ACCOUNT_LOCKED', 'You need to unlock your password') if(uc($r->pnotes('auth_message')) eq 'ACCOUNT_LOCKED');
-    handle_action($r, $log, $dbh, $intf, $app, 'AUTH_SERVER_FAILURE', 'Vulture can\'t contact authentication server') if(uc($r->pnotes('auth_message')) eq 'AUTH_SERVER_FAILURE');
-    handle_action($r, $log, $dbh, $intf, $app, 'LOGIN_FAILED', 'Login failed') if (!$r->pnotes('auth_message') and $ret != scalar Apache2::Const::OK and ($user or $password));
+    Core::ActionManager::handle_action($r, $log, $dbh, $intf, $app, 'NEED_CHANGE_PASS', 'You need to change your password') if(uc($r->pnotes('auth_message')) eq 'NEED_CHANGE_PASS');
+    Core::ActionManager::handle_action($r, $log, $dbh, $intf, $app, 'ACCOUNT_LOCKED', 'You need to unlock your password') if(uc($r->pnotes('auth_message')) eq 'ACCOUNT_LOCKED');
+    Core::ActionManager::handle_action($r, $log, $dbh, $intf, $app, 'AUTH_SERVER_FAILURE', 'Vulture can\'t contact authentication server') if(uc($r->pnotes('auth_message')) eq 'AUTH_SERVER_FAILURE');
+    Core::ActionManager::handle_action($r, $log, $dbh, $intf, $app, 'LOGIN_FAILED', 'Login failed') if (!$r->pnotes('auth_message') and $ret != scalar Apache2::Const::OK and ($user or $password));
 
 
     
@@ -216,13 +216,13 @@ sub handler:method
 
         #Setting Memcached table
         my (%users);
-        %users = %{get_memcached('vulture_users_in') or {}};
+        %users = %{Core::VultureUtils::get_memcached('vulture_users_in') or {}};
         $users{$user} = {'SSO' => $r->pnotes('id_session_SSO')};
 
-        notify($dbh, undef, $user, 'connection', scalar(keys %users));
+        Core::VultureUtils::notify($dbh, undef, $user, 'connection', scalar(keys %users));
 
         #Generate new service ticket
-        my $st = 'ST-'.generate_random_string(29);
+        my $st = 'ST-'.Core::VultureUtils::generate_random_string(29);
         my $service = $req->param('service');
         if(defined $service){
             $log->debug("Creating new ticket");
@@ -231,16 +231,16 @@ sub handler:method
             $users{$session_SSO{username}}->{'ticket_created'} = time();
         }
         $r->pnotes('url_to_redirect' => $service.'/?ticket='.$st) if defined $service;
-        set_memcached('vulture_users_in', \%users);
+        Core::VultureUtils::set_memcached('vulture_users_in', \%users);
 
         return Apache2::Const::OK;
     #Authentication failed for some reasons
     } else {
         unless ($ntlm) {
             my (%users);
-            %users = %{get_memcached('vulture_users_in') or {}};
+            %users = %{Core::VultureUtils::get_memcached('vulture_users_in') or {}};
 
-            notify($dbh, undef, $user, 'connection_failed', scalar(keys %users));
+            Core::VultureUtils::notify($dbh, undef, $user, 'connection_failed', scalar(keys %users));
 
             $r->user('');
             $log->warn("Login failed in AuthenHandler for user $user") if ($password and $user);

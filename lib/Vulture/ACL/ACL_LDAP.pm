@@ -34,7 +34,7 @@ sub checkACL{
 	} else {
         
         #Get LDAP object
-		my ($ldap, $ldap_url_attr, $ldap_uid_attr, $ldap_user_ou, $ldap_group_ou, $ldap_user_filter, $ldap_group_filter, $ldap_user_scope, $ldap_group_scope, $ldap_base_dn, $ldap_group_member, $ldap_group_is_dn, $ldap_group_attr, $ldap_chpass_attr) = get_LDAP_object($log, $dbh, $id_method);
+		my ($ldap, $ldap_url_attr, $ldap_uid_attr, $ldap_user_ou, $ldap_group_ou, $ldap_user_filter, $ldap_group_filter, $ldap_user_scope, $ldap_group_scope, $ldap_base_dn, $ldap_group_member, $ldap_group_is_dn, $ldap_group_attr, $ldap_chpass_attr) = Core::VultureUtils::get_LDAP_object($log, $dbh, $id_method);
         
         #If not LDAP, return FORBIDDEN 
 	    return Apache2::Const::FORBIDDEN unless ($ldap);

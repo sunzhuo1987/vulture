@@ -32,9 +32,9 @@ sub checkAuth{
 		if ($ref->{'pass_algo'} eq "plain") {
 			#Nothing to do
 		} elsif ($ref->{'pass_algo'} eq "sha1") {
-			$password = sha1_hex($password);
+			$password = Digest::SHA1::sha1_hex($password);
 		} elsif ($ref->{'pass_algo'} eq "md5") {
-			$password = md5_hex($password);
+			$password = Digest::MD5::md5_hex($password);
 		}
 
 		#Checking credentials
