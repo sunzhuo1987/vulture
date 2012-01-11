@@ -118,10 +118,10 @@ sub handler {
             }
 		}
         #Display portal instead of redirect user
-        if($app->{display_portal}){
+        if($app->{'display_portal'}){
             $log->debug("Display portal with all applications");
             #Getting all app info
-            my $portal = display_portal($r,$log, $dbh, $app);
+            my $portal = Core::ResponseHandlerv2::display_portal($r,$log, $dbh, $app);
             $r->content_type('text/html');
             $r->print($portal);
             return Apache2::Const::OK;
@@ -159,7 +159,7 @@ sub handler {
 		#Redirect to CAS
             my $html;
             if($intf->{'cas_display_portal'}){
-                $html = display_portal ($r,$log,$dbh, $app);
+                $html = Core::ResponseHandlerv2::display_portal ($r,$log,$dbh, $app);
             } elsif($intf->{'cas_redirect'}){
                 $html = '<html><head><meta http-equiv="Refresh" content="0; url='.$intf->{'cas_redirect'}.'"></head></html>';
             } else {
@@ -176,7 +176,7 @@ sub handler {
         if($app and !$app->{'auth_basic'} and not $r->pnotes('static')) {
             $log->debug("Display auth form");
             $r->content_type('text/html');
-            $r->print(display_auth_form($r, $log, $dbh, $app));
+            $r->print(Core::ResponseHandlerv2::display_auth_form($r, $log, $dbh, $app));
             return Apache2::Const::OK;
         }
 	    $log->debug("Serving static file");
