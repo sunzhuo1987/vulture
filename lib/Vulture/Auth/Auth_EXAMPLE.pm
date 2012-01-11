@@ -1,6 +1,16 @@
 #file:Auth/Auth_EXAMPLE.pm
 #---------------------------------
+#!/usr/bin/perl
 package Auth::Auth_EXAMPLE;
+
+use strict;
+use warnings;
+
+BEGIN {
+    use Exporter ();
+    our @ISA = qw(Exporter);
+    our @EXPORT_OK = qw(&checkAuth);
+}
 
 use Apache2::Reload;
 use Apache2::Log;

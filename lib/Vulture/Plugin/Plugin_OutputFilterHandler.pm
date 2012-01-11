@@ -5,6 +5,12 @@ package Plugin::Plugin_OutputFilterHandler;
 use strict;
 use warnings;
 
+BEGIN {
+    use Exporter ();
+    our @ISA = qw(Exporter);
+    our @EXPORT_OK = qw(&plugin);
+}
+
 use base qw(Apache2::Filter);
 use Apache2::Const qw(OK DECLINED FORBIDDEN :conn_keepalive);
 use Apache2::Connection ();

@@ -6,6 +6,12 @@ package Auth::Auth_RADIUS;
 use strict;
 use warnings;
 
+BEGIN {
+    use Exporter ();
+    our @ISA = qw(Exporter);
+    our @EXPORT_OK = qw(&checkAuth);
+}
+
 use Apache2::Reload;
 use Apache2::Log;
 

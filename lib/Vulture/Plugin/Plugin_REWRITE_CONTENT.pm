@@ -6,6 +6,12 @@ package Plugin::Plugin_REWRITE_CONTENT;
 use strict;
 use warnings;
 
+BEGIN {
+    use Exporter ();
+    our @ISA = qw(Exporter);
+    our @EXPORT_OK = qw(&plugin);
+}
+
 use Apache2::Log;
 use Apache2::Reload;
 

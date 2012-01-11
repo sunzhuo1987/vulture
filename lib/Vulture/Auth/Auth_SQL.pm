@@ -6,6 +6,12 @@ package Auth::Auth_SQL;
 use strict;
 use warnings;
 
+BEGIN {
+    use Exporter ();
+    our @ISA = qw(Exporter);
+    our @EXPORT_OK = qw(&checkAuth);
+}
+
 use Apache2::RequestRec ();
 use Apache2::RequestIO ();
 use Apache2::Connection ();
