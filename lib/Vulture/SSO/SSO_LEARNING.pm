@@ -56,9 +56,10 @@ sub forward{
     }
 	
 	#Adding data to post variable
-	my $form = "<h3>To access to this app, you must specify the following fields</h3><table>";
-	$form .= "<form method=\"POST\" name='app_form' action=\"\">";
+	my $head = "<h3>To access to this app, you must specify the following fields</h3>";
+	my $form .= "<form method=\"POST\" name='app_form' action=\"\">";
 	$form .= "<input type=hidden name=vulture_learning value=1>";
+    $form .= "<table>";
 	foreach my $field (@fields) {
 		my ($var, $mapped, $type, $need_encryption, $default_value, $prefix, $suffix, $desc) = @$field;
 
@@ -75,14 +76,19 @@ sub forward{
     
     #If no html, send form
     my $html = Core::VultureUtils::get_style($r, $log, $dbh, $app, 'LEARNING', 'Please fill these fields', {FORM => $form}, $translations);
-    
+    $log->debug($html);
     #Print form
     #Getting values posted & set it into profile 
     my $req = Apache2::Request->new($r);
 	if(not $req->param('vulture_learning')){
 		$r->pnotes('SSO_Forwarding' => 'LEARNING');
-		$r->content_type('text/html');	
-		$r->print($html =~ /<body>.+<\/body>/ ? $html : $form);
+		$r->content_type('text/html');
+        #No body
+		if($html =~ /<body><\/body>/){
+            $r->print($head.$form);
+        } else {
+            $r->print($html);
+        }
 		
 	#Learning was ok, move on SSO Forward
 	} elsif(SSO::ProfileManager::set_profile($r, $log, $dbh, $app, $user, @fields)) {
