@@ -7,6 +7,7 @@ use strict;
 use warnings;
 
 use Core::VultureUtils qw(&get_translations &get_style);
+use Apache2::Const -compile => qw(OK HTTP_UNAUTHORIZED);
 
 BEGIN {
     use Exporter ();
@@ -64,6 +65,10 @@ sub handle_action {
             $log->debug($html);
             $r->pnotes('response_content' => $html);
             $r->pnotes('response_content_type' => 'text/html');
+            
+            if($type eq "ACL_FAILED"){
+                $r->custom_response(Apache2::Const::HTTP_UNAUTHORIZED, $html);
+            }
         }
         return Apache2::Const::OK;
     }
