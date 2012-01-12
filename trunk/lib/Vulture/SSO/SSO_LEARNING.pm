@@ -75,14 +75,14 @@ sub forward{
     
     #If no html, send form
     my $html = Core::VultureUtils::get_style($r, $log, $dbh, $app, 'LEARNING', 'Please fill these fields', {FORM => $form}, $translations);
-
+    
     #Print form
     #Getting values posted & set it into profile 
     my $req = Apache2::Request->new($r);
 	if(not $req->param('vulture_learning')){
 		$r->pnotes('SSO_Forwarding' => 'LEARNING');
 		$r->content_type('text/html');	
-		$r->print($html ? $html : $form);
+		$r->print($html =~ /<body>.+<\/body>/ ? $html : $form);
 		
 	#Learning was ok, move on SSO Forward
 	} elsif(SSO::ProfileManager::set_profile($r, $log, $dbh, $app, $user, @fields)) {
