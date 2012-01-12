@@ -119,8 +119,8 @@ sub handler:method
                 foreach $element (@auths, @current_auths) { $count{@$element[0]}++ }
                 foreach $element (keys %count) {
                     if (int( $count{$element}) <= 1) {
-		   	 push (@{ \@difference }, $element);
-		    }
+                        push (@{ \@difference }, $element);
+                    }
                 }
                 $log->debug(Dumper(\@difference));
 
@@ -165,7 +165,6 @@ sub handler:method
     
     #Check type and use good auth module
     my $ret = Apache2::Const::HTTP_UNAUTHORIZED;
-    my $ret ||= '';
 
     my $auths = defined ($app->{'auth'}) ? $app->{'auth'} : $intf->{'auth'};
 
