@@ -184,7 +184,7 @@ sub handler:method
         }
     }
 
-    $ret = multipleAuth($r, $log, $dbh, $auths, $app, $user, $password, 0, 0) if ($user and ($token eq $session_SSO{random_token} or $app->{'auth_basic'} or not $cas));
+    $ret = multipleAuth($r, $log, $dbh, $auths, $app, $user, $password, 0, 0) if (defined $user and ($token eq $session_SSO{random_token} or $app->{'auth_basic'} or not defined $cas));
 
     $log->debug("Return from auth => ".$r->pnotes('auth_message')) if defined $r->pnotes('auth_message');
 
