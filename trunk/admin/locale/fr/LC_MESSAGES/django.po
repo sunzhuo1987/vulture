@@ -415,7 +415,7 @@ msgstr "Options"
 
 #: vulture/app_form.html:178 vulture/intf_form.html:123
 msgid "Authentication server failure"
-msgstr "Méthodes d'authentification"
+msgstr "Impossible de contacter le serveur d'authentification"
 
 #: vulture/app_form.html:179 vulture/intf_form.html:124
 msgid "Login failed"
