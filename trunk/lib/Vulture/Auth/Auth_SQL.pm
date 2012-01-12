@@ -45,7 +45,7 @@ sub checkAuth{
 
 		#Checking credentials
 		my $query = "SELECT count(*) FROM ".$ref->{'table'}." WHERE ".$ref->{'user_column'}."=? AND ".$ref->{'pass_column'}."=?";
-		$log->debug($query."=>".$user."=>".$password);
+		$log->debug($query);
 		if ($new_dbh->selectrow_array($query, undef, $user, $password)){
 			$log->debug("User is ok for Auth_SQL;");
             $new_dbh->disconnect();

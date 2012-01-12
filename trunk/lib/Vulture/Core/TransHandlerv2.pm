@@ -123,7 +123,6 @@ sub handler {
     $log->debug($query);
 	$plugins = $dbh->selectall_arrayref($query, undef, $app->{id});
 	my $i = 0;
-	$log->debug($plugins);
 	foreach my $row (@$plugins) {
 		$r->pnotes('type'.$i => @$row[1]);
 		$r->pnotes('exp'.$i => @$row[0]);
@@ -133,7 +132,6 @@ sub handler {
 		$i++;
             
  	}
-	$log->debug($module_name);
 	if ($r->pnotes('type0')) {
 		$module_name = 'Plugin::Plugin_REWRITE_CONTENT';
 
