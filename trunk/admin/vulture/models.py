@@ -494,6 +494,7 @@ class App(models.Model):
     logon_url = models.CharField(max_length=128,null=1,blank=1)
     logout_url = models.CharField(max_length=128,null=1,blank=1)
     up = models.BooleanField(default=1)
+    available = models.BooleanField(default=1)
     remote_proxy = models.URLField(blank=1, null=1, verify_exists=0)
     remote_proxy_SSLProxyMachineCertificateFile = models.CharField(max_length=512, blank=1, null=1)
     remote_proxy_SSLProxyCACertificateFile = models.CharField(max_length=512, blank=1, null=1)
@@ -882,6 +883,8 @@ class Localization(models.Model):
         ('MISSING_LOGIN','Missing login'),
         ('MISSING_PASSWORD','Missing password'),
         ('NEED_CHANGE_PASS','Need change pass'),
+        ('AUTH_SERVER_FAILURE', 'Authentication server failure'),
+        ('ACCOUNT_LOCKED', 'Account locked'),
         ('ACL_FAILED','ACL failed'),
         ('APPLICATION', 'Application'),
         ('APP_DOWN', 'App down'),
