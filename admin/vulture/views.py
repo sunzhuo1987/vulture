@@ -88,7 +88,7 @@ def reload_intf(request, intf_id):
                               
 @permission_required('vulture.reload_intf')
 def reload_all_intfs(request):
-    k_output = 'Reloading all interface'
+    k_output = "Reloading all interface\n"
     intfs = Intf.objects.all()
     for intf in intfs :
         if intf.need_restart:
