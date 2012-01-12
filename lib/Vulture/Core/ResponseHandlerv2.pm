@@ -227,7 +227,7 @@ FOO
 	if (defined $translations->{$message}) {
 		return Core::VultureUtils::get_style($r, $log, $dbh, $app, 'LOGIN', 'Please authenticate', {FORM => $form, ERRORS => $translations->{$message}{'translation'}}, $translations);
 	}
-	return Core::VultureUtils::get_style($r, $log, $dbh, $app, 'LOGIN', 'Please authenticate', {FORM => $form, $translations});
+	return Core::VultureUtils::get_style($r, $log, $dbh, $app, 'LOGIN', 'Please authenticate', {FORM => $form}, $translations);
 }
 
 sub display_portal {

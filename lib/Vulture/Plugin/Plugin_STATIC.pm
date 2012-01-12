@@ -15,7 +15,7 @@ BEGIN {
 use Apache2::Log;
 use Apache2::Reload;
 
-use Core::VultureUtils qw(&get_app);
+use Core::VultureUtils qw(&get_app &session &get_cookie);
 use Apache2::Const -compile => qw(OK FORBIDDEN);
 
 sub plugin{
@@ -25,7 +25,11 @@ sub plugin{
 	
 	$log->debug("########## Plugin_STATIC ##########");
 	#check if we are serving static content from sso_portal
-    if($r->hostname =~ $intf->{'sso_portal'} or $r->hostname =~ $intf->{'cas_portal'} or ($r->headers_in->{'Referer'} =~ /vulture_app=([^;]*)/)){
+    my ($id_app) = Core::VultureUtils::get_cookie($r->headers_in->{Cookie}, $r->dir_config('VultureAppCookieName').'=([^;]*)');
+    my (%session_app);
+    Core::VultureUtils::session(\%session_app, $app->{timeout}, $id_app, $log, $app->{update_access_time});
+    
+    if($r->hostname =~ $intf->{'sso_portal'} or $r->hostname =~ $intf->{'cas_portal'} or ($r->headers_in->{'Referer'} =~ /vulture_app=([^;]*)/) or (exists $session_app{SSO_Forwarding} and defined $session_app{SSO_Forwarding})){
         #Destroy useless handlers
         $r->set_handlers(PerlAccessHandler => undef);
         $r->set_handlers(PerlAuthenHandler => undef);
