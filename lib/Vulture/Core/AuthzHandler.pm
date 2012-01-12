@@ -102,9 +102,6 @@ sub handler {
 					$session_app{is_auth} = 0;
 					$r->pnotes('username' => undef);
 					$r->pnotes('password' => undef);
-                    
-                    #Trigger action
-                    Core::ActionManager::handle_action($r, $log, $dbh, $app, "ACL_FAILED");
 				}
 			}
 			return Apache2::Const::HTTP_UNAUTHORIZED;
