@@ -214,7 +214,7 @@ sub handler {
 
 			# Dump datas out
 			$f->print($f->ctx->{data});
-			my $c = $f->c;
+			my $c = $f->c or return  Apache2::Const::DECLINED;
 			if ($c->keepalive == Apache2::Const::CONN_KEEPALIVE && $ctx->{data} && $c->keepalives > $ctx->{keepalives}) {
 				#unused variable debug
 				#if ($debug) {
