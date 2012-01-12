@@ -200,7 +200,6 @@ sub forward{
     $mech = WWW::Mechanize::GZip->new;
 
 	$mech->cookie_jar( {} );
-
     
     $mech->delete_header('Host');
     $mech->add_header('Host' => $r->headers_in->{'Host'});
@@ -350,7 +349,9 @@ sub forward{
         }
     }
 	$request->push_header('Cookie' => $cookies); 		# adding/replace
-    $log->debug($request->as_string);
+    
+    #$log->debug($request->as_string);
+    
     #Send !!! simple !!! request (POST or GET (htaccess))
     #The client browser must do the rest
     #This is done after the handler action function

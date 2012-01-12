@@ -191,7 +191,8 @@ sub set_profile{
                     $log->debug("Encrypting $var");
                     $value = encode_base64(encrypt($r, $value));
                 }
-                $log->debug("Pushing ".$prefix.$value.$suffix." into column $mapped");
+                #$log->debug("Pushing ".$prefix.$value.$suffix." into column $mapped");
+                $log->debug("Pushing ".$var." into column $mapped");
                 $columns .= ", ".$mapped;
                 $values .= ", '".$prefix.$value.$suffix."'";
 		    }
