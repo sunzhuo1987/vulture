@@ -1,0 +1,26 @@
+#!/usr/bin/perl
+# WARNING: this file is generated, do not edit
+# generated on Thu Jan 12 17:40:17 2012
+# 01: /usr/lib/perl5/Apache/TestConfig.pm:955
+# 02: /usr/lib/perl5/Apache/TestConfig.pm:1045
+# 03: /usr/lib/perl5/Apache/TestRun.pm:1284
+# 04: Makefile.PL:11
+
+BEGIN { eval { require blib && blib->import; } }
+
+use strict;
+use warnings FATAL => 'all';
+
+use lib qw(
+);
+
+
+use Apache::TestRunPerl ();
+
+package Apache::TestRunPerl;
+sub bug_report { print '+-------------------------------------------------------------------+
+| this module is experimental, use at your own risk                 |
++-------------------------------------------------------------------+
+' }
+
+Apache::TestRunPerl->new->run(@ARGV);

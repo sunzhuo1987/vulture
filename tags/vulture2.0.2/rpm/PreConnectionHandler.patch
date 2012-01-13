@@ -1,0 +1,12 @@
+diff -ruN vulture-2.0.2.ori/lib/Vulture/Core/PreConnectionHandler.pm vulture-2.0.2/lib/Vulture/Core/PreConnectionHandler.pm
+--- vulture-2.0.2.ori/lib/Vulture/Core/PreConnectionHandler.pm	2012-01-04 16:08:35.000000000 +0100
++++ vulture-2.0.2/lib/Vulture/Core/PreConnectionHandler.pm	2012-01-04 16:10:16.000000000 +0100
+@@ -27,7 +27,7 @@
+ 	}
+ 
+ 	#Querying database
+-	my $dbh = DBI->connect("dbi:SQLite:dbname=/var/www/vulture/admin/db");
++	my $dbh = DBI->connect("dbi:SQLite:dbname=/opt/vulture/admin/db");
+     my $query = "SELECT ip FROM blackip WHERE app_id IS NULL";
+ 	my $sth = $dbh->prepare($query);
+ 	$sth->execute();

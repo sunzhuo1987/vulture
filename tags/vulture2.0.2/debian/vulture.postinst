@@ -1,0 +1,57 @@
+#! /bin/sh
+# postinst script for vultureng
+#
+# see: dh_installdeb(1)
+
+set -e
+if [ -f /var/www/vulture/conf/server.crt ] ; then
+	echo "certificat present"
+else
+openssl req -x509 -newkey rsa:1024 -batch -out /var/www/vulture/conf/server.crt -keyout /var/www/vulture/conf/server.key -nodes -config /var/www/vulture/conf/openssl.cnf
+fi
+if [ -f /var/www/vulture/conf/server.crt ] ; then
+	echo "certificat present"
+else
+openssl req -x509 -newkey rsa:1024 -batch -out /var/www/vulture/conf/server.crt -keyout /var/www/vulture/conf/server.key -nodes -config /var/www/vulture/conf/openssl.cnf
+fi
+chown -R www-data /var/www/vulture
+chgrp -R www-data /var/www/vulture
+
+#Backup database
+if [ -f /var/www/vulture/admin/db ] ; then
+	echo "Database is here"
+    echo "Backup your old database"
+    mv /var/www/vulture/admin/db /var/www/vulture/admin/db_old
+fi
+
+#Set up database ( call django )
+cd /var/www/vulture/admin && ./manage.py syncdb --noinput
+chown www-data. /var/www/vulture/admin/db
+chown root. /var/www/vulture/conf/httpd.conf
+chown -R www-data. /var/www/vulture/admin/
+chmod -R 777 /var/www/vulture/conf/
+chmod 600 /var/www/vulture/conf/httpd.conf
+
+#insert data into database
+if [ -f /var/www/vulture/admin/vulture/sql/log.sql ] ; then
+    BASE_RULE=`sqlite3 /var/www/vulture/admin/db "SELECT count(*) from log"`
+    if [ $BASE_RULE = 0 ]; then
+        sqlite3 /var/www/vulture/admin/db < /var/www/vulture/admin/vulture/sql/log.sql
+    fi
+fi
+if [ -f /var/www/vulture/admin/vulture/sql/modsecurity.sql ] ; then
+    BASE_RULE=`sqlite3 /var/www/vulture/admin/db "SELECT count(*) from modsecurity"`
+    if [ $BASE_RULE = 0 ]; then
+        sqlite3 /var/www/vulture/admin/db < /var/www/vulture/admin/vulture/sql/modsecurity.sql
+    fi
+fi
+
+if grep -E "^www-data ALL=NOPASSWD:/usr/sbin/apache2, /bin/cat" /etc/sudoers > /dev/null ; then
+	echo "sudo active"
+else
+	echo "www-data ALL=NOPASSWD:/usr/sbin/apache2, /bin/cat" >> /etc/sudoers
+fi
+update-rc.d -f vulture start 90 2 3 4 5 . stop 90 0 1 6 .
+echo "Attention vulture est maintenant installé et écoute sur le port 9090"
+invoke-rc.d vulture start
+exit 0

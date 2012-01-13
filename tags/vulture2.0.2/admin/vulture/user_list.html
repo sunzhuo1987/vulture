@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}
+	{% trans "System" %} - <small>{% trans "User list" %}</small>
+{% endblock %}
+
+{% block tabs %}
+    <li><a href="#" id="main_tab_1" class="active">{% trans "List" %}</a></li>
+    <li><a href="/user/new/">{% trans "Add" %}</a></li>
+{% endblock %}
+
+{% block content %}
+    <div id="main_content_1" class="main_content">
+        <table>
+        <tr>
+            <th>{% trans "Login" %}</th>
+            <th style="width:16px;">{% trans "Admin" %}</th>
+            <th style="width:16px;">{% trans "Super Admin" %}</th>
+            <th style="width:32px;"></th>
+        </tr>
+        {% for object in object_list %}
+            <tr>
+                <td>{{ object.username }}</td>
+                <td style="width:16px;">{% if object.is_staff %}<img src="/img/vulture2/icon-security-badge.png" alt="admin" />{% else %}<img src="/img/vulture2/stop.png" alt="stop" />{% endif %}</td>
+                <td style="width:16px;">{% if object.is_superuser %}<img src="/img/vulture2/icon-security-badge.png" alt="admin" />{% else %}<img src="/img/vulture2/stop.png" alt="stop" />{% endif %}</td>
+                <td style="width:32px;"><a href="/user/{{ object.id }}/del/"><img src="/img/vulture2/trash.png" alt="delete" /></a><a href="/user/{{ object.id }}"><img src="/img/vulture2/edit.png" alt="edit" /></a></td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="3" style="text-align:center;">{% trans "The list is empty. You can add an item " %}<a href="/user/new/">{% trans "here" %}</a></td></tr>
+        {% endfor %}
+        </table>
+    </div>
+{% endblock %}

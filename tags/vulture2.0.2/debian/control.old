@@ -1,0 +1,18 @@
+Source: vulture
+Section: main/net
+Priority: optional
+Maintainer: Arnaud Desmons <ads@intrinsec.com>
+Build-Depends: debhelper (>= 4.0.0), dpkg-dev, file, libxml2-dev, gcc, g++, libc6-dev, make, patch, perl, autoconf, automake, dh-make, debhelper, devscripts, fakeroot, gnupg, gfortran, gpc, xutils, pbuilder, libperl-dev, sqlite, libapache2-mod-perl2, libapache2-mod-perl2-dev, libdbi-perl, apache2-prefork-dev, python-django, python, libcache-memcached-perl
+Standards-Version: 3.6.1
+
+Package: vulture
+Architecture: any
+Depends: openssl, libapache2-mod-php5, apache2-mpm-prefork, apache2.2-common, libwww-perl, libnet-ldap-perl, libdbi-perl, libdbd-sqlite2-perl, libdbd-pg-perl, libdbd-mysql-perl, libapache-session-perl, libconvert-asn1-perl, libcgi-pm-perl, liburi-perl, libcrypt-cbc-perl, libmcrypt4, libdigest-sha1-perl, libauthen-radius-perl, libcrypt-blowfish-perl, libcrypt-ssleay-perl, php5-sqlite, sqlite, php5, php5-pgsql, php5-ldap, libperl5.10, sudo, libapache2-mod-perl2, libxml2, libipc-run-perl, php5-curl, memcached, libcache-memcached-perl, libstring-crc32-perl, openssl, apache2.2-common, sqlite3, sudo, python-django, python, python-pyopenssl, python-sqlite, libapache2-mod-python, python-pysqlite2, python-ldap
+Description: Vulture is an HTTP reverse proxy
+ Vulture is an HTTP reverse proxy. It does many security checks
+ (authentication, rewriting, filtering) before proxying request
+ from Internet to your web applications. With authentication
+ enabled, vulture will open flows only to authenticated users.
+ It also allows to your users to use only one password to access
+ many different applications by learning and forwarding their
+ different accounts.

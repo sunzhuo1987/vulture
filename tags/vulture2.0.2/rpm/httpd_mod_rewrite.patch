@@ -1,0 +1,20 @@
+diff -ruN httpd-2.2.21.ori/modules/mappers/mod_rewrite.c httpd-2.2.21/modules/mappers/mod_rewrite.c
+--- httpd-2.2.21.ori/modules/mappers/mod_rewrite.c	2011-09-04 00:54:25.000000000 +0200
++++ httpd-2.2.21/modules/mappers/mod_rewrite.c	2011-11-05 13:18:47.000000000 +0100
+@@ -4904,6 +4904,7 @@
+      * escaped accidentally by mod_proxy's fixup.
+      */
+     static const char * const aszPre[]={ "mod_proxy.c", NULL };
++	static const char * const aszPost[]={ "mod_perl.c", NULL };
+ 
+     /* make the hashtable before registering the function, so that
+      * other modules are prevented from accessing uninitialized memory.
+@@ -4918,7 +4919,7 @@
+ 
+     ap_hook_fixups(hook_fixup, aszPre, NULL, APR_HOOK_FIRST);
+     ap_hook_fixups(hook_mimetype, NULL, NULL, APR_HOOK_LAST);
+-    ap_hook_translate_name(hook_uri2file, NULL, NULL, APR_HOOK_FIRST);
++    ap_hook_translate_name(hook_uri2file, NULL, aszPost, APR_HOOK_FIRST);
+ }
+ 
+     /* the main config structure */
