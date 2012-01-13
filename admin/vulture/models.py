@@ -558,6 +558,7 @@ class Plugin(models.Model):
     ('Logout', 'Logout'),
     ('Logout_ALL', 'Logout_ALL'),
     ('CAS','CAS'),
+	('REDIRECT_NO_LOG','REDIRECT_NO_LOG'),
     )
     app = models.ForeignKey(App,null=1,blank=1)
     uri_pattern = models.CharField(max_length=200)
