@@ -136,6 +136,11 @@ def stop_app(request,object_id):
     app.save()
     return HttpResponseRedirect("/app/")
 
+@permission_required('vulture.reload_app')    
+def check_availability_app(request):
+    os.popen("/bin/sh %s/check-availability.sh 2>&1" % (settings.BIN_PATH)).read()
+    return HttpResponseRedirect("/app/")
+
 @permission_required('vulture.change_auth')
 def edit_auth(request, url, object_id=None):
     if url == 'sql':

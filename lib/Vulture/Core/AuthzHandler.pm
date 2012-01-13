@@ -30,7 +30,9 @@ sub handler {
 
 	#If an user was set and if he is authorized, then give him a cookie for this app
 	my $user = $r->pnotes('username') || $r->user ;
+    $user ||= '';
 	my $password = $r->pnotes('password');
+    $password ||= '';
 	my $dbh = $r->pnotes('dbh');
 	my $app = $r->pnotes('app');
     $log->error("App is missing in AuthzHandler") unless $app;

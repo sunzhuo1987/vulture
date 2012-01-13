@@ -13,6 +13,7 @@
 
 {% block content %}
     <div id="main_content_1" class="main_content">
+        <a href="/app/check_availability/"><img src="/img/vulture2/reload.png" alt="reload" /> - <b>{% trans "Click here to check availability" %}</b></a><br /><br />
         <table>
             <tr>
                 <th>{% trans "Internet name" %}</th>
@@ -21,6 +22,7 @@
                 <th>{% trans "Authentications Methods" %}</th>
                 <th>{% trans "Network interface" %}</th>
                 <th style="width: 32px">{% trans "Status" %}</th>
+                <th style="width: 32px">{% trans "Reachable" %}</th>
                 <th style="width: 80px"></th>
             </tr>
             {% for object in object_list %}
@@ -33,6 +35,9 @@
                     <td>
                         {% if object.up %}<img src="/img/vulture2/ok.png" alt="ok" />{% else %}<img src="/img/vulture2/stop.png" alt="stop" />{% endif %}
                         {% if object.acl %}<img src="/img/vulture2/filter.png" alt="acl" />{% endif %}
+                    </td>
+                    <td>
+                        {% if object.available %}<img src="/img/vulture2/ok.png" alt="ok" />{% else %}<img src="/img/vulture2/stop.png" alt="stop" />{% endif %}
                     </td>
                     <td>
                         {% if object.up %}
