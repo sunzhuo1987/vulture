@@ -103,6 +103,7 @@ class Intf(models.Model):
     need_change_pass_action = models.CharField(max_length=128, blank=1, null=1, choices=ACTIONS, default='nothing')
     need_change_pass_options = models.CharField(max_length=128, blank=1, null=1)
 
+	
     cert = models.TextField(blank=1,null=1)
     key = models.TextField(blank=1,null=1)
     ca = models.TextField(blank=1,null=1)
@@ -526,6 +527,8 @@ class App(models.Model):
     timeout = models.IntegerField(null=1,blank=1)
     update_access_time = models.BooleanField(default=0)
     sso_learning_ext = models.CharField(max_length=128,null=1,blank=1)
+    secondary_authentification_failure_action = models.CharField(max_length=128, blank=1, null=1, choices=ACTIONS, default='nothing')
+    secondary_authentification_failure_options = models.CharField(max_length=128, blank=1, null=1)
     
     def isWildCard (self):
         return self.alias.startswith('*')

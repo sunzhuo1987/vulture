@@ -27,13 +27,27 @@ use Apache2::Const -compile => qw(OK FORBIDDEN);
 
 use Core::VultureUtils qw(&get_DB_object);
 
+
 sub checkAuth{
 	my ($package_name, $r, $log, $dbh, $app, $user, $password, $id_method) = @_;	
 
 	$log->debug("########## Auth_SQL ##########");
 
 	my ($new_dbh, $ref) = get_DB_object($log, $dbh, $id_method);
-    if($new_dbh and $ref){		
+	if ($new_dbh eq "error") {
+		my $url = $app->{'secondary_authentification_failure_options'};
+		if ($url ne '') {
+		$log->debug("error connecting to DB");
+		$r->pnotes('response_content' => 'Redirecting you');
+		
+		$r->err_headers_out->set('Location' => $url);
+		$r->status(Apache2::Const::REDIRECT);
+		}
+		else {
+			return Apache2::Const::FORBIDDEN;
+		}
+	}
+    elsif($new_dbh and $ref){		
 		#Password encryption
 		if ($ref->{'pass_algo'} eq "plain") {
 			#Nothing to do
