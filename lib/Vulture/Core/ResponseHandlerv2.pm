@@ -113,8 +113,22 @@ sub handler {
 
             #Learning was not done yet
             } else {
-                $log->debug("Getting pass for SSO Learning");
-                $session_app{SSO_Forwarding} = 'LEARNING';
+				my $sso_learning_ext = '';
+				$sso_learning_ext = $app->{'sso_learning_ext'};
+				$log->debug("#######".$sso_learning_ext."#####");
+				
+				if (($sso_learning_ext ne '')) {
+					$log->debug("REDIRECTING SSO LEARNING TO EXTERNAL APP".$sso_learning_ext );
+	                my $html;
+					$html = '<html><head><meta http-equiv="Refresh" content="0; url='.$sso_learning_ext.'"></head></html>';
+					$r->print($html);
+					$r->content_type('text/html');
+					return Apache2::Const::OK;
+				}
+				else {
+					$log->debug("Getting pass for SSO Learning");
+					$session_app{SSO_Forwarding} = 'LEARNING';
+				}
             }
 		}
         #Display portal instead of redirect user
@@ -157,7 +171,7 @@ sub handler {
 
         } else {
 		#Redirect to CAS
-            my $html;
+			my $html;
             if($intf->{'cas_display_portal'}){
                 $html = Core::ResponseHandlerv2::display_portal ($r,$log,$dbh, $app);
             } elsif($intf->{'cas_redirect'}){

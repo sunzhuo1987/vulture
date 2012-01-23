@@ -525,6 +525,7 @@ class App(models.Model):
     virtualhost_directives = models.TextField(blank=1,null=1)
     timeout = models.IntegerField(null=1,blank=1)
     update_access_time = models.BooleanField(default=0)
+    sso_learning_ext = models.CharField(max_length=128,null=1,blank=1)
     
     def isWildCard (self):
         return self.alias.startswith('*')
