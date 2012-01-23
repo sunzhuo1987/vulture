@@ -199,7 +199,18 @@ sub forward{
 	my ($mech, $response, $post_response, $request, $cookies);
     $mech = WWW::Mechanize::GZip->new;
 
-	$mech->cookie_jar( {} );
+	my $cookies = $r->headers_in->{Cookie};
+    my $cleaned_cookies = '';
+    foreach (split(';', $cookies)) {
+        if (/([^,; ]+)=([^,; ]+)/) {
+            if ($1 ne $r->dir_config('VultureAppCookieName') and $1 ne $r->dir_config('VultureProxyCookieName')){
+                $cleaned_cookies .= $1."=".$2.";";
+            }
+        }
+    }
+	
+	
+	$mech->cookie_jar->set_cookie( $cleaned_cookies );
     
     $mech->delete_header('Host');
     $mech->add_header('Host' => $r->headers_in->{'Host'});
