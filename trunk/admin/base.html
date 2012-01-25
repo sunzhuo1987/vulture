@@ -47,24 +47,22 @@
     <img src='/img/vulture2/agt_family.png' alt="authentication"/>
     <b>{% trans "Authentication" %}</b>
     <ul>
-        <li><a class="menu_entry" href="#">{% trans "Authentication" %}</a>
-            <ul>
-                <li><a href='/kerberos/'>{% trans "Kerberos" %}</a></li>
-                <li><a href='/ldap/'>{% trans "LDAP" %}</a></li>
-                <li><a href='/ntlm/'>{% trans "NTLM" %}</a></li>
-                <li><a href='/sql/'>{% trans "SQL" %}</a></li>
-                <li><a href='/ssl/'>{% trans "SSL" %}</a></li>
-                <li><a href='/radius/'>{% trans "RADIUS" %}</a></li>
-                <li><a href='/cas/'>{% trans "CAS" %}</a></li>
-            </ul>
-        </li>
-        <li><a class="menu_entry" href="/acl/">{% trans "ACL" %}</a></li>
+        <li><a class="menu_entry" href='/kerberos/'>{% trans "Kerberos" %}</a></li>
+        <li><a class="menu_entry" href='/ldap/'>{% trans "LDAP" %}</a></li>
+        <li><a class="menu_entry" href='/ntlm/'>{% trans "NTLM" %}</a></li>
+        <li><a class="menu_entry" href='/sql/'>{% trans "SQL" %}</a></li>
+        <li><a class="menu_entry" href='/ssl/'>{% trans "SSL" %}</a></li>
+        <li><a class="menu_entry" href='/radius/'>{% trans "RADIUS" %}</a></li>
+        <li><a class="menu_entry" href='/cas/'>{% trans "CAS" %}</a></li>
         <li><a class="menu_entry" href="/sso/">{% trans "Web SSO" %}</a></li>
     </ul>
     <img src='/img/vulture2/web.png' alt="web firewall"/>
     <b>{% trans "Web Firewall" %}</b>
     <ul>
         <li><a class="menu_entry" href="/security/">{% trans "mod_security" %}</a></li>
+		<li><a class="menu_entry" href="/acl/">{% trans "ACL" %}</a></li>
+        <li><a class="menu_entry" href="/blackip/"><small>{% trans "BlackList IP" %}</small></a></li>
+
         <!--<li><a class="menu_entry" href="/">mod_qos</a></li>-->
     </ul>
     <img src='/img/vulture2/package_network.png' alt="web applications"/><b>{% trans "Web Applications" %}</b>
@@ -79,10 +77,9 @@
         </li>
         <li><a class="menu_entry" href="#">{% trans "Plugins" %}</a></li>
             <ul>
-                <li><a class="menu_entry" href="/plugin/"><small>{% trans "Plugins TransHandler" %}</small></a></li>
-                <li><a class="menu_entry" href="/plugincontent/"><small>{% trans "Plugins Content Rewrite" %}</small></a></li>
-                <li><a class="menu_entry" href="/pluginheader/"><small>{% trans "Plugins Header Input" %}</small></a></li>
-                <li><a class="menu_entry" href="/blackip/"><small>{% trans "Plugins BlackList IP" %}</small></a></li>
+                <li><a class="menu_entry" href="/plugin/"><small>{% trans "TransHandler" %}</small></a></li>
+                <li><a class="menu_entry" href="/plugincontent/"><small>{% trans "Content Rewrite" %}</small></a></li>
+                <li><a class="menu_entry" href="/pluginheader/"><small>{% trans "Header Input" %}</small></a></li>
             </ul>
     </ul>
 {% endblock %}
