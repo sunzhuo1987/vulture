@@ -338,6 +338,7 @@ class SQL(models.Model):
         ('SQLite', 'SQLite'),
         ('Pg', 'PostgreSQL'),
         ('mysql', 'MySQL'),
+        ('Oracle','Oracle'),
         )
     SQL_ALGOS = (
         ('plain', 'plain'),
