@@ -31,6 +31,11 @@ SERVERROOT = '/opt/vulture/httpd'
 HTTPD_CUSTOM = "\n\
 "
 
+SESSION_COOKIE_SECURE = True
+SESSION_COOKIE_HTTPONLY = True
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
+
 WWW_USER='apache'
 
 PERL_SWITCHES = '-I/opt/vulture/lib/i386-linux-thread-multi -I/opt/vulture/lib/i386-linux-thread-multi/Vulture -I/opt/vulture/lib/x86_64-linux-thread-multi -I/opt/vulture/lib/i486-linux-thread-multi -I/opt/vulture/lib/i586-linux-thread-multi -I/opt/vulture/lib/i486-linux-gnu-thread-multi -I/opt/vulture/lib -I/opt/vulture/usr/local/lib64/perl5 -I/opt/vulture/usr/lib/perl5 -I/opt/vulture/usr/lib64/perl5 -I/opt/vulture/usr/lib64/perl5/site_perl/5.8.8/x86_64-linux-thread-multi/Apache2'
