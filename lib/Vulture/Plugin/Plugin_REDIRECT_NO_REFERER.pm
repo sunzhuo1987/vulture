@@ -25,8 +25,10 @@ sub plugin{
     my $SSO_cookie_name = get_cookie($r->headers_in->{Cookie}, $r->dir_config('VultureProxyCookieName').'=([^;]*)') or '';
     my (%session_SSO);
     session(\%session_SSO, $intf->{sso_timeout}, $SSO_cookie_name, $log, $intf->{sso_update_access_time});
-    
-	if (($r->hostname eq $intf->{'cas_portal'}) or length($r->headers_in->{'Referer'}) or $session_SSO{is_auth}){
+    my $SSO_cookie_app_name = get_cookie($r->headers_in->{Cookie}, $r->dir_config('VultureAppCookieName').'=([^;]*)') or '';
+
+    $log->debug($SSO_cookie_app_name);
+	if (($r->hostname eq $intf->{'cas_portal'}) or length($r->headers_in->{'Referer'}) or $session_SSO{is_auth} or defined($SSO_cookie_app_name) ){
 	$log->debug($r->headers_in->{'Referer'});
         return undef;
     }
