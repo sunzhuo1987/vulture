@@ -32,7 +32,7 @@ sub plugin{
 
 	$r = Apache::SSLLookup->new($r);
 	
-	$log->debug("########## Plugin_LOGOUT_ALL ##########");
+	$log->debug("########## Plugin_LOGOUT ##########");
 
 	#Taking user identity
     my (%session_app);
@@ -54,8 +54,9 @@ sub plugin{
     my $translations = get_translations($r, $log, $dbh, "DISCONNECTED");
     
     #If no html, send form
-    my $html = get_style($r, $log, $dbh, $app, 'LOGOUT', 'Logout from Vulture', {FORM => ''}, $translations);
-    $r->pnotes('response_content' => $html);
+    #my $html = get_style($r, $log, $dbh, $app, 'LOGOUT', 'Logout from Vulture', {FORM => ''}, $translations);
+	$log->debug($options);
+    $r->pnotes('response_content' => '<html><head><meta http-equiv="Refresh" content="0; url='.$options.'"></head></html>');
     $r->pnotes('response_content_type' => 'text/html');
 	return Apache2::Const::OK;
 }
