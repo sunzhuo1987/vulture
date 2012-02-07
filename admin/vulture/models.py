@@ -435,6 +435,9 @@ class SSO(models.Model):
     is_in_url = models.CharField(max_length=128, blank=1, null=1)
     is_in_url_action = models.CharField(max_length=128, blank=1, null=1, choices=ACTIONS, default='nothing')
     is_in_url_options = models.CharField(max_length=128, blank=1, null=1)
+    is_in_url_redirect = models.CharField(max_length=128, blank=1, null=1)
+    is_in_url_redirect_action = models.CharField(max_length=128, blank=1, null=1, choices=ACTIONS, default='nothing')
+    is_in_url_redirect_options = models.CharField(max_length=128, blank=1, null=1)
     def __unicode__(self):
         return self.name
     class Meta:
