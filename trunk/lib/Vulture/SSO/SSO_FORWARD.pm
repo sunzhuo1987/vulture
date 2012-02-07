@@ -82,7 +82,10 @@ sub handle_action{
     } elsif ($is_in_page and $response->as_string =~ /$is_in_page/){
         $type = $is_in_page_action;
         $options = $is_in_page_options;
-        
+    }elsif ($response->headers->header('Location') and $is_in_url_redirect and $response->headers->header('Location') =~ /$is_in_url_redirect/){
+        $type = $is_in_url_redirect_action;
+        $options = $is_in_url_redirect_options;
+
     # Headers
     } else{
         # 10x headers
