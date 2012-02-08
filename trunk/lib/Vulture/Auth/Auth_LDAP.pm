@@ -57,7 +57,14 @@ sub checkAuth{
 		return Apache2::Const::FORBIDDEN;
 	}
     
-    if (defined($ldap_account_locked_attr) and $object->get_value($ldap_account_locked_attr) == 1){
+	my $mesg_locked = $ldap->search(base => $ldap_user_ou ? $ldap_user_ou : $ldap_base_dn,
+			 scope => $ldap_user_scope,
+			 filter => "(&" . $ldap_user_filter . "(" . $ldap_uid_attr . "=" . $user . ")(".$ldap_account_locked_attr."))"
+		     );
+	
+	$object_locked = $mesg_locked->entry(0);
+	
+    if (defined($ldap_account_locked_attr) and $mesg_locked->code and !$object_locked){
         $r->pnotes('auth_message' => 'ACCOUNT_LOCKED');
         return Apache2::Const::FORBIDDEN;
     }
@@ -69,8 +76,15 @@ sub checkAuth{
 		$r->pnotes('url_to_mod_proxy' => $url);
 		$log->debug($user . " routed to ". $url ." via mod_proxy");
 	}
-    
-    if($ldap_chpass_attr and (my ($need_change_password) = $object->get_value($ldap_chpass_attr))) {
+
+	my $mesg_change = $ldap->search(base => $ldap_user_ou ? $ldap_user_ou : $ldap_base_dn,
+		 scope => $ldap_user_scope,
+		 filter => "(&" . $ldap_user_filter . "(" . $ldap_uid_attr . "=" . $user . ")(".$ldap_chpass_attr."))"
+		 );
+	
+	$object_change = $mesg_change->entry(0);
+	
+    if($ldap_chpass_attr and $mesg_change->code and !$object_change) {
         $r->pnotes('auth_message' => 'NEED_CHANGE_PASS');
         $log->debug("User $user need to change password");
     }

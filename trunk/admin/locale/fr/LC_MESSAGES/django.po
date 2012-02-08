@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-01-25 09:47-0600\n"
+"POT-Creation-Date: 2012-02-07 02:23-0600\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -265,7 +265,7 @@ msgstr "Groupes autorisés"
 #: vulture/conf_form.html:22 vulture/css_form.html:22
 #: vulture/exportimport_form.html:23 vulture/image_form.html:22
 #: vulture/intf_form.html:147 vulture/kerberos_form.html:22
-#: vulture/ldap_form.html:60 vulture/localization_form.html:23
+#: vulture/ldap_form.html:59 vulture/localization_form.html:23
 #: vulture/log_form.html:24 vulture/modsecurity_form.html:22
 #: vulture/ntlm_form.html:24 vulture/plugin_form.html:24
 #: vulture/plugincontent_form.html:25 vulture/pluginheader_form.html:25
@@ -282,7 +282,7 @@ msgstr "Enregistrer"
 #: vulture/conf_form.html:23 vulture/css_form.html:23
 #: vulture/exportimport_form.html:24 vulture/image_form.html:23
 #: vulture/intf_form.html:148 vulture/kerberos_form.html:23
-#: vulture/ldap_form.html:61 vulture/localization_form.html:24
+#: vulture/ldap_form.html:60 vulture/localization_form.html:24
 #: vulture/log_form.html:25 vulture/modsecurity_form.html:23
 #: vulture/ntlm_form.html:25 vulture/plugin_form.html:25
 #: vulture/plugincontent_form.html:26 vulture/pluginheader_form.html:26
@@ -468,9 +468,8 @@ msgstr "Valeur"
 #: vulture/app_form.html:240
 msgid "Timeout for user session (leave blank for no timeout)"
 msgstr ""
-"La session utilisateur a expiré (laisser vide pour ne pas mettre "
-"'expirationDurée avant déconnexion de l'utilisateur (laisser vide pour "
-"annuler ce paramètre)"
+"Durée avant déconnexion de l'utilisateur (laisser vide pour annuler ce "
+"paramètre)"
 
 #: vulture/app_form.html:241
 msgid "Update user session timeout each time he does smth"
@@ -725,7 +724,7 @@ msgstr "Paramètres Kerberos"
 
 #: vulture/kerberos_form.html:18
 msgid "Realm"
-msgstr "Mire"
+msgstr "Realm"
 
 #: vulture/ldap_form.html:5
 msgid "LDAP settings"
@@ -790,38 +789,34 @@ msgid "User OU"
 msgstr "Unité organisationnelle des utilisateurs"
 
 #: vulture/ldap_form.html:43
-msgid "Change password attribute"
-msgstr "Attribut 'Changement de mot de passe'"
+msgid "Change password filter"
+msgstr "Filtre 'Changement de mot de passe'"
 
 #: vulture/ldap_form.html:44
-msgid "Change password value to compare"
-msgstr "Valeur de comparaison"
+msgid "Account locked filter"
+msgstr "Filtre 'Compte bloqué'"
 
-#: vulture/ldap_form.html:45
-msgid "Account locked attribute"
-msgstr "Attribut 'Compte bloqué'"
-
-#: vulture/ldap_form.html:51
+#: vulture/ldap_form.html:50
 msgid "Group attribute"
 msgstr "Attribut du group"
 
-#: vulture/ldap_form.html:52
+#: vulture/ldap_form.html:51
 msgid "LDAP filter for groups"
 msgstr "Filtre LDAP pour les groupes"
 
-#: vulture/ldap_form.html:53
+#: vulture/ldap_form.html:52
 msgid "Searching scope for groups"
 msgstr "Champ d'action de recherche pour les groupes"
 
-#: vulture/ldap_form.html:54
+#: vulture/ldap_form.html:53
 msgid "Group OU"
 msgstr "Unité organisationnelle des groupes"
 
-#: vulture/ldap_form.html:55
+#: vulture/ldap_form.html:54
 msgid "Searching attribute in groups"
 msgstr "Attribut de recherche dans le group"
 
-#: vulture/ldap_form.html:56
+#: vulture/ldap_form.html:55
 msgid "Searching attribute is a DN"
 msgstr "L'attribut cherché est un DN"
 
@@ -1136,3 +1131,6 @@ msgstr "Nouveau mot de passe"
 #: vulture/userpassword_form.html:18
 msgid "Confirm new password"
 msgstr "Confirmer le nouveau mot de passe"
+
+#~ msgid "Change password value to compare"
+#~ msgstr "Valeur de comparaison"
