@@ -71,7 +71,7 @@
         <group_ou>Unité organisationnelle des groupes (dn complet)</group_ou>
         <group_member>Attribut qui fait que l'utilisateur recherché appartient au groupe</group_member>
         <are_members_dn>L'attribut de recherche est un DN complet</are_members_dn>
-        <chpass_attr>Vulture peut vérifier que le mot de passe d'un utilisateur est à changer et effectuer une action le cas échéant. L'attribut à vérifier doit être indiqué ici</chpass_attr>
+        <chpass_attr>Vulture peut vérifier que le mot de passe d'un utilisateur est à changer et effectuer une action le cas échéant. Il faut utiliser un filtre lDAP pour savoir s'il est nécessaire de changer le mot de passe</chpass_attr>
         <user_account_locked_attr>Comme pour le mot de passe, il est possible de vérifier que le compte est verrouillé</user_account_locked_attr>
     </ldap>
     <ntlm>

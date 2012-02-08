@@ -71,7 +71,7 @@
         <group_ou>Group Organizational Unit (OU) (full DN)</group_ou>
         <group_member>Attribute associating user and group</group_member>
         <are_members_dn>Search attribute is a full DN</are_members_dn>
-        <chpass_attr>Vulture can check when changing password is needed and do an action if needed. Search attribute goes here</chpass_attr>
+        <chpass_attr>Vulture can check when changing password is needed and do an action if needed. You have to use an LDAP filter to check if changing password is needed</chpass_attr>
         <user_account_locked_attr>Like password, it's possible to check if account is locked</user_account_locked_attr>
     </ldap>
     <ntlm>
