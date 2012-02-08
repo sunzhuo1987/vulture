@@ -270,13 +270,26 @@ sub get_DB_object{
     #Let's connect to this new database and retrieve all fields
     if($ref){
 	    #Build a driver like "dbi:SQLite:dbname=/var/www/vulture/admin/db"
-	    my $dsn = 'dbi:'.$ref->{'driver'}.':dbname='.$ref->{'database'};
-	    if($ref->{'host'}){
-		    $dsn .=':'.$ref->{'host'};
-		    if($ref->{'port'}){
-			    $dsn .=':'.$ref->{'port'};
-		    }
-	    }
+          my $dsn = 'dbi:'.$ref->{'driver'};
+        if ($ref->{'driver'} ne 'Oracle') {
+	    $dsn .= ':dbname='.$ref->{'database'};
+            if($ref->{'host'}){
+                $dsn .=':'.$ref->{'host'};
+                if($ref->{'port'}){
+                    $dsn .=':'.$ref->{'port'};
+                }
+              }
+        } else {
+            if($ref->{'host'}){
+                $dsn .='://'.$ref->{'host'};
+                if($ref->{'port'}){
+                    $dsn .=':'.$ref->{'port'};
+                }
+            }
+            $dsn .='/'.$ref->{'database'};
+        }
+
+
 		#my $dbi->{printError} = 0;
 		my 	$dbi = (DBI->connect($dsn, $ref->{'user'}, $ref->{'password'}) or "error");
 		if ($dbi eq "error") {
