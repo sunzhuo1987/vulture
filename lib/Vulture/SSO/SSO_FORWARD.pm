@@ -69,10 +69,10 @@ sub handle_action{
     my ($r, $log, $dbh, $app, $response, $user) = @_;
     
     my($query, $type, $options);
-    $query = 'SELECT is_in_url, is_in_url_action, is_in_url_options, is_in_page, is_in_page_action, is_in_page_options FROM sso, app WHERE app.id = ? AND sso.id = app.sso_forward_id';
+    $query = 'SELECT is_in_url, is_in_url_action, is_in_url_options, is_in_page, is_in_page_action, is_in_page_options, is_in_url_redirect, is_in_url_redirect_action, is_in_url_redirect_options FROM sso, app WHERE app.id = ? AND sso.id = app.sso_forward_id';
     my $sth = $dbh->prepare($query);
 	$sth->execute($app->{id});
-	my ($is_in_url, $is_in_url_action, $is_in_url_options, $is_in_page, $is_in_page_action, $is_in_page_options) = $sth->fetchrow;
+	my ($is_in_url, $is_in_url_action, $is_in_url_options, $is_in_page, $is_in_page_action, $is_in_page_options, $is_in_url_redirect, $is_in_url_redirect_action, $is_in_url_redirect_options) = $sth->fetchrow;
     $sth->finish();
     
     #Check if action is needed (grep in url, grep in page or by return code)
