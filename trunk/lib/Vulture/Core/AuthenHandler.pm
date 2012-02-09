@@ -126,7 +126,11 @@ sub handler:method
 
             $r->pnotes('username' => $session_SSO{username});
             $r->pnotes('password' => $session_SSO{password});
-
+			
+			if (defined $app->{name} and defined $r->pnotes('id_session_app')) {
+				$session_SSO{$app->{name}} = $r->pnotes('id_session_app');
+			}
+			
             #Setting Memcached table
             my (%users);
             %users = %{Core::VultureUtils::get_memcached('vulture_users_in')};
