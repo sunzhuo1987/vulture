@@ -90,7 +90,7 @@ sub handler {
 					$session_app{SSO} = $r->pnotes('id_session_SSO');
 
 					#SSO must be warned that user is logged in this app (ex : SAML)
-					$session_SSO{$app->{'name'}} = $r->pnotes('id_session_app');
+					$session_SSO{$app->{name}} = $r->pnotes('id_session_app');
 
 					$log->debug("Validate app session");
 					return Apache2::Const::OK;
@@ -119,7 +119,7 @@ sub handler {
 			$session_app{SSO} = $r->pnotes('id_session_SSO');
 
 			#SSO must be warned that user is logged in this app (ex : SAML)
-			$session_SSO{$app->{'name'}} = $r->pnotes('id_session_app');
+			$session_SSO{$app->{name}} = $r->pnotes('id_session_app');
 			
 			return Apache2::Const::OK;
 		}
