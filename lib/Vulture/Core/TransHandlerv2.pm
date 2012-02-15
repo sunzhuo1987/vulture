@@ -92,7 +92,7 @@ sub handler {
 	$r->pnotes('app' => $app) if defined $app;
     
 	#Plugin or Rewrite (according to URI)
-    my $query = 'SELECT uri_pattern, type, options FROM plugin WHERE app_id = ? OR app_id IS NULL ORDER BY type';
+    my $query = 'SELECT uri_pattern, type, options FROM plugin WHERE app_id = ? OR app_id IS NULL';
     $log->debug($query);
 	my $plugins = $dbh->selectall_arrayref($query, undef, $app->{id});
 	my $module_name;
