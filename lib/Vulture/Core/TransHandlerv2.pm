@@ -104,7 +104,9 @@ sub handler {
 		if((@result) = ($uri =~ /$exp/)){
 			$log->debug("Pattern ".$exp." matches with URI");
             $module_name = 'Plugin::Plugin_'.uc(@$row[1]);
-			$options = @$row[2];
+			if (uc(@$row[1]) eq "REWRITE") {
+				$options = $row;
+			}
             $options ||= \@result;
 			$log->debug("Load $module_name");
     

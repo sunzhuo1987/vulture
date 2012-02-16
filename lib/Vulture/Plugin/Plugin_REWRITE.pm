@@ -24,15 +24,25 @@ sub plugin{
 
 	#Parse options
 	#Mod proxy
-	if($options =~ /(.+)\[P\]/){
-
-		#Mod_proxy with apache : user will not see anything
+	if(@$options[2] =~ /(.+)\s\[P\]/){
+		my $rewrite = $1;
+		my(@replace) = $r->uri =~ /@$options[0]/;
+		my $i = 1;
+		foreach (@replace) {
+			$rewrite =~ s/\$$i/$_/ig;
+			$i++;
+		}
+		if ($rewrite =~ /^(http|https):\/\//) {
+			$r->pnotes('url_to_mod_proxy' => $rewrite);
+		}
+		else {
+			$r->pnotes('url_to_mod_proxy' => $app->{'url'}.$rewrite);
+		}
 		$log->debug("Getting url to mod_proxy");
-		$r->pnotes('url_to_mod_proxy' => $app->{'url'}.$1);
 		return undef;
 
 	#Redirect
-	} elsif($options =~ /(.+)\[R\]/){
+	} elsif(@$options[2] =~ /(.+)\[R\]/){
 	    $log->debug("Redirecting to ".$1);
 		$r->err_headers_out->set('Location' => $1);
 		return Apache2::Const::REDIRECT;
