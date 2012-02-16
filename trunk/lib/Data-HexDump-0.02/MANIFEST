@@ -1,8 +1,0 @@
-MANIFEST
-MANIFEST.SKIP
-Makefile.PL
-README
-hexdump
-lib/Data/HexDump.pm
-t/compare.t
-t/data.t
