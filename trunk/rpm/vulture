@@ -57,6 +57,15 @@ function stop() {
         return $RETVAL
 }
 
+function reload() {
+	echo -n "Reloading ${NAME}: "
+	for i in `ls ${VULTURE_HOME}/${NAME}/conf/*.conf 2> /dev/null`; do
+		daemon "${VULTURE_HOME}/${NAME}/httpd/bin/httpd -f $i -k graceful"
+	done
+	[ $RETVAL -eq 0 ] && success || failure
+	echo
+}
+
 function status() {
         pidfile="${VULTURE_HOME}/${NAME}/conf/vulture.pid"
         if [ -s $pidfile ]; then
@@ -103,7 +112,7 @@ case "$1" in
 		status
 	;;
 	*)
-		echo "Usage: ${NAME} {start|stop|restart|status}"
+		echo "Usage: ${NAME} {start|stop|restart|reload|status}"
 		exit 1
 	;;
 esac
