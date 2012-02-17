@@ -43,8 +43,15 @@ sub plugin{
 
 	#Redirect
 	} elsif(@$options[2] =~ /(.+)\[R\]/){
-	    $log->debug("Redirecting to ".$1);
-		$r->err_headers_out->set('Location' => $1);
+		my $rewrite = $1;
+		my(@replace) = $r->uri =~ /@$options[0]/;
+		my $i = 1;
+		foreach (@replace) {
+			$rewrite =~ s/\$$i/$_/ig;
+			$i++;
+		}
+	    $log->debug("Redirecting to ".$rewrite);
+		$r->err_headers_out->set('Location' => $rewrite);
 		return Apache2::Const::REDIRECT;
 	}
 }
