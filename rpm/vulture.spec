@@ -71,6 +71,9 @@ Vulture Reverse Proxy
      %else
      install -m0755 rpm/vulture $RPM_BUILD_ROOT/etc/init.d/vulture
      %endif
+     install -d -m0700 $RPM_BUILD_ROOT/etc/logrotate.d
+     install -m0644 rpm/vulture.logrotate\
+     $RPM_BUILD_ROOT/etc/logrotate.d/vulture
      install -d -m0755 $RPM_BUILD_ROOT%{serverroot}/%{name}
      cp -r admin $RPM_BUILD_ROOT%{serverroot}/%{name}
      install -m0644 rpm/settings.py\

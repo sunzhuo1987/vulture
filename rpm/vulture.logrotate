@@ -1,0 +1,11 @@
+/var/log/Vulture* {
+	missingok
+	notifempty
+	sharedscripts
+	delaycompress
+	postrotate
+	/sbin/service vulture reload > /dev/null 2>/dev/null || true
+	endscript
+	weekly
+	compress
+}
