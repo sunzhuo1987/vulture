@@ -39,7 +39,7 @@ sub handler {
 	my (%session_app);
 	Core::VultureUtils::session(\%session_app, $app->{timeout}, $r->pnotes('id_session_app'), $log, $app->{update_access_time});
 	my (%session_SSO);
-	Core::VultureUtils::session(\%session_SSO, $app->{timeout}, $r->pnotes('id_session_SSO'), $log, $app->{update_access_time});
+	Core::VultureUtils::session(\%session_SSO, $intf->{timeout}, $r->pnotes('id_session_SSO'), $log, $app->{update_access_time});
 
 	#Query counter
 	#my $query = "UPDATE stats SET value=value+1 WHERE var='responsehandler_counter'";
