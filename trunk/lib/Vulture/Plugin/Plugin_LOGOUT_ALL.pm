@@ -128,12 +128,7 @@ sub plugin{
 		    $session_app{cookie} = $response->headers->header('Set-Cookie');
 		}
 		foreach my $k (keys %cookies_app) {
-		    if($r->hostname()=="mon-espace-client-rct.grassavoye.com"){
-			$r->err_headers_out->add('Set-Cookie' => $k."=".$cookies_app{$k}."; domain=.grassavoye.com; path=/");  # Send cookies to browser's client
-		    }
-		    else{
 			$r->err_headers_out->add('Set-Cookie' => $k."=".$cookies_app{$k}."; domain=".$r->hostname()."; path=/");  # Send cookies to browser's client
-		    }
 		    $log->debug("PROPAG ".$k."=".$cookies_app{$k});
 		}
 		
