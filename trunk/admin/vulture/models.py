@@ -738,7 +738,7 @@ class LDAP(models.Model):
         for group in group_ok:
             name = group.group
             group_filter += "(!("+self.group_attr+"="+name.decode('utf-8')+"))"
-            group_filter += ")"
+        group_filter += ")"
         ret = self.search(self.group_ou or self.base_dn, self.group_scope, group_filter, [ str(self.group_attr) ])
         return ret
 
