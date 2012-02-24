@@ -164,6 +164,7 @@ sub handler:method
 
     my $ntlm = undef;
     my $cas = undef;
+    my $ssl = undef;
     foreach my $row (@$auths) {
         if (uc(@$row[1]) eq "NTLM" ) {
             $ret = multipleAuth($r, $log, $dbh, $auths, $app, $user, $password, $class, 1);
@@ -174,10 +175,13 @@ sub handler:method
             $ret = multipleAuth($r, $log, $dbh, $auths, $app, $user, $password, $class, 1);
             $cas = 1;
             last;
-        }
+        } elsif (uc(@$row[1]) eq "SSL") {
+	    $log->debug("SSL mode");
+	    $ssl = 1;
+	}
     }
 
-    $ret = multipleAuth($r, $log, $dbh, $auths, $app, $user, $password, 0, 0) if (defined $user and ($token eq $session_SSO{random_token} or $app->{'auth_basic'} or not defined $cas));
+    $ret = multipleAuth($r, $log, $dbh, $auths, $app, $user, $password, 0, 0) if (defined $user and ($token eq $session_SSO{random_token} or $app->{'auth_basic'} or not defined $cas or not defined $ssl));
 
     $log->debug("Return from auth => ".$r->pnotes('auth_message')) if defined $r->pnotes('auth_message');
 
@@ -189,12 +193,15 @@ sub handler:method
 
 
     
-    if(defined $ret and $ret == scalar Apache2::Const::OK){
+    if(defined $ret and $ret == scalar Apache2::Const::OK or $ssl == 1){
         $log->debug("Good user/password");
 
         #Get new username and password ... ex : CAS
         $user = $r->pnotes('username') || $r->user() || $user;
         $password = $r->pnotes('password') || $password;
+	
+	$log->debug("user = ".$user);
+	$log->debug("ruser = ".$r->user);	
 
         #Setting user for AuthzHandler
         $r->pnotes('username' => $user);
