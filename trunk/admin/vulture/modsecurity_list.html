@@ -7,7 +7,7 @@
 
 {% block tabs %}
     <li><a href="#" id="main_tab_1" class="active">{% trans "List" %}</a></li>
-    <li><a href="/security/new/">{% trans "Add" %}</a></li>
+   <!-- <li><a href="/security/new/">{% trans "Add" %}</a></li> -->
 {% endblock %}
 
 {% block content %}
@@ -17,7 +17,7 @@
         <a href="/security/">{% trans "Click here to return to list" %}</a>
     {% else %}
         <a href="/security/update/"><img src="/img/vulture2/reload.png" alt="reload" /> - <b>{% trans "Click here to download/update security rules from modsecurity.org" %}</b></a><br /><br />
-        <table>
+<!--        <table>
             <tr>
                 <th>{% trans "Name" %}</th>
                 <th style="width: 32px"></th>
@@ -30,7 +30,7 @@
             {% empty %}
                 <tr><td colspan="2" style="text-align:center;">{% trans "The list is empty. You can add an item " %}<a href="/security/new/">{% trans "here" %}</a></td></tr>
             {% endfor %}
-        </table>
+        </table>-->
 	{% endif %}
     </div>
 {% endblock %}
