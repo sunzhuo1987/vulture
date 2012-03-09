@@ -39,6 +39,16 @@ table {
     border-radius: 5px;
 }
 
+#md-table{
+    padding:0px;
+    width:100%;
+    
+}
+
+#ms-main{
+    text-align:justify;
+}
+
 #menu_box {
     color:#000000;
     float:left;

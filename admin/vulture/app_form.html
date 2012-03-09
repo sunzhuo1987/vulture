@@ -31,6 +31,24 @@
         (function($) {
             // we can now rely on $ within the safety of our “bodyguard” function
             $(document).ready( function() {
+                if ($('#id_MS_Activated').attr('checked')) {
+                    $('#mod-security').show();
+                }
+                else {
+                    $('#mod-security').hide();
+                }
+                if ($('#id_BT_activated').attr('checked')) {
+                    $('#BFP').show();
+                }
+                else {
+                    $('#BFP').hide();
+                }
+                if ($('#id_DoS_activated').attr('checked')) {
+                    $('#DoSP').show();
+                }
+                else {
+                    $('#DoSP').hide();
+                }
                 $("#addrow").click(function() {
                     nbheaders++;
                     var name = 'table.' + nbheaders;
@@ -105,6 +123,33 @@
                                 break;
                         }
                     });
+                });
+                
+                $('#id_MS_Activated').click(function() {
+                    if ($('#id_MS_Activated').attr('checked')) {
+                        $('#mod-security').show();
+                    }
+                    else {
+                        $('#mod-security').hide();
+                    }
+                });
+                
+                $('#id_BT_activated').click(function() {
+                    if ($('#id_BT_activated').attr('checked')) {
+                        $('#BFP').show();
+                    }
+                    else {
+                        $('#BFP').hide();
+                    }
+                });
+                
+                $('#id_DoS_activated').click(function() {
+                    if ($('#id_DoS_activated').attr('checked')) {
+                        $('#DoSP').show();
+                    }
+                    else {
+                        $('#DoSP').hide();
+                    }
                 });
                 
                 $('#app').submit(function() {
@@ -205,7 +250,109 @@
         
         <div id="main_content_6" class="main_content">
             <table>
-                <tr><th>{% trans "Mod security" %}</th><td class="input">{{ form.security }}{% if form.security.errors %}<div class="error">{{ form.security.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+                <tr><th>{% trans "Mod security" %}</th><td class="input"><ul>
+                    <p> Activation : {{form.MS_Activated}} </p>
+                        <div id="mod-security">
+                                <li>
+
+                                    <div name="Basic Settings">
+                                        <fieldset>
+                                            <legend> Paramètre de base </legend>
+                                            <table id="md-table">
+                                                <tr><td> Version : </td><td>{{form.version}}</td></tr>
+                                                <tr><td> Action par défaut : </td><td>{{form.action}}</td></tr>
+                                                <tr><td> Moteur : </td><td>{{form.motor}}</td></tr>
+                                                <tr><td> Paranoïd Mode : </td><td>{{form.paranoid}}</td></tr>
+                                                <tr><td> UTF : </td><td>{{form.UTF}}</td></tr>
+                                                <tr><td> XML : </td><td>{{form.XML}}</td></tr>
+                                                <tr><td> Body Access : </td><td>{{form.BodyAccess}}</td></tr>
+                                            </table>
+                                        </fieldset>
+                                    </div>
+                                    
+                                    <div id="SL" name="Scoring Levels">
+                                        <fieldset>
+                                            <legend> Définition des seuils </legend>
+                                            <table id="md-table">
+                                                <tr><td> Score Critique : </td><td>{{form.critical_score}}<td></tr>
+                                                <tr><td> Score Erreur : </td><td>{{form.error_score}}</td></tr>
+                                                <tr><td> Score Attention : </td><td>{{form.warning_score}}</td></tr>
+                                                <tr><td> Score Information : </td><td>{{form.notice_score}}</td></tr>
+                                                <tr><td> Inbound Score : </td><td>{{form.inbound_score}}</td></tr>
+                                                <tr><td> Outbound Score : </td><td>{{form.outbound_score}}</td></tr>
+                                            </table>
+                                        </fieldset>
+                                    </div>
+                                    
+                                    <div name="HTTP Policy">
+                                        <fieldset> 
+                                            <legend> Politique HTTP</legend>
+                                            <table id="md-table">
+                                            <tr><td> Nombre Maximum d'Arguments dans la requête : </td><td>{{form.max_num_args}}</td></tr>
+                                            <tr><td> Longueur max du nom des arguments : </td><td>{{form.arg_name_length}}</td></tr>
+                                            <tr><td> Longueur max des arguments : </td><td>{{form.arg_length}}</td></tr>
+                                            <tr><td> Longueur max total des arguments : </td><td>{{form.total_arg_length}}</td></tr>
+                                            <tr><td> Taille maximum d'un fichier : </td><td>{{form.max_file_size}}</td></tr>
+                                            <tr><td> Combined file size : </td><td>{{form.combined_file_size}}</td></tr>
+                                            <tr><td> Méthodes HTTP autorisées : </td><td>{{form.allowed_http}}</td></tr>
+                                            <tr><td> Content Type autorisés : </td><td>{{form.allowed_content_type}} </td></tr>
+                                            <tr><td> Version HTTP autorisée : </td><td>{{form.allowed_http_version}}</td></tr>
+                                            <tr><td> Extensions interdites : </td><td>{{form.restricted_extensions}}</td></tr>
+                                            <tr><td> Headers interdits : </td><td>{{form.restricted_headers}}</td></tr>
+                                            </table>
+                                        </fieldset>
+                                    </div>
+                                    
+                                    <p> Activer les protections contre les attaques de type brute force : {{form.BT_activated}}</p>
+                                    <div id="BFP" name="Brute Force Policy">
+                                        <fieldset>
+                                            <legend> Politique contre les attaques "force brute"</legend>
+                                            <table id="md-table">
+                                                <tr><td> Urls protégées :</td><td>{{form.protected_urls}}</td></tr>
+                                                <tr><td> Burst time slice :</td><td>{{form.BT_burst_time_slice}}</td></tr>
+                                                <tr><td> Seuil d'activation :</td><td>{{form.BT_counter_threshold}}</td></tr>
+                                                <tr><td> Durée du blocage :</td><td>{{form.BT_block_timeout}}</td></tr>
+                                            </table>
+                                        </fieldset>
+                                    </div>
+                                    <p> Activer les protections contre les attaques de deny de service: {{form.DoS_activated}}</p>
+                                    <div id="DoSP" name="DoS Protection">
+                                        <fieldset>
+                                            <legend> Protection contre les attaques DoS</legend>
+                                            <table id="md-table">
+                                                <tr><td> Burst time slice :</td><td>{{form.DoS_burst_time_slice}}</td></tr>
+                                                <tr><td> Seuil d'activation :</td><td>{{form.DoS_counter_threshold}}</td></tr>
+                                                <tr><td> Durée du blocage :</td><td>{{form.DoS_block_timeout}}</td></tr>
+                                            </table>
+                                        </fieldset>
+                                    </div>
+                                    <div name="Custom">
+                                        <fieldset>
+                                            <legend>Règles personnalisées</legend>
+                                            <p>{{form.Custom}}</p>
+                                        </fieldset>
+                                    </div>
+                                </li>
+                                <li>
+                                    <ul style="background-color:#636D76; color:#FFFFFF; border-radius: 5px 5px 5px 5px;">Base Rules</ul>
+                                    {{ form.securitybase}}{% if form.securitybase.errors %}<div class="error">{{ form.securitybase.errors|join:", " }}</div>{% endif %}
+                                </li>
+                                <li>
+                                    <ul style="background-color:#636D76; color:#FFFFFF; border-radius: 5px 5px 5px 5px;">Experimental Rules</ul>
+                                        {{ form.securityexp}}{% if form.securityexp.errors %}<div class="error">{{ form.securityexp.errors|join:", " }}</div>{% endif %}
+                                </li>
+                                <li>
+                                    <ul style="background-color:#636D76; color:#FFFFFF; border-radius: 5px 5px 5px 5px;">Optional Rules</ul>
+                                        {{ form.securityopt }}{% if form.securityopt.errors %}<div class="error">{{ form.securityopt.errors|join:", " }}</div>{% endif %}
+                                </li>
+                                <li>
+                                    <ul style="background-color:#636D76; color:#FFFFFF; border-radius: 5px 5px 5px 5px;">SpiderLabs Research Rules</ul>
+                                        {{ form.securityslr }}{% if form.securityslr.errors %}<div class="error">{{ form.securityslr.errors|join:", " }}</div>{% endif %}
+                                </li>   
+                        </div>
+
+                            </td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" />
+                </ul></tr>
             </table>
         </div>
         

@@ -198,6 +198,9 @@ def edit_app(request,object_id=None):
     # Save new/edited app
     if request.method == 'POST' and form.is_valid():
         
+        appdirname = request.POST['name']
+        path = settings.CONF_PATH+"security-rules/"
+        
         dataPosted = request.POST
         #app = form.save(commit=False)
         app = form.save()
@@ -206,8 +209,140 @@ def edit_app(request,object_id=None):
         headers = Header.objects.filter(app=object_id)
         headers.delete()
 
+        modsecurityconf = ('version', 'action', 'motor', 'paranoid', 'UTF', 'XML', 'BodyAccess', 'max_num_args', 'arg_name_length', 'arg_length', 'total_arg_length', 'max_file_size', 'combined_file_size', 'allowed_http', 'BT_activated', 'DoS_activated', 'DoS_burst_time_slice', 'DoS_counter_threshold', 'DoS_block_timeout', 'Custom' )
+        modsecurityfile = []
+        if not os.path.exists(path):
+            os.mkdir(path,0770)
+        if not os.path.exists(path+"CUSTOM/"):
+            os.mkdir(path+"CUSTOM/",0770)
+        if not os.path.exists(path+"CUSTOM/"+appdirname):
+            os.mkdir(path+"CUSTOM/"+appdirname,0770)
+        f = open(path+"CUSTOM/"+appdirname+"/vulture-"+appdirname+".conf",'w')
+        
+        f.write("SecRule REQUEST_HEADERS:User-Agent \"^(.*)$\" \"phase:1,id:'981217',t:none,pass,nolog,t:sha1,t:hexEncode,setvar:tx.ua_hash=%{matched_var}\""+"\n")
+        f.write("SecRule REQUEST_HEADERS:x-forwarded-for \"^\\b(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3})\\b\" \"phase:1,id:'981225',t:none,pass,nolog,capture,setvar:tx.real_ip=%{tx.1}\""+"\n")
+        f.write("SecRule &TX:REAL_IP \"!@eq 0\" \"phase:1,id:'981226',t:none,pass,nolog,initcol:global=global,initcol:ip=%{tx.real_ip}_%{tx.ua_hash}\""+"\n")
+        f.write("SecRule &TX:REAL_IP \"@eq 0\"  \"phase:1,id:'981218',t:none,pass,nolog,initcol:global=global,initcol:ip=%{remote_addr}_%{tx.ua_hash}\""+"\n")
+        
+        if "MS_Activated" in dataPosted:
+            
+            #deal with data for modsecurity
+            for row in modsecurityconf:
+                if row in dataPosted:
+                    if row == 'version':
+                        f.write("# Specify CRS version in the audit logs.\n")
+                        f.write("SecComponentSignature \"core ruleset/"+dataPosted['version']+"\""+"\n")
+                        f.write("\n\n")
+                    elif row == 'action':
+                        if dataPosted['action'] == "Log_Only":
+                            f.write("SecRuleEngine DetectionOnly"+"\n")
+                            f.write("SecDefaultAction \"phase:2,pass,nolog,auditlog\""+"\n")
+                            f.write("\n\n")
+                        elif dataPosted['action'] == "Log_Block":
+                            f.write("SecRuleEngine On"+"\n")
+                            f.write("SecAuditEngine RelevantOnly"+"\n")
+                            f.write("SecDefaultAction \"phase:2,deny,nolog,auditlog\""+"\n")
+                            f.write("\n\n")
+                    elif row == 'motor':
+                        if dataPosted['motor'] == "Anomaly":
+                            f.write("SecAction \"phase:1,id:'981206',t:none,nolog,pass,setvar:tx.anomaly_score_blocking=on\""+"\n")
+                            f.write("SecAction \"phase:1,id:'981207',t:none,nolog,pass,setvar:tx.critical_anomaly_score="+dataPosted['critical_score']+",setvar:tx.error_anomaly_score="+dataPosted['error_score']+",setvar:tx.warning_anomaly_score="+dataPosted['warning_score']+",setvar:tx.notice_anomaly_score="+dataPosted['notice_score']+"\""+"\n")
+                            f.write("SecAction \"phase:1,id:'981208',t:none,nolog,pass,setvar:tx.inbound_anomaly_score_level="+dataPosted['inbound_score']+"\""+"\n")
+                            f.write("SecAction \"phase:1,id:'981209',t:none,nolog,pass,setvar:tx.outbound_anomaly_score_level="+dataPosted['outbound_score']+"\""+"\n")
+                            f.write("\n\n")
+                    elif row == 'paranoid':
+                        f.write("SecAction \"phase:1,id:'981210',t:none,nolog,pass,setvar:tx.paranoid_mode=1\""+"\n")
+                        f.write("\n\n")                    
+                    elif row == 'UTF':
+                        f.write("SecAction \"phase:1,id:'981216',t:none,nolog,pass,setvar:tx.crs_validate_utf8_encoding=1\""+"\n")
+                        f.write("\n\n")                    
+                    elif row == 'XML':
+                        f.write("SecRule REQUEST_HEADERS:Content-Type \"text/xml\" \"chain,phase:1,id:'981053',t:none,t:lowercase,pass,nolog\""+"\n")
+                        f.write("SecRule REQBODY_PROCESSOR \"!@streq XML\" \"ctl:requestBodyProcessor=XML\""+"\n")
+                        f.write("\n\n")                    
+                    elif row == 'BodyAccess':
+                        f.write("SecRequestBodyAccess On"+"\n")        
+                        f.write("\n\n")
+                    elif row == 'max_num_args':
+                        if dataPosted[row] == '':
+                            f.write("#SecAction \"phase:1,id:'981211',t:none,nolog,pass,setvar:tx.max_num_args=\""+"\n")
+                        else:
+                            f.write("SecAction \"phase:1,id:'981211',t:none,nolog,pass,setvar:tx.max_num_args="+dataPosted[row]+"\""+"\n")
+                    elif row == 'arg_name_length':
+                        if dataPosted[row] == '':
+                            f.write("#SecAction \"phase:1,t:none,nolog,pass,setvar:tx.arg_name_length=100\""+"\n")
+                        else:
+                            f.write("SecAction \"phase:1,t:none,nolog,pass,setvar:tx.arg_name_length="+dataPosted[row]+"\""+"\n")
+                    elif row == 'arg_length':
+                        if dataPosted[row] == '':
+                            f.write("#SecAction \"phase:1,t:none,nolog,pass,setvar:tx.arg_length=400\""+"\n")
+                        else:
+                            f.write("SecAction \"phase:1,t:none,nolog,pass,setvar:tx.arg_length="+dataPosted[row]+"\""+"\n")
+                    elif row == 'total_arg_length':
+                        if dataPosted[row] == '':
+                            f.write("#SecAction \"phase:1,t:none,nolog,pass,setvar:tx.total_arg_length=64000\""+"\n")
+                        else:
+                            f.write("SecAction \"phase:1,t:none,nolog,pass,setvar:tx.total_arg_length="+dataPosted[row]+"\""+"\n")
+                    elif row == 'max_file_size':
+                        if dataPosted[row] == '':
+                            f.write("#SecAction \"phase:1,t:none,nolog,pass,setvar:tx.max_file_size=1048576\""+"\n")
+                        else:
+                            f.write("SecAction \"phase:1,t:none,nolog,pass,setvar:tx.max_file_size="+dataPosted[row]+"\""+"\n")
+                    elif row == 'combined_file_size':
+                        if dataPosted[row] == '':
+                            f.write("#SecAction \"phase:1,t:none,nolog,pass,setvar:tx.combined_file_sizes=1048576\""+"\n")
+                        else:
+                            f.write("SecAction \"phase:1,t:none,nolog,pass,setvar:tx.combined_file_sizes="+dataPosted[row]+"\""+"\n")
+                    elif row == 'allowed_http':
+                        f.write("SecAction \"phase:1,id:'981212',t:none,nolog,pass, setvar:'tx.allowed_methods="+dataPosted['allowed_http']+"', setvar:'tx.allowed_request_content_type="+dataPosted['allowed_content_type']+"', setvar:'tx.allowed_http_versions="+dataPosted['allowed_http_version']+"', setvar:'tx.restricted_extensions="+dataPosted['restricted_extensions']+"', setvar:'tx.restricted_headers="+dataPosted['restricted_headers']+"'\""+"\n")
+                        f.write("\n\n")             
+                    elif row == 'BT_activated':
+                        f.write("SecAction \"phase:1,id:'981214',t:none,nolog,pass, setvar:'tx.brute_force_protected_urls="+dataPosted['protected_urls']+"', setvar:'tx.brute_force_burst_time_slice="+dataPosted['BT_burst_time_slice']+"', setvar:'tx.brute_force_counter_threshold="+dataPosted['BT_counter_threshold']+"', setvar:'tx.brute_force_block_timeout="+dataPosted['BT_block_timeout']+"'\""+"\n")
+                    elif row == 'DoS_activated':
+                        f.write("SecAction \"phase:1,id:'981215',t:none,nolog,pass, setvar:'tx.dos_burst_time_slice="+dataPosted['DoS_burst_time_slice']+"', setvar:'tx.dos_counter_threshold="+dataPosted['DoS_counter_threshold']+"', setvar:'tx.dos_block_timeout="+dataPosted['DoS_block_timeout']+"'\""+"\n")
+                    elif row == 'Custom':
+                        f.write(dataPosted[row]+"\n")
+                #deal with directories
+            directory = {}
+            directory['base_rules/'] = 'securitybase'
+            directory['experimental_rules/'] = 'securityexp'
+            directory['optional_rules/'] = 'securityopt'
+            directory['slr_rules/'] = 'securityslr'
+            
+            
+            
+            #create directory for app conf if needed
+            if not os.path.exists(path+'activated/'+appdirname):
+                os.mkdir(path+'activated/'+appdirname,0770)
+            #os.popen("mkdir -p "+path+"activated/"+appdirname)
+                
+            for key, v in directory.iteritems():
+                value = request.POST.getlist(v)
+                for init in form.fields[v].initial:
+                    found = 0
+                    for val in value:
+                        if init == val:
+                            found = 1
+                            break
+                    if found == 0:
+                        os.remove(path+"activated/"+appdirname+"/"+init)
+                        #os.popen("rm "+path+"activated/"+appdirname+"/"+init)
+                for val in value:
+                    os.popen("ln -s "+path+key+val+" "+path+"activated/"+appdirname+"/"+val)
+            os.popen("ln -s "+path+"CUSTOM/"+appdirname+"/vulture-"+appdirname+".conf "+path+"activated/"+appdirname+"/vulture-"+appdirname+".conf")
+            os.popen("ln -s "+path+"base_rules/*.data "+path+"activated/"+appdirname+"/")
+            os.popen("ln -s "+path+"optional_rules/*.data "+path+"activated/"+appdirname+"/")
+            os.popen("ln -s "+path+"experimental_rules/*.data "+path+"activated/"+appdirname+"/")
+            os.popen("ln -s "+path+"slr_rules/*.data "+path+"activated/"+appdirname+"/")
+        else:
+            if os.path.exists(path+"activated/"+appdirname+"/"):
+                for removefile in os.listdir(path+"activated/"+appdirname+"/"):
+                    os.remove(path+"activated/"+appdirname+"/"+removefile)
+
+        
         #Writing new ones
         for data in dataPosted:
+
             m = re.match('header_id-(\d+)',data)
             if m != None:
                 id = m.group(1)
@@ -219,8 +354,10 @@ def edit_app(request,object_id=None):
                         instance.save()
         #form.save_m2m()
 
-        return HttpResponseRedirect('/app/')
 
+        return HttpResponseRedirect('/app/')
+    #if request.method == 'POST' and not form.is_valid():
+     #   return HttpResponseRedirect('/intf/')
     return render_to_response('vulture/app_form.html', {'form': form, 'user' : request.user})
 
 @permission_required('vulture.add_app')
@@ -464,3 +601,12 @@ def export_import_config (request, type):
         else:
             content = 'You had not specify type'
     return render_to_response('vulture/exportimport_form.html', {'type': type, 'path': path, 'content': content})
+    
+@login_required    
+def edit_security (request):
+
+    if request.method == 'POST':
+        return HttpResponseRedirect('/security')
+    else:
+        form = ModSecurityForm()
+        return render_to_response('vulture/modsecurity_form.html', {'form' : form, })

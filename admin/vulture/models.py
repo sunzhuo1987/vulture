@@ -400,7 +400,8 @@ class ModSecurity(models.Model):
         return self.name
     class Meta:
         db_table = 'modsecurity'
-
+  
+        
 class SSO(models.Model):
     SSO_TYPES = (
         ('sso_forward_htaccess', 'sso_forward_htaccess'),
@@ -490,6 +491,14 @@ class App(models.Model):
         ('redirect', 'redirect'),
         ('script', 'script'),
         )
+    MS_ACTIONS = (
+        ('Log_Only','Log Only'),
+        ('Log_Block','Log And Block'),
+        )
+    MOTOR = (
+        ('Anomaly','Anomaly Scoring Block Mode'),
+        ('Traditional','Traditional Block Mode'),
+        )
     name = models.CharField(max_length=128,unique=1)
     alias = models.CharField(max_length=128, blank=1, null=1)
     url = models.CharField(max_length=256)
@@ -533,6 +542,43 @@ class App(models.Model):
     sso_learning_ext = models.CharField(max_length=128,null=1,blank=1)
     secondary_authentification_failure_action = models.CharField(max_length=128, blank=1, null=1, choices=ACTIONS, default='nothing')
     secondary_authentification_failure_options = models.CharField(max_length=128, blank=1, null=1)
+    version = models.CharField(max_length=128,blank=1, null=1)
+    action = models.CharField(max_length=128, choices=MS_ACTIONS, default='Log_Block')
+    motor = models.CharField(max_length=128, choices=MOTOR, default='Anomaly')
+    paranoid = models.BooleanField()
+    UTF = models.BooleanField()
+    XML = models.BooleanField()
+    BodyAccess = models.BooleanField()
+    critical_score = models.CharField(max_length=128,blank=1, null=1, default=5)
+    error_score = models.CharField(max_length=128,blank=1, null=1,default=4)
+    warning_score = models.CharField(max_length=128,blank=1, null=1,default=3)
+    notice_score = models.CharField(max_length=128,blank=1, null=1,default=2)
+    inbound_score = models.CharField(max_length=128,blank=1, null=1,default=5)
+    outbound_score = models.CharField(max_length=128,blank=1, null=1,default=4)
+    max_num_args = models.CharField(max_length=128,blank=1, null=1)
+    arg_name_length = models.CharField(max_length=128,blank=1, null=1)
+    arg_length = models.CharField(max_length=128,blank=1, null=1)
+    total_arg_length = models.CharField(max_length=128,blank=1, null=1)
+    max_file_size = models.CharField(max_length=128,blank=1, null=1)
+    combined_file_size = models.CharField(max_length=128,blank=1, null=1)
+    allowed_http = models.TextField(blank=1, null=1)
+    allowed_content_type = models.TextField(blank=1, null=1)
+    allowed_http_version = models.TextField(blank=1, null=1)
+    restricted_extensions = models.TextField(blank=1, null=1)
+    restricted_headers = models.TextField(blank=1, null=1)
+    BT_activated = models.BooleanField()
+    protected_urls = models.CharField(max_length=128,blank=1, null=1)
+    BT_burst_time_slice = models.CharField(max_length=128,blank=1, null=1,default=60)
+    BT_counter_threshold = models.CharField(max_length=128,blank=1, null=1,default=100)
+    BT_block_timeout = models.CharField(max_length=128,blank=1, null=1,default=600)
+    DoS_activated = models.BooleanField()
+    DoS_burst_time_slice = models.CharField(max_length=128,blank=1, null=1,default=60)
+    DoS_counter_threshold = models.CharField(max_length=128,blank=1, null=1,default=100)
+    DoS_block_timeout = models.CharField(max_length=128,blank=1, null=1,default=600)
+    Custom = models.TextField(blank=1, null=1)
+    MS_Activated = models.BooleanField()
+    
+    
     
     def isWildCard (self):
         return self.alias.startswith('*')

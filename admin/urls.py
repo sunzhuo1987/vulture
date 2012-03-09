@@ -81,7 +81,7 @@ urlpatterns = patterns('',
   (r'^log/(?P<object_id>\d+)/del/$',          'vulture.views.vulture_delete_object_adm', dict({'model': Log}, template_name='vulture/generic_confirm_delete.html', extra_context = dict(category='System', name='Log', url='/log'), post_delete_redirect='/log/')),
   (r'^security/$',                            'vulture.views.vulture_object_list_adm', dict({'queryset': ModSecurity.objects.all()})),
   (r'^security/(?P<object_id>\d+)/$',         'vulture.views.vulture_update_object_adm', dict({'model': ModSecurity}, post_save_redirect='/security')),
-  (r'^security/new/$',                        'vulture.views.vulture_create_object_adm', dict({'model': ModSecurity}, post_save_redirect='/security')),
+  (r'^security/new/$',                        'vulture.views.edit_security'),
   (r'^security/update/$',                     'vulture.views.update_security'),
   (r'^security/(?P<object_id>\d+)/del/$',     'vulture.views.vulture_delete_object_adm', dict({'model': ModSecurity}, template_name='vulture/generic_confirm_delete.html', extra_context = dict(category='Web Firewall', name='Mod_Security', url='/security'), post_delete_redirect='/security/')),
   

@@ -4,6 +4,7 @@ from django import forms
 from django.contrib.auth.models import Permission
 from django.utils.translation import gettext as _
 from django.contrib.auth.forms import UserCreationForm, SetPasswordForm, UserChangeForm
+import os
 import hashlib
 
 class UserProfileForm(UserCreationForm):
@@ -43,8 +44,36 @@ class MyUserChangeForm(UserChangeForm):
         # This is a declared field we really want to be removed
         
 class AppForm(forms.ModelForm):
-    security = forms.ModelMultipleChoiceField(widget=forms.CheckboxSelectMultiple,required=False, queryset=ModSecurity.objects.all())
+    def __init__(self, *args, **kwargs):
+        super(forms.ModelForm, self).__init__(*args, **kwargs)
+        path = settings.CONF_PATH+"security-rules/"
+        directory = {'base_rules/': "securitybase", 'experimental_rules/': "securityexp", 'optional_rules/': "securityopt", 'slr_rules/': "securityslr"}
+    
+        if not os.path.exists(path+'activated/'):
+            os.mkdir(path+'activated/',0770)
+        
+        
+        for (key, fieldname) in directory.items():
+            CHOICES=[]
+            INITIAL={}
+            if os.path.exists(path+key):
+                for fileName in os.listdir(path+key):
+                    if 'data' not in fileName and 'example' not in fileName:
+                        CHOICES.append((fileName,fileName))
+                        if os.path.exists(path+'activated/'+str(self.instance)):
+                            if fileName in os.listdir(path+'activated/'+str(self.instance)):  # Bouh str
+                                INITIAL[fileName] = True
+            
+            self.fields[fieldname].choices = CHOICES
+            self.fields[fieldname].initial = INITIAL
+            
     auth = forms.ModelMultipleChoiceField(required=False, queryset=Auth.objects.all())
+    securitybase = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple,required=False)
+    securityexp = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple,required=False)
+    securityopt = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple,required=False)
+    securityslr = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple,required=False)
+    
+    
 
     def clean_auth(self):
         auth = self.cleaned_data["auth"]
@@ -117,6 +146,9 @@ class SSOForm(forms.ModelForm):
     auth = forms.ModelChoiceField(required=False, queryset=Auth.objects.filter(auth_type__in=['sql','ldap']))
     class Meta:
         model= SSO
+        
+class ModSecurityForm(forms.Form):
+    postresult = forms.CharField(required=False, widget=forms.HiddenInput)
 
 class LocalizationForm(forms.ModelForm):
     class Meta:
