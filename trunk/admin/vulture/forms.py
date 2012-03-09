@@ -48,7 +48,10 @@ class AppForm(forms.ModelForm):
         super(forms.ModelForm, self).__init__(*args, **kwargs)
         path = settings.CONF_PATH+"security-rules/"
         directory = {'base_rules/': "securitybase", 'experimental_rules/': "securityexp", 'optional_rules/': "securityopt", 'slr_rules/': "securityslr"}
-    
+    	
+	if not os.path.exists(path):
+	    os.mkdir(path,0770)
+
         if not os.path.exists(path+'activated/'):
             os.mkdir(path+'activated/',0770)
         

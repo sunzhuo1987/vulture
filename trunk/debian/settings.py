@@ -38,7 +38,7 @@ LoadModule proxy_connect_module	/usr/lib/apache2/modules/mod_proxy_connect.so\n\
 LoadModule setenvif_module	/usr/lib/apache2/modules/mod_setenvif.so\n\
 LoadModule authz_host_module	/usr/lib/apache2/modules/mod_authz_host.so\n\
 LoadModule unique_id_module	/usr/lib/apache2/modules/mod_unique_id.so\n\
-LoadModule security2_module     /opt/vulture/lib/mod_security2.so\n\
+LoadModule security2_module     /usr/lib/apache2/modules/mod_security2.so\n\
 LoadModule auth_kerb_module	/usr/lib/apache2/modules/mod_auth_kerb.so\n\
 \n\
 <IfModule mod_mime.c>\n\
