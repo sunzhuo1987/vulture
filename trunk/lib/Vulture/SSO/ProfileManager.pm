@@ -122,7 +122,7 @@ sub get_profile{
 	        return Apache2::Const::FORBIDDEN if (!$ldap);
 
             #Looking for entry
-	        my $mesg = $ldap->search(base => $ldap_user_ou,
+	        my $mesg = $ldap->search(base => $ldap_user_ou ? $ldap_user_ou : $ldap_base_dn,
 				         scope => $ldap_user_scope,
 				         filter => "(&" . $ldap_user_filter . "(" . $ldap_uid_attr . "=" . $user . "))"
 			             );
@@ -225,7 +225,7 @@ sub set_profile{
         my ($ldap, $ldap_url_attr, $ldap_uid_attr, $ldap_user_ou, $ldap_group_ou, $ldap_user_filter, $ldap_group_filter, $ldap_user_scope, $ldap_group_scope, $ldap_base_dn, $ldap_group_member, $ldap_group_is_dn, $ldap_group_attr) = Core::VultureUtils::get_LDAP_object($log, $dbh, $result->{id_method});
 	    return Apache2::Const::FORBIDDEN if (!$ldap);
 
-        my $mesg = $ldap->search(base => $ldap_user_ou,
+        my $mesg = $ldap->search(base => $ldap_user_ou ? $ldap_user_ou : $ldap_base_dn,
 				         scope => $ldap_user_scope,
 				         filter => "(&" . $ldap_user_filter . "(" . $ldap_uid_attr . "=" . $user . "))"
 			             );
