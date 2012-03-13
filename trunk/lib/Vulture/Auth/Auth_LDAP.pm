@@ -62,9 +62,9 @@ sub checkAuth{
 			 filter => "(&" . $ldap_user_filter . "(" . $ldap_uid_attr . "=" . $user . ")(".$ldap_account_locked_attr."))"
 		     );
 	
-	$object_locked = $mesg_locked->entry(0);
+	my $object_locked = $mesg_locked->entry(0);
 	
-    if (defined($ldap_account_locked_attr) and $mesg_locked->code and !$object_locked){
+    if (defined($ldap_account_locked_attr) and $ldap_account_locked_attr and $mesg_locked->code and !$object_locked){
         $r->pnotes('auth_message' => 'ACCOUNT_LOCKED');
         return Apache2::Const::FORBIDDEN;
     }
@@ -82,7 +82,7 @@ sub checkAuth{
 		 filter => "(&" . $ldap_user_filter . "(" . $ldap_uid_attr . "=" . $user . ")(".$ldap_chpass_attr."))"
 		 );
 	
-	$object_change = $mesg_change->entry(0);
+	my $object_change = $mesg_change->entry(0);
 	
     if($ldap_chpass_attr and $mesg_change->code and !$object_change) {
         $r->pnotes('auth_message' => 'NEED_CHANGE_PASS');
