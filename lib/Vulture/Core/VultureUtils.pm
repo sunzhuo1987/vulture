@@ -194,7 +194,7 @@ sub	get_app {
 
     #Getting ACL
     #$query = "SELECT acl.id, acl.name, auth.auth_type AS acl_type, auth.id_method FROM acl, auth, app WHERE app.id = ? AND acl.id = app.acl_id AND auth.id = acl.auth_id";
-	$query = 'SELECT acl.id, acl.name, auth.auth_type AS acl_type, auth.id_method FROM acl JOIN auth ON acl.id = auth.id JOIN app ON acl.id = app.acl_id WHERE app.id = ?';
+	$query = 'SELECT acl.id, acl.name, auth.auth_type AS acl_type, auth.id_method FROM acl JOIN auth ON acl.auth_id = auth.id JOIN app ON acl.id = app.acl_id WHERE app.id = ?';
     $log->debug($query);
     $sth = $dbh->prepare($query);
 	$sth->execute($ref->{id});
