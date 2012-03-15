@@ -106,6 +106,8 @@ sub handler {
             $module_name = 'Plugin::Plugin_'.uc(@$row[1]);
 			if (uc(@$row[1]) eq "REWRITE") {
 				$options = $row;
+			} else {
+				$options =  @$row[2]; 
 			}
             $options ||= \@result;
 			$log->debug("Load $module_name");
