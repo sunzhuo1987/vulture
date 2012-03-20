@@ -121,6 +121,7 @@
     <sso>
         <name>Web SSO (Single Sign On) name</name>
         <follow_get_redirect>Before sending form data, Vulture GETs the form page. This checkbox avoids the redirection following during this step.</follow_get_redirect>
+	<is_post>Before sending  form data, Vulture will first search for form page to detect random variables needed by authentication (ex: CSRF Protection). If checkbox is checked, Vulture doesn't GET the page et POST directly authentication info to Login URL.</is_post>
         <auth>Referential used for saving profiles data (SQL or LDAP)</auth>
         <table_mapped>Table name which contains profiles data</table_mapped>
         <app_mapped>Field containing app id</app_mapped>

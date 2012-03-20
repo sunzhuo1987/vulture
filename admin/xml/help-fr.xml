@@ -121,6 +121,7 @@
     <sso>
         <name>Nom du Web SSO (Single Sign On)</name>
         <follow_get_redirect>Avant d'envoyer les données du formulaire, Vulture va d'abord chercher la page du formulaire. Cette case permet d'éviter de suivre les redirections lors de cette étape.</follow_get_redirect>
+	<is_post>Avant d'envoyer les données du formulaire, Vulture va d'abord chercher la page du formulaire pour détecter la présence de certaines variables aléatoires nécessaires à l'authentification (ex: Protection CSRF). Si la case est cochée, Vulture ne fait pas cette requête et poste directement les informations d'authentification sur l'URL de login.</is_post>
         <auth>Méthode d'authentification sur lequel repose le Web SSO pour enregistrer les données de profils (SQL ou LDAP)</auth>
         <table_mapped>Nom de la table qui contient les informations de profils</table_mapped>
         <app_mapped>Champ de la table qui correspond à l'identifiant de l'application</app_mapped>

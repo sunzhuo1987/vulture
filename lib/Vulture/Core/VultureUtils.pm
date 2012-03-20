@@ -210,7 +210,7 @@ sub	get_app {
 	$sth->finish();
     
     #Getting SSO
-    $query = "SELECT sso.type, sso.follow_get_redirect FROM sso JOIN app ON sso.id = app.sso_forward_id WHERE app.id=?";
+    $query = "SELECT sso.type, sso.follow_get_redirect, sso.is_post FROM sso JOIN app ON sso.id = app.sso_forward_id WHERE app.id=?";
     $log->debug($query);
 	$sth = $dbh->prepare($query);
 	$sth->execute($ref->{id});
