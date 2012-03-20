@@ -196,13 +196,14 @@ sub forward{
 	#Getting SSO type
 	my $sso_forward_type = $app->{'sso'}->{'type'};
     my $sso_follow_get_redirect = $app->{'sso'}->{'follow_get_redirect'};
+	my $sso_is_post = $app->{'sso'}->{'is_post'};
 	$log->debug("SSO_FORWARD_TYPE=".$sso_forward_type);
 
 	#Setting browser
 	my ($mech, $response, $post_response, $request, $cookies);
-    $mech = WWW::Mechanize::GZip->new;
+        $mech = WWW::Mechanize::GZip->new;
 
-	my $cookies = $r->headers_in->{Cookie};
+	$cookies = $r->headers_in->{Cookie};
     my $cleaned_cookies = '';
     foreach (split(';', $cookies)) {
         if (/([^,; ]+)=([^,; ]+)/) {
@@ -232,8 +233,9 @@ sub forward{
         #Sending Authorization header if needed by SSO forward type
         $request->push_header('Authorization' => "Basic " . encode_base64($user.':'.$password));
     
-    #Get form first then POST infos
-    } else {
+    #Get form first then POST infos, only if we don't wan't to post directly
+    }elsif ((int($sso_is_post) != 1)) {
+	$log->debug("Automatic POST enabled");
         #Push user-agent, etc.
         my $url = URI->new($app->{url}.$app->{logon_url});
         $request = HTTP::Request->new(GET => $url);
@@ -241,35 +243,33 @@ sub forward{
         $request->push_header('User-Agent' => $r->headers_in->{'User-Agent'});
         $mech->delete_header('User-Agent');
         $mech->add_header('User-Agent' => $r->headers_in->{'User-Agent'});
-		my $sth = $dbh->prepare("SELECT name, type, value FROM header WHERE app_id= ?");
-		$sth->execute($app->{id});
-		while (my ($name, $type, $value) = $sth->fetchrow) {
-			if ($type eq "REMOTE_ADDR"){
-				$value = $r->connection->remote_ip;
-			#Nothing to do
-			} elsif ($type eq "CUSTOM"){
-			#Types related to SSL
-			} else {
-				$value = $r->ssl_lookup($headers_vars{$type}) if (exists $headers_vars{$type});
-			}
-			
-			#Try to push custom headers
-			eval {
-			    $request->remove_header($name);
-                $request->push_header($name => $value);
-			    $mech->delete_header($name);
-                $mech->add_header($name => $value);
-				$log->debug("Pushing custom header $name => $value");
-			};
+	my $sth = $dbh->prepare("SELECT name, type, value FROM header WHERE app_id= ?");
+	$sth->execute($app->{id});
+	while (my ($name, $type, $value) = $sth->fetchrow) {
+		if ($type eq "REMOTE_ADDR"){
+			$value = $r->connection->remote_ip;
+		#Nothing to do
+		} elsif ($type eq "CUSTOM"){
+		#Types related to SSL
+		} else {
+			$value = $r->ssl_lookup($headers_vars{$type}) if (exists $headers_vars{$type});
 		}
-		$sth->finish();
-
+			
+		#Try to push custom headers
+		eval {
+		    $request->remove_header($name);
+               	    $request->push_header($name => $value);
+		    $mech->delete_header($name);
+               	    $mech->add_header($name => $value);
+		    $log->debug("Pushing custom header $name => $value");
+		};
+	}
+	$sth->finish();
         #Get the form page if no redirect follow
-        
         if (int($sso_follow_get_redirect) != 1){
 			$mech->max_redirect(0);
         }
-		$mech->add_header('Host' => $r->headers_in->{'Host'});
+	$mech->add_header('Host' => $r->headers_in->{'Host'});
         $response = $mech->get($app->{url}.$app->{logon_url});
 
         $log->debug($response->request->as_string);
@@ -299,10 +299,32 @@ sub forward{
             $request = $form->click();
         }
     }
+    #Direct POST
+    else {
+ 	$log->debug("Direct POST enable: Old way to authenticate user on remote APP");
+	my $post = '';
+	#Getting fields from profile
+        my %results = %{SSO::ProfileManager::get_profile($r, $log, $dbh, $app, $user)};
+	if (%results){
+		while (my ($key, $value) = each(%results)){
+			if ($key eq "cookie") {
+				$cookies = $value;
+				delete($results{$key});
+			}
+			$post .= uri_escape($key)."=".uri_escape($value)."&";
+		}
+		$request = HTTP::Request->new('POST', $app->{url}.$app->{logon_url}, undef, $post);
+		#Setting headers
+		$request->push_header('Content-Type' => 'application/x-www-form-urlencoded');
+		
+	}
+
+    }
+
     $log->debug($cookies);
     #Setting headers for both htaccess and normal way
     #Push user-agent, etc.
-	$request->push_header('User-Agent' => $r->headers_in->{'User-Agent'});
+    $request->push_header('User-Agent' => $r->headers_in->{'User-Agent'});
 
     #Host header
     $request->push_header('Host' => $r->headers_in->{'Host'});
