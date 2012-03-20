@@ -101,7 +101,7 @@ sub handler {
         my @result;
         my $exp = @$row[0];
         
-		if((@result) = ($uri =~ /$exp/)){
+		if((@result) = ($unparsed_uri =~ /$exp/)){
 			$log->debug("Pattern ".$exp." matches with URI");
             $module_name = 'Plugin::Plugin_'.uc(@$row[1]);
 			if (uc(@$row[1]) eq "REWRITE") {
