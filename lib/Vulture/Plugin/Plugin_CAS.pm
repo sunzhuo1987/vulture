@@ -31,15 +31,15 @@ sub plugin{
 
 	#Get parameters	
     $action = @$options[0];
-    
+
     my $url = $req->param('url');
-	$service = $req->param('service');
+	$service = $req->param('service') || $req->param('serviceValidate');
 	$ticket = $req->param('ticket');
 
 	#Get memcached data
 	my (%users);
-	%users = %{Core::VultureUtils::get_memcached('vulture_users_in')};
-        
+	%users = %{Core::VultureUtils::get_memcached('vulture_users_in') || {}};
+
     #CAS Portal doesn't have auth
     my $auths = $intf->{'auth'};
     if(not defined @$auths or not @$auths){
