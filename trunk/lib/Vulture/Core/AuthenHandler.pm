@@ -145,7 +145,13 @@ sub handler:method
                 $users{$session_SSO{username}}->{'ticket_service'} = $service;
                 $users{$session_SSO{username}}->{'ticket_created'} = time();
             }
-            $r->pnotes('url_to_redirect' => $service.'/?ticket='.$st) if defined $service;
+	    if (defined $service) {
+            	if ($service =~ /\?/) {
+			$r->pnotes('url_to_redirect' => $service.'&ticket='.$st);
+		} else {
+			$r->pnotes('url_to_redirect' => $service.'?ticket='.$st);
+		}
+	    }
             Core::VultureUtils::set_memcached('vulture_users_in', \%users);
 
             #Authentified, cookie is valid, let user go and check ACL (next step)
@@ -228,7 +234,14 @@ sub handler:method
             $users{$session_SSO{username}}->{'ticket_service'} = $service;
             $users{$session_SSO{username}}->{'ticket_created'} = time();
         }
-        $r->pnotes('url_to_redirect' => $service.'/?ticket='.$st) if defined $service;
+            if (defined $service) {
+                if ($service =~ /\?/) {
+                        $r->pnotes('url_to_redirect' => $service.'&ticket='.$st);
+                } else {
+                        $r->pnotes('url_to_redirect' => $service.'?ticket='.$st);
+                }
+            }
+
         Core::VultureUtils::set_memcached('vulture_users_in', \%users);
 
         return Apache2::Const::OK;
