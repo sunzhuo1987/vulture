@@ -53,7 +53,7 @@ sub plugin{
     #Logout from Memcached vulture_users_in
     my (%users);
     
-    %users = %{get_memcached('vulture_users_in')};
+    %users = %{get_memcached('vulture_users_in') || {}};
     #$log->debug($users{$session_SSO{username}});
     delete $users{$session_SSO{username}};
     #$log->debug($users{$session_SSO{username}});
