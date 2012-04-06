@@ -24,7 +24,6 @@ use Net::LDAP;
 use DBI;
 use MIME::Base64;
 
-use Data::Dumper;
 
 BEGIN {
     use Exporter ();
@@ -55,7 +54,6 @@ sub get_profile{
 	my $ref = $sth->fetchall_arrayref;
     $sth->finish();
 	foreach my $row (@{$ref}) {
-        $log->debug(Dumper($row));
         my ($var, $type, $need_decryption, $value, $field_prefix, $field_suffix) = @$row;
 		if($type eq 'autologon_user'){
             $return->{$var} = $field_prefix.$user.$field_suffix;

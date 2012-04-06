@@ -28,8 +28,6 @@ use LWP::UserAgent;
 
 use Apache::SSLLookup;
 
-use Data::Dumper;
-
 sub plugin{
     my ($package_name, $r, $log, $dbh, $intf, $app, $options) = @_;
     
@@ -47,16 +45,14 @@ sub plugin{
     
     my (%session_SSO);
     session(\%session_SSO, undef, $session_app{SSO});
-    #$log->debug(Dumper(\%session_app));
-    #$log->debug(Dumper(\%session_SSO));
     
     #Logout from Memcached vulture_users_in
     my (%users);
     
     %users = %{get_memcached('vulture_users_in') || {}};
-    #$log->debug($users{$session_SSO{username}});
+   
     delete $users{$session_SSO{username}};
-    #$log->debug($users{$session_SSO{username}});
+  
     set_memcached('vulture_users_in', \%users);
     
     notify($dbh, undef, $session_SSO{username}, 'deconnection', scalar(keys %users));
@@ -64,7 +60,7 @@ sub plugin{
     
     #Foreach app where user is currently logged in
     foreach my $key (keys %session_SSO){
-	#$log->debug($key);
+
 	
 	#Reject bad app key
 	my @wrong_keys = qw/is_auth username url_to_redirect password SSO last_access_time _session_id random_token/;
@@ -74,7 +70,6 @@ sub plugin{
 	    my (%current_app) = ();
 	    session(\%current_app, undef, $id_app);
 	    
-	    #$log->debug(Dumper(\%current_app));
 	    
 	    #Logout user
 	    $current_app{'is_auth'} = undef;

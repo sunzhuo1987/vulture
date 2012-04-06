@@ -9,7 +9,6 @@ use warnings;
 use Core::VultureUtils qw(&session);
 use Apache2::Const -compile => qw(OK);
 
-use Data::Dumper;
 
 BEGIN {
     use Exporter ();
@@ -38,7 +37,6 @@ sub plugin{
 			
 			#my @list_options = $options;
 			my %hash_options = split /,|=>/, $options;
-			$log->debug(Dumper(\%hash_options));
 			my ($k, $v);
 			while(($k, $v) = each(%hash_options)){
 				#Redirect
