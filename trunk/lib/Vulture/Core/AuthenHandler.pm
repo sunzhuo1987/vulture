@@ -133,7 +133,7 @@ sub handler:method
 			
             #Setting Memcached table
             my (%users);
-            %users = %{Core::VultureUtils::get_memcached('vulture_users_in')};
+            %users = %{Core::VultureUtils::get_memcached('vulture_users_in') or {}};
             $users{$session_SSO{username}} = {'SSO' => $r->pnotes('id_session_SSO')};
 
             #Generate new service ticket
