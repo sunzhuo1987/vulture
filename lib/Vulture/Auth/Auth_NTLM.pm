@@ -30,7 +30,6 @@ use strict ;
 use vars qw{$cache $VERSION %msgflags1 %msgflags2 %msgflags3 %invflags1 %invflags2 %invflags3 $addr $port $debug} ;
 $cache = undef ;
 use MIME::Base64 () ;
-use Authen::Smb 0.95 ;
 use Socket ;
 use mod_perl2 ;
 
@@ -205,7 +204,7 @@ sub checkAuth{
     my $protocol    = $ref->{'protocol'};
 	my $t;
 
-    my $auth_line 	=  $r->headers_in->{'Authorization'} ;
+    my $auth_line 	=  $r->headers_in->{'Authorization'} or {} ;
     my $data	= undef;
     if ($auth_line =~ /^NTLM\s+(.*?)$/i) {
         $data 	= MIME::Base64::decode($1) ;
