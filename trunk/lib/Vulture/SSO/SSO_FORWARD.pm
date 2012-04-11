@@ -147,7 +147,15 @@ sub handle_action{
 	}
 
 	#If no action defined, redirect client to Location header (if defined) or to the /
-	my $redirect = $r->unparsed_uri;
+#	my $redirect = $r->unparsed_uri;
+
+        my $redirect = "http://".$r->hostname;
+        my $rewrite_uri = APR::URI->parse($r->pool, $redirect);
+        $rewrite_uri->scheme('http');
+        $rewrite_uri->scheme('https') if $r->is_https;
+        $rewrite_uri->port($r->get_server_port());
+        $rewrite_uri->path($r->unparsed_uri);
+        $redirect = $rewrite_uri->unparse;
 	if ($response->headers->header('Location')){
 		$redirect = SSO::SSO_FORWARD::rewrite_uri($r,$app,$response->headers->header('Location'),$app->{url}.$app->{logon_url},$log);
 		$log->debug("Changing redirect to $redirect");
