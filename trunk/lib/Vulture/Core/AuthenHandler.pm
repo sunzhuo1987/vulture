@@ -40,7 +40,7 @@ sub get_nonce
     if (!$smbhandle)
     {
         $log->debug("Auth_NTLM: Connect to SMB Server failed (pdc = $pdc bdc = $bdc domain = $domain error = "
-        . Authen::Smb::SMBlib_errno . '/' . Authen::Smb::SMBlib_SMB_Error . ") for " . $r -> uri) ;
+        . Authen::Smb::SMBlib_errno() . '/' . Authen::Smb::SMBlib_SMB_Error() . ") for " . $r -> uri) ;
         return undef;
     }
     $log->debug("Auth_NTLM: get_nonce() -> $nonce");
