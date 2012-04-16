@@ -23,7 +23,7 @@ fi
 export VULTURE_HOME=/opt
 export NAME=vulture
 export TMPDIR=/tmp
-export MEMCACHED="${VULTURE_HOME}/${NAME}/bin/memcached"
+export MEMCACHED="/usr/bin/memcached"
 
 # Source an auxiliary options file if we have one, and pick up OPTIONS,
 if [ -r /etc/sysconfig/${NAME} ] ; then
@@ -36,7 +36,7 @@ RETVAL=0
 function start() {
 	echo -n $"Starting ${NAME}: "
         for i in `ls ${VULTURE_HOME}/${NAME}/conf/*.conf 2> /dev/null`; do
-                daemon "${VULTURE_HOME}/${NAME}/httpd/bin/httpd -f $i"
+                daemon "/usr/sbin/httpd -f $i"
         done
         daemon $MEMCACHED -d -m 512 -l 127.0.0.1 -p 9091 -u apache
         echo
@@ -60,7 +60,7 @@ function stop() {
 function reload() {
 	echo -n "Reloading ${NAME}: "
 	for i in `ls ${VULTURE_HOME}/${NAME}/conf/*.conf 2> /dev/null`; do
-		daemon "${VULTURE_HOME}/${NAME}/httpd/bin/httpd -f $i -k graceful"
+		daemon "/usr/sbin/httpd -f $i -k graceful"
 	done
 	[ $RETVAL -eq 0 ] && success || failure
 	echo
