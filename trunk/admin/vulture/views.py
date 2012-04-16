@@ -19,7 +19,7 @@ from time import sleep
 import datetime
 import time
 import re
-import pylibmc
+import flushmc
 from django.db.models import Q
 from django.db import connection
 import ldap
@@ -64,11 +64,12 @@ def stop_intf(request, intf_id):
     intf = Intf.objects.get(pk=intf_id)
     k_output = intf.k('stop')
     apps = App.objects.filter(intf=intf).all()
-    mc = pylibmc.Client(["127.0.0.1:9091"])
+    mc = flushmc.Client("127.0.0.1",9091)
     for app in apps:
         # Delete memcached records to update config
         mc.delete(app.name + ':app')
 #    sleep(1)
+    mc.close()
     return render_to_response('vulture/intf_list.html',
                               {'object_list': Intf.objects.all(), 'k_output': k_output, 'user' : request.user})
 
@@ -79,10 +80,11 @@ def reload_intf(request, intf_id):
     k_output = intf.k('graceful')
     
     apps = App.objects.filter(intf=intf).all()
-    mc = pylibmc.Client(["127.0.0.1:9091"])
+    mc = flushmc.Client("127.0.0.1",9091)
     for app in apps:
         # Delete memcached records to update config
         mc.delete(app.name + ':app')
+    mc.close()
     return render_to_response('vulture/intf_list.html',
                               {'object_list': Intf.objects.all(), 'k_output': k_output, 'user' : request.user})
                               
@@ -100,10 +102,11 @@ def reload_all_intfs(request):
             else:
                 k_output += 'everything ok'
             apps = App.objects.filter(intf=intf).all()
-            mc = pylibmc.Client(["127.0.0.1:9091"])
+            mc = flushmc.Client("127.0.0.1",9091)
             for app in apps:
                 # Delete memcached records to update config
                 mc.delete(app.name + ':app')
+            mc.close()
     return render_to_response('vulture/intf_list.html', {'object_list': intfs, 'k_output': k_output, 'user' : request.user})
 
 @user_passes_test(lambda u: u.is_staff)
@@ -610,3 +613,4 @@ def edit_security (request):
     else:
         form = ModSecurityForm()
         return render_to_response('vulture/modsecurity_form.html', {'form' : form, })
+
