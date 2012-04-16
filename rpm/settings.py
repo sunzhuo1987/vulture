@@ -22,19 +22,14 @@ FIXTURE_DIRS = (
    '/opt/vulture/admin/fixtures/',
 )
 
-HTTPD_PATH = 'sudo /opt/vulture/httpd/bin/httpd'
+HTTPD_PATH = 'sudo /usr/sbin/httpd'
 BIN_PATH = '/opt/vulture/bin/'
 
 CONF_PATH = '/opt/vulture/conf/'
 DATABASE_PATH = '/opt/vulture/admin/'
-SERVERROOT = '/opt/vulture/httpd'
+SERVERROOT = '/etc/httpd'
 HTTPD_CUSTOM = "\n\
 "
-
-SESSION_COOKIE_SECURE = True
-SESSION_COOKIE_HTTPONLY = True
-SESSION_EXPIRE_AT_BROWSER_CLOSE = True
-
 
 WWW_USER='apache'
 
