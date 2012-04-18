@@ -1,0 +1,326 @@
+diff --exclude=.svn -ru vulture-orig/admin/vulture_httpd.conf vulture-2.0.3/admin/vulture_httpd.conf
+--- vulture-orig/admin/vulture_httpd.conf	2012-04-16 17:21:21.000000000 -0400
++++ vulture-2.0.3/admin/vulture_httpd.conf	2012-04-17 09:07:25.000000000 -0400
+@@ -10,27 +10,35 @@
+ MaxKeepAliveRequests 100
+ KeepAliveTimeout 15
+ 
+-StartServers            5
+-MinSpareServers         5
+-MaxSpareServers         10
+-MaxClients              150
+-MaxRequestsPerChild     1000
++StartServers 5
++MinSpareServers 5
++MaxSpareServers 10
++MaxClients 150
++MaxRequestsPerChild 1000
+ 
+ PidFile {{ VultureConfPath }}{{ intf.id }}.pid
+ 
+ user {{ www_user }}
+ group {{ www_user }}
+ 
+-LoadFile			/usr/lib/libxml2.so.2
++LoadFile                       /usr/lib/libxml2.so.2
++
++LoadModule apreq_module {{ serverroot }}/modules/mod_apreq2.so
+ LoadModule perl_module		{{ serverroot }}/modules/mod_perl.so
+-LoadModule apreq_module    {{ serverroot }}/modules/mod_apreq2.so
++LoadModule setenvif_module	{{ serverroot }}/modules/mod_setenvif.so
++LoadModule alias_module         {{ serverroot }}/modules/mod_alias.so
++LoadModule log_config_module    {{ serverroot }}/modules/mod_log_config.so
++LoadModule ssl_module           {{ serverroot }}/modules/mod_ssl.so
++LoadModule authz_host_module    {{ serverroot }}/modules/mod_authz_host.so
++LoadModule proxy_module		{{ serverroot }}/modules/mod_proxy.so
++LoadModule proxy_ftp_module     {{ serverroot }}/modules/mod_proxy_ftp.so
++LoadModule proxy_http_module    {{ serverroot }}/modules/mod_proxy_http.so
++LoadModule proxy_connect_module {{ serverroot }}/modules/mod_proxy_connect.so
+ {{ httpd_custom|safe }}
+ ## Mod security rules
+-{% if app.security.all %}
+-    LoadModule security2_module     {{ serverroot }}/mod_security2.so\n\
+-{% endif %}
+-
+-SecDataDir {{ VultureConfPath }}security-rules/
++LoadModule security2_module {{ serverroot }}/modules/mod_security2.so
++SecDataDir {{ VultureConfPath }}/security-rules/
++LoadModule unique_id_module	{{ serverroot }}/modules/mod_unique_id.so
+ 
+ PerlSwitches {{ PerlSwitches }}
+ 
+@@ -50,14 +58,14 @@
+ PerlModule Apache2::Reload
+ PerlInitHandler Apache2::Reload
+ 
+-PerlSetVar ReloadAll			Off
++PerlSetVar ReloadAll Off
+ 
+-PerlSetVar VultureDSNv3			dbi:SQLite:dbname={{ dbname }}
+-PerlSetVar VultureID			{{ intf.id }}
+-PerlSetVar VultureAppCookieName		vulture_app
+-PerlSetVar VultureProxyCookieName	vulture_proxy
+-PerlSetVar VultureConfPath          {{ VultureConfPath }}
+-PerlSetVar VultureStaticPath        {{ VultureStaticPath }}
++PerlSetVar VultureDSNv3 dbi:SQLite:dbname={{ dbname }}
++PerlSetVar VultureID {{ intf.id }}
++PerlSetVar VultureAppCookieName vulture_app
++PerlSetVar VultureProxyCookieName vulture_proxy
++PerlSetVar VultureConfPath {{ VultureConfPath }}
++PerlSetVar VultureStaticPath {{ VultureStaticPath }}
+ 
+ Listen {{ intf.ip }}:{{ intf.port }}
+ NameVirtualHost {{ intf.ip }}:{{ intf.port }}
+@@ -68,9 +76,9 @@
+ ErrorLog {{ intf.log.dir|safe }}Vulture-{{ intf.ip|safe }}-error_log
+ 
+ {% if ssl %}
+-    SSLSessionCache dbm:{{ VultureConfPath }}{{ intf.id }}.sslcache
+-    SSLRandomSeed startup builtin
+-    SSLRandomSeed connect builtin
++SSLSessionCache dbm:{{ VultureConfPath }}{{ intf.id }}.sslcache
++SSLRandomSeed startup builtin
++SSLRandomSeed connect builtin
+ {% endif %}
+ 
+ ## Custom defined virtualhost directives for intf
+@@ -81,115 +89,117 @@
+ SetEnvIf Remote_Addr {{ intf.ip|safe }} local
+ 
+ {% for app in app_list %}
+-    <VirtualHost {{ intf.ip|safe }}:{{ intf.port|safe }}>
+-        ServerName {{ app.name|safe }}
+-		{% if app.alias %}
+-		ServerAlias {{ app.alias|safe }}
+-		{% endif %}
+-        LogLevel {{ app.log.level|safe }}
+-        LogFormat {{ app.log.format|safe }} vultureFormat
+-        ErrorLog {{ app.log.dir|safe }}Vulture-{{ app.name|safe }}-error_log
+-        CustomLog {{ app.log.dir|safe }}Vulture-{{ app.name|safe }}-access_log vultureFormat env=!local
+-
+-        SSLProxyEngine On
+-
+-        {% if app.remote_proxy %}
+-            ProxyRemote * {{ app.remote_proxy }}
+-            AllowCONNECT 443
+-        {% endif %}
+-        
+-        {% if app.isWildCard or app.hasHeaderHost %}
+-            ProxyPreserveHost On
+-        {% endif %}
+-        
+-        {% if app.remote_proxy_SSLProxyMachineCertificateFile %}
+-            SSLProxyMachineCertificateFile {{ app.remote_proxy_SSLProxyMachineCertificateFile }}
+-        {% endif %}
+-        {% if app.remote_proxy_SSLProxyCACertificateFile %}
+-            SSLProxyCACertificateFile {{ app.remote_proxy_SSLProxyCACertificateFile }}
+-        {% endif %}
+-        {% if app.remote_proxy_SSLProxyCARevocationFile %}
+-            SSLProxyCARevocationFile  {{ app.remote_proxy_SSLProxyCARevocationFile }}
+-        {% endif %}
+-        {% if app.remote_proxy_SSLProxyVerify %}
+-            SSLProxyVerify {{ app.remote_proxy_SSLProxyVerify }}
+-        {% endif %}
+-
+-        SetHandler perl-script
+-        <Location />
+-            PerlAuthenHandler Core::AuthenHandler
+-            PerlAuthzHandler  Core::AuthzHandler
+-            AuthType basic
+-            AuthName "Please Authenticate"
+-            Require valid-user
+-        </Location>
+-
+-        {% if intf.hasBlackIp %}
+-            PerlPreConnectionHandler Core::PreConnectionHandler
+-        {% endif %}
+-        PerlTransHandler Core::TransHandlerv2
+-        {% if app.hasBlackIp %}
+-        PerlAccessHandler Core::AccessHandler
+-        {% endif %}
+-        PerlFixupHandler Core::FixupHandler
+-        PerlResponseHandler Core::ResponseHandlerv2
+-
+-        {% if intf.cert %}
+-            SSLEngine               On
+-            PerlModule              Apache::SSLLookup
+-
+-            {% if intf.ssl_engine %} 
+-                SSLCryptoDevice {{ intf.ssl_engine }}
+-            {% endif %}
+-            SSLCertificateKeyFile   {{ VultureConfPath }}{{ intf.id }}.key
+-            SSLCertificateFile      {{ VultureConfPath }}{{ intf.id }}.crt
+-            {% if intf.ca %}
+-                SSLCertificateChainFile {{ VultureConfPath }}{{ intf.id }}.chain
+-            {% endif %}
+-            {% if intf.cacert %}
+-                SSLCACertificateFile {{ VultureConfPath }}{{ intf.id}}.cacrt
+-            {% endif %}
+-
+-            {% for auth in app.auth.all %}
+-                {% if auth.is_ssl %}
+-                    SSLCACertificateFile {{ VultureConfPath }}{{ intf.id }}-{{ app.name }}.ca
+-                {% endif %}
+-            {% endfor %}
+-            SSLOptions              +StdEnvVars
+-        {% endif %}
+-
+-        ## Mod security rules
+-        {% if app.MS_Activated %}
+-            SecWebAppId {{ app.name }}
+-            SecAuditLog {{ app.log.dir|safe }}Vulture-{{ app.name }}-security_log
+-	    Include  {{ VultureConfPath }}security-rules/activated/{{ app.name }}/vulture-{{ app.name }}.conf
+-            Include  {{ VultureConfPath }}security-rules/activated/{{ app.name }}/modsec*.conf
+-        {% endif %}
+-
+-        ProxyRequests Off
+-        ProxyVia Off
+-        ProxyPass	 / {{ app.url }}/
+-        ProxyPassReverse / {{ app.url }}/
+-        {{ app.getCookieDomain }}
+-
+-            {% for auth in app.auth.all %}
+-                {% if auth.is_ssl %}
+-		    SSLVerifyClient {{ auth.getAuth.require }}
+-		    SSLVerifyDepth 1
+-                {% endif %}
+-            {% endfor %}
+-        <Proxy *>
+-            SetHandler perl-script
+-
+-            {% for auth in app.auth.all %}
+-                {% if auth.is_ssl %}
+-                    {{ auth.getAuth.constraint }}
+-                {% endif %}
+-            {% endfor %}
+-        </Proxy>
+-
+-        ## Custom defined virtualhost directives for app
+-        {{ app.virtualhost_directives|safe }}
+-        
+-    </VirtualHost>
++<VirtualHost {{ intf.ip|safe }}:{{ intf.port|safe }}>
++ServerName {{ app.name|safe }}
++{% if app.alias %}
++ServerAlias {{ app.alias|safe }}
++{% endif %}
++LogLevel {{ app.log.level|safe }}
++LogFormat {{ app.log.format|safe }} vultureFormat
++ErrorLog {{ app.log.dir|safe }}Vulture-{{ app.name|safe }}-error_log
++CustomLog {{ app.log.dir|safe }}Vulture-{{ app.name|safe }}-access_log vultureFormat env=!local
++
++SSLProxyEngine On
++
++{% if app.remote_proxy %}
++ProxyRemote * {{ app.remote_proxy }}
++AllowCONNECT 443
++{% endif %}
++
++{% if app.isWildCard or app.hasHeaderHost %}
++ProxyPreserveHost On
++{% endif %}
++
++{% if app.remote_proxy_SSLProxyMachineCertificateFile %}
++SSLProxyMachineCertificateFile {{ app.remote_proxy_SSLProxyMachineCertificateFile }}
++{% endif %}
++{% if app.remote_proxy_SSLProxyCACertificateFile %}
++SSLProxyCACertificateFile {{ app.remote_proxy_SSLProxyCACertificateFile }}
++{% endif %}
++{% if app.remote_proxy_SSLProxyCARevocationFile %}
++SSLProxyCARevocationFile {{ app.remote_proxy_SSLProxyCARevocationFile }}
++{% endif %}
++{% if app.remote_proxy_SSLProxyVerify %}
++SSLProxyVerify {{ app.remote_proxy_SSLProxyVerify }}
++{% endif %}
++
++SetHandler perl-script
++<Location />
++PerlAuthenHandler Core::AuthenHandler
++PerlAuthzHandler Core::AuthzHandler
++AuthType basic
++AuthName "Please Authenticate"
++Require valid-user
++</Location>
++
++{% if intf.hasBlackIp %}
++PerlPreConnectionHandler Core::PreConnectionHandler
++{% endif %}
++PerlTransHandler Core::TransHandlerv2
++{% if app.hasBlackIp %}
++PerlAccessHandler Core::AccessHandler
++{% endif %}
++PerlFixupHandler Core::FixupHandler
++PerlResponseHandler Core::ResponseHandlerv2
++
++{% if intf.cert %}
++SSLEngine On
++PerlModule Apache::SSLLookup
++
++{% if intf.ssl_engine %}
++SSLCryptoDevice {{ intf.ssl_engine }}
++{% endif %}
++SSLCertificateKeyFile {{ VultureConfPath }}{{ intf.id }}.key
++SSLCertificateFile {{ VultureConfPath }}{{ intf.id }}.crt
++{% if intf.ca %}
++SSLCertificateChainFile {{ VultureConfPath }}{{ intf.id }}.chain
++{% endif %}
++{% if intf.cacert %}
++SSLCACertificateFile {{ VultureConfPath }}{{ intf.id}}.cacrt
++{% endif %}
++
++{% for auth in app.auth.all %}
++{% if auth.is_ssl %}
++SSLCACertificateFile {{ VultureConfPath }}{{ intf.id }}-{{ app.name }}.ca
++{% endif %}
+ {% endfor %}
++SSLOptions +StdEnvVars
++{% endif %}
++
++## Mod security rules
++{% if app.MS_Activated %}
++SecWebAppId {{ app.name }}
++SecAuditLog {{ app.log.dir|safe }}Vulture-{{ app.name }}-security_log
++Include {{ VultureConfPath }}security-rules/activated/{{ app.name }}/vulture-{{ app.name }}.conf
++Include {{ VultureConfPath }}security-rules/activated/{{ app.name }}/modsec*.conf
++{% endif %}
++
++ProxyRequests Off
++ProxyVia Off
++ProxyPass / {{ app.url }}/
++ProxyPassReverse / {{ app.url }}/
++{{ app.getCookieDomain }}
++
++{% for auth in app.auth.all %}
++{% if auth.is_ssl %}
++SSLVerifyClient {{ auth.getAuth.require }}
++SSLVerifyDepth 1
++{% endif %}
++{% endfor %}
++<Proxy *>
++SetHandler perl-script
++
++{% for auth in app.auth.all %}
++{% if auth.is_ssl %}
++{{ auth.getAuth.constraint }}
++{% endif %}
++{% endfor %}
++</Proxy>
++
++## Custom defined virtualhost directives for app
++{{ app.virtualhost_directives|safe }}
++
++</VirtualHost>
++{% endfor %}
++
++
+diff --exclude=.svn -ru vulture-orig/bin/update-rules.sh vulture-2.0.3/bin/update-rules.sh
+--- vulture-orig/bin/update-rules.sh	2012-04-16 16:34:19.000000000 -0400
++++ vulture-2.0.3/bin/update-rules.sh	2012-04-17 09:08:12.000000000 -0400
+@@ -8,7 +8,7 @@
+ #######################################
+ #######################################
+ 
+-BASEDIR="/var/www/vulture"
++BASEDIR="/opt/vulture"
+ CONFDIR=$BASEDIR/conf
+ FETCH_SCRIPT=$BASEDIR/bin/rules-updater.pl

@@ -1,9 +1,9 @@
-Requires: openssl vulture-common >= 3.2
+Requires: httpd httpd-devel krb5-devel libapreq2 perl-DBD-MySQL libidn libmcrypt libmcrypt-devel libmemcached libmemcached-devel libpqxx libpqxx-devel memcached memcached-devel mod_auth_kerb mod_perl mod_perl-devel mod_python mod_wsgi mysql mysql-server perl-Apache-Session perl-Authen-Krb5 perl-Authen-Radius perl-BSD-Resource perl-Cache-Memcached perl-Class-Accessor perl-Class-Data-Inheritable perl-Convert-ASN1 perl-Crypt-Blowfish perl-Crypt-CBC perl-Crypt-OpenSSL-AES perl-Crypt-PasswdMD5 perl-Crypt-SSLeay perl-DBD-Pg perl-DBD-SQLite perl-DBI perl-Devel-Symdump perl-Digest-SHA1 perl-IO-Socket-SSL perl-IO-Tty perl-IPC-Run perl-LDAP perl-libapreq2 perl-Net-Daemon perl-Net-LibIDN perl-Net-SSLeay perl-NTLM perl-Params-Validate perl-String-CRC32 perl-Sub-Name perl-WWW-Mechanize python python-devel python-ldap python-memcached python-sqlite sqlite sqlite-devel python-imaging python-hashlib pyOpenSSL libxml2 mod_security
 %define serverroot /opt
 Vendor: Advens
 %define release 1
 %define name vulture
-%define version 2.0.2
+%define version 2.0.3
 AutoReqProv: no
 
 Summary: Vulture Reverse Proxy
@@ -13,55 +13,34 @@ Release: %release
 License: GPL
 Group: System/Servers
 URL: http://www.vultureproject.org
-Buildarch: %{_target_cpu} noarch
+Buildarch: x86_64
 Source0: %{name}-%{version}.tar.bz2
-Source1: http://media.djangoproject.com/releases/1.3/Django-1.3.1.tar.gz
-Source2: http://ovh.dl.sourceforge.net/sourceforge/pyopenssl/pyOpenSSL-0.6.tar.gz
-Patch0: http://arnaud.desmons.free.fr/pyOpenSSL-0.6-pkcs12.patch
-Patch1: http://arnaud.desmons.free.fr/pyOpenSSL-0.6-pkcs12_cafile.patch
-Patch2: http://arnaud.desmons.free.fr/pyOpenSSL-0.6-crl.patch
-Patch3: database_path.patch
-Patch4: lib.patch
-Patch5: PreConnectionHandler.patch
+Patch0: database_path.patch
+Patch1: PreConnectionHandler.patch
+Patch2: vulture-rpm.patch
+Patch3: lib.patch
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
-BuildRequires: perl gcc gcc-c++ sqlite openssl-devel
-%if 0%{?rhel_version} == 501 || 0%{?centos_version} == 504
-BuildRequires: python26 python26-devel
-Requires: python26 python26-ldap
-%else
-BuildRequires: python-devel python
-Requires: python-ldap 
-%endif
-%if ! (0%{?fedora} > 12 || 0%{?rhel} > 5)
-%{!?python_sitelib: %global python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
-%{!?python_sitearch: %global python_sitearch %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(1))")}
-%endif
+BuildRequires: perl
 %description
 Vulture Reverse Proxy
 
 %prep
-%setup -c -a 0 -a 1 -a 2
-%patch0 -p1 -b .old
+%setup -c -a 0
+%patch0 -p0 -b .old
 %patch1 -p0 -b .old
+pwd &&ls
 %patch2 -p0 -b .old
-%patch3 -p0 -b .old
 %ifarch x86_64
-%patch4 -p0 -b .old
+%patch3 -p0 -b .old
 %endif
-%patch5 -p0 -b .old
-
 
 %build
 	rm -rf $RPM_BUILD_ROOT
 
 %install
-     install -d -m0755 $RPM_BUILD_ROOT%{serverroot}/%{name}%{python_sitearch}/
-     cd Django-1.3.1 && PYTHONPATH=$RPM_BUILD_ROOT%{serverroot}/%{name}%{python_sitearch}/ \
-         python setup.py install --prefix=$RPM_BUILD_ROOT%{serverroot}/%{name}/usr
-     cd ../pyOpenSSL-0.6 && PYTHONPATH=$RPM_BUILD_ROOT%{serverroot}/%{name}%{python_sitearch}/ \
-         python setup.py install --prefix=$RPM_BUILD_ROOT%{serverroot}/%{name}/usr
-     cd ../%{name}-%{version}
+     cd %{name}-%{version}
+     ls
      make PREFIX=$RPM_BUILD_ROOT%{serverroot} PREFIXLIB=$RPM_BUILD_ROOT%{serverroot} UID='-o apache' GID='-g apache' install
      rm -f $RPM_BUILD_ROOT%{serverroot}/%{name}/lib/x86_64-linux-thread-multi/perllocal.pod
      rm -f $RPM_BUILD_ROOT%{serverroot}/%{name}/lib/i386-linux-thread-multi/perllocal.pod
@@ -71,9 +50,6 @@ Vulture Reverse Proxy
      %else
      install -m0755 rpm/vulture $RPM_BUILD_ROOT/etc/init.d/vulture
      %endif
-     install -d -m0700 $RPM_BUILD_ROOT/etc/logrotate.d
-     install -m0644 rpm/vulture.logrotate\
-     $RPM_BUILD_ROOT/etc/logrotate.d/vulture
      install -d -m0755 $RPM_BUILD_ROOT%{serverroot}/%{name}
      cp -r admin $RPM_BUILD_ROOT%{serverroot}/%{name}
      install -m0644 rpm/settings.py\
@@ -106,15 +82,15 @@ Vulture Reverse Proxy
 	export PYTHONPATH 
     echo no | python %{serverroot}/%{name}/admin/manage.py syncdb
     if [ -f %{serverroot}/%{name}/admin/vulture/sql/log.sql ] ; then
-        BASE_RULE=`%{serverroot}/%{name}/sqlite/bin/sqlite3 %{serverroot}/%{name}/admin/db "SELECT count(*) from log"`
+        BASE_RULE=`/usr/bin/sqlite3 %{serverroot}/%{name}/admin/db "SELECT count(*) from log"`
         if [ $BASE_RULE = 0 ]; then
-            %{serverroot}/%{name}/sqlite/bin/sqlite3 %{serverroot}/%{name}/admin/db < %{serverroot}/%{name}/admin/vulture/sql/log.sql
+            /usr/bin/sqlite3 %{serverroot}/%{name}/admin/db < %{serverroot}/%{name}/admin/vulture/sql/log.sql
         fi
     fi
     if [ -f %{serverroot}/%{name}/admin/vulture/sql/modsecurity.sql ] ; then
-        BASE_RULE=`%{serverroot}/%{name}/sqlite/bin/sqlite3 %{serverroot}/%{name}/admin/db "SELECT count(*) from modsecurity"`
+        BASE_RULE=`/usr/bin/sqlite3 %{serverroot}/%{name}/admin/db "SELECT count(*) from modsecurity"`
         if [ $BASE_RULE = 0 ]; then
-            %{serverroot}/%{name}/sqlite/bin/sqlite3 %{serverroot}/%{name}/admin/db < %{serverroot}/%{name}/admin/vulture/sql/modsecurity.sql
+            /usr/bin/sqlite3 %{serverroot}/%{name}/admin/db < %{serverroot}/%{name}/admin/vulture/sql/modsecurity.sql
         fi
     fi
     chown apache. %{serverroot}/%{name}/admin/db
@@ -143,6 +119,14 @@ Vulture Reverse Proxy
 		-cert %{serverroot}/%{name}/conf/cacert.pem\
 		-outdir %{serverroot}/%{name}/conf/ -batch
     fi
+    if grep "^apache.*ALL=NOPASSWD:.*/bin/cat,.*/usr/sbin/httpd" /etc/sudoers > /dev/null ; then
+        echo "sudo active"
+    else
+        echo "apache ALL=NOPASSWD:/bin/cat,/usr/sbin/httpd" >> /etc/sudoers
+    fi
+    if ! ( grep '^Defaults:apache.*!requiretty' /etc/sudoers > /dev/null ) ; then
+         echo 'Defaults:apache !requiretty' >> /etc/sudoers
+    fi
 
 %preun
     /etc/init.d/vulture stop
@@ -156,7 +140,6 @@ Vulture Reverse Proxy
 %{serverroot}/%{name}/bin
 %{serverroot}/%{name}/static
 %defattr(-,root,root)
-%{serverroot}/%{name}/usr
 %{serverroot}/%{name}/lib
 /etc/init.d/%{name}
 

@@ -1,6 +1,6 @@
-diff -ruN vulture-2.0.2.ori/lib/Vulture/Core/PreConnectionHandler.pm vulture-2.0.2/lib/Vulture/Core/PreConnectionHandler.pm
---- vulture-2.0.2.ori/lib/Vulture/Core/PreConnectionHandler.pm	2012-01-04 16:08:35.000000000 +0100
-+++ vulture-2.0.2/lib/Vulture/Core/PreConnectionHandler.pm	2012-01-04 16:10:16.000000000 +0100
+diff -ruN vulture-2.0.3.ori/lib/Vulture/Core/PreConnectionHandler.pm vulture-2.0.3/lib/Vulture/Core/PreConnectionHandler.pm
+--- vulture-2.0.3.ori/lib/Vulture/Core/PreConnectionHandler.pm	2012-01-04 16:08:35.000000000 +0100
++++ vulture-2.0.3/lib/Vulture/Core/PreConnectionHandler.pm	2012-01-04 16:10:16.000000000 +0100
 @@ -27,7 +27,7 @@
  	}
  
