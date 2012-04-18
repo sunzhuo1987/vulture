@@ -14,8 +14,6 @@ use Apache2::Response ();
 
 use DBI;
 
-use Module::Load;
-
 use Apache2::Const -compile => qw(OK HTTP_UNAUTHORIZED);
 
 use Core::VultureUtils qw(&session &get_memcached &notify);
@@ -68,7 +66,14 @@ sub handler {
                 my $ret = Apache2::Const::HTTP_UNAUTHORIZED;
 				my $module_name = "ACL::ACL_".uc($app->{'acl'}->{'acl_type'});
 			
-				load $module_name;
+				eval {
+					(my $file = $module_name) =~ s|::|/|g;
+					require $file . '.pm';
+					$module_name->import("checkACL");
+					1;
+				} or do {
+					my $error = $@;
+				};
 				
 				#Get return
 				$ret = $module_name->checkACL($r, $log, $dbh, $app, $user, $app->{'acl'}->{'id_method'});

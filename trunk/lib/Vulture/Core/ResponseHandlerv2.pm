@@ -20,8 +20,6 @@ use SSO::ProfileManager qw(&get_profile);
 
 use Apache::SSLLookup;
 
-use Module::Load;
-
 sub handler {
   	my $r = Apache::SSLLookup->new(shift);
 
@@ -75,8 +73,14 @@ sub handler {
 	if(exists $session_app{SSO_Forwarding}){
 		if(defined $session_app{SSO_Forwarding}){
 			my $module_name = "SSO::SSO_".uc($session_app{SSO_Forwarding});
-
-			load $module_name;
+			eval {
+				(my $file = $module_name) =~ s|::|/|g;
+				require $file . '.pm';
+				$module_name->import("forward");
+				1;
+			} or do {
+				my $error = $@;
+			};
 			
 			#Get return
 			$module_name->forward($r, $log, $dbh, $app, $user, $password);
