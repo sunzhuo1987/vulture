@@ -16,8 +16,6 @@ use Apache2::Access;
 
 use Authen::Smb;
 
-use Module::Load;
-
 use Apache2::Const -compile => qw(OK HTTP_UNAUTHORIZED);
 
 use Core::VultureUtils qw(&session &get_memcached &set_memcached &generate_random_string &notify);
@@ -298,9 +296,15 @@ sub multipleAuth {
 
 	foreach my $row (@$auths) {
 		my $module_name = "Auth::Auth_".uc(@$row[1]);
-
-        $log->debug("Load $module_name");
-		load $module_name;
+		$log->debug("Load $module_name");
+		eval {
+			(my $file = $module_name) =~ s|::|/|g;
+			require $file . '.pm';
+			$module_name->import("checkAuth");
+			1;
+		} or do {
+			my $error = $@;
+		};
 
 		#Get return
 		#for NTML and other authentification method without login or password

@@ -26,8 +26,6 @@ use APR::SockAddr;
 
 use DBI;
 
-use Module::Load;
-
 #All headers variables for SSL
 my %headers_vars = (
 		    2 => 'SSL_CLIENT_I_DN',
@@ -113,7 +111,14 @@ sub handler {
 			$log->debug("Load $module_name");
     
             #Calling associated plugin
-			load $module_name;
+			eval {
+				(my $file = $module_name) =~ s|::|/|g;
+				require $file . '.pm';
+				$module_name->import("plugin");
+				1;
+			} or do {
+				my $error = $@;
+			};
 			
 			#Get return
 			my $ret = $module_name->plugin($r, $log, $dbh, $intf, $app, $options);
@@ -142,7 +147,14 @@ sub handler {
 		$log->debug("Load $module_name");
     
         #Calling associated plugin
-		load $module_name;
+		eval {
+			(my $file = $module_name) =~ s|::|/|g;
+			require $file . '.pm';
+			$module_name->import("plugin");
+			1;
+		} or do {
+			my $error = $@;
+		};
 
 		my $ret = $module_name->plugin($r, $log, $dbh, $intf, $app);
 	}
@@ -160,7 +172,14 @@ sub handler {
 		$log->debug("Load $module_name");
     		$log->debug($header);
 	        #Calling associated plugin
-		load $module_name;
+		eval {
+			(my $file = $module_name) =~ s|::|/|g;
+			require $file . '.pm';
+			$module_name->import("plugin");
+			1;
+		} or do {
+			my $error = $@;
+		};
 		#Get return
 		my $ret = $module_name->plugin($r, $log, $dbh, $intf, $app, $header, $type, $options, $options1);
             
