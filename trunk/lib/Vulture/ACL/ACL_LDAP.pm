@@ -79,7 +79,8 @@ sub checkACL{
 	    $mesg->code and return Apache2::Const::FORBIDDEN;
 	    $object = $mesg->entry(0);
 	    $ldap->unbind;
-	    return Apache2::Const::OK if ($object and $object->dn);	
+	    return Apache2::Const::OK if ($object and $object->dn);
+	    return Apache2::Const::FORBIDDEN;	
     }
 }
 1;
