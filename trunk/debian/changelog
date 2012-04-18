@@ -1,3 +1,13 @@
+vulture (2.0.3) stable; urgency=low
+
+  * now we can choose to use old way to login (Direct Post) on protected app 
+  * New packaging DEB/RPM
+  * New interface to configure mod security
+  * Fix bug
+  * Add possibility to learn credentials with external page
+
+ -- Pierre Quetelart <pierre.quetelart@advens.fr>  Wed, 18 Mar 2012 16:00:00 +0200
+
 vulture (2.0.2) stable; urgency=low
 
   * New user management

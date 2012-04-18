@@ -29,7 +29,6 @@ CONF_PATH = '/var/www/vulture/conf/'
 DATABASE_PATH = '/var/www/vulture/admin/'
 SERVERROOT = '/usr/lib/apache2'
 HTTPD_CUSTOM = "\n\
-LoadModule apreq_module		/usr/lib/apache2/modules/mod_apreq2.so\n\
 LoadModule ssl_module		/usr/lib/apache2/modules/mod_ssl.so\n\
 LoadModule proxy_module		/usr/lib/apache2/modules/mod_proxy.so\n\
 LoadModule proxy_http_module	/usr/lib/apache2/modules/mod_proxy_http.so\n\
