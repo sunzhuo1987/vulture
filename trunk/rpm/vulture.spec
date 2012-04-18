@@ -1,4 +1,4 @@
-Requires: httpd httpd-devel krb5-devel libapreq2 perl-DBD-MySQL libidn libmcrypt libmcrypt-devel libmemcached libmemcached-devel libpqxx libpqxx-devel memcached memcached-devel mod_auth_kerb mod_perl mod_perl-devel mod_python mod_wsgi mysql mysql-server perl-Apache-Session perl-Authen-Krb5 perl-Authen-Radius perl-BSD-Resource perl-Cache-Memcached perl-Class-Accessor perl-Class-Data-Inheritable perl-Convert-ASN1 perl-Crypt-Blowfish perl-Crypt-CBC perl-Crypt-OpenSSL-AES perl-Crypt-PasswdMD5 perl-Crypt-SSLeay perl-DBD-Pg perl-DBD-SQLite perl-DBI perl-Devel-Symdump perl-Digest-SHA1 perl-IO-Socket-SSL perl-IO-Tty perl-IPC-Run perl-LDAP perl-libapreq2 perl-Net-Daemon perl-Net-LibIDN perl-Net-SSLeay perl-NTLM perl-Params-Validate perl-String-CRC32 perl-Sub-Name perl-WWW-Mechanize python python-devel python-ldap python-memcached python-sqlite sqlite sqlite-devel python-imaging python-hashlib pyOpenSSL libxml2 mod_security
+Requires: httpd httpd-devel krb5-devel libapreq2 perl-DBD-MySQL libidn libmcrypt libmcrypt-devel libmemcached libmemcached-devel postgresql postgresql-devel memcached memcached-devel mod_auth_kerb mod_perl mod_perl-devel mod_python mod_wsgi mysql mysql-server perl-Apache-Session perl-Authen-Krb5 perl-Authen-Radius perl-BSD-Resource perl-Cache-Memcached perl-Class-Accessor perl-Class-Data-Inheritable perl-Convert-ASN1 perl-Crypt-Blowfish perl-Crypt-CBC perl-Crypt-OpenSSL-AES perl-Crypt-PasswdMD5 perl-Crypt-SSLeay perl-DBD-Pg perl-DBD-SQLite perl-DBI perl-Devel-Symdump perl-Digest-SHA1 perl-IO-Socket-SSL perl-IO-Tty perl-IPC-Run perl-LDAP perl-libapreq2 perl-Net-Daemon perl-Net-LibIDN perl-Net-SSLeay perl-NTLM perl-Params-Validate perl-String-CRC32 perl-Sub-Name perl-WWW-Mechanize python python-devel python-ldap python-memcached python-sqlite sqlite sqlite-devel python-imaging python-hashlib pyOpenSSL libxml2 mod_security mod_ssl
 %define serverroot /opt
 Vendor: Advens
 %define release 1
@@ -13,12 +13,11 @@ Release: %release
 License: GPL
 Group: System/Servers
 URL: http://www.vultureproject.org
-Buildarch: x86_64
+Buildarch: noarch
 Source0: %{name}-%{version}.tar.bz2
 Patch0: database_path.patch
 Patch1: PreConnectionHandler.patch
 Patch2: vulture-rpm.patch
-Patch3: lib.patch
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildRequires: perl
@@ -29,18 +28,13 @@ Vulture Reverse Proxy
 %setup -c -a 0
 %patch0 -p0 -b .old
 %patch1 -p0 -b .old
-pwd &&ls
 %patch2 -p0 -b .old
-%ifarch x86_64
-%patch3 -p0 -b .old
-%endif
 
 %build
 	rm -rf $RPM_BUILD_ROOT
 
-%install
+%install 
      cd %{name}-%{version}
-     ls
      make PREFIX=$RPM_BUILD_ROOT%{serverroot} PREFIXLIB=$RPM_BUILD_ROOT%{serverroot} UID='-o apache' GID='-g apache' install
      rm -f $RPM_BUILD_ROOT%{serverroot}/%{name}/lib/x86_64-linux-thread-multi/perllocal.pod
      rm -f $RPM_BUILD_ROOT%{serverroot}/%{name}/lib/i386-linux-thread-multi/perllocal.pod
@@ -62,11 +56,25 @@ pwd &&ls
      install -m0644 conf/openssl.cnf\
      $RPM_BUILD_ROOT%{serverroot}/%{name}/conf/openssl.cnf
      install -m0644 debian/aes-encrypt-key.key\
-     $RPM_BUILD_ROOT%{serverroot}/%{name}/conf/aes-encrypt-key.key	
+     $RPM_BUILD_ROOT%{serverroot}/%{name}/conf/aes-encrypt-key.key
+     install -d -m0755 rpm $RPM_BUILD_ROOT%{serverroot}/%{name}/rpm/
+     install -m0755 rpm/*.gz $RPM_BUILD_ROOT%{serverroot}/%{name}/rpm/
+
 %clean
      rm -rf $RPM_BUILD_ROOT
 
+
 %post
+     cd %{serverroot}/%{name}/rpm
+     tar zxf Django-*.tar.gz && cd Django-*/ && python setup.py install
+     cd %{serverroot}/%{name}/rpm
+     tar zxf Apache-SSLLookup-*.tar.gz && cd Apache-SSLLookup-*/ &&
+	perl Makefile.PL CCFLAGS="-I/usr/include/apr-1" && make && make install
+     cd %{serverroot}/%{name}/rpm
+     tar zxf pysqlite-*.tar.gz && cd pysqlite-* && python setup.py install
+     cd %{serverroot}/%{name}/rpm
+     tar zxf Apache2-AuthenNTLM-*.tar.gz && cd Apache2-AuthenNTLM-*/ && 
+	perl Makefile.PL && make && make install
     if [ ! -f %{serverroot}/%{name}/conf/server.crt ]; then
         PATH=$PATH:%{serverroot}/bin openssl req -x509 -newkey rsa:1024 -batch\
         	-out %{serverroot}/%{name}/conf/server.crt\
@@ -127,6 +135,10 @@ pwd &&ls
     if ! ( grep '^Defaults:apache.*!requiretty' /etc/sudoers > /dev/null ) ; then
          echo 'Defaults:apache !requiretty' >> /etc/sudoers
     fi
+    if ( uname -i | grep 'x86_64' > /dev/null ) ; then
+        sed s-"/usr/lib/libxml2.so.2"-"/usr/lib64/libxml2.so.2"-g %{serverroot}/%{name}/admin/vulture_httpd.conf > /tmp/vh.conf && \
+		mv /tmp/vh.conf %{serverroot}/%{name}/admin/vulture_httpd.conf;
+    fi
 
 %preun
     /etc/init.d/vulture stop
@@ -139,6 +151,7 @@ pwd &&ls
 %{serverroot}/%{name}/admin
 %{serverroot}/%{name}/bin
 %{serverroot}/%{name}/static
+%{serverroot}/%{name}/rpm
 %defattr(-,root,root)
 %{serverroot}/%{name}/lib
 /etc/init.d/%{name}
