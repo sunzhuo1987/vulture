@@ -15,6 +15,7 @@ import operator
 import datetime, os, time
 import smtplib
 import os
+import subprocess
 import re
 from random import choice
 from django.utils.translation import ugettext_lazy as _
@@ -164,8 +165,13 @@ class Intf(models.Model):
         return (content == content2)
             
     def pid(self):
-        pid = string.strip(os.popen("sudo /bin/cat %s%s.pid" % (settings.CONF_PATH, self.id)).read())
-        pidof = str(os.popen("pidof %s" % settings.HTTPD_PATH).read()).split()
+	try: 
+		f = open("%s%s.pid" % (settings.CONF_PATH, self.id), "r")
+        	pid = f.read().strip()
+		f.close()
+	    	pidof = str(os.popen("pidof %s" % settings.HTTPD_PATH).read()).split()
+	except:
+		return None
         if len(pidof) and pid not in pidof:
             return None
         return pid
@@ -232,9 +238,14 @@ class Intf(models.Model):
                             return True
                     except:
                         return True
-    
+   
+# send command "cmd" to apache (using httpd.conf of interface 
     def k(self, cmd):
-        return os.popen("%s -f %s%s.conf -k %s 2>&1" % (settings.HTTPD_PATH, settings.CONF_PATH, self.id, cmd)).read()
+	confFile=settings.CONF_PATH+str(self.id)+".conf"
+	proc = subprocess.Popen(settings.HTTPD_PATH.split()+["-f",confFile,"-k",cmd],0,"/usr/bin/sudo",None,subprocess.PIPE,subprocess.PIPE)
+	if proc:
+		return proc.stdout.read()+proc.stderr.read()
+	return "unable to execute "+settings.HTTPD_PATH
         
     def hasBlackIp (self):
         return BlackIP.objects.filter(app__isnull = True)
