@@ -102,6 +102,7 @@ Vulture Reverse Proxy
         fi
     fi
     chown apache. %{serverroot}/%{name}/admin/db
+    chmod 600 %{serveroot}/%{name}/admin/db
     if [ ! -f %{serverroot}/%{name}/conf/cacert.pem ]; then
         openssl req -x509 -days 3650 -newkey rsa:1024 -batch\
         	-out %{serverroot}/%{name}/conf/cacert.pem\
@@ -127,10 +128,10 @@ Vulture Reverse Proxy
 		-cert %{serverroot}/%{name}/conf/cacert.pem\
 		-outdir %{serverroot}/%{name}/conf/ -batch
     fi
-    if grep "^apache.*ALL=NOPASSWD:.*/bin/cat,.*/usr/sbin/httpd" /etc/sudoers > /dev/null ; then
-        echo "sudo active"
-    else
-        echo "apache ALL=NOPASSWD:/bin/cat,/usr/sbin/httpd" >> /etc/sudoers
+    chown -R apache. %{serverroot}/%{name}/conf
+    chmod -R 600 %{serverroot}/%{name}/conf
+    if ! (grep "^apache.*NOPASSWD.*/bin/cat.*/usr/bin/httpd" /etc/sudoers > /dev/null  ) ; then 
+	    echo "apache ALL=NOPASSWD: /bin/cat, /usr/bin/httpd" >> /etc/sudoers
     fi
     if ! ( grep '^Defaults:apache.*!requiretty' /etc/sudoers > /dev/null ) ; then
          echo 'Defaults:apache !requiretty' >> /etc/sudoers

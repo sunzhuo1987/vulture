@@ -202,8 +202,14 @@ def edit_app(request,object_id=None):
     if request.method == 'POST' and form.is_valid():
         
         appdirname = request.POST['name']
+	regex = re.compile("[\w\-\.]+")
+	match = regex.match(appdirname)
+	if not match: 
+		raise ValueError(appdirname+" does not match a valid app name")
+	appdirname=match.group(0)
+
         path = settings.CONF_PATH+"security-rules/"
-        
+       
         dataPosted = request.POST
         #app = form.save(commit=False)
         app = form.save()
@@ -331,7 +337,7 @@ def edit_app(request,object_id=None):
                         os.remove(path+"activated/"+appdirname+"/"+init)
                         #os.popen("rm "+path+"activated/"+appdirname+"/"+init)
                 for val in value:
-                    os.popen("ln -s "+path+key+val+" "+path+"activated/"+appdirname+"/"+val)
+                    os.symlink(path+key+val,path+"activated/"+appdirname+"/"+val)
             os.popen("ln -s "+path+"CUSTOM/"+appdirname+"/vulture-"+appdirname+".conf "+path+"activated/"+appdirname+"/vulture-"+appdirname+".conf")
             os.popen("ln -s "+path+"base_rules/*.data "+path+"activated/"+appdirname+"/")
             os.popen("ln -s "+path+"optional_rules/*.data "+path+"activated/"+appdirname+"/")
@@ -538,7 +544,7 @@ def view_event (request, object_id=None):
     
     query = request.GET
     if 'file' in query:
-        object_id = query['file']
+        object_id = str(int(query['file']))
         cur = connection.cursor()
         cur.execute("SELECT (cast(count(*) as float)/(max(strftime('%%m', timestamp, 'unixepoch')) - min(strftime('%%m', timestamp, 'unixepoch')))) FROM event_logger WHERE app_id = %s AND event_type='connection'",[object_id,])
         stats_month = (cur.fetchone())[0]
@@ -564,15 +570,15 @@ def view_event (request, object_id=None):
         stats_failed_hour = (cur.fetchone())[0]
         cur.close()
     if 'records' in query:
-        records_nb = query['records']
+        records_nb = str(int(query['records']))
     else:
         records_nb = str(100);
     if 'type' in query and query['type'] in type_list:
-        type = query['type']
+        type = query['type'].replace("'","")
     else:
         type = 'error'
     if 'filter' in query:
-        filter = query['filter']
+        filter = query['filter'].replace("'","")
     else:
         filter = ''
 
@@ -581,7 +587,7 @@ def view_event (request, object_id=None):
         log = Log.objects.get (id=app.log_id)
 
         if object_id == str (i):
-            content = os.popen("/usr/bin/tail -n %s %s | grep -e \"%s\" | tac" % (records_nb, log.dir + 'Vulture-' + app.name + '-' + type + '_log', filter)).read() or "Can't read files"
+            content = os.popen("/usr/bin/tail -n '%s' '%s' | grep -e '%s' | tac " % (records_nb, log.dir + 'Vulture-' + app.name.replace("'","") + '-' + type + '_log', filter)).read() or "Can't read files"
             length = len(content.split("\n"))
             selected = 'selected'
         else:
@@ -597,13 +603,27 @@ def export_import_config (request, type):
     path = None
     if 'path' in query:
         path = query['path']
+	argsOK = True
         if type == 'import':
-            content = os.popen("if `/bin/cp %s %s/db`; then echo 'Import database is complete'; fi 2>&1" % (path, settings.DATABASE_PATH)).read()
+		nIN=path
+		nOUT=settings.DATABASE_PATH+"/db"
         elif type == 'export':
-            content = os.popen("if `/bin/cp %s/db %s`; then echo 'Export database is complete'; fi 2>&1" % (settings.DATABASE_PATH, path)).read()
-        else:
-            content = 'You had not specify type'
-    return render_to_response('vulture/exportimport_form.html', {'type': type, 'path': path, 'content': content})
+		nIN=settings.DATABASE_PATH+"/db"
+		nOUT=path
+	else:	
+        	content = 'You had not specify type'
+		argsOK = False
+	if argsOK:
+		try:
+			fIN=open(nIN,"r")
+			fOUT=open(nOUT,"w")
+			fOUT.write(fIN.read())
+			fOUT.close()
+			fIN.close()
+			content=type+" database: complete"
+		except:
+            		content = type+" database: failed"
+	return render_to_response('vulture/exportimport_form.html', {'type': type, 'path': path, 'content': content})
     
 @login_required    
 def edit_security (request):
