@@ -204,7 +204,7 @@ sub handler {
 		    if ($uri =~ /^\/?$dir(.*)$/) {
 			$uri=$1;
 		    }
-		    $proxy_url = $app->{'url'}.$uri;
+		    $proxy_url = $app->{'url'}."/".$uri;
 	    }
 	    $log->debug("proxy = $proxy_url");
 	    
