@@ -132,21 +132,21 @@ sub	get_app {
     return {} unless ($host and $intf and $dbh);
     
     #Use memcached if possible
-	my $obj = get_memcached("$host:app");
-	if ($obj) {
+    my $obj = get_memcached("$host:app");
+    if ($obj) {
         #$query = "SELECT intf.id FROM app, intf, app_intf WHERE app.name = ? AND app_intf.intf_id = intf.id AND app.id = app_intf.app_id";
         $query = 'SELECT intf.id FROM intf JOIN app_intf ON intf.id = app_intf.intf_id JOIN app ON app_intf.app_id = app.id WHERE app.name=?';
-        $log->debug($query);
-		$sth = $dbh->prepare($query);
-		$sth->execute($host);
-		my $var;
-		while ($var = $sth->fetchrow) {
-			if ($var eq $intf) {
-				$obj->{'intf'} = $intf;
-			}
-		}
+	$log->debug($query);
+	$sth = $dbh->prepare($query);
+	$sth->execute($host);
+	my $var;
+	while ($var = $sth->fetchrow) {
+	        if ($var eq $intf) {
+	  	     $obj->{'intf'} = $intf;
+	    }
 	}
-	return $obj if $obj;
+    }
+    return $obj if $obj;
     
     #Getting app and wildcards
     #$query = "SELECT app.id, app.name, app.alias, app.url, app.log_id, app.sso_forward_id AS sso_forward, app.logon_url, app.logout_url, intf.port, app.remote_proxy, app.up, app.auth_basic, app.display_portal, app.canonicalise_url, app.timeout, app.update_access_time FROM app, intf, app_intf WHERE intf.id = ? AND app_intf.intf_id = intf.id AND app.id = app_intf.app_id";
@@ -154,17 +154,17 @@ sub	get_app {
         $log->debug($query);
 	$sth = $dbh->prepare($query);
 	$sth->execute($intf);
-    my $apps = $sth->fetchall_hashref('name');
-    $sth->finish();
+    	my $apps = $sth->fetchall_hashref('name');
+    	$sth->finish();
     
     #Exact matching
-    while ( my ($name, $hashref) = each(%$apps) ) {
+ 	while ( my ($name, $hashref) = each(%$apps) ) {
         
-        if ($name eq $host) {
-            $ref = $apps->{$name};
-            last;
-        }
-    }
+        	if ($name eq $host) {
+            		$ref = $apps->{$name};
+            		last;
+        		}
+    	}
     
     #Wildcard
     unless (defined $ref) {
@@ -188,7 +188,7 @@ sub	get_app {
 	
     #Getting auth
     #$query = "SELECT auth.name, auth.auth_type, auth.id_method FROM auth, auth_multiple WHERE auth_multiple.app_id = ? AND auth_multiple.auth_id = auth.id";
-	$query = ' SELECT auth.name, auth.auth_type, auth.id_method FROM auth JOIN auth_multiple ON auth.id = auth_multiple.auth_id WHERE auth_multiple.app_id = ?';
+    $query = ' SELECT auth.name, auth.auth_type, auth.id_method FROM auth JOIN auth_multiple ON auth.id = auth_multiple.auth_id WHERE auth_multiple.app_id = ?';
     $log->debug($query);
     $ref->{'auth'} = $dbh->selectall_arrayref($query, undef, $ref->{id});
 
@@ -197,24 +197,24 @@ sub	get_app {
 	$query = 'SELECT acl.id, acl.name, auth.auth_type AS acl_type, auth.id_method FROM acl JOIN auth ON acl.auth_id = auth.id JOIN app ON acl.id = app.acl_id WHERE app.id = ?';
     $log->debug($query);
     $sth = $dbh->prepare($query);
-	$sth->execute($ref->{id});
-	$ref->{'acl'} = $sth->fetchrow_hashref;
-	$sth->finish();
+    $sth->execute($ref->{id});
+    $ref->{'acl'} = $sth->fetchrow_hashref;
+    $sth->finish();
     
     #Getting actions
     $query = "SELECT auth_server_failure_action, auth_server_failure_options, account_locked_action, account_locked_options, login_failed_action, login_failed_options, need_change_pass_action, need_change_pass_options, acl_failed_action, acl_failed_options FROM app WHERE app.id = ?";
     $log->debug($query);
     $sth = $dbh->prepare($query);
-	$sth->execute($ref->{id});
+    $sth->execute($ref->{id});
     $ref->{'actions'} = $sth->fetchrow_hashref;
-	$sth->finish();
+    $sth->finish();
     
     #Getting SSO
     $query = "SELECT sso.type, sso.follow_get_redirect, sso.is_post FROM sso JOIN app ON sso.id = app.sso_forward_id WHERE app.id=?";
     $log->debug($query);
-	$sth = $dbh->prepare($query);
-	$sth->execute($ref->{id});
-	$ref->{'sso'} = $sth->fetchrow_hashref;
+    $sth = $dbh->prepare($query);
+    $sth->execute($ref->{id});
+    $ref->{'sso'} = $sth->fetchrow_hashref;
     $sth->finish();
 
     #Caching app if possible 
@@ -228,33 +228,28 @@ sub	get_intf {
     my ($query, $sth, $ref);
     
     #Getting intf
-	$query = "SELECT id, ip, port, ssl_engine, log_id, sso_portal, sso_timeout, sso_update_access_time, cert, key, ca, cas_portal, cas_display_portal, cas_auth_basic AS auth_basic, cas_st_timeout, cas_redirect FROM intf WHERE id = ?";
-	$log->debug($query);
+    $query = "SELECT id, ip, port, ssl_engine, log_id, sso_portal, sso_timeout, sso_update_access_time, cert, key, ca, cas_portal, cas_display_portal, cas_auth_basic AS auth_basic, cas_st_timeout, cas_redirect FROM intf WHERE id = ?";
+    $log->debug($query);
     $sth = $dbh->prepare($query);
-	$sth->execute($intf);
-	$ref = $sth->fetchrow_hashref;
-	$sth->finish();
+    $sth->execute($intf);
+    $ref = $sth->fetchrow_hashref;
+    $sth->finish();
     
     #Getting auth (CAS)
     #$query = "SELECT auth.name, auth.auth_type, auth.id_method FROM auth, intf_auth_multiple WHERE intf_auth_multiple.intf_id = ? AND intf_auth_multiple.auth_id = auth.id";
     $query = 'SELECT auth.name, auth.auth_type, auth.id_method FROM auth JOIN intf_auth_multiple ON auth.id = intf_auth_multiple.auth_id WHERE intf_auth_multiple.intf_id = ?';
-	$log->debug($query);
+    $log->debug($query);
     $ref->{'auth'} = $dbh->selectall_arrayref($query, undef, $ref->{id});
     
     #Getting actions
     $query = "SELECT auth_server_failure_action, auth_server_failure_options, account_locked_action, account_locked_options, login_failed_action, login_failed_options, need_change_pass_action, need_change_pass_options FROM intf WHERE intf.id = ?";
     $log->debug($query);
     $sth = $dbh->prepare($query);
-	$sth->execute($ref->{id});
+    $sth->execute($ref->{id});
     $ref->{'actions'} = $sth->fetchrow_hashref;
-	$sth->finish();
+    $sth->finish();
 	
-
-
-
-
-
-	return $ref;
+    return $ref;
 }
 
 #Getting DB object
@@ -314,14 +309,14 @@ sub get_LDAP_object{
         $ldap_bind_dn, $ldap_bind_password, $ldap_base_dn, 
         $ldap_user_ou, $ldap_user_scope, $ldap_uid_attr, $ldap_user_filter, 
         $ldap_group_ou, $ldap_group_scope, $ldap_group_attr,
-	    $ldap_group_filter, $ldap_group_member, $ldap_group_is_dn,
-	    $ldap_url_attr, $ldap_protocol, $ldap_chpass_attr, $ldap_account_locked_attr) = $sth->fetchrow;
+	$ldap_group_filter, $ldap_group_member, $ldap_group_is_dn,
+	$ldap_url_attr, $ldap_protocol, $ldap_chpass_attr, $ldap_account_locked_attr) = $sth->fetchrow;
 
 	$ldap_cacert_path="/var/www/vulture/conf/cacerts" if ($ldap_cacert_path eq '');
 	$ldap_user_filter = "(|(objectclass=posixAccount)(objectclass=inetOrgPerson)(objectclass=person))"
-	  if ($ldap_user_filter eq '');
+	if ($ldap_user_filter eq '');
 	$ldap_group_filter = "(|(objectclass=posixGroup)(objectclass=group)(objectclass=groupofuniquenames))"
-	  if ($ldap_group_filter eq '');
+	if ($ldap_group_filter eq '');
 
 	my @servers;
 	foreach (split(/,\s*/, $ldap_server)) {
@@ -388,6 +383,7 @@ sub get_style {
     } elsif(uc($type) eq 'LOGOUT'){
         $query .= "logout_tpl_id";
     } else {
+	$log->debug("get_style: unknown type (".uc($type). ")");
         return;
     }
     $log->debug($query);
@@ -429,55 +425,63 @@ sub get_style {
 }
 
 sub get_translations {
-    my ($r, $log, $dbh, $message) = @_;
-        #Error message to translate / Form
-    if($r->headers_in->{'Accept-Language'}){
-        #Splitting Accept-Language headers
-        # Prepare the list of client-acceptable languages
-        my @languages = ();
-        foreach my $tag (split(/,/, $r->headers_in->{'Accept-Language'})) {
-            my ($language, $quality) = split(/\;/, $tag);
-            $quality =~ s/^q=//i if $quality;
-            $quality = 1 unless $quality;
-            next if $quality <= 0;
-            # We want to force the wildcard to be last
-            $quality = 0 if ($language eq '*');
-            # Pushing lowercase language here saves processing later
-            push(@languages, { quality => $quality,
-            language => $language,
-            lclanguage => lc($language) });
-        }
-        @languages = sort { $b->{quality} <=> $a->{quality} } @languages;
+	my ($r, $log, $dbh, $message) = @_;
+	#Error message to translate / Form
+	if(!$r->headers_in->{'Accept-Language'}){
+		$log->debug("get_translation: no Accept-Language header");
+		return;
+	}
+	#Splitting Accept-Language headers
+	# Prepare the list of client-acceptable languages
+	my @languages = ();
+	foreach my $tag (split(/,/, $r->headers_in->{'Accept-Language'})) {
+	    my ($language, $quality) = split(/\;/, $tag);
+	    $quality =~ s/^q=//i if $quality;
+	    $quality = 1 unless $quality;
+	    next if $quality <= 0;
+	    # We want to force the wildcard to be last
+	    $quality = 0 if ($language eq '*');
+	    # Pushing lowercase language here saves processing later
+	    push(@languages, { quality => $quality,
+	    language => $language,
+	    lclanguage => lc($language) });
+	}
+	@languages = sort { $b->{quality} <=> $a->{quality} } @languages;
 
-        my $currentLanguage;
-
-        foreach my $tag (@languages){
-        
-            #Querying data for language accepted by the server
-            my $query = "SELECT count(*) FROM localization WHERE country = '".$tag->{lclanguage}."'";
-            if ($tag->{lclanguage} =~ /^([^-]+)-([^-]+)$/){
-                $query .= " OR country = '".$1."' OR country = '".$2."'";
-            }
-            $log->debug($query);
-            if ($dbh->selectrow_array($query)){
-                $currentLanguage = $tag->{lclanguage};
-                last;
-            }
-        }
-        my $language_query = "country = '".$currentLanguage."'";
-        if ($currentLanguage =~ /^([^-]+)-([^-]+)$/){
-            $language_query .= " OR country = '".$1."' OR country = '".$2."'";
-        }
-        
-        #Message translation
-        my $message_query = "message = 'USER' OR message = 'PASSWORD' OR message = 'APPLICATION'";
-        $message_query .= " OR message = '".$message."'" if defined $message;
-
-        my $query = "SELECT message, translation FROM localization WHERE (".$message_query.") AND (".$language_query.")";        
-        $log->debug($query);
-
-        return $dbh->selectall_hashref($query,'message');
-    }
+	my @arg_tab = ();
+	my $language_query = "country IN ( ";
+	my $c = 0;
+	foreach my $tag (@languages){
+	    #Querying data for language accepted by the server
+	    push(@arg_tab,$tag->{lclanguage} );
+	    $language_query .= "," if $c > 0;
+	    $language_query .= " ? ";
+	    if ($tag->{lclanguage} =~ /^([^-]+)-([^-]+)$/){
+		$language_query .= ", ? , ? ";
+		push(@arg_tab,$1);
+		push(@arg_tab,$2);
+	    }
+	    $c++;
+	}
+	$language_query .= " ) ";
+	#Message translation
+	my $message_query  = "message  IN ( 'USER', 'PASSWORD', 'APPLICATION'";
+	if ( defined $message and $message ne '') {
+		$message_query .= ", ? ";
+		push(@arg_tab,$message);
+	}
+	$message_query .= ")";
+	my $query = "SELECT message, translation FROM localization WHERE ".$language_query." AND ".$message_query; 
+	$log->debug("query: ".$query);
+	my $sth = $dbh->prepare($query);
+	my $c = 0;
+	foreach my $par (@arg_tab){
+	    $sth->bind_param($c,$par);
+	    $log->debug("param ".$c." : ".$par);
+	    $c += 1;
+	}
+	$sth->execute();
+	return $sth->fetchall_hashref('message');
 }
 
 sub generate_random_string
