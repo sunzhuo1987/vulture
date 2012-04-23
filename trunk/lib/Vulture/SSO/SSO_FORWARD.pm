@@ -44,21 +44,25 @@ use URI::Escape;
 sub rewrite_uri { # Rewrite uri for being valid
 	my ($r, $app, $uri, $real_post_url, $log) = @_;
 
+	my $hostname;
+	if ($app->{name} =~ /(.*)\//) {
+		$hostname = $1;
+	}
 	if ($uri !~ /^(http|https):\/\/(.*)/ ) {
 		my $rewrite_uri2 = APR::URI->parse($r->pool, $real_post_url);
 		my $path = $rewrite_uri2->path();
 		if ($uri =~ /^\/(.*)/) {
-			$rewrite_uri2->hostname($app->{'name'});
+			$rewrite_uri2->hostname($hostname);
 			$rewrite_uri2->path($uri);
 		}
 		else {
 			$path =~ s/[^\/]+$/$uri/g;
-			$rewrite_uri2->path($path);	
+			$rewrite_uri2->path($path+"/");	
 		}
 		$uri = $rewrite_uri2->unparse;
 	}
 	my $rewrite_uri = APR::URI->parse($r->pool, $uri);
-	$rewrite_uri->hostname($app->{'name'});
+	$rewrite_uri->hostname($hostname);
 	$rewrite_uri->scheme('http');
 	$rewrite_uri->scheme('https') if $r->is_https;
 	$rewrite_uri->port($r->connection->local_addr->port);
@@ -229,8 +233,13 @@ sub forward{
 
 	#Setting proxy if needed
 	if ($app->{remote_proxy} ne ''){
-		$mech->proxy(['http', 'https'], $app->{remote_proxy});
+               if ($app->{remote_proxy} =~ /\/$/) {
+                       $app->{remote_proxy} = substr($app->{remote_proxy},0, -1);
+               }
+               #$mech->proxy(['http', 'https'], $app->{remote_proxy});
 	}
+       $ENV{HTTPS_PROXY} = $app->{remote_proxy};
+       $ENV{HTTP_PROXY} = $app->{remote_proxy};
 
 	#Just send request with Authorization
 	if($sso_forward_type eq 'sso_forward_htaccess'){
@@ -416,7 +425,12 @@ sub forward{
 
 	#Pre-send cookies to client after parsing
 	foreach my $k (keys %cookies_app){
-		$r->err_headers_out->add('Set-Cookie' => $k."=".$cookies_app{$k}."; domain=".$r->hostname."; path=/");  # Send cookies to browser's client
+		my $path="/";
+		if ($app->{name} =~ /\/(.*)/) {
+			$path="/".$1."/";
+		}
+		$log->debug("path is ".$path);
+		$r->err_headers_out->add('Set-Cookie' => $k."=".$cookies_app{$k}."; domain=".$r->hostname."; path=".$path);  # Send cookies to browser's client
 			$log->debug("PROPAG ".$k."=".$cookies_app{$k});
 	}
 

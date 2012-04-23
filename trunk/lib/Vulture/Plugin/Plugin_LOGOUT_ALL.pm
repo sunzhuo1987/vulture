@@ -37,8 +37,6 @@ sub plugin{
 #Taking user identity
 	my ($id_app) = get_cookie($r->headers_in->{Cookie}, $r->dir_config('VultureAppCookieName').'=([^;]*)') || return Apache2::Const::FORBIDDEN;
     
-    $log->debug($id_app);
-    
     #eval{
     my (%session_app);
     session(\%session_app, undef, $id_app);
@@ -50,9 +48,7 @@ sub plugin{
     my (%users);
     
     %users = %{get_memcached('vulture_users_in') || {}};
-   
     delete $users{$session_SSO{username}};
-  
     set_memcached('vulture_users_in', \%users);
     
     notify($dbh, undef, $session_SSO{username}, 'deconnection', scalar(keys %users));
@@ -60,7 +56,6 @@ sub plugin{
     
     #Foreach app where user is currently logged in
     foreach my $key (keys %session_SSO){
-
 	
 	#Reject bad app key
 	my @wrong_keys = qw/is_auth username url_to_redirect password SSO last_access_time _session_id random_token/;
@@ -122,8 +117,12 @@ sub plugin{
 		    #Fill session with cookies returned by app (for logout)
 		    $session_app{cookie} = $response->headers->header('Set-Cookie');
 		}
+		my $path="/";
+		if ($current_app{app_name} =~ /(.*)\/(.*)/) {
+			$path = $path.$2;
+		}
 		foreach my $k (keys %cookies_app) {
-			$r->err_headers_out->add('Set-Cookie' => $k."=".$cookies_app{$k}."; domain=".$r->hostname()."; path=/");  # Send cookies to browser's client
+			$r->err_headers_out->add('Set-Cookie' => $k."=".$cookies_app{$k}."; domain=".$r->hostname()."; path=".$path."");  # Send cookies to browser's client
 		    $log->debug("PROPAG ".$k."=".$cookies_app{$k});
 		}
 		

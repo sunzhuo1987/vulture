@@ -86,7 +86,8 @@ sub handler {
     my $intf = Core::VultureUtils::get_intf($log, $dbh, $r->dir_config('VultureID'));
     $r->pnotes('intf' => $intf) if defined $intf;
 
-	my $app = Core::VultureUtils::get_app($log, $r->hostname, $dbh, $intf->{id}) if ($unparsed_uri !~ /vulture_app=([^;]*)/);
+	$log->debug("url is ".$r->hostname.$unparsed_uri);
+	my $app = Core::VultureUtils::get_app($log, $r->hostname.$unparsed_uri, $dbh, $intf->{id}) if ($unparsed_uri !~ /vulture_app=([^;]*)/);
 	$r->pnotes('app' => $app) if defined $app;
     
 	#Plugin or Rewrite (according to URI)
@@ -119,7 +120,7 @@ sub handler {
 			} or do {
 				my $error = $@;
 			};
-			
+	
 			#Get return
 			my $ret = $module_name->plugin($r, $log, $dbh, $intf, $app, $options);
             
@@ -147,14 +148,14 @@ sub handler {
 		$log->debug("Load $module_name");
     
         #Calling associated plugin
-		eval {
-			(my $file = $module_name) =~ s|::|/|g;
-			require $file . '.pm';
-			$module_name->import("plugin");
-			1;
-		} or do {
-			my $error = $@;
-		};
+			eval {
+				(my $file = $module_name) =~ s|::|/|g;
+				require $file . '.pm';
+				$module_name->import("plugin");
+				1;
+			} or do {
+				my $error = $@;
+			};
 
 		my $ret = $module_name->plugin($r, $log, $dbh, $intf, $app);
 	}
@@ -172,26 +173,40 @@ sub handler {
 		$log->debug("Load $module_name");
     		$log->debug($header);
 	        #Calling associated plugin
-		eval {
-			(my $file = $module_name) =~ s|::|/|g;
-			require $file . '.pm';
-			$module_name->import("plugin");
-			1;
-		} or do {
-			my $error = $@;
-		};
 		#Get return
+			eval {
+				(my $file = $module_name) =~ s|::|/|g;
+				require $file . '.pm';
+				$module_name->import("plugin");
+				1;
+			} or do {
+				my $error = $@;
+			};
+
 		my $ret = $module_name->plugin($r, $log, $dbh, $intf, $app, $header, $type, $options, $options1);
             
-		}	
+		}
 	#If application exists and is not down, check auth
 	if($app and $app->{'up'} and ($app->{'intf'} eq $r->dir_config('VultureID'))){
 		my $proxy_url;
 	    if ($uri =~ /^(http|https|ftp):\/\//) {
             	$proxy_url = $uri;
 	    } else {
+		    my $dir;
+		    my $hostname = $r->hostname;
+		    if ($app->{name} =~ /$hostname\/?(.*)$/) {
+			$dir=$1;
+			$log->debug("dir = $dir");
+		    }
+		    $log->debug("name $app->{name}");
+		    $log->debug("hostname $hostname");
+		    $log->debug("dir2 = $dir");
+		    if ($uri =~ /^\/?$dir(.*)$/) {
+			$uri=$1;
+		    }
 		    $proxy_url = $app->{'url'}.$uri;
 	    }
+	    $log->debug("proxy = $proxy_url");
 	    
 		#No authentication is needed
     	my $auths = $app->{'auth'};
@@ -287,7 +302,7 @@ sub handler {
 			$r->status(200);
 			
 			#Fill session for SSO Portal
-			$session_app{app_name} = $r->hostname;
+			$session_app{app_name} = $app->{name};
             if($r->pnotes('url_to_redirect')){
                 $session_app{url_to_redirect} = $r->pnotes('url_to_redirect');
             } else {
@@ -312,7 +327,11 @@ sub handler {
                 
                 #Set cookie
 			    #$r->err_headers_out->set('Location' => $rewrite_uri->unparse);
-                $r->err_headers_out->add('Set-Cookie' => $r->dir_config('VultureAppCookieName')."=".$session_app{_session_id}."; path=/; domain=.".$r->hostname);
+		my $dir;
+		if ($app->{name} =~ /\/(.*)/) {
+			$dir=$1;
+		}
+                $r->err_headers_out->add('Set-Cookie' => $r->dir_config('VultureAppCookieName')."=".$session_app{_session_id}."; path=/".$dir."; domain=.".$r->hostname);
                 
                 #Redirect user to SSO portal
                 $r->pnotes('response_content' => '<html><head><meta http-equiv="Refresh" content="0; url='.$rewrite_uri->unparse.'"></head></html>');
@@ -328,13 +347,17 @@ sub handler {
                 #Destroy useless handlers
         		$r->set_handlers(PerlAuthenHandler => undef);
         		$r->set_handlers(PerlAuthzHandler => undef);
-                $r->err_headers_out->add('Set-Cookie' => $r->dir_config('VultureAppCookieName')."=".$session_app{_session_id}."; path=/; domain=.".$r->hostname);
+		my $dir;
+		if ($app->{name} =~ /\/(.*)/) {
+			$dir=$1;
+		}
+                $r->err_headers_out->add('Set-Cookie' => $r->dir_config('VultureAppCookieName')."=".$session_app{_session_id}."; path=/".$dir."; domain=.".$r->hostname);
                 return Apache2::Const::OK;
             }
 		}
 	
 	#SSO Portal
-	} elsif ($r->hostname =~ $intf->{'sso_portal'} or ($unparsed_uri =~ /vulture_app=([^;]*)/ and Core::VultureUtils::get_app($log, $r->hostname, $dbh, $intf->{id}))){
+	} elsif ($r->hostname =~ $intf->{'sso_portal'} or ($unparsed_uri =~ /vulture_app=([^;]*)/ and Core::VultureUtils::get_app($log, $r->hostname.$unparsed_uri, $dbh, $intf->{id}))){
 
 		$log->debug('Entering SSO Portal mode.');
         
@@ -365,8 +388,12 @@ sub handler {
 			$SSO_cookie_name = $session_SSO{_session_id};
 		}
 
+		my $dir="";
+		if ($app->{name} =~ /\/(.*)/) {
+			$dir=$1;
+		}
         #Set cookie for SSO portal
-		$r->err_headers_out->add('Set-Cookie' => $r->dir_config('VultureProxyCookieName')."=".$session_SSO{_session_id}."; path=/; domain=.".$r->hostname);
+		$r->err_headers_out->add('Set-Cookie' => $r->dir_config('VultureProxyCookieName')."=".$session_SSO{_session_id}."; path=/".$dir."; domain=.".$r->hostname);
 
 		$r->pnotes('id_session_SSO' => $SSO_cookie_name);
 		

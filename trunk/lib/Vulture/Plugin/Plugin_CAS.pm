@@ -72,9 +72,12 @@ sub plugin{
         $log->debug("Replacing SSO id");
         $SSO_cookie_name = $session_SSO{_session_id};
         }
-
+	my $path = "/";
+	if ($app->{name} =~ /(.*)\/(.*)/){
+		$path = $path.$2;
+	}
         #Set cookie for SSO portal
-        $r->err_headers_out->add('Set-Cookie' => $r->dir_config('VultureProxyCookieName')."=".$session_SSO{_session_id}."; path=/; domain=".$r->hostname);
+        $r->err_headers_out->add('Set-Cookie' => $r->dir_config('VultureProxyCookieName')."=".$session_SSO{_session_id}."; path=".$path."; domain=".$r->hostname);
 
         $r->pnotes('id_session_SSO' => $SSO_cookie_name);
 

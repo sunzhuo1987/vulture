@@ -114,6 +114,17 @@ class Intf(models.Model):
 
     def conf(self):
         t = get_template("vulture_httpd.conf")
+        dirapp = {}
+        allapp=App.objects.filter(intf=self.id).order_by('name', '-alias')
+        for app in allapp:
+            split=app.name.split("/",1)
+            host=split[0]
+            dir=app
+            if not dirapp.has_key(host):
+                dirapp[host]=[dir]
+            else:
+                dirapp[host]+=[dir]
+
         c = Context({"VultureConfPath" : settings.CONF_PATH,
                      "VultureStaticPath" : settings.MEDIA_ROOT,
                      "PerlSwitches" : settings.PERL_SWITCHES,
@@ -121,7 +132,7 @@ class Intf(models.Model):
                      "serverroot" : settings.SERVERROOT,
                      "www_user" : settings.WWW_USER,
                      "httpd_custom" : settings.HTTPD_CUSTOM,
-                     "app_list" : App.objects.filter(intf=self.id).order_by('name', '-alias'),
+                     "app_list" : dirapp,
                      "intf" : self,
                      })
         return t.render(c)
@@ -238,15 +249,15 @@ class Intf(models.Model):
                             return True
                     except:
                         return True
-   
+          
 # send command "cmd" to apache (using httpd.conf of interface 
-    def k(self, cmd):
+     def k(self, cmd):
 	confFile=settings.CONF_PATH+str(self.id)+".conf"
 	proc = subprocess.Popen(settings.HTTPD_PATH.split()+["-f",confFile,"-k",cmd],0,"/usr/bin/sudo",None,subprocess.PIPE,subprocess.PIPE)
 	if proc:
 		return proc.stdout.read()+proc.stderr.read()
 	return "unable to execute "+settings.HTTPD_PATH
-        
+ 
     def hasBlackIp (self):
         return BlackIP.objects.filter(app__isnull = True)
     
@@ -605,9 +616,19 @@ class App(models.Model):
         p = re.compile ('https?://(.*)/?')
         match=p.match(self.url)
         domain = match.group(1)
+	newdomain = self.name
+	if "/" in newdomain:
+            newdomain=newdomain.split("/",1)[0]
         if domain:
-            return "ProxyPassReverseCookieDomain "+domain+" "+self.name
+            return "ProxyPassReverseCookieDomain "+domain+" "+newdomain
         return " "
+
+    def getCookiePath (self):
+        if "/" in self.name:
+            path = self.name.split("/",1)[1]
+            return "ProxyPassReverseCookiePath / /"+path
+        return " "
+ 
     def __str__(self):
         return self.name
     class Meta:
