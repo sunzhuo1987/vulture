@@ -28,9 +28,8 @@ fi
 cd /var/www/vulture/admin && ./manage.py syncdb --noinput
 chown www-data. /var/www/vulture/admin/db
 chown root. /var/www/vulture/conf/httpd.conf
-chmod 600 /var/www/vulture/conf/httpd.conf
 chown -R www-data. /var/www/vulture/admin/
-chmod -R 600 /var/www/vulture/conf/
+chmod -R 700 /var/www/vulture/conf/
 
 #insert data into database
 if [ -f /var/www/vulture/admin/vulture/sql/log.sql ] ; then
