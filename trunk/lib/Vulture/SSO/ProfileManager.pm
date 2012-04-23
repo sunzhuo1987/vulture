@@ -34,7 +34,7 @@ BEGIN {
 sub get_profile{
     my ($r, $log, $dbh, $app, $user) = @_;
     
-    $log->debug("########## Profile Manager ##########");
+    $log->debug("########## Profile Manager (get_profile) ##########");
     
     $user = $r->pnotes('username') || $r->user;
 	my $password = $r->pnotes('password');
@@ -54,18 +54,18 @@ sub get_profile{
 	my $ref = $sth->fetchall_arrayref;
     $sth->finish();
 	foreach my $row (@{$ref}) {
-        my ($var, $type, $need_decryption, $value, $field_prefix, $field_suffix) = @$row;
-		if($type eq 'autologon_user'){
-            $return->{$var} = $field_prefix.$user.$field_suffix;
-        } elsif($type eq 'autologon_password'){
-            $return->{$var} = $field_prefix.$password.$field_suffix;
-        } else {
-		    if($need_decryption){
-		        $log->debug("Decrypting $var");
-                $value = decrypt(decode_base64($value));
-		    }
-            $return->{$var} = $field_prefix.$value.$field_suffix;        
-        }
+		my ($var, $type, $need_decryption, $value, $field_prefix, $field_suffix) = @$row;
+			if($type eq 'autologon_user'){
+		    $return->{$var} = $field_prefix.$user.$field_suffix;
+		} elsif($type eq 'autologon_password'){
+		    $return->{$var} = $field_prefix.$password.$field_suffix;
+		} else {
+			    if($need_decryption){
+				$log->debug("Decrypting $var");
+			$value = decrypt(decode_base64($value));
+			    }
+		    $return->{$var} = $field_prefix.$value.$field_suffix;        
+		}
 	}
     
     #Getting auth type related to profile manager
@@ -86,10 +86,10 @@ sub get_profile{
         #SQL Database
         if($result->{type} eq 'sql'){
             my ($new_dbh, $ref) = Core::VultureUtils::get_DB_object($log, $dbh, $result->{id_method});
-            my $query = "SELECT * FROM ".$result->{table_mapped}." WHERE ".$result->{app_mapped}."='".$app->{id}."' AND ".$result->{user_mapped}."='".$user."'";
-	        my $sth = $new_dbh->prepare($query);
+            my $query = "SELECT * FROM ".$result->{table_mapped}." WHERE ".$result->{app_mapped}."= ? AND ".$result->{user_mapped}."= ? ";
+	    my $sth = $new_dbh->prepare($query);
             $log->debug($query);
-            $sth->execute;
+            $sth->execute($app->{id}, $user);
             
             $ref = $sth->fetchrow_hashref;
             $sth->finish();
@@ -163,7 +163,7 @@ sub get_profile{
 sub set_profile{
     my($r, $log, $dbh, $app, $user, @fields) = @_;
 
-    $log->debug("########## Profile Manager ##########");
+    $log->debug("########## Profile Manager (set) ##########");
     
     #Getting auth type related to profile manager
     my $sth = $dbh->prepare("SELECT auth.auth_type AS type, auth.id_method, sso.table_mapped, sso.base_dn_mapped, sso.app_mapped, sso.user_mapped FROM auth, sso, app WHERE app.id = ? AND sso.id = app.sso_forward_id AND auth.id = sso.auth_id");
@@ -173,48 +173,54 @@ sub set_profile{
     
     #SQL Database
     if($result->{type} eq 'sql'){
-        #I'm so sorry for this kind of hack. Please forgive me
         my ($new_dbh, $ref) = Core::VultureUtils::get_DB_object($log, $dbh, $result->{id_method});#Pushing values into mapped columns
         
         #Making 2 arrays : columns and values for query
         my $columns;
         my $values;
+	my @arr_vals = ($app->{id} , $user);
         foreach my $field (@fields) {
-		    my ($var, $mapped, $type, $need_encryption, $default_value, $prefix, $suffix, $desc) = @$field;
+		my ($var, $mapped, $type, $need_encryption, $default_value, $prefix, $suffix, $desc) = @$field;
 
-		    #Getting values posted
-		    if(param('vulture_learning') and param($var) and ($type ne 'hidden' and $type ne 'autologon_user' and $type ne 'autologon_password')){
-		        my $value = param($var);
+		#Getting values posted
+		if(param('vulture_learning') and param($var) and ($type ne 'hidden' and $type ne 'autologon_user' and $type ne 'autologon_password')){
+			my $value = param($var);
 		        if($need_encryption){
-                    $log->debug("Encrypting $var");
-                    $value = encode_base64(encrypt($r, $value));
-                }
-                #$log->debug("Pushing ".$prefix.$value.$suffix." into column $mapped");
-                $log->debug("Pushing ".$var." into column $mapped");
-                $columns .= ", ".$mapped;
-                $values .= ", '".$prefix.$value.$suffix."'";
+                    		$log->debug("Encrypting $var");
+                    		$value = encode_base64(encrypt($r, $value));
+                	}	
+                	#$log->debug("Pushing ".$prefix.$value.$suffix." into column $mapped");
+               		$log->debug("Pushing ".$var." into column $mapped");
+                	$columns .= ", ".$mapped;
+                	$values .= ", ?";
+			push @arr_vals , ($prefix.$value.$suffix) ;
+                	#$values .= ", '".$prefix.$value.$suffix."'";
 		    }
-	    }
-        my $query = "SELECT id FROM ".$result->{table_mapped}." WHERE ".$result->{user_mapped}."='".$user."' AND ".$result->{app_mapped}." = '".$app->{id}."'";
-        $log->debug($query);
-        my $res = $new_dbh->selectrow_array($query);
-        
+	}
         #Delete the row before inserting a new one
-        if($res){
-            $query = 'DELETE FROM '.$result->{table_mapped}.' WHERE id = '.$res;
-            $new_dbh->do($query);
-        }
+        my $query = "DELETE FROM ".$result->{table_mapped}." WHERE ".$result->{user_mapped}."= ? AND ".$result->{app_mapped}." = ?";
+        $log->debug($query);
+	$new_dbh->do($query,undef,$user,$app->{id});
+        
         #Insert a row
         $query = 'INSERT INTO '.$result->{table_mapped}.' ( '.$result->{app_mapped}.', '.$result->{user_mapped};
         $query .= $columns;
-        $query .= ") VALUES ( '".$app->{id}."', '".$user."'";
+        $query .= ") VALUES ( ?, ? ";
         $query .= $values;
         $query .= ")";
 
         $log->debug($query);
-        
+        my $sth = $new_dbh->prepare($query);	
+	my $c = 0;
+	foreach  my $par (@arr_vals){
+		$sth->bind_param($c,$par);
+		$c ++;
+	}
         #Return result of insert
-        return $new_dbh->do($query);
+        $sth->execute();
+	my $toret = $sth->rows;
+	$sth->finish();
+	return $toret;
         
     #LDAP
     } elsif($result->{type} eq 'ldap') {
@@ -280,9 +286,9 @@ sub delete_profile{
     if($result->{type} eq 'sql'){
         my ($new_dbh, $ref) = Core::VultureUtils::get_DB_object($log, $dbh, $result->{id_method});
         $log->debug("Deleting values for $user");
-        my $sql = "DELETE FROM ".$result->{table_mapped}." WHERE ".$result->{app_mapped}."='".$app->{id}."' AND ".$result->{user_mapped}."='".$user."'";
+        my $sql = "DELETE FROM ".$result->{table_mapped}." WHERE ".$result->{app_mapped}."= ? AND ".$result->{user_mapped}."= ? ";
         $log->debug($sql);
-        return $dbh->do($sql);
+        return $dbh->do($sql,undef,$app->{id},$user);
     } elsif($result->{type} eq 'ldap') {
         
     } else {
