@@ -251,7 +251,7 @@ class Intf(models.Model):
                         return True
           
 # send command "cmd" to apache (using httpd.conf of interface 
-     def k(self, cmd):
+    def k(self, cmd):
 	confFile=settings.CONF_PATH+str(self.id)+".conf"
 	proc = subprocess.Popen(settings.HTTPD_PATH.split()+["-f",confFile,"-k",cmd],0,"/usr/bin/sudo",None,subprocess.PIPE,subprocess.PIPE)
 	if proc:
