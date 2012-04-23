@@ -202,6 +202,9 @@ def edit_app(request,object_id=None):
     if request.method == 'POST' and form.is_valid():
         
         appdirname = request.POST['name']
+        if "/" in appdirname:
+            listappname=appdirname.split("/")
+            appdirname=listappname[0]+listappname[1]
 	regex = re.compile("[\w\-\.]+")
 	match = regex.match(appdirname)
 	if not match: 
