@@ -577,7 +577,7 @@ def view_event (request, object_id=None):
     else:
         records_nb = str(100);
     if 'type' in query and query['type'] in type_list:
-        type = query['type'].replace("'","")
+        type = query['type']
     else:
         type = 'error'
     if 'filter' in query:
@@ -590,7 +590,7 @@ def view_event (request, object_id=None):
         log = Log.objects.get (id=app.log_id)
 
         if object_id == str (i):
-            content = os.popen("/usr/bin/tail -n '%s' '%s' | grep -e '%s' | tac " % (records_nb, log.dir + 'Vulture-' + app.name.replace("'","") + '-' + type + '_log', filter)).read() or "Can't read files"
+            content = os.popen("/usr/bin/tail -n '%s' '%s' | grep -e '%s' | tac " % (records_nb, (log.dir + 'Vulture-' + app.name + '-' + type + '_log'), filter)).read() or "Can't read files"
             length = len(content.split("\n"))
             selected = 'selected'
         else:
@@ -613,6 +613,8 @@ def export_import_config (request, type):
         elif type == 'export':
 		nIN=settings.DATABASE_PATH+"/db"
 		nOUT=path
+		if os.path.exists(path):
+			argsOK = False
 	else:	
         	content = 'You had not specify type'
 		argsOK = False
