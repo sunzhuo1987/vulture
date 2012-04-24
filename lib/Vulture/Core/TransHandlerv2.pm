@@ -201,7 +201,7 @@ sub handler {
 		    $log->debug("name $app->{name}");
 		    $log->debug("hostname $hostname");
 		    $log->debug("dir2 = $dir");
-		    if ($uri =~ /^\/?$dir(.*)$/) {
+		    if ($uri =~ /^\/?$dir\/(.*)$/) {
 			$uri=$1;
 		    }
 		    $proxy_url = $app->{'url'}."/".$uri;
