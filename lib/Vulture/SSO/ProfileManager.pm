@@ -211,7 +211,7 @@ sub set_profile{
 
         $log->debug($query);
         my $sth = $new_dbh->prepare($query);	
-	my $c = 0;
+	my $c = 1;
 	foreach  my $par (@arr_vals){
 		$sth->bind_param($c,$par);
 		$c ++;
