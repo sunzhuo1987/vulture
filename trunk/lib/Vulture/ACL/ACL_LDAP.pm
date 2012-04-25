@@ -18,6 +18,7 @@ use Apache2::Log;
 use DBI;
 
 use Net::LDAP;
+use Net::LDAP::Util;
 
 use Apache2::Const -compile => qw(OK FORBIDDEN);
 
@@ -27,7 +28,7 @@ sub checkACL{
 	my ($package_name, $r, $log, $dbh, $app, $user, $id_method) = @_;
 
 	$log->debug("########## ACL_LDAP ##########");
-
+	$user = Net::LDAP::Util::escape_filter_value($user);
     my $query = "SELECT count(*) FROM userok,acl_userok WHERE acl_userok.acl_id = ? AND userok.user=?";
 	$log->debug($query);
 
