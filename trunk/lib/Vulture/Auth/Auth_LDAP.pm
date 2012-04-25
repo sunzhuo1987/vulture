@@ -18,6 +18,7 @@ use Apache2::Log;
 use DBI;
 
 use Net::LDAP;
+use Net::LDAP::Util;
 
 use Apache2::Const -compile => qw(OK FORBIDDEN);
 
@@ -34,6 +35,7 @@ sub checkAuth{
         $r->pnotes('auth_message' => 'AUTH_SERVER_FAILURE');
         return Apache2::Const::FORBIDDEN;
     }
+	$user = Net::LDAP::Util::escape_filter_value($user) ;
 
 	my $mesg = $ldap->search(base => $ldap_user_ou ? $ldap_user_ou : $ldap_base_dn,
 				 scope => $ldap_user_scope,
