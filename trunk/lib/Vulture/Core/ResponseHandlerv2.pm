@@ -19,6 +19,7 @@ use Core::VultureUtils qw(&session &get_style &get_translations &generate_random
 use SSO::ProfileManager qw(&get_profile);
 
 use Apache::SSLLookup;
+use HTML::Entities;
 
 sub handler {
   	my $r = Apache::SSLLookup->new(shift);
@@ -231,7 +232,7 @@ sub display_auth_form {
     
     #Get style
     my $form = "<div id=\"form_vulture\"><form method=\"POST\" name=\"auth_form\" action=\"$uri\"><table>";
-    $form .= "<tr class=\"row\"><td></td><td class=\"hidden\" name=\"service\" value=\"$service\"></td></tr>" if defined $service;
+    $form .= "<tr class=\"row\"><td></td><td class=\"hidden\" name=\"service\" value=\"".encode_entities($service)."\"></td></tr>" if defined $service;
     $form .= <<FOO
 <tr class="row"><td class="input">$translations->{'USER'}{'translation'}</td><td><input type="text" name="vulture_login"></td></tr>
 <tr class="row"><td class="input">$translations->{'PASSWORD'}{'translation'}</td><td><input type="password" autocomplete="off" name="vulture_password"></td></tr>
