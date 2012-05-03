@@ -30,7 +30,9 @@ MEMCACHED=/usr/bin/memcached
 case "$1" in
   start)
 	echo -n "Starting $NAME: ";
-	for i in `ls $Vulture_HOME/$NAME/conf/*.conf 2> /dev/null`; do 
+	$APACHE -f $Vulture_HOME/$NAME/conf/httpd.conf;
+	python "${Vulture_HOME}/${NAME}/conf/vintf_startup.py" up
+	for i in `ls $Vulture_HOME/$NAME/conf/*.conf 2> /dev/null | grep -v 'httpd.conf$'`; do 
 		$APACHE -f $i;
 	done
 	$MEMCACHED -d -m 512 -l 127.0.0.1 -p 9091 -u www-data
@@ -41,6 +43,7 @@ case "$1" in
 	for i in `ls $Vulture_HOME/$NAME/conf/*.pid 2> /dev/null`; do 
 		kill `cat $i` 
 	done;
+	python "${Vulture_HOME}/${NAME}/conf/vintf_startup.py" down
 	kill -12 `pidof $MEMCACHED`
 	echo "." 
 	;;
@@ -51,6 +54,7 @@ case "$1" in
 	;;
   reload)
 	echo -n "Reloading ${NAME}: "
+	python "${Vulture_HOME}/${NAME}/conf/vintf_startup.py" up
 	for i in `ls $Vulture_HOME/$NAME/conf/*.conf 2> /dev/null`; do
 		$APACHE -f $i -k graceful;
 	done

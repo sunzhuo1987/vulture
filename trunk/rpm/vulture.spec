@@ -53,6 +53,8 @@ Vulture Reverse Proxy
      $RPM_BUILD_ROOT%{serverroot}/%{name}/conf/httpd.conf
      install -m0644 rpm/vulture.wsgi\
      $RPM_BUILD_ROOT%{serverroot}/%{name}/conf/vulture.wsgi
+     install -m0644 rpm/vintf_startup.py\
+     $RPM_BUILD_ROOT%{serverroot}/%{name}/conf/vintf_startup.py
      install -m0644 conf/openssl.cnf\
      $RPM_BUILD_ROOT%{serverroot}/%{name}/conf/openssl.cnf
      install -m0644 debian/aes-encrypt-key.key\
@@ -85,10 +87,10 @@ Vulture Reverse Proxy
         cat %{serverroot}/%{name}/conf/server.key %{serverroot}/%{name}/conf/server.crt > %{serverroot}/%{name}/conf/server.pem
     fi
     /sbin/chkconfig --add vulture
-    /etc/init.d/vulture start
 	PYTHONPATH=$PYTHONPATH:%{serverroot}/%{name}%{python_sitearch}/:%{serverroot}/%{name}%{python_sitelib}/
 	export PYTHONPATH 
     echo no | python %{serverroot}/%{name}/admin/manage.py syncdb
+    /etc/init.d/vulture start
     if [ -f %{serverroot}/%{name}/admin/vulture/sql/log.sql ] ; then
         BASE_RULE=`/usr/bin/sqlite3 %{serverroot}/%{name}/admin/db "SELECT count(*) from log"`
         if [ $BASE_RULE = 0 ]; then
@@ -102,7 +104,7 @@ Vulture Reverse Proxy
         fi
     fi
     chown apache. %{serverroot}/%{name}/admin/db
-    chmod 600 %{serveroot}/%{name}/admin/db
+    chmod 600 %{serverroot}/%{name}/admin/db
     if [ ! -f %{serverroot}/%{name}/conf/cacert.pem ]; then
         openssl req -x509 -days 3650 -newkey rsa:1024 -batch\
         	-out %{serverroot}/%{name}/conf/cacert.pem\
@@ -129,9 +131,9 @@ Vulture Reverse Proxy
 		-outdir %{serverroot}/%{name}/conf/ -batch
     fi
     chown -R apache. %{serverroot}/%{name}/conf
-    chmod -R 600 %{serverroot}/%{name}/conf
-    if ! (grep "^apache.*NOPASSWD.*/bin/cat.*/usr/bin/httpd" /etc/sudoers > /dev/null  ) ; then 
-	    echo "apache ALL=NOPASSWD: /bin/cat, /usr/bin/httpd" >> /etc/sudoers
+    chmod -R 700 %{serverroot}/%{name}/conf
+    if ! (grep "^apache.*NOPASSWD.*/bin/cat.*/usr/sbin/httpd.*/sbin/ifconfig" /etc/sudoers > /dev/null  ) ; then 
+	    echo "apache ALL=NOPASSWD: /bin/cat, /usr/sbin/httpd, /sbin/ifconfig" >> /etc/sudoers
     fi
     if ! ( grep '^Defaults:apache.*!requiretty' /etc/sudoers > /dev/null ) ; then
          echo 'Defaults:apache !requiretty' >> /etc/sudoers
