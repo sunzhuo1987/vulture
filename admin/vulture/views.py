@@ -51,6 +51,126 @@ def update_security(request):
     return render_to_response('vulture/modsecurity_list.html',
                               {'object_list': ModSecurity.objects.all(), 'k_output': k_output, 'user' : request.user })
 
+def edit_intf(request,object_id=None):
+    form = IntfForm(request.POST or None,instance = object_id and Intf.objects.get(id=object_id))
+    if object_id:
+        intf = Intf.objects.get(id = object_id)
+        name = intf.name
+        ip = intf.ip
+        port = intf.port
+        ssl_engine = intf.ssl_engine
+        log = intf.log
+        sso_portal = intf.sso_portal
+        sso_timeout = intf.sso_timeout
+        sso_update_access_time = intf.sso_update_access_time
+        appearance = intf.appearance
+        cas_portal = intf.cas_portal
+        cas_auth = intf.cas_auth
+        cas_auth_basic = intf.cas_auth_basic
+        cas_st_timeout = intf.cas_st_timeout
+        cas_redirect = intf.cas_redirect
+        cas_display_portal = intf.cas_display_portal
+        auth_server_failure_action = intf.auth_server_failure_action
+        auth_server_failure_options = intf.auth_server_failure_options
+        account_locked_action = intf.account_locked_action
+        account_locked_options = intf.account_locked_options
+        login_failed_action = intf.login_failed_action
+        login_failed_options = intf.login_failed_options
+        need_change_pass_action = intf.need_change_pass_action
+        need_change_pass_options = intf.need_change_pass_options
+        cert = intf.cert
+        key = intf.key
+        ca = intf.ca
+        cacert = intf.cacert
+        virtualhost_directives = intf.virtualhost_directives
+    else:
+        name = None
+        ip = None
+        port = None
+        ssl_engine = None
+        log = None
+        sso_portal = None 
+        sso_timeout = None
+        sso_update_access_time = None
+        appearance = None
+        cas_portal = None
+        cas_auth = None
+        cas_auth_basic = None
+        cas_st_timeout = None
+        cas_redirect = None
+        cas_display_portal = None
+        auth_server_failure_action = None
+        auth_server_failure_options = None
+        account_locked_action = None
+        account_locked_options = None
+        login_failed_action = None
+        login_failed_options = None
+        need_change_pass_action = None
+        need_change_pass_options = None
+        cert = None
+        key = None
+        ca = None
+        cacert = None
+        virtualhost_directives = None
+    if request.method == 'POST' and form.is_valid():
+        intf = form.save()
+        return HttpResponseRedirect("/intf")
+    return render_to_response('vulture/intf_form.html',
+			{'form':form, 'user': request.user })
+
+#TODO...
+def edit_vintf(request,object_id=None):
+    form = VintfForm(request.POST or None,instance = object_id and VINTF.objects.get(id=object_id))
+    if object_id:
+        vintf = VINTF.objects.get(id=object_id)
+        name = vintf.name
+	intf = vintf.intf
+        ip = vintf.ip
+        netmask = vintf.netmask
+        broadcast = vintf.broadcast
+    else:
+        name = None
+        ip = None
+	intf = None
+        netmask = None
+        broadcast = None
+    if request.method == 'POST' and form.is_valid():
+        vintf = form.save()
+        return HttpResponseRedirect('/vintf')
+    return render_to_response('vulture/vintf_form.html', {'form': form, 'name' : name, 'intf' : intf, 'ip' : ip, 'netmask' : netmask, 'broadcast' : broadcast})
+
+def remove_vintf(request,object_id=None):
+    vintf = get_object_or_404(VINTF, id=object_id)
+    if request.method == 'POST' and object_id:
+        vintf.stop()
+        vintf.delete()
+        return HttpResponseRedirect("/vintf")
+    return render_to_response("vulture/generic_confirm_delete.html",{"object":vintf,"category":"System","name" : "VINTF", "url":"/vintf","user":request.user}) 
+
+def start_vintf(request, object_id=None):
+    if object_id:
+        vintf = get_object_or_404(VINTF, id=object_id)
+        vintf.start()
+        return HttpResponseRedirect("/vintf")
+    return render_to_response('vulture/vintf_list.html',
+                              {'object_list': VINTF.objects.all(), 'user' : request.user })
+def stop_vintf(request, object_id=None):
+    if object_id:
+        vintf = get_object_or_404(VINTF, id=object_id) 
+        vintf.stop()
+        return HttpResponseRedirect("/vintf")
+    return render_to_response('vulture/vintf_list.html',
+                              {'object_list': VINTF.objects.all(),'user' : request.user })
+    
+def reload_all_vintfs(request):
+    vintfs = VINTF.objects.all()
+    if request.method == 'POST' and object_id:
+        for vintf in vintfs :
+            vintf.reload()
+        return HttpResponseRedirect("/vintf") 
+    return render_to_response('vulture/vintf_list.html',
+                              {'object_list': VINTF.objects.all(), 'user' : request.user })
+
 @permission_required('vulture.reload_intf')
 def start_intf(request, intf_id):
     Intf.objects.get(pk=intf_id).write()
@@ -69,7 +189,6 @@ def stop_intf(request, intf_id):
         # Delete memcached records to update config
         mc.delete(app.name + ':app')
 #    sleep(1)
-    mc.close()
     return render_to_response('vulture/intf_list.html',
                               {'object_list': Intf.objects.all(), 'k_output': k_output, 'user' : request.user})
 
@@ -84,7 +203,6 @@ def reload_intf(request, intf_id):
     for app in apps:
         # Delete memcached records to update config
         mc.delete(app.name + ':app')
-    mc.close()
     return render_to_response('vulture/intf_list.html',
                               {'object_list': Intf.objects.all(), 'k_output': k_output, 'user' : request.user})
                               
@@ -106,7 +224,6 @@ def reload_all_intfs(request):
             for app in apps:
                 # Delete memcached records to update config
                 mc.delete(app.name + ':app')
-            mc.close()
     return render_to_response('vulture/intf_list.html', {'object_list': intfs, 'k_output': k_output, 'user' : request.user})
 
 @user_passes_test(lambda u: u.is_staff)
@@ -155,7 +272,6 @@ def edit_auth(request, url, object_id=None):
         form = RADIUSForm(request.POST or None,instance=object_id and RADIUS.objects.get(id=object_id))
     elif url == 'cas':
         form = CASForm(request.POST or None,instance=object_id and CAS.objects.get(id=object_id))
-
     # Save new/edited auth
     if request.method == 'POST' and form.is_valid():
         instance = form.save()
@@ -628,7 +744,7 @@ def export_import_config (request, type):
 			content=type+" database: complete"
 		except:
             		content = type+" database: failed"
-	return render_to_response('vulture/exportimport_form.html', {'type': type, 'path': path, 'content': content})
+    return render_to_response('vulture/exportimport_form.html', {'type': type, 'path': path, 'content': content})
     
 @login_required    
 def edit_security (request):

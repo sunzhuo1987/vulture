@@ -7,6 +7,47 @@ from django.contrib.auth.forms import UserCreationForm, SetPasswordForm, UserCha
 import os
 import hashlib
 
+import ifconfig
+
+class IntfForm(forms.ModelForm):
+    def __init__(self,*args,**kwargs):
+        super(forms.ModelForm,self).__init__(*args,**kwargs)
+	intf = kwargs["instance"]
+	runnin_itf = [z.intf for z in VINTF.objects.all()]
+	CHOICES = []
+	li = []
+	for x in [ (f["intf"],f["ip"]) for f in VINTF.objects.values('intf','ip')] + [z for z in ifconfig.getIntfs().items()]:
+		if not x in li:	
+			li += [x]
+	for itf in li:
+		CHOICES += [(itf[1],"%s -> %s"%itf)]
+	CHOICES.sort()
+        self.fields["ip"] = forms.ChoiceField(choices = CHOICES)
+    class Meta:
+        model = Intf
+
+class VintfForm(forms.ModelForm):
+    def __init__(self,*args, **kwargs):
+        super(forms.ModelForm,self).__init__(*args, **kwargs)
+	vintf = kwargs["instance"]
+	if vintf:
+		CHOICES = [[vintf.intf]*2]
+	else:
+		runnin_itf = [z.intf for z in VINTF.objects.all()]
+		CHOICES = []
+	#retrieve the next available virtual interface name for a given real interface ( ie. eth0 -> eth0:3 )
+		for itf in filter(None,[not ':' in x and x or None for x in ifconfig.getIntfs()]):
+			id_next = 1
+			name_next = "%s:%s"%(itf,id_next)
+			while name_next in runnin_itf : 
+				id_next +=1 
+				name_next = "%s:%s"%(itf,id_next)
+			CHOICES += [[name_next]*2]
+					
+	self.fields["intf"] = forms.ChoiceField(choices = CHOICES)
+    class Meta:
+	model = VINTF
+
 class UserProfileForm(UserCreationForm):
     is_staff = forms.BooleanField(required=False)
     is_superuser = forms.BooleanField(required=False)

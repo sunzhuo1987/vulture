@@ -45,10 +45,10 @@ if [ -f /var/www/vulture/admin/vulture/sql/modsecurity.sql ] ; then
     fi
 fi
 
-if grep -E "^www-data ALL=NOPASSWD:/usr/sbin/apache2, /bin/cat" /etc/sudoers > /dev/null ; then
+if grep -E "^www-data ALL=NOPASSWD:/usr/sbin/apache2, /bin/cat, /sbin/ifconfig" /etc/sudoers > /dev/null ; then
 	echo "sudo active"
 else
-	echo "www-data ALL=NOPASSWD:/usr/sbin/apache2, /bin/cat" >> /etc/sudoers
+	echo "www-data ALL=NOPASSWD:/usr/sbin/apache2, /bin/cat, /sbin/ifconfig" >> /etc/sudoers
 fi
 update-rc.d -f vulture start 90 2 3 4 5 . stop 90 0 1 6 .
 echo "Attention vulture est maintenant installé et écoute sur le port 9090"

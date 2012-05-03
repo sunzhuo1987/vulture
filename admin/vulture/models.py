@@ -30,6 +30,32 @@ from email import Encoders
 from django.contrib.auth.models import User as DjangoUser, UserManager as DjangoUserManager
 from django import forms
 import base64
+import ifconfig
+
+class VINTF(models.Model): 
+    name = models.CharField(max_length=128,unique=1,null=0)
+    intf = models.CharField(max_length=128,unique=1,null=0)
+    ip = models.CharField(max_length=128, unique=1, null=0)
+    netmask = models.CharField(max_length=128,unique=0, null=0)
+    broadcast = models.CharField(max_length=128,unique=0,null=1)
+   
+    def isStarted(self):
+	started = ifconfig.getIntfs()
+	return self.intf in started and started[self.intf] == self.ip
+
+    def start(self):
+        ifconfig.startIntf(self.intf, self.ip, self.netmask, self.broadcast)
+    
+    def stop(self):
+        ifconfig.stopIntf(self.intf)
+    
+    def reload(self):
+        self.stop()
+        self.start()
+
+    class Meta:
+	db_table = 'vintf'
+	
 
 class Log(models.Model):
     LOG_LEVELS = (
