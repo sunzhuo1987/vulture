@@ -51,6 +51,7 @@ def update_security(request):
     return render_to_response('vulture/modsecurity_list.html',
                               {'object_list': ModSecurity.objects.all(), 'k_output': k_output, 'user' : request.user })
 
+@permission_required('vulture.change_intf')
 def edit_intf(request,object_id=None):
     form = IntfForm(request.POST or None,instance = object_id and Intf.objects.get(id=object_id))
     if object_id:
@@ -118,7 +119,7 @@ def edit_intf(request,object_id=None):
     return render_to_response('vulture/intf_form.html',
 			{'form':form, 'user': request.user })
 
-#TODO...
+@permission_required('vulture.change_vintf')
 def edit_vintf(request,object_id=None):
     form = VintfForm(request.POST or None,instance = object_id and VINTF.objects.get(id=object_id))
     if object_id:
@@ -139,6 +140,7 @@ def edit_vintf(request,object_id=None):
         return HttpResponseRedirect('/vintf')
     return render_to_response('vulture/vintf_form.html', {'form': form, 'name' : name, 'intf' : intf, 'ip' : ip, 'netmask' : netmask, 'broadcast' : broadcast})
 
+@permission_required('vulture.delete_vintf')
 def remove_vintf(request,object_id=None):
     vintf = get_object_or_404(VINTF, id=object_id)
     if request.method == 'POST' and object_id:
@@ -147,6 +149,7 @@ def remove_vintf(request,object_id=None):
         return HttpResponseRedirect("/vintf")
     return render_to_response("vulture/generic_confirm_delete.html",{"object":vintf,"category":"System","name" : "VINTF", "url":"/vintf","user":request.user}) 
 
+@permission_required('vulture.reload_vintf')
 def start_vintf(request, object_id=None):
     if object_id:
         vintf = get_object_or_404(VINTF, id=object_id)
@@ -154,6 +157,8 @@ def start_vintf(request, object_id=None):
         return HttpResponseRedirect("/vintf")
     return render_to_response('vulture/vintf_list.html',
                               {'object_list': VINTF.objects.all(), 'user' : request.user })
+
+@permission_required('vulture.reload_vintf')
 def stop_vintf(request, object_id=None):
     if object_id:
         vintf = get_object_or_404(VINTF, id=object_id) 
@@ -162,6 +167,7 @@ def stop_vintf(request, object_id=None):
     return render_to_response('vulture/vintf_list.html',
                               {'object_list': VINTF.objects.all(),'user' : request.user })
     
+@permission_required('vulture.reload_vintf')
 def reload_all_vintfs(request):
     vintfs = VINTF.objects.all()
     if request.method == 'POST' and object_id:
