@@ -475,7 +475,7 @@ sub get_translations {
 	my $query = "SELECT message, translation FROM localization WHERE ".$language_query." AND ".$message_query; 
 	$log->debug("query: ".$query);
 	my $sth = $dbh->prepare($query);
-	my $c = 1;
+	$c = 1;
 	foreach my $par (@arg_tab){
 	    $sth->bind_param($c,$par);
 	    $log->debug("param ".$c." : ".$par);
