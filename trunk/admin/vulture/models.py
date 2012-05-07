@@ -57,6 +57,7 @@ class VINTF(models.Model):
 	db_table = 'vintf'
 	
 
+
 class Log(models.Model):
     LOG_LEVELS = (
         ('emerg', 'emerg'),
@@ -548,6 +549,11 @@ class App(models.Model):
         ('Anomaly','Anomaly Scoring Block Mode'),
         ('Traditional','Traditional Block Mode'),
         )
+    BALANCER_ALGO = (
+        ('byrequests','byrequests'),
+        ('bytraffic','bytraffic'),
+        ('bybusyness','bybusyness'),
+        )
     name = models.CharField(max_length=128,unique=1)
     alias = models.CharField(max_length=128, blank=1, null=1)
     url = models.CharField(max_length=256)
@@ -626,7 +632,11 @@ class App(models.Model):
     DoS_block_timeout = models.CharField(max_length=128,blank=1, null=1,default=600)
     Custom = models.TextField(blank=1, null=1)
     MS_Activated = models.BooleanField()
-    
+    Balancer_Activated = models.BooleanField()
+    Balancer_Name = models.CharField(max_length=128,blank=1,null=1)
+    Balancer_Node = models.TextField(blank=1, null=1)
+    Balancer_Algo = models.CharField(max_length=128,choices=BALANCER_ALGO,default='byrequests')
+    Balancer_Stickyness = models.CharField(max_length=128,blank=1,null=1)
     
     
     def isWildCard (self):

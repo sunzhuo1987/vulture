@@ -7,15 +7,16 @@
 
 {% block tabs %}
     <li><a href="/app/">{% trans "List" %}</a></li>
-    <li><a href="javascript:swapTab(1, 9, 'main_tab_', 'main_content_');" id="main_tab_1" class="active">{% trans "Main settings" %}</a></li>
-    <li><a href="javascript:swapTab(2, 9, 'main_tab_', 'main_content_');" id="main_tab_2">{% trans "Remote proxy" %}</a></li>
-    <li><a href="javascript:swapTab(3, 9, 'main_tab_', 'main_content_');" id="main_tab_3">{% trans "Authentication" %}</a></li>
-    <li><a href="javascript:swapTab(4, 9, 'main_tab_', 'main_content_');" id="main_tab_4">{% trans "ACL" %}</a></li>
-    <li><a href="javascript:swapTab(5, 9, 'main_tab_', 'main_content_');" id="main_tab_5">{% trans "SSO Forward" %}</a></li>
-    <li><a href="javascript:swapTab(6, 9, 'main_tab_', 'main_content_');" id="main_tab_6">{% trans "Mod security" %}</a></li>
-    <li><a href="javascript:swapTab(7, 9, 'main_tab_', 'main_content_');" id="main_tab_7">{% trans "Headers" %}</a></li>
-    <li><a href="javascript:swapTab(8, 9, 'main_tab_', 'main_content_');" id="main_tab_8">{% trans "Timeout" %}</a></li>
-    <li><a href="javascript:swapTab(9, 9, 'main_tab_', 'main_content_');" id="main_tab_9">{% trans "Advanced settings" %}</a></li>
+    <li><a href="javascript:swapTab(1, 11, 'main_tab_', 'main_content_');" id="main_tab_1" class="active">{% trans "Main settings" %}</a></li>
+    <li><a href="javascript:swapTab(2, 11, 'main_tab_', 'main_content_');" id="main_tab_2">{% trans "Remote proxy" %}</a></li>
+    <li><a href="javascript:swapTab(3, 11, 'main_tab_', 'main_content_');" id="main_tab_3">{% trans "Authentication" %}</a></li>
+    <li><a href="javascript:swapTab(4, 11, 'main_tab_', 'main_content_');" id="main_tab_4">{% trans "ACL" %}</a></li>
+    <li><a href="javascript:swapTab(5, 11, 'main_tab_', 'main_content_');" id="main_tab_5">{% trans "SSO Forward" %}</a></li>
+    <li><a href="javascript:swapTab(6, 11, 'main_tab_', 'main_content_');" id="main_tab_6">{% trans "Mod security" %}</a></li>
+    <li><a href="javascript:swapTab(7, 11, 'main_tab_', 'main_content_');" id="main_tab_7">{% trans "Headers" %}</a></li>
+    <li><a href="javascript:swapTab(8, 11, 'main_tab_', 'main_content_');" id="main_tab_8">{% trans "Timeout" %}</a></li>
+    <li><a href="javascript:swapTab(9, 11, 'main_tab_', 'main_content_');" id="main_tab_9">{% trans "Balancer Settings" %}</a></li>
+    <li><a href="javascript:swapTab(10, 11, 'main_tab_', 'main_content_');" id="main_tab_10">{% trans "Advanced settings" %}</a></li>
 {% endblock %}
 
 {% block content %}
@@ -388,8 +389,18 @@
                 <tr><th>{% trans "Update user session timeout each time he does smth" %}</th><td class="input">{{ form.update_access_time }}{% if form.update_access_time.errors %}<div class="error">{{ form.update_access_time.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
             </table>
         </div>
-        
-        <div id="main_content_9" class="main_content">
+       
+	<div id="main_content_9" class="main_content">
+	     <table>
+		<tr><th>{% trans "Activate Balancer"%}</th><td class="input">{{ form.Balancer_Activated }}{% if form.Balancer_Activated.errors %}<div class="error">{{ form.Balancer_Activated.errors|join:", " }}</div>{% endif %}</td></tr>
+		<tr><th>{% trans "Balancer Name" %}</th><td class="input">{{ form.Balancer_Name }}{% if form.Balancer_Name.errors %}<div class="error">{{ form.Balancer_Name.errors|join:", " }}</div>{% endif %}</td></tr>
+		<tr><th>{% trans "Balancer Node" %}</th><td class="input">{{ form.Balancer_Node }}{% if form.Balancer_Node.errors %}<div class="error">{{ form.Balancer_Node.errors|join:", " }}</div>{% endif %}</td></tr>
+		<tr><th>{% trans "Balancer Algo" %}</th><td class="input">{{ form.Balancer_Algo }}{% if form.Balancer_Algo.errors %}<div class="error">{{ form.Balancer_Algo.errors|join:", " }}</div>{% endif %}</td></tr>
+		<tr><th>{% trans "Balancer Stickyness" %}</th><td class="input">{{ form.Balancer_Stickyness }}{% if form.Balancer_Stickyness.errors %}<div class="error">{{ form.Balancer_Stickyness.errors|join:", " }}</div>{% endif %}</td></tr>
+	     </table>
+	</div>
+ 
+        <div id="main_content_10" class="main_content">
             <table>
                 <tr><th>{% trans "Canonicalise URL" %}</th><td class="input">{{ form.canonicalise_url }}{% if form.canonicalise_url.errors %}<div class="error">{{ form.canonicalise_url.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
                 <tr><th>{% trans "Add VirtualHost directives" %}</th><td class="input">{{ form.virtualhost_directives }}{% if form.virtualhost_directives.errors %}<div class="error">{{ form.virtualhost_directives.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
