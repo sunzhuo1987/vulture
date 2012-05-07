@@ -642,6 +642,9 @@ class App(models.Model):
     def isWildCard (self):
         return self.alias.startswith('*')
 
+    def isFtp (self):
+	return self.url.lower().startswith('ftp://')
+
     def hasHeaderHost (self):
         return Header.objects.filter(app = self).filter(name__iexact="Host")
 
@@ -651,6 +654,8 @@ class App(models.Model):
     def getCookieDomain (self):
         p = re.compile ('https?://(.*)/?')
         match=p.match(self.url)
+	if not match:
+		return " "
         domain = match.group(1)
 	newdomain = self.name
 	if "/" in newdomain:
