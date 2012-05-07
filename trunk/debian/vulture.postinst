@@ -51,6 +51,6 @@ else
 	echo "www-data ALL=NOPASSWD:/usr/sbin/apache2, /bin/cat, /sbin/ifconfig" >> /etc/sudoers
 fi
 update-rc.d -f vulture start 90 2 3 4 5 . stop 90 0 1 6 .
-echo "Attention vulture est maintenant installé et écoute sur le port 9090"
+echo "Vulture is now up and running on port 9090!"
 invoke-rc.d vulture start
 exit 0
