@@ -27,6 +27,7 @@ fi
 #Set up database ( call django )
 cd /var/www/vulture/admin && ./manage.py syncdb --noinput
 chown www-data. /var/www/vulture/admin/db
+chmod 600 /var/www/vulture/admin/db
 chown root. /var/www/vulture/conf/httpd.conf
 chown -R www-data. /var/www/vulture/admin/
 chmod -R 700 /var/www/vulture/conf/
