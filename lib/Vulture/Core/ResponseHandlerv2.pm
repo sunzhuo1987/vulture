@@ -126,8 +126,8 @@ sub handler {
 					$log->debug("REDIRECTING SSO LEARNING TO EXTERNAL APP".$sso_learning_ext );
 	                my $html;
 					$html = '<html><head><meta http-equiv="Refresh" content="0; url='.$sso_learning_ext.'"></head></html>';
-					$r->print($html);
 					$r->content_type('text/html');
+					$r->print($html);
 					return Apache2::Const::OK;
 				}
 				else {
