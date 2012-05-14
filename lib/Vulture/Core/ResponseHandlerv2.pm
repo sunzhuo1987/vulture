@@ -280,7 +280,7 @@ sub display_portal {
     $html_apps .= "</ul>";
     
     #Get style
-    my $html = Core::VultureUtils::get_style($r, $log, $dbh, $app, 'PORTAL', 'SSO portal', {APPS => $html_apps}, $translations);
+    my $html = Core::VultureUtils::get_style($r, $log, $dbh, $app, 'DISPLAY_PORTAL', 'SSO portal', {APPS => $html_apps}, $translations);
     $html ||= '';
     return $html =~ /<body>.+<\/body>/ ? $html : $html_apps;
 }
