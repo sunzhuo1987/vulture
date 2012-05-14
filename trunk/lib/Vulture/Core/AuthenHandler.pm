@@ -197,7 +197,7 @@ sub handler:method
 
 
     
-    if(defined $ret and $ret == scalar Apache2::Const::OK or $ssl == 1){
+    if((defined $ret and $ret == scalar Apache2::Const::OK) or (defined $ssl and $ssl == 1)){
         $log->debug("Good user/password");
 
         #Get new username and password ... ex : CAS
