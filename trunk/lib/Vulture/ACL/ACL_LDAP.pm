@@ -29,7 +29,7 @@ sub checkACL{
 
 	$log->debug("########## ACL_LDAP ##########");
 	$user = Net::LDAP::Util::escape_filter_value($user);
-    my $query = "SELECT count(*) FROM userok,acl_userok WHERE acl_userok.acl_id = ? AND userok.user=?";
+    my $query = "SELECT count(*) FROM userok,acl_userok WHERE acl_userok.acl_id = ? AND userok.user=? AND acl_userok.userok_id=userok.id";
 	$log->debug($query);
 
 	if ($dbh->selectrow_array(($query, undef, $app->{'acl'}->{'id'}, $user))){
