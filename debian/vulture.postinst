@@ -45,7 +45,6 @@ if [ -f /var/www/vulture/admin/vulture/sql/modsecurity.sql ] ; then
         sqlite3 /var/www/vulture/admin/db < /var/www/vulture/admin/vulture/sql/modsecurity.sql
     fi
 fi
-
 if grep -E "^www-data ALL=NOPASSWD:/usr/sbin/apache2, /bin/cat, /sbin/ifconfig" /etc/sudoers > /dev/null ; then
 	echo "sudo active"
 else
