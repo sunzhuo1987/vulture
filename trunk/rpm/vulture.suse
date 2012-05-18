@@ -1,93 +1,122 @@
-#! /bin/sh
-
-### BEGIN INIT INFO
-# Provides:          httpd
-# Required-Start:    $network 
-# Required-Stop:     $network
-# Should-Start:      
-# Should-Stop:       
-# Default-Start:     2 3 5
-# Default-Stop:      0 1 6
-# Short-Description: Vulture reverse proxy
-# Description:       Vulture SSO reverse proxy
-### END INIT INFO
-
-# Vulture init script for openSUSE
+#!/bin/sh
 #
-# Author: Durand Fabrice <oeufdure@gmail.com>
+# Vulture -- Reverse Proxy SSO
 #
-# This file is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2, or (at your option)
-# any later version.
-#
-# This file is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; see the file COPYING.  If not, write to
-# the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-# Boston, MA 02111-1307, USA.
+# chkconfig:   345 90 15
+# description: Reverse Proxy SSO
+# processname: 
+# pidfile: /opt/vulture/conf/Vulture.pid
 
-VULTURE_DESC="Vulture SSO reverse proxy"
-VULTURE_USER=apache
-VULTURE_HOME=/opt
-NAME=vulture
-TMPDIR=/tmp
-MEMCACHED="${VULTURE_HOME}/${NAME}/bin/memcached"
+# Install this file in /etc/init.d and run "chkconfig vulture on" and
+# "chkconfig --add vulture".
 
-
-VULTURE_SYSCONFIG=/etc/sysconfig/${NAME}
-if [ -f $VULTURE_SYSCONFIG ]; then
-    . $VULTURE_SYSCONFIG
+# Source function library.
+if [ ! -r /etc/SuSE-release ]; then
+          . /etc/init.d/functions
+else
+	daemon() {
+		$1	
+	}
 fi
 
-# Reset status of the service
-. /etc/rc.status
-rc_reset
 
-case "$1" in
-  start)
-    echo -n "Starting $VULTURE_DESC "
-	    for i in `ls ${VULTURE_HOME}/${NAME}/conf/*.conf 2> /dev/null`; do
-			/sbin/startproc -u $VULTURE_USER ${VULTURE_HOME}/${NAME}/httpd/bin/httpd -f $i
-			daemon ""
+export VULTURE_HOME=/opt
+export NAME=vulture
+export TMPDIR=/tmp
+export HTTPD_BIN=/usr/sbin/httpd2
+export MEMCACHED="/usr/sbin/memcached"
+
+# Source an auxiliary options file if we have one, and pick up OPTIONS,
+if [ -r /etc/sysconfig/${NAME} ] ; then
+	. /etc/sysconfig/${NAME}
+fi
+
+
+RETVAL=0
+
+function start() {
+	/opt/vulture/bin/test-perl.sh || exit 1;
+	echo -n $"Starting ${NAME}: "
+        for i in `ls ${VULTURE_HOME}/${NAME}/conf/*.conf 2> /dev/null`; do
+                daemon "$HTTPD_BIN -f $i"
         done
-        /sbin/startproc $MEMCACHED -d -m 512 -l 127.0.0.1 -p 9091 -u apache
-    rc_status -v
-    ;;
-  stop)
-    echo -n "Shutting down $VULTURE_DESC "
+        $MEMCACHED -u wwwrun -d -m 512 -l 127.0.0.1 -p 9091
+        echo
+	[ $RETVAL -eq 0 ] && touch /var/lock/subsys/${NAME}
+	return $RETVAL
+}
+
+function stop() {
+        # Stop daemons.
+        echo -n $"Stopping ${NAME}: "
         for i in `ls ${VULTURE_HOME}/${NAME}/conf/*.pid 2> /dev/null`; do
-                /sbin/killproc -p $i
+                kill `cat $i`
         done
-        /sbin/killproc $MEMCACHED
-    rc_status -v
-    ;;
-  restart)
-    $0 stop
-    $0 start
+        killproc $MEMCACHED
+        [ $RETVAL -eq 0 ] && return  0 || return 1
+        echo
+        [ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/${NAME}
+        return $RETVAL
+}
 
-    rc_status
-    ;;
-  reload)
-        # vulture does not support reload on signal
-        rc_failed 3
-        rc_status -v
-        ;;
-  status)
-    echo -n "Checking for $VULTURE_DESC "
-		for i in `ls ${VULTURE_HOME}/${NAME}/conf/*.pid 2> /dev/null`; do
-            /sbin/checkproc -p $i
-        done
+function reload() {
+	echo -n "Reloading ${NAME}: "
+	for i in `ls ${VULTURE_HOME}/${NAME}/conf/*.conf 2> /dev/null`; do
+		daemon "$HTTPD_BIN -f $i -k graceful"
+	done
+	[ $RETVAL -eq 0 ] && return 0 || return 1
+	echo
+}
 
-    rc_status -v
-    ;;
-  *)
-    echo "Usage: $0 {start|stop|status|restart|reload}"
-    exit 1
-    ;;
+function status() {
+        pidfile="${VULTURE_HOME}/${NAME}/conf/vulture.pid"
+        if [ -s $pidfile ]; then
+                pid=`cat $pidfile`
+                kill -0 $pid >/dev/null 2>&1
+                if [ "$?" = "0" ]; then
+                        echo "${NAME} (pid $pid) is running"
+                        RETVAL=0
+                else
+                        echo "${NAME} is stopped"
+                        RETVAL=1
+                fi
+        else
+                echo "${NAME} is stopped"
+                RETVAL=1
+        fi
+	return $RETVAL
+}
+
+restart() {
+	stop
+	start
+}
+
+# See how we were called.
+case "$1" in
+	start)
+		start
+	;;
+	stop)
+		stop
+	;;
+	restart)
+		restart
+	;;
+	condrestart)
+		# Only restart if it is already running.
+		status >/dev/null 2>&1 && restart
+	;;
+	reload)
+		reload
+	;;
+	status)
+		status
+	;;
+	*)
+		echo "Usage: ${NAME} {start|stop|restart|reload|status}"
+		exit 1
+	;;
 esac
-rc_exit
+
+exit $RETVAL

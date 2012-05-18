@@ -13,7 +13,7 @@
 # many different applications by learning and forwarding their
 # different accounts.
 ### END INIT INFO
-#! /bin/sh
+#!/bin/sh
 #
 # Vulture
 #
@@ -29,6 +29,7 @@ MEMCACHED=/usr/bin/memcached
 
 case "$1" in
   start)
+	${Vulture_HOME}/${NAME}/bin/test-perl.sh || exit 1;
 	echo -n "Starting $NAME: ";
 	$APACHE -f $Vulture_HOME/$NAME/conf/httpd.conf;
 	python "${Vulture_HOME}/${NAME}/conf/vintf_startup.py" up
