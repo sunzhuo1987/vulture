@@ -113,9 +113,9 @@ sub get_msg1
         }
         my $flag2str = join( ",", @flag2str );
 
-        print STDERR "[$$] AuthenNTLM: protocol=$protocol, type=$type, flags1=$flags1($flag1str), " 
+        $log->debug( "[$$] AuthenNTLM: protocol=$protocol, type=$type, flags1=$flags1($flag1str), " 
         . "flags2=$flags2($flag2str), domain length=$dom_len, domain offset=$dom_off, "
-        . "host length=$host_len, host offset=$host_off, host=$host, domain=$domain\n" ;
+        . "host length=$host_len, host offset=$host_off, host=$host, domain=$domain\n") ;
     }
 
     return ($type,$accept_unicode) ;
@@ -233,6 +233,7 @@ sub checkAuth{
         my $nonce = $self -> get_nonce ($r,$log,$pdc,$bdc,$domain) ;
         if (!$nonce)
         {
+	    $self->{lock} = undef;
             $log->debug('Cannot get nonce');
             return Apache2::Const::FORBIDDEN ;
         }
@@ -259,6 +260,7 @@ sub checkAuth{
         $log->debug('Auth_NTLM: Authen::Smb::Valid_User_Disconnect --> Call');
         Authen::Smb::Valid_User_Disconnect ($self->{smbhandle}) if ($self->{smbhandle}) ;
         $log->debug('Auth_NTLM: Authen::Smb::Valid_User_Disconnect --> Ok !');
+	$self->{lock} = undef;
 
         if ($rc == &Authen::Smb::NTV_LOGON_ERROR)
         {
@@ -277,12 +279,50 @@ sub checkAuth{
     }
     else
     {
+	$self->{lock} = undef;
         $log->debug('Auth_NTLM: Bad NTLM Authorization Header type $type for '.$r->uri) ;
         return Apache2::Const::HTTP_UNAUTHORIZED ;
     }
 
+    $self->{lock} = undef;
     $r->user ($username);
     return Apache2::Const::OK ;
 }
+
+package Auth::Auth_NTLM::Lock ;
+
+use IPC::SysV qw(IPC_CREAT S_IRWXU SEM_UNDO);
+use IPC::Semaphore;
+
+
+sub lock
+   {
+   my $class = shift ;
+   my $key   = shift ;
+   my $debug   = shift ;
+   my $log = @_[1];
+
+   my $self = bless {debug => $debug}, $class ;
+   $self->{sem} = new IPC::Semaphore($key, 1,
+           IPC_CREAT | S_IRWXU) or die "Cannot create semaphore with key $key ($!)" ;
+
+   $self->{sem}->op(0, 0, SEM_UNDO,
+                    0, 1, SEM_UNDO);
+   $log->debug("[$$] AuthenNTLM: enter lock\n")  ;
+
+   return $self ;
+   }
+
+sub DESTROY
+    {
+    my $self    = shift;
+    my $log = @_[1];
+
+    $self->{sem}->op(0, -1, SEM_UNDO);
+    $log->debug( "[$$] AuthenNTLM: leave lock\n")  ;
+    }
+
+
+
 1;
 
