@@ -26,6 +26,25 @@ sub get_nonce
 {
     my ($self,$r,$log,$pdc,$bdc,$domain) = @_ ;
 
+    $self->{semkey} = 23754;
+    $self -> {semtimeout} = 2;
+
+    if ($self->{semkey})
+        {
+	$log->debug("We are going to lock if needed");
+        eval
+            {
+	    $log->debug("Locking ...");
+            local $SIG{ALRM} = sub { $log->debug( "[$$] AuthenNTLM: timed out" 
+					. "while waiting for lock (key = $self->{semkey})\n");  die ; };
+
+            alarm $self -> {semtimeout} ;
+            $self -> {lock} = Auth::Auth_NTLM::Lock -> lock ($self->{semkey}, $log) ;
+            alarm 0;
+            };
+        }
+
+
     if ($self -> {nonce})
     {
         $log->debug("Auth_NTLM: get_nonce -> Reuse " . $self -> {nonce});
