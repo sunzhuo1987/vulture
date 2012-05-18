@@ -24,6 +24,7 @@ APR::Table
 APR::URI
 Authen::Radius
 Authen::Simple::Kerberos
+Apache::Session::Store::Memcached
 Authen::Smb
 Cache::Memcached
 Crypt::CBC
