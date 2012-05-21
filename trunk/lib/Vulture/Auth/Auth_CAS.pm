@@ -64,7 +64,7 @@ sub checkAuth{
     if(defined $ref->{url_validate} and defined $ticket){
         
         #Build serviceValidate URL
-        my $url = $ref->{url_validate}.'?serviceValidate='.uri_escape($service->unparse).'&ticket='.uri_escape($ticket);
+        my $url = $ref->{url_validate}.'?service='.uri_escape($service->unparse).'&ticket='.uri_escape($ticket);
         $log->debug("Querying url".$url);
         
         #Get answer
