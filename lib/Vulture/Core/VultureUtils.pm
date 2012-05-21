@@ -503,13 +503,17 @@ sub generate_random_string
 
 sub notify {
     my ($dbh, $app_id, $user, $type, $info) = @_;
+    my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime();
+    $year += 1900;
+    my $e_ts = "$year-$mon-$mday $hour:$min:$sec.0";
+
     #Filling database
     my $query = "INSERT INTO event_logger ('app_id', 'user', 'event_type', 'timestamp', 'info') VALUES (?,?,?,?,?)";
     my $sth = $dbh->prepare($query);
     #Notify event to db
-    $sth->execute($app_id, $user, $type, time, undef);
+    $sth->execute($app_id, $user, $type,$e_ts, undef);
     #Log active users
-    $sth->execute($app_id, $user, 'active_sessions', time, $info);
+    $sth->execute($app_id, $user, 'active_sessions', $e_ts, $info);
     $sth->finish();
 }
 1;

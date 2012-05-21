@@ -377,7 +377,7 @@ class EventLogger(models.Model):
     app = models.ForeignKey('App', blank=1, null=1)
     user = models.CharField(max_length = 256, null=1, blank=1)
     event_type = models.CharField(max_length=64,choices=EVENT_TYPE)
-    timestamp = models.DateField(auto_now_add=True, null=1, blank=1)
+    timestamp = models.DateTimeField(auto_now_add=True, null=1, blank=1)
     info = models.CharField(max_length = 256, null=1, blank=1)
     class Meta:
         db_table = 'event_logger'
