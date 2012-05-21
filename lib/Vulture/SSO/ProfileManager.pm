@@ -84,6 +84,7 @@ sub get_profile{
     
     #If fields exists (i.e. not just autologon_ or hidden fields)
     if (@fields) {
+	$log->debug("result type: ".$result->{type});
         #SQL Database
         if($result->{type} eq 'sql'){
             my ($new_dbh, $ref) = Core::VultureUtils::get_DB_object($log, $dbh, $result->{id_method});
@@ -97,7 +98,7 @@ sub get_profile{
             $new_dbh->disconnect;
 
             #Parse fields to get values
-	        foreach my $field (@fields) {
+	    foreach my $field (@fields) {
 	            my ($var, $mapping, $need_decryption, $value, $field_prefix, $field_suffix) = @$field;
 	            
 	            if(defined $ref->{$mapping}){
@@ -107,10 +108,10 @@ sub get_profile{
 	                } else {
 	                    $return->{$var} = $field_prefix.$ref->{$mapping}.$field_suffix;
 	                }
-                } else {
-                    $return->{$var} = $field_prefix.$value.$field_suffix;
-                }
-	        }
+                    } else {
+                        $return->{$var} = $field_prefix.$value.$field_suffix;
+                    } 
+	    }
             return $return;
             
         #LDAP
