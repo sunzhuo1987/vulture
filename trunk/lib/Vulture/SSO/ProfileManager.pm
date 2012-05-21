@@ -152,7 +152,7 @@ sub get_profile{
             }
             return $return;
         } else {
-        
+		$log->error("Bad SSO type in SSO_Forward : ".$result->{type});
         }
         
     # Only hidden fields or autologon_
