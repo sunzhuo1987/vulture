@@ -465,7 +465,7 @@ class SSO(models.Model):
         )
     name = models.CharField(max_length=128, unique=1)
     type = models.CharField(max_length=20, choices=SSO_TYPES, blank=1)
-    auth = models.ForeignKey('Auth', blank=1, null=1)
+    auth = models.ForeignKey('Auth', blank=0, null=0)
     table_mapped = models.CharField(max_length=128, blank=1, null=1)
     base_dn_mapped = models.CharField(max_length=128, blank=1, null=1)
     user_mapped = models.CharField(max_length=128, blank=1, null=1)
