@@ -105,6 +105,7 @@ Vulture Reverse Proxy
     fi
     chown apache. %{serverroot}/%{name}/admin/db
     chmod 600 %{serverroot}/%{name}/admin/db
+    chmod 550  %{serverroot}/%{name}/bin/test-perl.sh
     if [ ! -f %{serverroot}/%{name}/conf/cacert.pem ]; then
         openssl req -x509 -days 3650 -newkey rsa:1024 -batch\
         	-out %{serverroot}/%{name}/conf/cacert.pem\
