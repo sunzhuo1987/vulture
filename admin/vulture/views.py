@@ -316,6 +316,15 @@ def remove_auth(request, url, object_id=None):
         return HttpResponseRedirect('/'+ url +'/')
     return render_to_response('vulture/generic_confirm_delete.html', {'object':object, 'category' : 'Authentication', 'name' : url.capitalize(),'url' : '/' + url, 'user' : request.user})
 
+def link_path(src,dst,regex):
+    files=os.listdir(src)
+    for f in files:
+        if not regex or re.match(regex,f):
+            try:
+                os.symlink(src+"/"+f , dst+"/"+f)
+            except:
+                pass
+
 @permission_required('vulture.change_app')
 def edit_app(request,object_id=None):
     form = AppForm(request.POST or None,instance=object_id and App.objects.get(id=object_id))
@@ -345,21 +354,14 @@ def edit_app(request,object_id=None):
 
         modsecurityconf = ('version', 'action', 'motor', 'paranoid', 'UTF', 'XML', 'BodyAccess', 'max_num_args', 'arg_name_length', 'arg_length', 'total_arg_length', 'max_file_size', 'combined_file_size', 'allowed_http', 'BT_activated', 'DoS_activated', 'DoS_burst_time_slice', 'DoS_counter_threshold', 'DoS_block_timeout', 'Custom' )
         modsecurityfile = []
-        if not os.path.exists(path):
-            os.mkdir(path,0770)
-        if not os.path.exists(path+"CUSTOM/"):
-            os.mkdir(path+"CUSTOM/",0770)
-        if not os.path.exists(path+"CUSTOM/"+appdirname):
-            os.mkdir(path+"CUSTOM/"+appdirname,0770)
-        f = open(path+"CUSTOM/"+appdirname+"/vulture-"+appdirname+".conf",'w')
-        
-        f.write("SecRule REQUEST_HEADERS:User-Agent \"^(.*)$\" \"phase:1,id:'981217',t:none,pass,nolog,t:sha1,t:hexEncode,setvar:tx.ua_hash=%{matched_var}\""+"\n")
-        f.write("SecRule REQUEST_HEADERS:x-forwarded-for \"^\\b(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3})\\b\" \"phase:1,id:'981225',t:none,pass,nolog,capture,setvar:tx.real_ip=%{tx.1}\""+"\n")
-        f.write("SecRule &TX:REAL_IP \"!@eq 0\" \"phase:1,id:'981226',t:none,pass,nolog,initcol:global=global,initcol:ip=%{tx.real_ip}_%{tx.ua_hash}\""+"\n")
-        f.write("SecRule &TX:REAL_IP \"@eq 0\"  \"phase:1,id:'981218',t:none,pass,nolog,initcol:global=global,initcol:ip=%{remote_addr}_%{tx.ua_hash}\""+"\n")
-        
         if "MS_Activated" in dataPosted:
-            
+            if not os.path.exists(path):
+                os.mkdir(path,0770)
+            if not os.path.exists(path+"CUSTOM/"):
+                os.mkdir(path+"CUSTOM/",0770)
+            if not os.path.exists(path+"CUSTOM/"+appdirname):
+                os.mkdir(path+"CUSTOM/"+appdirname,0770)
+            f = open(path+"CUSTOM/"+appdirname+"/vulture-"+appdirname+".conf",'w')            
             #deal with data for modsecurity
             for row in modsecurityconf:
                 if row in dataPosted:
@@ -436,12 +438,17 @@ def edit_app(request,object_id=None):
                         f.write("SecAction \"phase:1,id:'981215',t:none,nolog,pass, setvar:'tx.dos_burst_time_slice="+dataPosted['DoS_burst_time_slice']+"', setvar:'tx.dos_counter_threshold="+dataPosted['DoS_counter_threshold']+"', setvar:'tx.dos_block_timeout="+dataPosted['DoS_block_timeout']+"'\""+"\n")
                     elif row == 'Custom':
                         f.write(dataPosted[row]+"\n")
+            f.write("SecRule REQUEST_HEADERS:User-Agent \"^(.*)$\" \"phase:1,id:'981217',t:none,pass,nolog,t:sha1,t:hexEncode,setvar:tx.ua_hash=%{matched_var}\""+"\n")
+            f.write("SecRule REQUEST_HEADERS:x-forwarded-for \"^\\b(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3})\\b\" \"phase:1,id:'981225',t:none,pass,nolog,capture,setvar:tx.real_ip=%{tx.1}\""+"\n")
+            f.write("SecRule &TX:REAL_IP \"!@eq 0\" \"phase:1,id:'981226',t:none,pass,nolog,initcol:global=global,initcol:ip=%{tx.real_ip}_%{tx.ua_hash}\""+"\n")
+            f.write("SecRule &TX:REAL_IP \"@eq 0\"  \"phase:1,id:'981218',t:none,pass,nolog,initcol:global=global,initcol:ip=%{remote_addr}_%{tx.ua_hash}\""+"\n")
                 #deal with directories
-            directory = {}
-            directory['base_rules/'] = 'securitybase'
-            directory['experimental_rules/'] = 'securityexp'
-            directory['optional_rules/'] = 'securityopt'
-            directory['slr_rules/'] = 'securityslr'
+            directory = {
+                            "base_rules/":"securitybase",
+                            "experimental_rules/":'securityexp',
+                            "optional_rules/":'securityopt',
+                            "slr_rules/":'securityslr'
+                       }
             
             
             
@@ -462,12 +469,16 @@ def edit_app(request,object_id=None):
                         os.remove(path+"activated/"+appdirname+"/"+init)
                         #os.popen("rm "+path+"activated/"+appdirname+"/"+init)
                 for val in value:
-                    os.symlink(path+key+val,path+"activated/"+appdirname+"/"+val)
-            os.popen("ln -s "+path+"CUSTOM/"+appdirname+"/vulture-"+appdirname+".conf "+path+"activated/"+appdirname+"/vulture-"+appdirname+".conf")
-            os.popen("ln -s "+path+"base_rules/*.data "+path+"activated/"+appdirname+"/")
-            os.popen("ln -s "+path+"optional_rules/*.data "+path+"activated/"+appdirname+"/")
-            os.popen("ln -s "+path+"experimental_rules/*.data "+path+"activated/"+appdirname+"/")
-            os.popen("ln -s "+path+"slr_rules/*.data "+path+"activated/"+appdirname+"/")
+                    try:
+                        os.symlink(path+key+val,path+"activated/"+appdirname+"/"+val)
+                    except:
+                        pass
+            try:
+                os.symlink(path+"CUSTOM/"+appdirname+"/vulture-"+appdirname+".conf",path+"activated/"+appdirname+"/vulture-"+appdirname+".conf")
+            except:
+                pass
+            for src in ("base_rules","optional_rules","experimental_rules","slr_rules"):
+                link_path(path+src,path+"activated/"+appdirname,".*\.data$")
         else:
             if os.path.exists(path+"activated/"+appdirname+"/"):
                 for removefile in os.listdir(path+"activated/"+appdirname+"/"):
