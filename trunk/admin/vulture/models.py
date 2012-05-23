@@ -164,6 +164,46 @@ class Intf(models.Model):
                      })
         return t.render(c)
 
+    def backupConf(self):
+        backpath="%s%s_backup/"%(settings.CONF_PATH,self.id)
+        if not os.path.exists(backpath):
+            os.mkdir(backpath,0770)
+        for ext in ("cert","conf","key","chain","cacrt","ca"):
+            fnam="%s.%s"%(self.id,ext)
+            bpath="%s%s"%(backpath,fnam)
+            cpath="%s%s"%(settings.CONF_PATH,fnam)
+            try: 
+                open(bpath,"w").write(open(cpath).read())
+            except:
+                pass
+        return backpath
+
+    def restoreConf(self,backpath):
+        for ext in ("cert","conf","key","chain","cacrt","ca"):
+            fnam="%s.%s"%(self.id,ext)
+            bpath="%s%s"%(backpath,fnam)
+            cpath="%s%s"%(settings.CONF_PATH,fnam)
+            try: 
+                open(cpath,"w").write(open(bpath).read())
+            except:
+                pass
+         
+    def tryConf(self):
+        cfile="%s%s.conf"%(settings.CONF_PATH,self.id)
+        proc = subprocess.Popen(settings.HTTPD_PATH.split()+["-f",cfile,"-t"],0,"/usr/bin/sudo",None,subprocess.PIPE,subprocess.PIPE)
+        if not proc:
+            raise "Unable to execute apache!"
+        if proc.wait():
+            return "Bad Apache Conf > "+proc.stderr.read()
+        
+    def maybeWrite(self):
+        bpath = self.backupConf()
+        self.write()
+        fail_msg = self.tryConf()
+        if fail_msg:
+            self.restoreConf(bpath)
+            return fail_msg
+
     def write(self):
         f=open("%s%s.conf" % (settings.CONF_PATH, self.id), 'w')
         f.write(str(self.conf()))

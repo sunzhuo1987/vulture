@@ -179,8 +179,12 @@ def reload_all_vintfs(request):
 
 @permission_required('vulture.reload_intf')
 def start_intf(request, intf_id):
-    Intf.objects.get(pk=intf_id).write()
-    k_output = Intf.objects.get(pk=intf_id).k('start')
+    intf = Intf.objects.get(pk=intf_id)
+    fail = intf.maybeWrite()
+    if fail: 
+        k_output = fail
+    else:
+        k_output = intf.k('start')
 #    sleep(1)
     return render_to_response('vulture/intf_list.html',
                               {'object_list': Intf.objects.all(), 'k_output': k_output, 'user' : request.user })
@@ -201,14 +205,17 @@ def stop_intf(request, intf_id):
 @permission_required('vulture.reload_intf')
 def reload_intf(request, intf_id):
     intf = Intf.objects.get(pk=intf_id)
-    intf.write()
-    k_output = intf.k('graceful')
+    fail = intf.maybeWrite()
+    if fail:
+        k_output = fail
+    else:
+        k_output = intf.k('graceful')
     
-    apps = App.objects.filter(intf=intf).all()
-    mc = flushmc.Client("127.0.0.1",9091)
-    for app in apps:
-        # Delete memcached records to update config
-        mc.delete(app.name + ':app')
+        apps = App.objects.filter(intf=intf).all()
+        mc = flushmc.Client("127.0.0.1",9091)
+        for app in apps:
+            # Delete memcached records to update config
+            mc.delete(app.name + ':app')
     return render_to_response('vulture/intf_list.html',
                               {'object_list': Intf.objects.all(), 'k_output': k_output, 'user' : request.user})
                               
@@ -218,18 +225,21 @@ def reload_all_intfs(request):
     intfs = Intf.objects.all()
     for intf in intfs :
         if intf.need_restart:
-            intf.write()
-            output = intf.k('graceful')
-            k_output += intf.name + ' : '
-            if output:
-                k_output += output
+            fail = intf.maybeWrite()
+            if fail:
+                 k_output += intf.name+":"+fail
             else:
-                k_output += 'everything ok'
-            apps = App.objects.filter(intf=intf).all()
-            mc = flushmc.Client("127.0.0.1",9091)
-            for app in apps:
-                # Delete memcached records to update config
-                mc.delete(app.name + ':app')
+                 k_output += intf.name+":"
+                 outp = intf.k('graceful')
+                 if outp:
+                     k_output += outp
+                 else: 
+                     k_output += "everything ok"
+                 apps = App.objects.filter(intf=intf).all()
+                 mc = flushmc.Client("127.0.0.1",9091)
+                 for app in apps:
+                     # Delete memcached records to update config
+                     mc.delete(app.name + ':app')
     return render_to_response('vulture/intf_list.html', {'object_list': intfs, 'k_output': k_output, 'user' : request.user})
 
 @user_passes_test(lambda u: u.is_staff)
