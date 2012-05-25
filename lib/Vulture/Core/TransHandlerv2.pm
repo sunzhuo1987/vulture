@@ -194,17 +194,15 @@ sub handler {
 	    } else {
 		    my $dir;
 		    my $hostname = $r->hostname;
-		    if ($app->{name} =~ /$hostname\/?(.*)$/) {
+		    if ($app->{name} =~ /$hostname\/?(.*)(\/*)$/) {
 			$dir=$1;
-			$log->debug("dir = $dir");
 		    }
-		    $log->debug("name $app->{name}");
-		    $log->debug("hostname $hostname");
-		    $log->debug("dir2 = $dir");
 		    if ($uri =~ /^\/?$dir\/(.*)$/) {
 			$uri=$1;
 		    }
-		    $proxy_url = $app->{'url'}."/".$uri;
+		    else { $uri = '';}
+		    $log->debug("url: $app->{url} ; dir: $dir ; uri : $uri");
+		    $proxy_url = $app->{url}."/".$uri;
 	    }
 	    $log->debug("proxy = $proxy_url");
 	    
