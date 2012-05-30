@@ -180,6 +180,8 @@ sub handler {
 				}
 				if ($r->content_type =~ /(text\/xml|text\/html|application\/vnd.ogc.wms_xml|text\/css|application\/x-javascript)/) {
 					# Replace links if pattern match
+					my $parsed_2 = APR::URI->parse($f->r->pool, $parsed_uri);
+					&link_replacement(\$ctx->{data}, '//',$parsed_2->scheme.'://', $parsed_uri);
 					foreach my $p (@{$ctx->{pattern}}) {
 						my ($match, $substitute) = split (/ => /, $p);
 						$log->debug($match);
