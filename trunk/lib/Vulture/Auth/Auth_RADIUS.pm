@@ -43,7 +43,7 @@ sub checkAuth{
 			for $a ($radius->get_attributes) {
 				$log->debug("Attribut list". $a->{'Name'});
 				if ($a->{'Name'} eq $url_attr ) {
-					$r->pnotes('response_content') = '<html><head><meta http-equiv="Refresh" content="0; url='.$a->{'Value'}.'"></head></html>';
+					$r->pnotes('response_content') = '<html><head><meta http-equiv="Refresh" content="0; url='.$a->{'Value'}.'"/></head></html>';
 					$log->debug($user . " routed to ". $a->{'Value'});
 				}
 			}

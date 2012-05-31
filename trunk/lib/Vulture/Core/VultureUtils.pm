@@ -394,7 +394,7 @@ sub get_style {
     $sth->finish();
     
     #Headers
-    $html = '<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><title>'.$title.'</title>';
+    $html = '<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/><title>'.$title.'</title>';
     $html .= "<style type=\"text/css\">".$ref->{css}."</style>" if (defined $ref->{css});
     $html .= "</head><body>";
     

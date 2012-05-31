@@ -125,7 +125,7 @@ sub handler {
 				if (($sso_learning_ext ne '')) {
 					$log->debug("REDIRECTING SSO LEARNING TO EXTERNAL APP".$sso_learning_ext );
 	                my $html;
-					$html = '<html><head><meta http-equiv="Refresh" content="0; url='.$sso_learning_ext.'"></head></html>';
+					$html = '<html><head><meta http-equiv="Refresh" content="0; url='.$sso_learning_ext.'"/></head></html>';
 					$r->content_type('text/html');
 					$r->print($html);
 					return Apache2::Const::OK;
@@ -180,7 +180,7 @@ sub handler {
             if($intf->{'cas_display_portal'}){
                 $html = Core::ResponseHandlerv2::display_portal ($r,$log,$dbh, $app);
             } elsif($intf->{'cas_redirect'}){
-                $html = '<html><head><meta http-equiv="Refresh" content="0; url='.$intf->{'cas_redirect'}.'"></head></html>';
+                $html = '<html><head><meta http-equiv="Refresh" content="0; url='.$intf->{'cas_redirect'}.'"/></head></html>';
             } else {
                 $html = "<html><head><title>Successful login</title></head><body>You are successfull loged on SSO</body></html>";
             }

@@ -38,11 +38,11 @@ sub handle_action {
             my $translations = Core::VultureUtils::get_translations($r, $log, $dbh, $type);
             $html = Core::VultureUtils::get_style($r, $log, $dbh, $app, $type, $title, {}, $translations);
         } elsif($action eq 'message'){
-            $html = '<html><head><meta http-equiv="Content-type" content="text/html; charset=utf-8"></head><body>'.$options.'</body></html>';
+            $html = '<html><head><meta http-equiv="Content-type" content="text/html; charset=utf-8"/></head><body>'.$options.'</body></html>';
         } elsif($action eq 'log'){
             $log->debug('Message : '.$type);
         } elsif($action eq 'redirect'){
-            $html = '<html><head><meta http-equiv="Refresh" content="0; url='.$options.'"></head></html>';
+            $html = '<html><head><meta http-equiv="Refresh" content="0; url='.$options.'"/></head></html>';
         } elsif($action eq 'script'){
             #Get evaluation of script
             eval $options;
