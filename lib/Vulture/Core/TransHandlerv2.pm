@@ -332,7 +332,7 @@ sub handler {
                 $r->err_headers_out->add('Set-Cookie' => $r->dir_config('VultureAppCookieName')."=".$session_app{_session_id}."; path=/".$dir."; domain=.".$r->hostname);
                 
                 #Redirect user to SSO portal
-                $r->pnotes('response_content' => '<html><head><meta http-equiv="Refresh" content="0; url='.$rewrite_uri->unparse.'"></head></html>');
+                $r->pnotes('response_content' => '<html><head><meta http-equiv="Refresh" content="0; url='.$rewrite_uri->unparse.'"/></head></html>');
                 $r->pnotes('response_content_type' => 'text/html');
                 
                 $r->set_handlers(PerlAuthenHandler => undef);

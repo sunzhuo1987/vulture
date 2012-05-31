@@ -36,7 +36,7 @@ sub plugin{
     $log->debug("Bad referer. Redirecting to $options");
 
     #Display result in ResponseHandler
-    $r->pnotes('response_content' => '<html><head><meta http-equiv="Refresh" content="0; url='.$options.'"></head></html>');
+    $r->pnotes('response_content' => '<html><head><meta http-equiv="Refresh" content="0; url='.$options.'"/></head></html>');
     $r->pnotes('response_content_type' => 'text/html');
 
     #Destroy useless handlers

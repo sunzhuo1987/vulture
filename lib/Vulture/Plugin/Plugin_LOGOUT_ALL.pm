@@ -155,7 +155,7 @@ sub plugin{
     
     #If no html, send form
 #    my $html = get_style($r, $log, $dbh, $app, 'LOGOUT', 'Logout from Vulture', {FORM => ''}, $translations);
-    $r->pnotes('response_content' => '<html><head><meta http-equiv="Refresh" content="0; url='.$options.'"></head></html>');
+    $r->pnotes('response_content' => '<html><head><meta http-equiv="Refresh" content="0; url='.$options.'"/></head></html>');
 #    $r->pnotes('response_content' => $html);
     $r->pnotes('response_content_type' => 'text/html');
     return Apache2::Const::OK;
