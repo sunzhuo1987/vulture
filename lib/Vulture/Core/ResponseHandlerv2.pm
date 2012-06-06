@@ -231,7 +231,7 @@ sub display_auth_form {
     $session_SSO{random_token} = $token;
     
     #Get style
-    my $form = "<div id=\"form_vulture\"><form method=\"POST\" name=\"auth_form\" action=\"$uri\"><table>";
+    my $form = "<div id=\"form_vulture\"><form method=\"POST\" name=\"auth_form\" action=\"".encode_entities($uri)."\"><table>";
     $form .= "<tr class=\"row\"><td></td><td class=\"hidden\" name=\"service\" value=\"".encode_entities($service)."\"></td></tr>" if defined $service;
     $form .= <<FOO
 <tr class="row"><td class="input">$translations->{'USER'}{'translation'}</td><td><input type="text" name="vulture_login"></td></tr>
