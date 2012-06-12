@@ -45,6 +45,7 @@ Net::IP::Match::Regexp
 Net::LDAP
 Net::LDAP::Util
 Sys::Hostname
+List::Util
 URI
 URI::Escape
 WWW::Mechanize
