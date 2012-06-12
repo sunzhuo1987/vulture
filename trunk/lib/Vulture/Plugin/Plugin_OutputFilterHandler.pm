@@ -38,7 +38,7 @@ use Encode;
 	'iframe'  => ['src', 'longdesc'],
 	'ilayer'  => ['background'],
 	'img'     => ['src', 'lowsrc', 'longdesc', 'usemap'],
-	'input'   => ['src', 'usemap', 'value'],
+	'input'   => ['src', 'usemap'],
 	'ins'     => ['cite'],
 	'isindex' => ['action'],
 	'head'    => ['profile'],
@@ -255,8 +255,9 @@ sub link_replacement
 		
 		}
 	}
+
 	# Replace all links in javascript code
-	$$data =~ s/([^\\]['"])($replacement|$pattern)([^'"]*['"])/$1$replacement$3/ig;
+	#$$data =~ s/([^\\]['"])($replacement|$pattern)([^'"]*['"])/$1$replacement$3/ig;
 	$$data =~ s/([\\]['])($replacement|$pattern)([^'"]*[\\]['])/$1$replacement$3/ig;
 
 	# Try to set a fully qualified URI
@@ -274,7 +275,8 @@ sub link_replacement
 	
 	# The single ended tag broke mod_proxy parsing
 	$$data =~ s/($replacement|$pattern)>/\/>/ig;
-	
+		
+
 	# Replace todos now
 	for ($i = 0; $i <= $#TODOS; $i++) {
 
