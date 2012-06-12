@@ -136,7 +136,7 @@ sub	get_app {
     if ($obj) {
         #$query = "SELECT intf.id FROM app, intf, app_intf WHERE app.name = ? AND app_intf.intf_id = intf.id AND app.id = app_intf.app_id";
         #$query = 'SELECT intf.id FROM intf JOIN app_intf ON intf.id = app_intf.intf_id JOIN app ON app_intf.app_id = app.id WHERE app.name=?';
-        $query = 'SELECT intf.id FROM intf JOIN app_intf ON intf.id = app_intf.intf_id JOIN app ON app_intf.app_id = app.id WHERE ? LIKE app.name || "%"';
+        $query = 'SELECT intf.id FROM intf JOIN app_intf ON intf.id = app_intf.intf_id JOIN app ON app_intf.app_id = app.id WHERE ? LIKE app.name || "%" ORDER BY app.name DESC';
 	$log->debug($query);
 	$sth = $dbh->prepare($query);
 	$sth->execute($host);
@@ -151,22 +151,28 @@ sub	get_app {
     
     #Getting app and wildcards
     #$query = "SELECT app.id, app.name, app.alias, app.url, app.log_id, app.sso_forward_id AS sso_forward, app.logon_url, app.logout_url, intf.port, app.remote_proxy, app.up, app.auth_basic, app.display_portal, app.canonicalise_url, app.timeout, app.update_access_time FROM app, intf, app_intf WHERE intf.id = ? AND app_intf.intf_id = intf.id AND app.id = app_intf.app_id";
-	$query = 'SELECT app.id, app.name, app.alias, app.url, app.log_id, app.sso_forward_id AS sso_forward, app.logon_url, app.logout_url, intf.port, app.remote_proxy, app.up, app.auth_basic, app.display_portal, app.canonicalise_url, app.timeout, app.update_access_time, app.sso_learning_ext, app.secondary_authentification_failure_options FROM app JOIN app_intf ON app.id = app_intf.app_id JOIN intf ON app_intf.intf_id = intf.id WHERE intf.id = ?';
+	$query = 'SELECT app.id, app.name, app.alias, app.url, app.log_id, app.sso_forward_id AS sso_forward, app.logon_url, app.logout_url, intf.port, app.remote_proxy, app.up, app.auth_basic, app.display_portal, app.canonicalise_url, app.timeout, app.update_access_time, app.sso_learning_ext, app.secondary_authentification_failure_options, app.Balancer_Node, app.Balancer_Stickyness FROM app JOIN app_intf ON app.id = app_intf.app_id JOIN intf ON app_intf.intf_id = intf.id WHERE intf.id = ? ORDER BY app.name ASC';
         $log->debug($query);
 	$sth = $dbh->prepare($query);
 	$sth->execute($intf);
     	my $apps = $sth->fetchall_hashref('name');
     	$sth->finish();
     
-    #Exact matching
- 	while ( my ($name, $hashref) = each(%$apps) ) {
-        
-        if ($host =~ /$name/) {
-            $ref = $apps->{$name};
-            last;
+    #(Un)Exact matching (match the host with the deepest path)
+    my $max_fields = -1;
+    my $fi;
+    while ( my ( $name, $hashref ) = each(%$apps) ) {
+        $fi = 0;
+        $fi++ while ($name =~ m/\//g);
+        $log->debug("ROOT: $host =~ $name , fields : $fi");
+        if ( $host =~ /$name/ ) {
+            if ($fi > $max_fields){
+                $max_fields = $fi;
+                $ref = $apps->{$name};
+           }
         }
     }
-    
+ 
     #Wildcard
     unless (defined $ref) {
         while ( my ($name, $hashref) = each(%$apps) ) {
