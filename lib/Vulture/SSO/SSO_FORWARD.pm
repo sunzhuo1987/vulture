@@ -41,6 +41,8 @@ use Data::Dumper;
 
 use URI::Escape;
 
+use List::Util;
+
 sub rewrite_uri { # Rewrite uri for being valid
 	my ($r, $app, $uri, $real_post_url, $log) = @_;
 
@@ -217,10 +219,14 @@ sub forward{
 
 	$cookies = $r->headers_in->{Cookie};
 	my $cleaned_cookies = '';
+	my $route = '';
 	foreach (split(';', $cookies)) {
 		if (/([^,; ]+)=([^,; ]+)/) {
 			if ($1 ne $r->dir_config('VultureAppCookieName') and $1 ne $r->dir_config('VultureProxyCookieName')){
 				$cleaned_cookies .= $1."=".$2.";";
+			}
+			elsif ($1 eq $app->{Balancer_Stickyness}) {
+				$route = $2;
 			}
 		}
 	}
@@ -241,9 +247,26 @@ sub forward{
        $ENV{HTTPS_PROXY} = $app->{remote_proxy};
        $ENV{HTTP_PROXY} = $app->{remote_proxy};
 
+	my $base_url = $app->{url};
+	if ($app->{url} =~ /balancer:\/\//) {
+		my @urls = split(';',$app->{Balancer_Node});
+		my $u;
+		my @shuffled;
+		if ($route eq '') {
+			@shuffled = List::Util::shuffle(@urls);
+			my @row = split(' ',$shuffled[0]);
+			$base_url = $row[0];
+		} else {
+			foreach $u(@urls) {
+				if ($u =~ /route=(.*)$route(.*)/) {
+					$base_url = split(' ',$u);
+				}
+			}
+		}
+	}
 	#Just send request with Authorization
 	if($sso_forward_type eq 'sso_forward_htaccess'){
-		$request = HTTP::Request->new(GET => $app->{url}.$app->{logon_url});
+		$request = HTTP::Request->new(GET => $base_url.$app->{logon_url});
 
 		$request->push_header('Referer' => '-');
 
@@ -290,7 +313,7 @@ sub forward{
 		}
 		$mech->add_header('Host' => $r->headers_in->{'Host'});
 		#get 'get' response
-		$response = $mech->get($app->{url}.$app->{logon_url});
+		$response = $mech->get($base_url.$app->{logon_url});
 
 		$log->debug($response->request->as_string);
 		$log->debug($response->as_string);
@@ -334,7 +357,7 @@ sub forward{
 				}
 				$post .= uri_escape($key)."=".uri_escape($value)."&";
 			}
-			$request = HTTP::Request->new('POST', $app->{url}.$app->{logon_url}, undef, $post);
+			$request = HTTP::Request->new('POST', $base_url.$app->{logon_url}, undef, $post);
 			#Setting headers
 			$request->push_header('Content-Type' => 'application/x-www-form-urlencoded');
 
@@ -372,7 +395,7 @@ sub forward{
 
 	#We need to parse referer to replace @ IP by hostnames
 	my $host = $r->headers_in->{'Host'};
-	my $parsed_uri = APR::URI->parse($r->pool, $app->{url}.$app->{logon_url});
+	my $parsed_uri = APR::URI->parse($r->pool, $base_url.$app->{logon_url});
 	$parsed_uri->scheme('http');
 	$parsed_uri->scheme('https') if $r->is_https;
 	$parsed_uri->port($r->get_server_port());
