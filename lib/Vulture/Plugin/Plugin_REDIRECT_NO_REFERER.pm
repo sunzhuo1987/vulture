@@ -21,10 +21,10 @@ sub plugin{
 	my ($package_name, $r, $log, $dbh, $intf, $app, $options) = @_;
 	
 	$log->debug("########## Plugin_GS_REFERER ##########");
-    
+   	my $mc_conf = $r->pnotes('mc_conf'); 
     my $SSO_cookie_name = get_cookie($r->headers_in->{Cookie}, $r->dir_config('VultureProxyCookieName').'=([^;]*)') or '';
     my (%session_SSO);
-    session(\%session_SSO, $intf->{sso_timeout}, $SSO_cookie_name, $log, $intf->{sso_update_access_time});
+    session(\%session_SSO, $intf->{sso_timeout}, $SSO_cookie_name, $log, $mc_conf, $intf->{sso_update_access_time});
     my $SSO_cookie_app_name = get_cookie($r->headers_in->{Cookie}, $r->dir_config('VultureAppCookieName').'=([^;]*)') or '';
 
     $log->debug($SSO_cookie_app_name);

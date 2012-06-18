@@ -11,7 +11,7 @@ our $VERSION = '2.0.3';
 BEGIN {
     use Exporter ();
     our @ISA = qw(Exporter);
-    our @EXPORT_OK = qw(&version_check &get_app &get_intf &session &get_cookie &get_memcached &set_memcached &get_DB_object &get_LDAP_object &get_style &get_translations &generate_random_string &notify);
+    our @EXPORT_OK = qw(&get_memcached_conf &version_check &get_app &get_intf &session &get_cookie &get_memcached &set_memcached &get_DB_object &get_LDAP_object &get_style &get_translations &generate_random_string &notify);
 }
 
 use Apache::Session::Generate::MD5;
@@ -19,6 +19,7 @@ use Apache::Session::Flex;
 use Apache2::Reload;
 
 use Core::Config qw(&get_key);
+use Core::Log qw(&new);
 
 use DBI;
 
@@ -33,11 +34,23 @@ sub	version_check {
 	return ($config->get_key('version') eq $VERSION);
 }
 
+sub     get_memcached_conf{
+	my ($dbh) = @_;
+	my $query = "SELECT value from conf where var='memcached';";
+	my $sth = $dbh->prepare($query);
+	$sth->execute();
+	my $var = $sth->fetchrow ;
+	$sth->finish();
+        if ( $var =~ /([^:]+):([\d]+)/ ){
+		return $var;
+	}
+	die('[-] Fatal : the memcached conf was not defined');
+}	
 #get information stored in memcached
 sub	get_memcached {
-	my ($key) = @_; 
+	my ($key,$mc) = @_; 
 	my $memd = Cache::Memcached->new(
-	  servers            => [ "127.0.0.1:9091" ],
+	  servers            => [ $mc ],
 	  debug              => 0,
 	  compress_threshold => 10_000,
 	) unless defined $memd;
@@ -45,9 +58,9 @@ sub	get_memcached {
 }
 #set information into memcached
 sub	set_memcached {
-	my ($key, $value, $exptime) = @_; 
+	my ($key, $value, $exptime,$mc) = @_; 
 	my $memd = Cache::Memcached->new(
-	  servers            => [ "127.0.0.1:9091" ],
+	  servers            => [ $mc ],
 	  debug              => 0,
 	  compress_threshold => 10_000,
 	) unless defined $memd;
@@ -62,7 +75,7 @@ sub	set_memcached {
 }
 
 sub	session {
-	my ($session, $timeout, $id, $log, $update_access_time, $n) = @_;
+	my ($session, $timeout, $id, $log, $mc,$update_access_time, $n) = @_;
     $update_access_time ||= 0;
 	$n ||= 0;
 	die if ($n and int $n > 2); # avoid deep recursion
@@ -74,16 +87,16 @@ sub	session {
 #							   Serialize => 'Base64',
 #							   DataSource => 'dbi:SQLite2:dbname=/var/www/vulture/sql/sessions',
 #							  }
-#	} or session($session, $timeout, undef, $log, $update_access_time, $n + 1);
+#	} or session($session, $timeout, undef, $log, undef,  $update_access_time, $n + 1);
     eval {
         tie %{$session}, 'Apache::Session::Flex', $id, {
 				          Store     => 'Memcached',
 				          Lock      => 'Null',
 				          Generate  => 'MD5',
 				          Serialize => 'Storable',
-				          Servers => '127.0.0.1:9091',
+				          Servers => $mc,
 				         };
-    } or session($session, $timeout, undef, $log, $update_access_time, int $n + 1);
+    } or session($session, $timeout, undef, $log, $mc, $update_access_time, int $n + 1); 
     
     #Session starting this time or previous session connection time was valid
     if(not defined $id or ($update_access_time == 1 and $timeout and $timeout > 0 and (time() - $session->{last_access_time} < $timeout))){
@@ -93,7 +106,6 @@ sub	session {
     #Regenerate session if too old
     if (defined $timeout and $timeout > 0 and (time() - $session->{last_access_time} > $timeout)){
 		tied(%{$session})->delete;
-		#session($session, $timeout, undef, $log, $update_access_time, $n + 1);
     }
     
     return $session;
@@ -132,7 +144,7 @@ sub	get_app {
     return {} unless ($host and $intf and $dbh);
     
     #Use memcached if possible
-    my $obj = get_memcached("$host:app");
+    my $obj = get_memcached("$host:app",get_memcached_conf($dbh));
     if ($obj) {
         #$query = "SELECT intf.id FROM app, intf, app_intf WHERE app.name = ? AND app_intf.intf_id = intf.id AND app.id = app_intf.app_id";
         #$query = 'SELECT intf.id FROM intf JOIN app_intf ON intf.id = app_intf.intf_id JOIN app ON app_intf.app_id = app.id WHERE app.name=?';
@@ -146,19 +158,19 @@ sub	get_app {
 	  	     $obj->{'intf'} = $intf;
 	    }
 	}
+	$sth->finish()
     }
     return $obj if $obj;
     
     #Getting app and wildcards
     #$query = "SELECT app.id, app.name, app.alias, app.url, app.log_id, app.sso_forward_id AS sso_forward, app.logon_url, app.logout_url, intf.port, app.remote_proxy, app.up, app.auth_basic, app.display_portal, app.canonicalise_url, app.timeout, app.update_access_time FROM app, intf, app_intf WHERE intf.id = ? AND app_intf.intf_id = intf.id AND app.id = app_intf.app_id";
-	$query = 'SELECT app.id, app.name, app.alias, app.url, app.log_id, app.sso_forward_id AS sso_forward, app.logon_url, app.logout_url, intf.port, app.remote_proxy, app.up, app.auth_basic, app.display_portal, app.canonicalise_url, app.timeout, app.update_access_time, app.sso_learning_ext, app.secondary_authentification_failure_options, app.Balancer_Node, app.Balancer_Stickyness FROM app JOIN app_intf ON app.id = app_intf.app_id JOIN intf ON app_intf.intf_id = intf.id WHERE intf.id = ? ORDER BY app.name ASC';
+	$query = 'SELECT app.id, app.name, app.alias, app.url, app.log_id, app.sso_forward_id AS sso_forward, app.logon_url, app.logout_url, intf.port, app.remote_proxy, app.up, app.auth_basic, app.display_portal, app.canonicalise_url, app.timeout, app.update_access_time, app.sso_learning_ext, app.secondary_authentification_failure_options,app.Balancer_Node,app.Balancer_Stickyness FROM app JOIN app_intf ON app.id = app_intf.app_id JOIN intf ON app_intf.intf_id = intf.id WHERE intf.id = ? ORDER BY app.name ASC';
         $log->debug($query);
 	$sth = $dbh->prepare($query);
 	$sth->execute($intf);
     	my $apps = $sth->fetchall_hashref('name');
     	$sth->finish();
-    
-    #(Un)Exact matching (match the host with the deepest path)
+       #(Un)Exact matching (match the host with the deepest path)
     my $max_fields = -1;
     my $fi;
     while ( my ( $name, $hashref ) = each(%$apps) ) {
@@ -173,6 +185,7 @@ sub	get_app {
         }
     }
  
+    
     #Wildcard
     unless (defined $ref) {
         while ( my ($name, $hashref) = each(%$apps) ) {
@@ -225,8 +238,8 @@ sub	get_app {
     $sth->finish();
 
     #Caching app if possible 
-    set_memcached("$host:app", $ref);
-	return $ref;
+    set_memcached("$host:app", $ref,undef,get_memcached_conf($dbh));
+    return $ref;
 }
 
 

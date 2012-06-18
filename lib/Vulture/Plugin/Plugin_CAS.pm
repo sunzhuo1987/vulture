@@ -25,7 +25,7 @@ sub plugin{
 	my ($package_name, $r, $log, $dbh, $intf, $app, $options) = @_;
 	
 	$log->debug("########## Plugin_CAS ##########");
-
+	my $mc_conf = $r->pnotes('mc_conf');
 	my ($action, $service, $ticket);
 	my $req = Apache2::Request->new($r);	
 
@@ -38,7 +38,7 @@ sub plugin{
 
 	#Get memcached data
 	my (%users);
-	%users = %{Core::VultureUtils::get_memcached('vulture_users_in') || {}};
+	%users = %{Core::VultureUtils::get_memcached('vulture_users_in',$mc_conf) || {}};
 
     #CAS Portal doesn't have auth
     my $auths = $intf->{'auth'};
@@ -65,7 +65,7 @@ sub plugin{
         my $SSO_cookie_name = Core::VultureUtils::get_cookie($r->headers_in->{Cookie}, $r->dir_config('VultureProxyCookieName').'=([^;]*)');
         my (%session_SSO);
 
-        Core::VultureUtils::session(\%session_SSO, $intf->{sso_timeout}, $SSO_cookie_name, $log, $intf->{sso_update_access_time});
+        Core::VultureUtils::session(\%session_SSO, $intf->{sso_timeout}, $SSO_cookie_name, $log, $mc_conf, $intf->{sso_update_access_time});
 
         #Get session id if not exists
         if($SSO_cookie_name ne $session_SSO{_session_id}){
@@ -117,7 +117,7 @@ sub plugin{
             }
         }
         #Commit changes
-        Core::VultureUtils::set_memcached('vulture_users_in', \%users);
+        Core::VultureUtils::set_memcached('vulture_users_in', \%users,undef,$mc_conf);
         
         #Display result in ResponseHandler
         $r->pnotes('response_content' => $res);
@@ -170,7 +170,7 @@ sub plugin{
             }
         }
         #Commit changes
-        Core::VultureUtils::set_memcached('vulture_users_in', \%users);
+        Core::VultureUtils::set_memcached('vulture_users_in', \%users,undef,$mc_conf);
         
         unless($user_found){
             $xml .= "<cas:authenticationFailure code=\"$errorCode\"></cas:authenticationFailure>";

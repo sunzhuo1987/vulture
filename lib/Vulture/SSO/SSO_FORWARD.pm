@@ -40,12 +40,11 @@ use APR::SockAddr;
 use Data::Dumper;
 
 use URI::Escape;
-
 use List::Util;
 
 sub rewrite_uri { # Rewrite uri for being valid
 	my ($r, $app, $uri, $real_post_url, $log) = @_;
-
+	my $mc_conf = $r->pnotes('mc_conf');
 	my $hostname;
 	if ($app->{name} =~ /(.*)\//) {
 		$hostname = $1;
@@ -178,9 +177,9 @@ sub forward{
 	my ($package_name, $r, $log, $dbh, $app, $user, $password) = @_;
 
 	$r = Apache::SSLLookup->new($r);
-
+	my $mc_conf = $r->pnotes('mc_conf');
 	my (%session_app);
-	Core::VultureUtils::session(\%session_app, undef, $r->pnotes('id_session_app'), $log, $app->{update_access_time});
+	Core::VultureUtils::session(\%session_app, undef, $r->pnotes('id_session_app'), $log, $mc_conf, $app->{update_access_time});
 
 	my %headers_vars = (
 			2 => 'SSL_CLIENT_I_DN',
@@ -244,9 +243,8 @@ sub forward{
                }
                #$mech->proxy(['http', 'https'], $app->{remote_proxy});
 	}
-       $ENV{HTTPS_PROXY} = $app->{remote_proxy};
-       $ENV{HTTP_PROXY} = $app->{remote_proxy};
-
+        $ENV{HTTPS_PROXY} = $app->{remote_proxy};
+        $ENV{HTTP_PROXY} = $app->{remote_proxy};
 	my $base_url = $app->{url};
 	if ($app->{url} =~ /balancer:\/\//) {
 		my @urls = split(';',$app->{Balancer_Node});
@@ -312,6 +310,7 @@ sub forward{
 			$mech->max_redirect(0);
 		}
 		$mech->add_header('Host' => $r->headers_in->{'Host'});
+	    
 		#get 'get' response
 		$response = $mech->get($base_url.$app->{logon_url});
 

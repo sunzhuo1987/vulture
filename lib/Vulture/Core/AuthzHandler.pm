@@ -31,14 +31,15 @@ sub handler {
 	my $password = $r->pnotes('password');
 	my $dbh = $r->pnotes('dbh');
 	my $app = $r->pnotes('app');
+	my $mc_conf = $r->pnotes('mc_conf');
     $log->error("App is missing in AuthzHandler") unless $app;
     my $intf = $r->pnotes('intf');
 
 	#Session data
 	my (%session_app);
-	Core::VultureUtils::session(\%session_app, $app->{timeout}, $r->pnotes('id_session_app'), $log, $app->{update_access_time});
+	Core::VultureUtils::session(\%session_app, $app->{timeout}, $r->pnotes('id_session_app'), $log, $mc_conf,$app->{update_access_time});
 	my (%session_SSO);
-	Core::VultureUtils::session(\%session_SSO, $intf->{sso_timeout}, $r->pnotes('id_session_SSO'), $log, $intf->{sso_update_access_time});
+	Core::VultureUtils::session(\%session_SSO, $intf->{sso_timeout}, $r->pnotes('id_session_SSO'), $log, $mc_conf,$intf->{sso_update_access_time});
 
 	#Bypass for Vulture Auth
 	if(not $session_SSO{is_auth} and not $r->user){
@@ -57,7 +58,7 @@ sub handler {
 		
         #Get users list to notify
         my (%users);
-        %users = %{Core::VultureUtils::get_memcached('vulture_users_in') or {}};
+        %users = %{Core::VultureUtils::get_memcached('vulture_users_in',$mc_conf) or {}};
 
 		#Check if ACL is on. If not, let user go.
 		if($app->{'acl'}){
@@ -114,9 +115,9 @@ sub handler {
 			$log->debug("No ACL in this app. Validate app session for user $user");
             
             Core::VultureUtils::notify($dbh, $app->{id}, $user, 'connection', scalar(keys %users));
-			
+		
 			#Setting app session
-			$session_app{is_auth} = 1;
+			$session_app{is_auth} = 1 ;
 			$session_app{username} = $user;
 			$session_app{password} = $password;
 

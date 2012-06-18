@@ -31,7 +31,7 @@ sub checkAuth{
 	my ($package_name, $r, $class, $log, $dbh, $app, $user, $password, $id_method) = @_;	
 
 	$log->debug("########## Auth_CAS ##########");
-
+	my $mc_conf = $r->pnotes('mc_conf');
     #Get CAS infos
 	my $query = "SELECT * FROM cas WHERE id= ?";
     my $sth = $dbh->prepare($query);
@@ -43,7 +43,7 @@ sub checkAuth{
     #Ticket is into session $session_app{url_to_redirect}
     my (%session_app);
     my $ticket;
-	Core::VultureUtils::session(\%session_app, $app->{timeout}, $r->pnotes('id_session_app'), $log, $app->{update_access_time});
+	Core::VultureUtils::session(\%session_app, $app->{timeout}, $r->pnotes('id_session_app'), $log, $mc_conf, $app->{update_access_time});
     if($session_app{url_to_redirect} =~ s/[?&]ticket=(\S+)\s*//g){
         $ticket = $1;
     }

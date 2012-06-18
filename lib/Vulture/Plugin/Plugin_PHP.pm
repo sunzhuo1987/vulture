@@ -19,7 +19,8 @@ sub plugin{
 	$log->debug("########## Plugin_PHP ##########");
 
 	my ($action, $app_name, $intf_id, $login, $password);
-		my $req = Apache2::Request->new($r);	
+	my $mc_conf = $r->pnotes('mc_conf');
+	my $req = Apache2::Request->new($r);	
 	
 	#Get parameters	
 	$action = $req->param('action');
@@ -28,7 +29,7 @@ sub plugin{
 
 	#Get memcached data
 	my (%users);
-	%users = %{Core::VultureUtils::get_memcached('vulture_users_in')};
+	%users = %{Core::VultureUtils::get_memcached('vulture_users_in',$mc_conf)};
 
 	if(not($action) or not($login)){
 		return Apache2::Const::FORBIDDEN;
@@ -58,7 +59,7 @@ sub plugin{
 
 			#Taking user identity			
 			my (%user_session_SSO);
-			Core::VultureUtils::session(\%user_session_SSO, undef, $users{$login}{SSO});
+			Core::VultureUtils::session(\%user_session_SSO, undef, $users{$login}{SSO},undef, $mc_conf);
 			if(defined $user_session_SSO{$app_name}){
 				$xml .= "true";			
 			} else {
@@ -79,7 +80,7 @@ sub plugin{
 			
 			#Logout taking user identity			
 			my (%user_session_SSO);
-			Core::VultureUtils::session(\%user_session_SSO, undef, $users{$login}{SSO});
+			Core::VultureUtils::session(\%user_session_SSO, undef, $users{$login}{SSO},undef, $mc_conf);
 			$user_session_SSO{is_auth} = 0;
 
 			#Deleting session from Memcached
@@ -96,10 +97,10 @@ sub plugin{
 
 			#Taking user identity			
 			my (%user_session_SSO);
-			Core::VultureUtils::session(\%user_session_SSO, undef, $users{$login}{SSO});
+			Core::VultureUtils::session(\%user_session_SSO, undef, $users{$login}{SSO},undef, $mc_conf);
 			if(defined $user_session_SSO{$app_name}){
 				my (%user_session_app);
-				Core::VultureUtils::session(\%user_session_app, undef, $user_session_SSO{$app_name});
+				Core::VultureUtils::session(\%user_session_app, undef, $user_session_SSO{$app_name},undef, $mc_conf);
 				$user_session_app{is_auth} = 0;	
 			}
 		}
@@ -110,7 +111,7 @@ sub plugin{
 	}
 
 	#Commit changes
-	Core::VultureUtils::set_memcached('vulture_users_in', \%users);
+	Core::VultureUtils::set_memcached('vulture_users_in', \%users,undef,$mc_conf);
     
     #Destroy useless handlers
     $r->set_handlers(PerlAuthenHandler => undef);

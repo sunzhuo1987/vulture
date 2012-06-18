@@ -6,7 +6,7 @@ from django.utils.translation import gettext as _
 from django.contrib.auth.forms import UserCreationForm, SetPasswordForm, UserChangeForm
 import os
 import hashlib
-
+from memcached import MC
 import ifconfig
 
 class IntfForm(forms.ModelForm):
@@ -215,3 +215,5 @@ class PluginForm(forms.ModelForm):
 class AppearanceForm(forms.ModelForm):
     class Meta:
         model = Appearance
+
+

@@ -49,6 +49,20 @@ sub plugin {
 		$log->debug("Header Unset");
 		$r->headers_in->unset($header);
 	}
+	if ($type eq "Header Concat") {
+		$log->debug("Concat");
+		my @valhead = $r->headers_in->get($header) || {''};
+		my $headval;
+                foreach $headval (@valhead)
+                {
+			$log->debug("Before ".$headval);
+			$headval = $headval.$options;
+			$log->debug("After ".$headval);
+			$r->headers_in->unset($header);
+                        $r->headers_in->set($header => $headval);
+		}
+
+	}
 } 
 1;
 

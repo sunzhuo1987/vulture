@@ -29,16 +29,17 @@ sub handler {
 	#Getting data from pnotes
 	my $app = $r->pnotes('app');
 	my $dbh = $r->pnotes('dbh');
-    my $intf = $r->pnotes('intf');
+    	my $intf = $r->pnotes('intf');
+	my $mc_conf = $r->pnotes('mc_conf');
 
 	#$user may not be set if Authentication is done via Apache (ex: mod_auth_kerb)
 	my $user = $r->pnotes('username') || $r->user;
 	my $password = $r->pnotes('password');
 
 	my (%session_app);
-	Core::VultureUtils::session(\%session_app, $app->{timeout}, $r->pnotes('id_session_app'), $log, $app->{update_access_time});
+	Core::VultureUtils::session(\%session_app, $app->{timeout}, $r->pnotes('id_session_app'), $log,$mc_conf, $app->{update_access_time});
 	my (%session_SSO);
-	Core::VultureUtils::session(\%session_SSO, $intf->{timeout}, $r->pnotes('id_session_SSO'), $log, $app->{update_access_time});
+	Core::VultureUtils::session(\%session_SSO, $intf->{timeout}, $r->pnotes('id_session_SSO'), $log, $mc_conf, $app->{update_access_time});
 
 	#Query counter
 	#my $query = "UPDATE stats SET value=value+1 WHERE var='responsehandler_counter'";
@@ -162,7 +163,6 @@ sub handler {
             $rewrite_uri->path($path);
 		    $r->err_headers_out->set('Location' => $rewrite_uri->unparse);
 		    $log->debug('Redirecting to '.$rewrite_uri->unparse);
-
 		    return Apache2::Const::REDIRECT;
 
         } elsif(defined $r->pnotes('url_to_redirect')){
@@ -206,6 +206,7 @@ sub handler {
 sub display_auth_form {
     my ($r, $log, $dbh, $app) = @_;
     my $req = Apache2::Request->new($r);
+    my $mc_conf = $r->pnotes('mc_conf');
     #CAS
     my $service = $req->param('service');
     #END CAS
@@ -217,7 +218,7 @@ sub display_auth_form {
 
     #Get session SSO for filling random token
     my (%session_SSO);
-    Core::VultureUtils::session(\%session_SSO, $app->{timeout}, $r->pnotes('id_session_SSO'), $log, $app->{update_access_time});
+    Core::VultureUtils::session(\%session_SSO, $app->{timeout}, $r->pnotes('id_session_SSO'), $log, $mc_conf, $app->{update_access_time});
 
         #if($r->unparsed_uri =~ /vulture_app=([^;]*)/){
         #       $uri = $1;

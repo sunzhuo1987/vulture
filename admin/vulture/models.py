@@ -56,7 +56,11 @@ class VINTF(models.Model):
     class Meta:
 	db_table = 'vintf'
 	
-
+class ClusterVulture:
+    def __init__(self):
+        pass
+    def all_elements(self):
+        return MC.all_elements()
 
 class Log(models.Model):
     LOG_LEVELS = (
@@ -151,7 +155,7 @@ class Intf(models.Model):
                 dirapp[host]=[dir]
             else:
                 dirapp[host]+=[dir]
-
+        MS_path=Conf.objects.get(var='mod_security_path')
         c = Context({"VultureConfPath" : settings.CONF_PATH,
                      "VultureStaticPath" : settings.MEDIA_ROOT,
                      "PerlSwitches" : settings.PERL_SWITCHES,
@@ -161,6 +165,7 @@ class Intf(models.Model):
                      "httpd_custom" : settings.HTTPD_CUSTOM,
                      "app_list" : dirapp,
                      "intf" : self,
+                     "MS_path" : MS_path,
                      })
         return t.render(c)
 
@@ -243,16 +248,19 @@ class Intf(models.Model):
         return (content == content2)
             
     def pid(self):
-	try: 
-		f = open("%s%s.pid" % (settings.CONF_PATH, self.id), "r")
-        	pid = f.read().strip()
-		f.close()
-	    	pidof = str(os.popen("pidof %s" % settings.HTTPD_PATH).read()).split()
-	except:
-		return None
-        if len(pidof) and pid not in pidof:
-            return None
-        return pid
+        regproc = re.compile("^(\d+)$")
+        regstat = re.compile("\d+\s+\(%s\)\s+\w\s+(\d+)\s+.*"%(settings.HTTPD_EXECUTABLE))
+        try:
+                f = open("%s%s.pid" % (settings.CONF_PATH, self.id), "r")
+                pid = f.read().strip()
+                f.close()
+        except:
+                return None
+        pidof = str(os.popen("pidof %s" % settings.HTTPD_PATH).read()).split()
+        parents = [f.group(1) for f in [regstat.match(m) for m in [open("/proc/%s/stat"%(g)).read() for g in pidof]]]
+        if pid in pidof or pid in parents:
+                return pid
+
 
     def need_restart(self):
         try:
@@ -400,8 +408,8 @@ class GroupOK(models.Model):
         db_table = 'groupok'
 
 class Conf(models.Model):
-    var = models.TextField(unique=1)
-    value = models.TextField(null=1)
+    var = models.CharField(unique=1, max_length=128)
+    value = models.CharField(null=1, max_length=128)
     def __str__(self):
         return self.var
     class Meta:
@@ -785,6 +793,7 @@ class RADIUS(models.Model):
 class Header(models.Model):
     HEADER_TYPE = (
     ('CUSTOM', 'CUSTOM'),
+    ('CUSTOM-CONCAT','CUSTOM-CONCAT'),
     ('REMOTE_ADDR', 'REMOTE_ADDR'),
     ('SSL_CLIENT_I_DN', 'SSL_CLIENT_I_DN'),
     ('SSL_CLIENT_M_SERIAL', 'SSL_CLIENT_M_SERIAL'),
@@ -1114,6 +1123,7 @@ class Pluginheader(models.Model):
     ('Header Modify', 'Header Modify'),
     ('Header Replacement', 'Header Replacement'),
     ('Header Unset','Header Unset'),
+    ('Header Concat','Header Concat'),
     )
     app = models.ForeignKey(App,null=1,blank=1)
     pattern = models.CharField(max_length=200)

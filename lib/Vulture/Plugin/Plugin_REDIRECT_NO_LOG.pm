@@ -19,19 +19,19 @@ BEGIN {
 sub plugin{
 	my ($package_name, $r, $log, $dbh, $intf, $app, $options) = @_;
 	$log->debug("########## Plugin_REDIRECT_NO_LOG ##########");
-	
+	my $mc_conf = $r->pnotes('mc_conf');	
 	#Getting SSO session if exists.
 	my $SSO_cookie_name = Core::VultureUtils::get_cookie($r->headers_in->{Cookie}, $r->dir_config('VultureProxyCookieName').'=([^;]*)');
 	my (%session_SSO);
 
-	Core::VultureUtils::session(\%session_SSO, $intf->{sso_timeout}, $SSO_cookie_name, $log, $intf->{sso_update_access_time});
+	Core::VultureUtils::session(\%session_SSO, $intf->{sso_timeout}, $SSO_cookie_name, $log,$mc_conf, $intf->{sso_update_access_time});
 	unless ($session_SSO{'is_auth'} and $r->hostname =~ $intf->{'sso_portal'} ) {
 		$log->debug("Redirect");
 		if($r->unparsed_uri =~ /vulture_app=([^;]*)/){
 			my $app_cookie_name = $1;
 			my (%session_app);
 			#Get app
-			Core::VultureUtils::session(\%session_app, $app->{timeout}, $app_cookie_name, $log, $app->{update_access_time});
+			Core::VultureUtils::session(\%session_app, $app->{timeout}, $app_cookie_name, $log, $mc_conf,$app->{update_access_time});
 			my $app = Core::VultureUtils::get_app($log, $session_app{app_name}, $dbh, $intf->{id});
 			$log->debug("app is ".$session_app{app_name});
 			

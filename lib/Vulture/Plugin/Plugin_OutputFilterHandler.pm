@@ -66,20 +66,20 @@ sub handler {
 					my $exp = $r->pnotes('exp'.$i);
 					if ($type eq "Header Add") {
 						$r->headers_out->unset($exp);
-						$r->headers_out->set($exp => $r->pnotes('options'.$i));
+						$r->headers_out->set($exp => $r->pnotes('options_'.$i));
 					}
 					if ($type eq "Header Modify") {
 						
 						if ($r->content_type =~ m/$exp/i ) {
-							$r->headers_out->unset($r->pnotes('options'.$i));
-							$r->headers_out->set($r->pnotes('options'.$i) => $r->pnotes('options1'.$i));
+							$r->headers_out->unset($r->pnotes('options_'.$i));
+							$r->headers_out->set($r->pnotes('options_'.$i) => $r->pnotes('options1_'.$i));
 						}
 					}
 					if ($type eq "Header Replacement") {
 						$log->debug("Header Replacement");
 						my @valhead = $r->headers_out->get($exp);
-						my $value = $r->pnotes('options'.$i);
-						my $replacementheader = $r->pnotes('options1'.$i);
+						my $value = $r->pnotes('options_'.$i);
+						my $replacementheader = $r->pnotes('options1_'.$i);
 						my $headval;
 						foreach $headval (@valhead)
 						{
@@ -103,7 +103,7 @@ sub handler {
 					}
 					if ($type eq "Header to Link") {
 						my $linkval = $r->headers_out->get($exp);
-						$linkval = $linkval." => ".$r->pnotes('options'.$i);
+						$linkval = $linkval." => ".$r->pnotes('options_'.$i);
 						$log->debug($linkval);
 					}
 					if ($type eq "Header to Proxy") {
@@ -114,7 +114,7 @@ sub handler {
 					}
 					if ($type eq "Rewrite Content") {
 						$log->debug("Rewrite Content");
-						my $options = $r->pnotes('options'.$i);
+						my $options = $r->pnotes('options_'.$i);
 						my $content_type = $f->r->content_type() || '';
 						if ($content_type =~ /charset=(.*)/) {
 							Encode::from_to($exp, "utf8", $1);
@@ -133,7 +133,7 @@ sub handler {
 					my $linkval;
 					if (($type eq "Rewrite Link") or (defined($linkval)) ) {
 						$log->debug("Rewrite Link");
-						my $options = $r->pnotes('options'.$i);
+						my $options = $r->pnotes('options_'.$i);
 						my $content_type = $f->r->content_type() || '';
 						if ($content_type =~ /charset=(.*)/) {
 							Encode::from_to($exp, "utf8", $1);
@@ -255,9 +255,8 @@ sub link_replacement
 		
 		}
 	}
-
 	# Replace all links in javascript code
-	#$$data =~ s/([^\\]['"])($replacement|$pattern)([^'"]*['"])/$1$replacement$3/ig;
+#	$$data =~ s/([^\\]['"])($replacement|$pattern)([^'"]*['"])/$1$replacement$3/ig;
 	$$data =~ s/([\\]['])($replacement|$pattern)([^'"]*[\\]['])/$1$replacement$3/ig;
 
 	# Try to set a fully qualified URI
@@ -275,8 +274,7 @@ sub link_replacement
 	
 	# The single ended tag broke mod_proxy parsing
 	$$data =~ s/($replacement|$pattern)>/\/>/ig;
-		
-
+	
 	# Replace todos now
 	for ($i = 0; $i <= $#TODOS; $i++) {
 
