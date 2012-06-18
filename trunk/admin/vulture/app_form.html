@@ -59,6 +59,7 @@
                     tr.append($('<td>').append($('<input type="text">').attr('name', 'field_desc-' + nbheaders).attr('maxlength', '128')));
                     var select  = $('<select>').attr('name', 'field_type-' + nbheaders);
                         select.append($('<option>').attr('value', 'CUSTOM').text('CUSTOM'));
+                     /*   select.append($('<option>').attr('value', 'CUSTOM-CONCAT').text('CUSTOM-CONCAT')); */
                         select.append($('<option>').attr('value', 'REMOTE_ADDR').text('REMOTE_ADDR'));
                         select.append($('<option>').attr('value', 'SSL_CLIENT_I_DN').text('SSL_CLIENT_I_DN'));
                         select.append($('<option>').attr('value', 'SSL_CLIENT_M_SERIAL').text('SSL_CLIENT_M_SERIAL'));

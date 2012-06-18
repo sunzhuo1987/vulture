@@ -22,12 +22,12 @@ sub plugin{
 	my ($package_name, $r, $log, $dbh, $intf, $app, $options) = @_;
 
 	my @captured = @{$options};
-	
+	my $mc_conf = $r->pnotes('mc_conf');	
 	$log->debug("########## Plugin_STATIC ##########");
 	#check if we are serving static content from sso_portal
     my ($id_app) = Core::VultureUtils::get_cookie($r->headers_in->{Cookie}, $r->dir_config('VultureAppCookieName').'=([^;]*)');
     my (%session_app);
-    Core::VultureUtils::session(\%session_app, $app->{timeout}, $id_app, $log, $app->{update_access_time});
+    Core::VultureUtils::session(\%session_app, $app->{timeout}, $id_app, $log, $mc_conf, $app->{update_access_time});
     
     if($r->hostname =~ $intf->{'sso_portal'} or $r->hostname =~ $intf->{'cas_portal'} or ($r->headers_in->{'Referer'} =~ /vulture_app=([^;]*)/) or (exists $session_app{SSO_Forwarding} and defined $session_app{SSO_Forwarding})){
         #Destroy useless handlers

@@ -28,9 +28,9 @@ use SSO::ProfileManager qw(&set_profile &get_profile);
 
 sub forward{
 	my ($package_name, $r, $log, $dbh, $app, $user, $password) = @_;
-
+	my $mc_conf = $r->pnotes('mc_conf');
 	my (%session_SSO);
-	Core::VultureUtils::session(\%session_SSO, $app->{timeout}, $r->pnotes('id_session_SSO'), $log, $app->{update_access_time});
+	Core::VultureUtils::session(\%session_SSO, $app->{timeout}, $r->pnotes('id_session_SSO'), $log, $mc_conf,$app->{update_access_time});
 
 	$log->debug("########## SSO_Learning ##########");
 

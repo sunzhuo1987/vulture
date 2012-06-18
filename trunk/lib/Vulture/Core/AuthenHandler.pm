@@ -13,6 +13,7 @@ use Apache2::Log;
 use Apache2::Reload;
 use Apache2::Request;
 use Apache2::Access;
+use Apache::SSLLookup;
 
 use Authen::Smb;
 
@@ -68,17 +69,20 @@ sub get_nonce
 
 sub handler:method
 {
-	my ($class, $r) = @_ ;
-    my $req = Apache2::Request->new($r);
-
+	#my ($class, $r) = @_ ;
+	my $class = shift;
+	my $r = Apache::SSLLookup->new(shift);
 	my $log = $r->pnotes('log');
 	my $dbh = $r->pnotes('dbh');
 	my $app = $r->pnotes('app');
+	my $mc_conf = $r->pnotes('mc_conf');
+    my $req = Apache2::Request->new($r);
+
     $log->error("App is missing in AuthenHandler") unless $app;
     my $intf = $r->pnotes('intf');
 
 	my (%session_SSO);
-	Core::VultureUtils::session(\%session_SSO, $intf->{sso_timeout}, $r->pnotes('id_session_SSO'), $log, $intf->{sso_update_access_time});
+	Core::VultureUtils::session(\%session_SSO, $intf->{sso_timeout}, $r->pnotes('id_session_SSO'), $log, $mc_conf, $intf->{sso_update_access_time});
 
 	my ($status, $password);
 	my $user;
@@ -113,7 +117,7 @@ sub handler:method
             unless(grep $_ eq $key, @wrong_keys){ 
                 my $id_app = $session_SSO{$key};
                 my (%current_app);
-                Core::VultureUtils::session(\%current_app, undef, $id_app);
+                Core::VultureUtils::session(\%current_app, undef, $id_app,undef ,$mc_conf);
 
                 #Getting all auths methods used previously to compare with current app auths
                 my $query = "SELECT auth.name, auth.auth_type, auth.id_method FROM app, intf, auth, auth_multiple WHERE app.name = ? AND intf.id = ? AND auth_multiple.app_id = app.id AND auth_multiple.auth_id = auth.id";
@@ -150,7 +154,7 @@ sub handler:method
 			
             #Setting Memcached table
             my (%users);
-            %users = %{Core::VultureUtils::get_memcached('vulture_users_in') or {}};
+            %users = %{Core::VultureUtils::get_memcached('vulture_users_in',$mc_conf) or {}};
             $users{$session_SSO{username}} = {'SSO' => $r->pnotes('id_session_SSO')};
 
             #Generate new service ticket
@@ -169,7 +173,7 @@ sub handler:method
 			$r->pnotes('url_to_redirect' => $service.'?ticket='.$st);
 		}
 	    }
-            Core::VultureUtils::set_memcached('vulture_users_in', \%users);
+            Core::VultureUtils::set_memcached('vulture_users_in', \%users,undef,$mc_conf);
 
             #Authentified, cookie is valid, let user go and check ACL (next step)
             return Apache2::Const::OK;
@@ -203,8 +207,7 @@ sub handler:method
 	    $ssl = 1;
 	}
     }
-
-    $ret = multipleAuth($r, $log, $dbh, $auths, $app, $user, $password, 0, 0) if (defined $user and ($token eq $session_SSO{random_token} or $app->{'auth_basic'} or not defined $cas or not defined $ssl));
+    $ret = multipleAuth($r, $log, $dbh, $auths, $app, $user, $password, 0, 0) if (defined $user and ($token eq $session_SSO{random_token} or $app->{'auth_basic'} or not defined $cas));
 
     $log->debug("Return from auth => ".$r->pnotes('auth_message')) if defined $r->pnotes('auth_message');
 
@@ -215,13 +218,12 @@ sub handler:method
     Core::ActionManager::handle_action($r, $log, $dbh, $intf, $app, 'LOGIN_FAILED', 'Login failed') if (!$r->pnotes('auth_message') and $ret != scalar Apache2::Const::OK and ($user or $password));
 
 
-    
-    if((defined $ret and $ret == scalar Apache2::Const::OK) or (defined $ssl and $ssl == 1)){
+    if((defined $ret and $ret == scalar Apache2::Const::OK) or (defined $ssl and $ssl == 1 and defined $r->ssl_lookup('SSL_CLIENT_S_DN_CN') and $r->ssl_lookup('SSL_CLIENT_S_DN_CN') ne '')){
         $log->debug("Good user/password");
 
         #Get new username and password ... ex : CAS
-        $user = $r->pnotes('username') || $r->user() || $user;
-        $password = $r->pnotes('password') || $password;
+        $user = $r->pnotes('username') || $r->user() || $user || $r->ssl_lookup('SSL_CLIENT_S_DN_CN'); 
+        $password = $r->pnotes('password') || $password;       
 	
 	$log->debug("user = ".$user);
 	$log->debug("ruser = ".$r->user);	
@@ -237,7 +239,7 @@ sub handler:method
 
         #Setting Memcached table
         my (%users);
-        %users = %{Core::VultureUtils::get_memcached('vulture_users_in') or {}};
+        %users = %{Core::VultureUtils::get_memcached('vulture_users_in',$mc_conf) or {}};
         $users{$user} = {'SSO' => $r->pnotes('id_session_SSO')};
 
         Core::VultureUtils::notify($dbh, undef, $user, 'connection', scalar(keys %users));
@@ -259,14 +261,14 @@ sub handler:method
                 }
             }
 
-        Core::VultureUtils::set_memcached('vulture_users_in', \%users);
+        Core::VultureUtils::set_memcached('vulture_users_in', \%users,undef,$mc_conf);
 
         return Apache2::Const::OK;
     #Authentication failed for some reasons
     } else {
         unless ($ntlm) {
             my (%users);
-            %users = %{Core::VultureUtils::get_memcached('vulture_users_in') or {}};
+            %users = %{Core::VultureUtils::get_memcached('vulture_users_in',$mc_conf) or {}};
 
             Core::VultureUtils::notify($dbh, undef, $user, 'connection_failed', scalar(keys %users));
 
@@ -310,7 +312,6 @@ sub getRequestData {
 
 sub multipleAuth {
     my ($r, $log, $dbh, $auths, $app, $user, $password, $class, $is_transparent) = @_;
-
     my $ret = Apache2::Const::FORBIDDEN;
 
 	foreach my $row (@$auths) {

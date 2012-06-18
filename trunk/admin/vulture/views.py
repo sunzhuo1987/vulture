@@ -19,7 +19,7 @@ from time import sleep
 import datetime
 import time
 import re
-import flushmc
+from memcached import MC
 from django.db.models import Q
 from django.db import connection
 import ldap
@@ -50,6 +50,19 @@ def update_security(request):
     k_output = os.popen("/bin/sh %s/update-rules.sh 2>&1" % (settings.BIN_PATH)).read()
     return render_to_response('vulture/modsecurity_list.html',
                               {'object_list': ModSecurity.objects.all(), 'k_output': k_output, 'user' : request.user })
+
+@permission_required('vulture.manage_cluster')
+def manage_cluster(request):
+    if request.method == 'POST': 
+        version = str(int(request.POST['version'])) 
+    	cur = connection.cursor()
+	Conf.objects.filter(var='version_conf').update(value=version)
+	MC.set(MC.versionkey, version)
+	myname = Conf.objects.get(var='name').value
+	MC.set(myname+":version",version)
+    last = MC.get(MC.versionkey) or 0
+    next = str(int(last)+1)
+    return render_to_response('vulture/cluster_list.html', {'last_version':last, 'next_version':next, 'object_list':MC.all_elements()})
 
 @permission_required('vulture.change_intf')
 def edit_intf(request,object_id=None):
@@ -194,10 +207,9 @@ def stop_intf(request, intf_id):
     intf = Intf.objects.get(pk=intf_id)
     k_output = intf.k('stop')
     apps = App.objects.filter(intf=intf).all()
-    mc = flushmc.Client("127.0.0.1",9091)
     for app in apps:
         # Delete memcached records to update config
-        mc.delete(app.name + ':app')
+       	MC.delete(app.name + ':app')
 #    sleep(1)
     return render_to_response('vulture/intf_list.html',
                               {'object_list': Intf.objects.all(), 'k_output': k_output, 'user' : request.user})
@@ -212,10 +224,9 @@ def reload_intf(request, intf_id):
         k_output = intf.k('graceful')
     
         apps = App.objects.filter(intf=intf).all()
-        mc = flushmc.Client("127.0.0.1",9091)
         for app in apps:
             # Delete memcached records to update config
-            mc.delete(app.name + ':app')
+            MC.delete(app.name + ':app')
     return render_to_response('vulture/intf_list.html',
                               {'object_list': Intf.objects.all(), 'k_output': k_output, 'user' : request.user})
                               
@@ -235,11 +246,11 @@ def reload_all_intfs(request):
                      k_output += outp
                  else: 
                      k_output += "everything ok"
+		 k_output += "\n"
                  apps = App.objects.filter(intf=intf).all()
-                 mc = flushmc.Client("127.0.0.1",9091)
                  for app in apps:
                      # Delete memcached records to update config
-                     mc.delete(app.name + ':app')
+                     MC.delete(app.name + ':app')
     return render_to_response('vulture/intf_list.html', {'object_list': intfs, 'k_output': k_output, 'user' : request.user})
 
 @user_passes_test(lambda u: u.is_staff)
@@ -504,7 +515,7 @@ def edit_app(request,object_id=None):
                 desc = dataPosted['field_desc-' + id]
                 type = dataPosted['field_type-' + id]
                 if desc and type:
-                    if type != "CUSTOM" or (type == "CUSTOM" and dataPosted['field_value-' + id]):
+                    if type != "CUSTOM":
                         instance = Header(app=app, name = desc, value = dataPosted['field_value-' + id], type=type)
                         instance.save()
         #form.save_m2m()

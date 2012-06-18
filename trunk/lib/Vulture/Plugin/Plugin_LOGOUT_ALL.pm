@@ -30,8 +30,8 @@ use Apache::SSLLookup;
 
 sub plugin{
     my ($package_name, $r, $log, $dbh, $intf, $app, $options) = @_;
-    
     $r = Apache::SSLLookup->new($r);
+    my $mc_conf = $r->pnotes('mc_conf'); 
     
     $log->debug("########## Plugin_LOGOUT_ALL ##########");
 #Taking user identity
@@ -39,17 +39,17 @@ sub plugin{
     
     #eval{
     my (%session_app);
-    session(\%session_app, undef, $id_app);
+    session(\%session_app, undef, $id_app,undef, $mc_conf);
     
     my (%session_SSO);
-    session(\%session_SSO, undef, $session_app{SSO});
+    session(\%session_SSO, undef, $session_app{SSO},undef, $mc_conf);
     
     #Logout from Memcached vulture_users_in
     my (%users);
     
-    %users = %{get_memcached('vulture_users_in') || {}};
+    %users = %{get_memcached('vulture_users_in',$mc_conf) || {}};
     delete $users{$session_SSO{username}};
-    set_memcached('vulture_users_in', \%users);
+    set_memcached('vulture_users_in', \%users,undef,$mc_conf);
     
     notify($dbh, undef, $session_SSO{username}, 'deconnection', scalar(keys %users));
     $session_app{'is_auth'} = undef;
@@ -63,9 +63,8 @@ sub plugin{
 		my $id_app = $session_SSO{$key};
 
 	    my (%current_app) = ();
-	    session(\%current_app, undef, $id_app);
-	    
-	    
+	    session(\%current_app, undef, $id_app,undef, $mc_conf);
+	  
 	    #Logout user
 	    $current_app{'is_auth'} = undef;
 	    

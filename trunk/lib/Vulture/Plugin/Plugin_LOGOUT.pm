@@ -31,13 +31,13 @@ sub plugin{
 	my ($package_name, $r, $log, $dbh, $intf, $app, $options) = @_;
 
 	$r = Apache::SSLLookup->new($r);
-	
+	my $mc_conf = $r->pnotes('mc_conf');
 	$log->debug("########## Plugin_LOGOUT ##########");
 
 	#Taking user identity
     my (%session_app);
 	my ($id_app) = get_cookie($r->headers_in->{Cookie}, $r->dir_config('VultureAppCookieName').'=([^;]*)') || return Apache2::Const::FORBIDDEN;
-	session(\%session_app, undef, $id_app);
+	session(\%session_app, undef, $id_app,undef, $mc_conf);
     $log->debug($id_app);
     
     $session_app{'is_auth'} = undef;

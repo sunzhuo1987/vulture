@@ -14,9 +14,9 @@ use Apache2::RequestUtil ();
 use Apache::SSLLookup;
 use Apache2::Const -compile => qw(OK DECLINED FORBIDDEN REDIRECT DONE NOT_FOUND);
 
-use Core::VultureUtils qw(&get_app &get_intf &version_check &get_cookie &session &get_translations &get_style);
+use Core::VultureUtils qw(&get_memcached_conf &get_app &get_intf &version_check &get_cookie &session &get_translations &get_style);
 use Core::Log qw(&new &debug &error);
-use Core::Config qw(&new);
+use Core::Config qw(&new &get_key);
 use MIME::Base64;
 
 
@@ -56,7 +56,8 @@ sub handler {
 	my $dbh = DBI->connect($r->dir_config('VultureDSNv3'));
 
     #Calling config functions
-    my $config = Core::Config->new($dbh);
+        my $config = Core::Config->new($dbh);
+	my $mc_conf = $config->get_key('memcached');
     
     #Calling log functions
 	my $log = Core::Log->new($r);
@@ -64,9 +65,10 @@ sub handler {
 	#Sending db handler to next Apache Handlers
 	$r->pnotes('dbh' => $dbh);
 	$r->pnotes('log' => $log);
-    $r->pnotes('config' => $config);
+	$r->pnotes('config' => $config);
+	$r->pnotes('mc_conf' => $mc_conf);
 
-	$log->debug("########## TransHandler ##########");
+	$log->debug("########## TransHandler (mc : $mc_conf)##########");
 
 	#Version check
 	unless (Core::VultureUtils::version_check($config)){
@@ -133,11 +135,13 @@ sub handler {
     $log->debug($query);
 	$plugins = $dbh->selectall_arrayref($query, undef, $app->{id});
 	my $i = 0;
+	$log->debug("COOKIEDEBUG sending rewrite content");
 	foreach my $row (@$plugins) {
+		$log->debug("COOKIEDEBUG type".@$row[1]);
 		$r->pnotes('type'.$i => @$row[1]);
 		$r->pnotes('exp'.$i => @$row[0]);
-		$r->pnotes('options'.$i => @$row[2]);
-		$r->pnotes('options1'.$i => @$row[3]);
+		$r->pnotes('options_'.$i => @$row[2]);
+		$r->pnotes('options1_'.$i => @$row[3]);
 			
 		$i++;
             
@@ -243,9 +247,9 @@ sub handler {
     	#Getting session app if exists. If not, creating one
         my ($id_app) = Core::VultureUtils::get_cookie($r->headers_in->{Cookie}, $r->dir_config('VultureAppCookieName').'=([^;]*)');
 		my (%session_app);
-		Core::VultureUtils::session(\%session_app, $app->{timeout}, $id_app, $log, $app->{update_access_time});
+		Core::VultureUtils::session(\%session_app, $app->{timeout}, $id_app, $log, $mc_conf,$app->{update_access_time});
 		$r->pnotes('id_session_app' => $id_app);
-		
+
 		# We have authorization for this app so let's go with mod_proxy
 		if(defined $session_app{is_auth} and $session_app{is_auth} == 1){
 
@@ -298,19 +302,26 @@ sub handler {
 		} else {
 			$log->debug("App ".$r->hostname." is secured and user is not authentified in app. Let's have fun with AuthenHandler / redirect to SSO Portal ".$intf->{'sso_portal'});
 			$r->status(200);
-			
+		
 			#Fill session for SSO Portal
 			$session_app{app_name} = $app->{name};
-            if($r->pnotes('url_to_redirect')){
-                $session_app{url_to_redirect} = $r->pnotes('url_to_redirect');
-            } else {
-                $session_app{url_to_redirect} = $unparsed_uri;
-            }
+		        if($r->pnotes('url_to_redirect')){
+		            $session_app{url_to_redirect} = $r->pnotes('url_to_redirect');
+		        } else {
+		            $session_app{url_to_redirect} = $unparsed_uri;
+		        }
 
 			#Redirect to SSO Portal if $r->pnotes('url_to_mod_proxy') is not set by Rewrite engine
             if(not $r->pnotes('url_to_mod_proxy')){
                 my $incoming_uri = $app->{name};
-                $incoming_uri = $intf->{'sso_portal'} if $intf->{'sso_portal'};
+	        my $ssl=0;
+                foreach my $row (@$auths) {
+                    if (uc(@$row[1]) eq "SSL") {
+                        $log->debug("SSL mode");
+                        $ssl = 1;
+                    }
+                }
+                $incoming_uri = $intf->{'sso_portal'} if $intf->{'sso_portal'} and not $ssl;
                 if ($incoming_uri !~ /^(http|https):\/\/(.*)/ ) {
                     #Fake scheme for making APR::URI parse
                     $incoming_uri = 'http://'.$incoming_uri;
@@ -364,7 +375,7 @@ sub handler {
             my $app_cookie_name = $1;
             my (%session_app);
             #Get app
-            Core::VultureUtils::session(\%session_app, $app->{timeout}, $app_cookie_name, $log, $app->{update_access_time});
+            Core::VultureUtils::session(\%session_app, $app->{timeout}, $app_cookie_name, $log, $mc_conf,$app->{update_access_time});
             my $app = Core::VultureUtils::get_app($log, $session_app{app_name}, $dbh, $intf->{id});
             
             #Send app if exists.
@@ -378,7 +389,7 @@ sub handler {
         $SSO_cookie_name ||= '';
 		my (%session_SSO);
 		
-		Core::VultureUtils::session(\%session_SSO, $intf->{sso_timeout}, $SSO_cookie_name, $log, $intf->{sso_update_access_time});
+		Core::VultureUtils::session(\%session_SSO, $intf->{sso_timeout}, $SSO_cookie_name, $log, $mc_conf, $intf->{sso_update_access_time});
 		
 		#Get session id if not exists
 		if($SSO_cookie_name ne $session_SSO{_session_id}){
