@@ -257,7 +257,7 @@ class Intf(models.Model):
         except:
                 return None
         pidof = str(os.popen("pidof %s" % settings.HTTPD_PATH).read()).split()
-        parents = [f.group(1) for f in [regstat.match(m) for m in [open("/proc/%s/stat"%(g)).read() for g in pidof]]]
+        parents = [f.group(1) for f in [regstat.match(m) for m in [open("/proc/%s/stat"%(g)).read() for g in pidof]] if f]
         if pid in pidof or pid in parents:
                 return pid
 
