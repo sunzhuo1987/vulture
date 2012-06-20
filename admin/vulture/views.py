@@ -515,9 +515,8 @@ def edit_app(request,object_id=None):
                 desc = dataPosted['field_desc-' + id]
                 type = dataPosted['field_type-' + id]
                 if desc and type:
-                    if type != "CUSTOM":
-                        instance = Header(app=app, name = desc, value = dataPosted['field_value-' + id], type=type)
-                        instance.save()
+                    instance = Header(app=app, name = desc, value = dataPosted['field_value-' + id], type=type)
+                    instance.save()
         #form.save_m2m()
 
 
