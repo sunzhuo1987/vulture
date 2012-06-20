@@ -5,6 +5,7 @@ package Plugin::Plugin_STATIC;
 
 use strict;
 use warnings;
+use Cwd;
 
 BEGIN {
     use Exporter ();
@@ -37,9 +38,14 @@ sub plugin{
         $r->set_handlers(PerlFixupHandler => undef);
         #$r->set_handlers(PerlResponseHandler => sub { return });
 
-        $log->debug("Serving ".$captured[0]);
-        $log->debug($r->dir_config('VultureStaticPath').$captured[0]);
-        $r->filename($r->dir_config('VultureStaticPath').$captured[0]);
+	my $fpath = Cwd::abs_path($r->dir_config('VultureStaticPath').$captured[0]);
+        $log->debug("Serving $fpath");
+	my $regexp = $r->dir_config('VultureStaticPath');
+	if ( $fpath !~ /^$regexp/){
+		$log->debug("blocking bad request : ".$captured[0]);
+		return undef;	
+	}
+        $r->filename($fpath);
         # or $r->status(404);
         $r->content_type('image/jpeg');
         $r->pnotes('static' => 1);
