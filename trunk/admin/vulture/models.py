@@ -249,7 +249,7 @@ class Intf(models.Model):
             
     def pid(self):
         regproc = re.compile("^(\d+)$")
-        regstat = re.compile("\d+\s+\(%s\)\s+\w\s+(\d+)\s+.*"%(settings.HTTPD_EXECUTABLE))
+	regstat = re.compile("\d+\s+\(.*(httpd|apache)/*\)\s+\w\s+(\d+)\s+.*")
         try:
                 f = open("%s%s.pid" % (settings.CONF_PATH, self.id), "r")
                 pid = f.read().strip()
