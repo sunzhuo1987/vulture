@@ -19,9 +19,6 @@ Patch0: database_path.patch
 Patch1: PreConnectionHandler.patch
 Patch2: vulture-rpm.patch
 Patch3: vulture-suse.patch
-Patch4: patch_secu_py.patch
-Patch5: patch_secu_pl.patch
-Patch6: patch_xss.patch
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildRequires: perl
@@ -30,6 +27,11 @@ Vulture Reverse Proxy
 
 %prep
 %setup -c -a 0
+%patch0 -p0 -b .old
+%patch1 -p0 -b .old
+%patch2 -p0 -b .old
+%patch3 -p0 -b .old
+
 cd ..
 %build
 	rm -rf $RPM_BUILD_ROOT
