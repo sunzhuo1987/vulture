@@ -4,4 +4,3 @@ INSERT INTO "conf" VALUES(3, 'version_conf', '0');
 INSERT INTO "conf" VALUES(4, 'auto_restart', '0');
 INSERT INTO "conf" VALUES(5, 'memcached', '127.0.0.1:9091');
 INSERT INTO "conf" VALUES(6, 'use_cluster', '0');
-INSERT INTO "conf" VALUES(7,'mod_security_path','/etc/httpd/modules/mod_security2.so');
