@@ -131,10 +131,10 @@ cd ..
 		-cert %{serverroot}/%{name}/conf/cacert.pem\
 		-outdir %{serverroot}/%{name}/conf/ -batch
     fi
-    if grep "^wwwrun.*ALL=NOPASSWD:.*/usr/sbin/httpd2" /etc/sudoers > /dev/null ; then
+    if grep "^wwwrun.*ALL=NOPASSWD:.*/usr/sbin/httpd2.*/sbin/ifconfig" /etc/sudoers > /dev/null ; then
         echo "sudo active"
     else
-        echo "wwwrun ALL=NOPASSWD:/usr/sbin/httpd2" >> /etc/sudoers
+        echo "wwwrun ALL=NOPASSWD:/usr/sbin/httpd2, /sbin/ifconfig" >> /etc/sudoers
     fi
     if ! ( grep '^Defaults:wwwrun.*!requiretty' /etc/sudoers > /dev/null ) ; then
          echo 'Defaults:wwwrun !requiretty' >> /etc/sudoers
