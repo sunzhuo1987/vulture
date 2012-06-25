@@ -64,6 +64,7 @@ cd ..
 
 
 %post
+     chmod +x %{serverroot}/%{name}/bin/test-perl.sh
      ln -s /usr/lib/apache2/ /etc/apache2/modules
      ln -s /usr/lib/apache2-prefork/mod_ssl.so /usr/lib/apache2/mod_ssl.so
      ln -s /usr/lib/apache2-prefork/mod_info.so /usr/lib/apache2/mod_info.so

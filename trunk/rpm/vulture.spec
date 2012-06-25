@@ -67,6 +67,7 @@ Vulture Reverse Proxy
 
 
 %post
+     chmod +x %{serverroot}/%{name}/bin/test-perl.sh
      cd %{serverroot}/%{name}/rpm
      tar zxf Django-*.tar.gz && cd Django-*/ && python setup.py install
      cd %{serverroot}/%{name}/rpm
