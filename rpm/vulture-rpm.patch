@@ -1,16 +1,6 @@
---- vulture-orig/bin/update-rules.sh	2012-04-16 16:34:19.000000000 -0400
-+++ vulture-2.0.3/bin/update-rules.sh	2012-04-17 09:08:12.000000000 -0400
-@@ -8,7 +8,7 @@
- #######################################
- #######################################
- 
--BASEDIR="/var/www/vulture"
-+BASEDIR="/opt/vulture"
- CONFDIR=$BASEDIR/conf
- FETCH_SCRIPT=$BASEDIR/bin/rules-updater.pl
-
---- vulture-orig/admin/vulture_httpd.conf	2012-06-18 12:08:45.000000000 -0400
-+++ vulture-2.0.3/admin/vulture_httpd.conf	2012-06-18 12:08:19.000000000 -0400
+diff -ru '--exclude=.svn' vulture/admin/vulture_httpd.conf vulture-2.0.3/admin/vulture_httpd.conf
+--- vulture/admin/vulture_httpd.conf	2012-06-25 17:29:35.120196237 +0200
++++ vulture-2.0.3/admin/vulture_httpd.conf	2012-06-25 17:33:04.596191340 +0200
 @@ -23,13 +23,23 @@
  user {{ www_user }}
  group {{ www_user }}
@@ -55,7 +45,7 @@
          {% endif %}
          ProxyRequests Off
          ProxyVia Off
-@@ -196,12 +206,10 @@
+@@ -196,11 +206,9 @@
  		    Include  {{ VultureConfPath }}security-rules/activated/{{ app.name|cut:"/" }}/vulture-{{ app.name|cut:"/" }}.conf
  		    Include  {{ VultureConfPath }}security-rules/activated/{{ app.name|cut:"/" }}/modsec*.conf
  		{% endif %}
@@ -65,8 +55,7 @@
  		{{ app.getCookieDomain }}
 -		
 -		## Custom defined virtualhost directives for app
--		{{ app.virtualhost_directives|safe }}
-+		{{ app.virtualhost_directives|safe }
+ 		{{ app.virtualhost_directives|safe }}
  	{% endif %}
  {% endfor %}
-             {% for auth in a.0.auth.all %}
+

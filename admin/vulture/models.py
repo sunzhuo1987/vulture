@@ -155,7 +155,11 @@ class Intf(models.Model):
                 dirapp[host]=[dir]
             else:
                 dirapp[host]+=[dir]
-        MS_path=Conf.objects.get(var='mod_security_path')
+        MS_path=Conf.objects.filter(var='mod_security_path')
+	if len(MS_path):
+		MS_path = MS_path[0];
+	else:
+		MS_path = ""
         c = Context({"VultureConfPath" : settings.CONF_PATH,
                      "VultureStaticPath" : settings.MEDIA_ROOT,
                      "PerlSwitches" : settings.PERL_SWITCHES,
