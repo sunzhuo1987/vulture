@@ -31,6 +31,7 @@ chmod 600 /var/www/vulture/admin/db
 chown root. /var/www/vulture/conf/httpd.conf
 chown -R www-data. /var/www/vulture/admin/
 chmod -R 700 /var/www/vulture/conf/
+chmod +x /var/www/vulture/bin/test-perl.sh
 
 #insert data into database
 if [ -f /var/www/vulture/admin/vulture/sql/log.sql ] ; then
