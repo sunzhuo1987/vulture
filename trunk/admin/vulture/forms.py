@@ -20,6 +20,7 @@ class IntfForm(forms.ModelForm):
 			li += [x]
 	for itf in li:
 		CHOICES += [(itf[1],"%s -> %s"%itf)]
+	CHOICES += [("0.0.0.0","any -> 0.0.0.0")]
 	CHOICES.sort()
         self.fields["ip"] = forms.ChoiceField(choices = CHOICES)
     class Meta:
