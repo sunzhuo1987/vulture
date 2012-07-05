@@ -401,8 +401,7 @@ class MC:
 				MC.db.execute("DELETE FROM "+table+" where id in (%s);"%(dels))
 		MC.db.commit()	
 		open(MC.tmpfile,"w").write( MC.get("conf:mod_secu"))
-		os.popen("ls -l "+MC.tmpfile)
-		os.popen("rm -rf "+settings.CONF_PATH+"security-rules ; tar  -C / -zxf "+MC.tmpfile+"; echo mod_secu loaded")
+		print os.popen("rm -rf "+settings.CONF_PATH+"security-rules ; tar  -C / -zxf "+MC.tmpfile+"; echo mod_secu loaded").read()
 	
 	@staticmethod
 	def usage():
