@@ -27,7 +27,7 @@ class MC:
 	lockfile = settings.CONF_PATH+"vulture-daemon.lock"
 	versionkey = "vulture_version"
 	keystore = "vulture_inst"
-	tmpfile = "vulture_tmp"
+	tmpfile = settings.CONF_PATH+"vulture_tmp"
 	regex = re.compile("VALUE ([^\s]+) \d+ (\d+)\r\n(.*)",re.MULTILINE|re.DOTALL)
 	itv = 30
 	con = []
@@ -121,7 +121,7 @@ class MC:
 		# push my conf in memcache 
 			print "[+] Pushing my conf into memcache..."
 			MC.fill_memcache()
-			MC.set(MC.versionkey, myversion)
+			MC.set(MC.versionkey, str(myversion))
 			print "[+] Done"
 		else:
 		#new config available
@@ -300,9 +300,10 @@ class MC:
 			val = MC.serialize(MC.get_SQL_table(table))
 			MC.set("conf:"+table,val)
 #			print "saved "+val+" in conf:"+table
-		MC.set(MC.versionkey, MC.getConf("version_conf"))
-		os.popen("tar hczf "+MC.tmpfile+" "+settings.CONF_PATH+"security-rules")
-		MC.set("conf:mod_secu",open(MC.tmpfile).read())
+		cmd = "tar hczf "+MC.tmpfile+" "+settings.CONF_PATH+"security-rules"
+		os.popen(cmd).read()
+		fcont = open(MC.tmpfile).read()
+		MC.set("conf:mod_secu",fcont)
 		os.remove(MC.tmpfile)
 
 	@staticmethod
@@ -401,7 +402,7 @@ class MC:
 		MC.db.commit()	
 		open(MC.tmpfile,"w").write( MC.get("conf:mod_secu"))
 		os.popen("ls -l "+MC.tmpfile)
-		os.popen("rm -rf "+settings.CONF_PATH+"security-rules ; tar -zxf "+MC.tmpfile+"; echo mod_secu loaded")
+		os.popen("rm -rf "+settings.CONF_PATH+"security-rules ; tar  -C / -zxf "+MC.tmpfile+"; echo mod_secu loaded")
 	
 	@staticmethod
 	def usage():
