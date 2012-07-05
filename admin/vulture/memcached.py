@@ -121,7 +121,7 @@ class MC:
 		# push my conf in memcache 
 			print "[+] Pushing my conf into memcache..."
 			MC.fill_memcache()
-			MC.set(MC.versionkey, version)
+			MC.set(MC.versionkey, myversion)
 			print "[+] Done"
 		else:
 		#new config available
