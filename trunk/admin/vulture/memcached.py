@@ -30,9 +30,15 @@ class MC:
 	tmpfile = "vulture_tmp"
 	regex = re.compile("VALUE ([^\s]+) \d+ (\d+)\r\n(.*)",re.MULTILINE|re.DOTALL)
 	itv = 30
-	con = S.socket(S.AF_INET,S.SOCK_STREAM)
-	(ip,port) =  Conf.objects.get(var="memcached").value.split(":")
-	con.connect((ip,int(port)))
+	con = []
+	for mcc in [x.strip() for x in Conf.objects.get(var="memcached").value.split(",")]:
+		c = S.socket(S.AF_INET,S.SOCK_STREAM)
+		(ip,port) = mcc.split(":")
+		try:
+			c.connect((ip,int(port)))
+			con += [c]
+		except:
+			pass
 	db = sqlite3.connect(settings.DATABASES['default']['NAME'])
 	db.row_factory=sqlite3.Row
 
@@ -169,37 +175,75 @@ class MC:
 
 	@staticmethod
 	def memcached_cmd(cmd,key,value):
-		MC.con.send(cmd+" "+key+" 0 0 "+str(len(value))+"\r\n"+value+"\r\n")
+		for c in MC.con:
+			try:
+				c.send(cmd+" "+key+" 0 0 "+str(len(value))+"\r\n"+value+"\r\n")
+			except:
+				pass
 		
 	@staticmethod
 	def set(key,value):
 		MC.memcached_cmd("set",key,value)
-		if MC.con.recv(100) == 'STORED\r\n':
-			return True
+		res = False
+		for c in MC.con:
+			try:
+				if c.recv(8) == 'STORED\r\n':
+					res = True
+			except:
+				pass
+		return res
 			
 	@staticmethod
 	def add(key,value):
 		MC.memcached_cmd("add",key,value)
-		if MC.con.recv(100) == 'STORED\r\n':
-			return True
+		res = False
+		for c in MC.con:
+			try:
+				if c.recv(8) == 'STORED\r\n':
+					res = True
+			except:
+				pass
+		return res
 
 	@staticmethod
 	def append(key,value):
 		MC.memcached_cmd("append",key,value)
-		if MC.con.recv(100) == 'STORED\r\n':
-			return True			
+		res = False
+		for c in MC.con:
+			try:
+				if c.recv(8) == 'STORED\r\n':
+					res = True
+			except:
+				pass
+		return res
 
 	@staticmethod
 	def prepend(key,value):
 		MC.memcached_cmd("prepend",key,value)
-		if MC.con.recv(100) == 'STORED\r\n':
-			return True			
+		res = False
+		for c in MC.con:
+			try:
+				if c.recv(8) == 'STORED\r\n':
+					res = True
+			except:
+				pass
+		return res
 
 	@staticmethod
 	def delete(key):
-		MC.con.send("delete "+key+" 0\r\n")
-		if MC.con.recv(100) == "DELETED\r\n":
-			return True
+		for c in MC.con:
+			try:
+				c.send("delete "+key+" 0\r\n")
+			except:
+				pass
+		res = False
+		for c in MC.con:
+			try:
+				if c.recv(9) != "DELETED\r\n":
+					res = True
+			except:	
+				pass
+		return res
 	
 	@staticmethod
 	def lock():
@@ -212,15 +256,19 @@ class MC:
 
 	@staticmethod
 	def get(key):
-		MC.con.send("get "+key+"\r\n")
-		res=""
-		while "END\r\n" not in res:
-			ret = MC.con.recv(4096)
-			res += ret
-		result = MC.regex.match(res)
-		if result:
-			return result.group(3)[:int(result.group(2))]
-	
+		for c in MC.con:
+			try:
+				c.send("get "+key+"\r\n")
+				res=""
+				while "END\r\n" not in res:
+					ret = c.recv(4096)
+					res += ret
+				result = MC.regex.match(res)
+				if result:
+					return result.group(3)[:int(result.group(2))]
+			except:
+				pass
+			
 	@staticmethod	
 	def is_auto_restart():
 #		if '1' == MC.db.execute("SELECT value FROM conf WHERE var='auto_restart';").fetchone()[0]:

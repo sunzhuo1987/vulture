@@ -41,16 +41,19 @@ sub     get_memcached_conf{
 	$sth->execute();
 	my $var = $sth->fetchrow ;
 	$sth->finish();
-        if ( $var =~ /([^:]+):([\d]+)/ ){
-		return $var;
+	my @serv = ();
+	for my $x (split(",",$var)){
+		$x =~ s/^\s+//;
+		$x =~ s/\s+$//;
+		push(@serv, $x);
 	}
-	die('[-] Fatal : the memcached conf was not defined');
+	return \@serv;
 }	
 #get information stored in memcached
 sub	get_memcached {
 	my ($key,$mc) = @_; 
 	my $memd = Cache::Memcached->new(
-	  servers            => [ $mc ],
+	  servers            => $mc,
 	  debug              => 0,
 	  compress_threshold => 10_000,
 	) unless defined $memd;
@@ -60,7 +63,7 @@ sub	get_memcached {
 sub	set_memcached {
 	my ($key, $value, $exptime,$mc) = @_; 
 	my $memd = Cache::Memcached->new(
-	  servers            => [ $mc ],
+	  servers            => $mc ,
 	  debug              => 0,
 	  compress_threshold => 10_000,
 	) unless defined $memd;
