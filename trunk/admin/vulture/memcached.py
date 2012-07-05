@@ -345,6 +345,7 @@ class MC:
 	def update_database_from_memcache():
 		tables = MC.get_all_tables_name()
 		for table in tables:
+			print "checking  "+table+" ..."
 			SQL = MC.get_SQL_table(table)
 			MEM = MC.get_memcache_table(table)
 			Mid = []
@@ -363,8 +364,20 @@ class MC:
 						if not value == row[key]:
 							print "Something has changed"
 							MC.db.execute("UPDATE "+table+" set "+str(key)+"=? where id= ?", (value, row["id"]))
-				else : 
-					print "this row doesn't exist in database : "+str(row)
+				elif Mrow: 
+					print "this row doesn't exist in database : "+str(Mrow)
+					dele = "DELETE FROM "+table+" WHERE "
+					first = 1
+					for k,v in Mrow.iteritems():
+						if k == "id":
+							continue
+						if not first:
+							dele += " AND "
+						else:
+							first = 0
+						dele += k+"='"+str(v)+"'"
+#					print "will dlete: "+dele
+					MC.db.execute(dele)
 					vals = ()
 					keys ="("
 					args ="("
@@ -375,7 +388,7 @@ class MC:
 							keys+=","
 						i+=1
 						vals+=(value,)
-						keys+=str(key)
+						keys+='"'+str(key)+'"'
 						args+="?"
 					args+=")"
 					keys+=")"
