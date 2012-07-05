@@ -57,8 +57,8 @@ sub handler {
 
     #Calling config functions
         my $config = Core::Config->new($dbh);
-	my $mc_conf = $config->get_key('memcached');
-    
+#	my $mc_conf = $config->get_key('memcached');
+ 	my $mc_conf = get_memcached_conf($dbh);   
     #Calling log functions
 	my $log = Core::Log->new($r);
 
@@ -68,7 +68,7 @@ sub handler {
 	$r->pnotes('config' => $config);
 	$r->pnotes('mc_conf' => $mc_conf);
 
-	$log->debug("########## TransHandler ##########");
+	$log->debug("########## TransHandler (mc : $mc_conf)##########");
 
 	#Version check
 	unless (Core::VultureUtils::version_check($config)){
@@ -135,7 +135,9 @@ sub handler {
     $log->debug($query);
 	$plugins = $dbh->selectall_arrayref($query, undef, $app->{id});
 	my $i = 0;
+	$log->debug("COOKIEDEBUG sending rewrite content");
 	foreach my $row (@$plugins) {
+		$log->debug("COOKIEDEBUG type".@$row[1]);
 		$r->pnotes('type'.$i => @$row[1]);
 		$r->pnotes('exp'.$i => @$row[0]);
 		$r->pnotes('options_'.$i => @$row[2]);

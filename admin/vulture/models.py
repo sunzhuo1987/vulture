@@ -6,7 +6,10 @@ from django.db import models
 from django.contrib import admin
 from time import sleep
 import time
-from pysqlite2 import dbapi2 as sqlite3
+try:
+	import sqlite3
+except:
+	from pysqlite2 import dbapi2 as sqlite3
 from datetime import date
 import string
 import ldap
@@ -155,11 +158,7 @@ class Intf(models.Model):
                 dirapp[host]=[dir]
             else:
                 dirapp[host]+=[dir]
-        MS_path=Conf.objects.filter(var='mod_security_path')
-	if len(MS_path):
-		MS_path = MS_path[0];
-	else:
-		MS_path = ""
+        MS_path=Conf.objects.get(var='mod_security_path')
         c = Context({"VultureConfPath" : settings.CONF_PATH,
                      "VultureStaticPath" : settings.MEDIA_ROOT,
                      "PerlSwitches" : settings.PERL_SWITCHES,
