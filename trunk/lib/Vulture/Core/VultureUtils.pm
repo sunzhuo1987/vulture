@@ -102,7 +102,7 @@ sub	session {
     } or session($session, $timeout, undef, $log, $mc, $update_access_time, int $n + 1); 
     
     #Session starting this time or previous session connection time was valid
-    if(not defined $id or ($update_access_time == 1 and $timeout and $timeout > 0 and (time() - $session->{last_access_time} < $timeout))){
+    if(not defined $id or ($update_access_time == 1 and $timeout and $timeout > 0 and (time() - $session->{last_access_time} < $timeout) and ($session->{'SSO_Forwarding'} ne 'FORWARD') and ($session->{'SSO_Forwarding'} ne 'LEARNING'))){
         $session->{last_access_time} = time();
     }
     $session->{last_access_time} ||= 0;
