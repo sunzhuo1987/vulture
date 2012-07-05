@@ -254,6 +254,11 @@ sub forward{
 			@shuffled = List::Util::shuffle(@urls);
 			my @row = split(' ',$shuffled[0]);
 			$base_url = $row[0];
+			foreach $r(@row) {
+				if ($r =~ /route=(.*)/) {
+					$route = $1;
+				}
+			}
 		} else {
 			foreach $u(@urls) {
 				if ($u =~ /route=(.*)$route(.*)/) {
@@ -446,14 +451,17 @@ sub forward{
 	#$session_app{cookie} = join('; ', map { "'$_'=\"${cookies_app{$_}}\"" } keys %cookies_app), "\n";
 
 	#Pre-send cookies to client after parsing
+	if ($app->{name} =~ /\/(.*)/) {
+		$path="/".$1."/";
+	}
 	foreach my $k (keys %cookies_app){
 		my $path="/";
-		if ($app->{name} =~ /\/(.*)/) {
-			$path="/".$1."/";
-		}
 		$log->debug("path is ".$path);
 		$r->err_headers_out->add('Set-Cookie' => $k."=".$cookies_app{$k}."; domain=".$r->hostname."; path=".$path);  # Send cookies to browser's client
 			$log->debug("PROPAG ".$k."=".$cookies_app{$k});
+	}
+	if ($route ne '') {
+		$r->err_headers_out->add('Set-Coolie' => $app->{Balancer_Stickyness}."=".$route."; domain=".$r->hostname."; path=".$path);
 	}
 
 	#Handle action needed
