@@ -57,7 +57,7 @@ def manage_cluster(request):
         version = str(int(request.POST['version'])) 
     	cur = connection.cursor()
 	Conf.objects.filter(var='version_conf').update(value=version)
-	MC.set(MC.versionkey, version)
+#	MC.set(MC.versionkey, version)
 	myname = Conf.objects.get(var='name').value
 	MC.set(myname+":version",version)
     last = MC.get(MC.versionkey) or 0
