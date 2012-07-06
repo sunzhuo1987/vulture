@@ -78,7 +78,6 @@ class MC:
 
 	@staticmethod
 	def stop2(sig, a):
-		MC.lock()
 		name = MC.getConf("name")
 		MC.delete(name+":version")
 		old = MC.get(MC.keystore)
@@ -86,11 +85,10 @@ class MC:
 			MC.set(MC.keystore,"|".join([f for f in old.split("|") if f != name]))
 		try:
 			pid = int(open(MC.lockfile).read())
-			os.kill(pid,2)
 			os.remove(MC.lockfile)
+			os.kill(pid,2)
 		except:
 			pass
-		MC.unlock()
 		sys.exit(0)
 	
 	@staticmethod
@@ -406,9 +404,8 @@ class MC:
 				print "deleting "+dels+" in "+table
 				MC.db.execute("DELETE FROM "+table+" where id in (%s);"%(dels))
 		MC.db.commit()	
-		open(settings.CONF_PATH+MC.tmpfile,"w").write( MC.get("conf:mod_secu"))
+		open(settings.CONF_PATH+"security-rules/"+MC.tmpfile,"w").write( MC.get("conf:mod_secu"))
 		os.popen("rm -rf "+settings.CONF_PATH+"security-rules/* ; tar  -C "+settings.CONF_PATH+"security-rules -zxf "+settings.CONF_PATH+MC.tmpfile+"; echo mod_secu loaded")
-		os.remove(settings.CONF_PATH+"security-rules/"+MC.tmpfile)
 	
 	@staticmethod
 	def usage():
