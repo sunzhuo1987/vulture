@@ -27,7 +27,7 @@ class MC:
 	lockfile = settings.CONF_PATH+"vulture-daemon.lock"
 	versionkey = "vulture_version"
 	keystore = "vulture_inst"
-	tmpfile = settings.CONF_PATH+"vulture_tmp"
+	tmpfile = "vulture_tmp"
 	regex = re.compile("VALUE ([^\s]+) \d+ (\d+)\r\n(.*)",re.MULTILINE|re.DOTALL)
 	itv = 30
 	con = []
@@ -61,6 +61,10 @@ class MC:
 		f.write(str(os.getpid()))
 		f.close()
 		signal.signal(signal.SIGINT, MC.stop2)
+		try:
+			os.mkdir(settings.CONF_PATH+"security-rules")
+		except:
+			pass
 		while True:
 			if not os.path.exists(MC.lockfile):
 				print "[-] Unexcepted stop, missing lockfile"
@@ -300,11 +304,11 @@ class MC:
 			val = MC.serialize(MC.get_SQL_table(table))
 			MC.set("conf:"+table,val)
 #			print "saved "+val+" in conf:"+table
-		cmd = "tar hczf "+MC.tmpfile+" "+settings.CONF_PATH+"security-rules"
+		cmd = "cd "+settings.CONF_PATH+"security-rules ; tar hczf "+MC.tmpfile+" *"
 		os.popen(cmd).read()
-		fcont = open(MC.tmpfile).read()
+		fcont = open(settings.CONF_PATH+"security-rules/"+MC.tmpfile).read()
 		MC.set("conf:mod_secu",fcont)
-		os.remove(MC.tmpfile)
+		os.remove(settings.CONF_PATH+"security-rules/"+MC.tmpfile)
 
 	@staticmethod
 	def convert_sqliteRow_to_dict(Rows):
@@ -400,8 +404,9 @@ class MC:
 				print "deleting "+dels+" in "+table
 				MC.db.execute("DELETE FROM "+table+" where id in (%s);"%(dels))
 		MC.db.commit()	
-		open(MC.tmpfile,"w").write( MC.get("conf:mod_secu"))
-		print os.popen("rm -rf "+settings.CONF_PATH+"security-rules ; tar  -C / -zxf "+MC.tmpfile+"; echo mod_secu loaded").read()
+		open(settings.CONF_PATH+MC.tmpfile,"w").write( MC.get("conf:mod_secu"))
+		os.popen("rm -rf "+settings.CONF_PATH+"security-rules/* ; tar  -C "+settings.CONF_PATH+"security-rules -zxf "+settings.CONF_PATH+MC.tmpfile+"; echo mod_secu loaded")
+		os.remove(settings.CONF_PATH+"security-rules/"+MC.tmpfile)
 	
 	@staticmethod
 	def usage():
