@@ -85,6 +85,8 @@ class MC:
 		if old:
 			MC.set(MC.keystore,"|".join([f for f in old.split("|") if f != name]))
 		try:
+			pid = int(open(MC.lockfile).read())
+			os.kill(pid,2)
 			os.remove(MC.lockfile)
 		except:
 			pass
