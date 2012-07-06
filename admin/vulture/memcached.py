@@ -255,6 +255,7 @@ class MC:
 	@staticmethod
 	def lock():
 		while not MC.add(MC.lockname,"1"):
+			time.sleep(1)
 			pass
 
 	@staticmethod
