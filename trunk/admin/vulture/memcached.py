@@ -407,7 +407,7 @@ class MC:
 				MC.db.execute("DELETE FROM "+table+" where id in (%s);"%(dels))
 		MC.db.commit()	
 		open(settings.CONF_PATH+"security-rules/"+MC.tmpfile,"w").write( MC.get("conf:mod_secu"))
-		os.popen("rm -rf "+settings.CONF_PATH+"security-rules/* ; tar  -C "+settings.CONF_PATH+"security-rules -zxf "+settings.CONF_PATH+"security-rules/"MC.tmpfile+"; echo mod_secu loaded")
+		os.popen("rm -rf "+settings.CONF_PATH+"security-rules/* ; tar  -C "+settings.CONF_PATH+"security-rules -zxf "+settings.CONF_PATH+"security-rules/"+MC.tmpfile+"; echo mod_secu loaded")
 	
 	@staticmethod
 	def usage():
