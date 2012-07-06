@@ -36,9 +36,9 @@ RETVAL=0
 function start() {
 	/opt/vulture/bin/test-perl.sh || exit 1;
 	echo -n $"Starting ${NAME}: "
-        daemon $MEMCACHED -d -m 512 -l 0.0.0.0 -p 9091 -u apache
+        daemon $MEMCACHED -d -m 512 -l 127.0.0.1 -p 9091 -u apache
 	sleep 2
-	python ${VULTURE_HOME}/${NAME}/admin/vulture/memcached.py start &>/dev/null &
+	python ${VULTURE_HOME}/${NAME}/admin/vulture/memcached.py start >&/dev/null &
 	python "${VULTURE_HOME}/${NAME}/conf/vintf_startup.py" up
         daemon "/usr/sbin/httpd -f ${VULTURE_HOME}/${NAME}/conf/httpd.conf";
         for i in `ls ${VULTURE_HOME}/${NAME}/conf/*.conf 2>/dev/null|grep -v 'httpd.conf$'`; do
