@@ -31,12 +31,14 @@ case "$1" in
   start)
 	${Vulture_HOME}/${NAME}/bin/test-perl.sh || exit 1;
 	echo -n "Starting $NAME: ";
-	$APACHE -f $Vulture_HOME/$NAME/conf/httpd.conf;
+	$MEMCACHED -d -m 512 -l 127.0.0.1 -p 9091 -u www-data
+	sleep 2
+	python ${VULTURE_HOME}/${NAME}/admin/vulture/memcached.py start &>/dev/null &
 	python "${Vulture_HOME}/${NAME}/conf/vintf_startup.py" up
+	$APACHE -f $Vulture_HOME/$NAME/conf/httpd.conf;
 	for i in `ls $Vulture_HOME/$NAME/conf/*.conf 2> /dev/null | grep -v 'httpd.conf$'`; do 
 		$APACHE -f $i;
 	done
-	$MEMCACHED -d -m 512 -l 127.0.0.1 -p 9091 -u www-data
 	echo "." 
 	;;
   stop)
@@ -44,8 +46,9 @@ case "$1" in
 	for i in `ls $Vulture_HOME/$NAME/conf/*.pid 2> /dev/null`; do 
 		kill `cat $i` 
 	done;
-	python "${Vulture_HOME}/${NAME}/conf/vintf_startup.py" down
+	python ${VULTURE_HOME}/${NAME}/admin/vulture/memcached.py stop 
 	kill -12 `pidof $MEMCACHED`
+	python "${Vulture_HOME}/${NAME}/conf/vintf_startup.py" down
 	echo "." 
 	;;
   restart|force-reload)
