@@ -38,6 +38,7 @@ class MC:
 			c.connect((ip,int(port)))
 			con += [c]
 		except:
+			print "[-] Warning: cannot connect to "+ip
 			pass
 	db = sqlite3.connect(settings.DATABASES['default']['NAME'])
 	db.row_factory=sqlite3.Row
@@ -57,6 +58,7 @@ class MC:
 		if os.path.exists(MC.lockfile):
 			print "[-] Already started"
 			sys.exit(1)
+		print "[+] Cluster sync starting .. "
 		f = open(MC.lockfile,"w")
 		f.write(str(os.getpid()))
 		f.close()
@@ -405,7 +407,7 @@ class MC:
 				MC.db.execute("DELETE FROM "+table+" where id in (%s);"%(dels))
 		MC.db.commit()	
 		open(settings.CONF_PATH+"security-rules/"+MC.tmpfile,"w").write( MC.get("conf:mod_secu"))
-		os.popen("rm -rf "+settings.CONF_PATH+"security-rules/* ; tar  -C "+settings.CONF_PATH+"security-rules -zxf "+settings.CONF_PATH+MC.tmpfile+"; echo mod_secu loaded")
+		os.popen("rm -rf "+settings.CONF_PATH+"security-rules/* ; tar  -C "+settings.CONF_PATH+"security-rules -zxf "+settings.CONF_PATH+"security-rules/"MC.tmpfile+"; echo mod_secu loaded")
 	
 	@staticmethod
 	def usage():
