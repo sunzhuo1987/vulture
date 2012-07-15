@@ -57,8 +57,6 @@ Vulture Reverse Proxy
      $RPM_BUILD_ROOT%{serverroot}/%{name}/conf/vintf_startup.py
      install -m0644 conf/openssl.cnf\
      $RPM_BUILD_ROOT%{serverroot}/%{name}/conf/openssl.cnf
-     install -m0644 debian/aes-encrypt-key.key\
-     $RPM_BUILD_ROOT%{serverroot}/%{name}/conf/aes-encrypt-key.key
      install -d -m0755 rpm $RPM_BUILD_ROOT%{serverroot}/%{name}/rpm/
      install -m0755 rpm/*.gz $RPM_BUILD_ROOT%{serverroot}/%{name}/rpm/
 
@@ -144,6 +142,21 @@ Vulture Reverse Proxy
         sed s-"/usr/lib/libxml2.so.2"-"/usr/lib64/libxml2.so.2"-g %{serverroot}/%{name}/admin/vulture_httpd.conf > /tmp/vh.conf && \
 		mv /tmp/vh.conf %{serverroot}/%{name}/admin/vulture_httpd.conf;
     fi
+    if ! ( python -c '
+from sys import stdout as o
+import base64 as B
+try:
+    f = open("/dev/urandom")
+except:
+    try:
+        f = open("/dev/random")
+    except:	
+        exit(1)
+o.write(B.b64encode(f.read(100))[:32])' > /var/www/vulture/conf/aes-encrypt-key.key ); then	
+	echo "This should be changed"  > /var/www/vulture/conf/aes-encrypt-key.key
+	echo "[Warning] : AES key must be configured manually in" "/var/www/vulture/conf/aes-encrypt-key.key"
+    fi
+    
 
 %preun
     /etc/init.d/vulture stop

@@ -68,7 +68,6 @@ install:
 	done
 	if [ -e /etc/debian_version ]; then \
 		install -m0600 debian/httpd.conf $(DESTDIR)$(PREFIX)/$(NAME)/conf/httpd.conf && \
-		install -m0600 debian/aes-encrypt-key.key $(DESTDIR)$(PREFIX)/$(NAME)/conf/aes-encrypt-key.key && \
 		install -m0600 debian/settings.py $(DESTDIR)$(PREFIX)/$(NAME)/admin/settings.py && \
         	install -m0600 debian/vulture.wsgi $(DESTDIR)$(PREFIX)/$(NAME)/conf/vulture.wsgi && \
         	install -m0600 debian/vintf_startup.py $(DESTDIR)$(PREFIX)/$(NAME)/conf/vintf_startup.py && \
