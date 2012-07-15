@@ -53,5 +53,21 @@ else
 fi
 update-rc.d -f vulture start 90 2 3 4 5 . stop 90 0 1 6 .
 echo "Vulture is now up and running on port 9090!"
+if ! ( python -c '
+from sys import stdout as o
+import base64 as B
+try:
+    f = open("/dev/urandom")
+except:
+    try:
+        f = open("/dev/random")
+    except:	
+        exit(1)
+o.write(B.b64encode(f.read(100))[:32])' > /var/www/vulture/conf/aes-encrypt-key.key ); then
+	echo "This is not a key"  > /var/www/vulture/conf/aes-encrypt-key.key
+	echo "[Warning] : AES key must be configured manually in" "%{serverroot}/%{name}/conf/aes-encrypt-key.key"
+fi
+    
+
 invoke-rc.d vulture start
 exit 0
