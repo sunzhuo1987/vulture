@@ -109,6 +109,7 @@ sub	session {
     #Regenerate session if too old
     if (defined $timeout and $timeout > 0 and (time() - $session->{last_access_time} > $timeout)){
 		tied(%{$session})->delete;
+		session($session, $timeout, undef, $log, $mc, $update_access_time, $n + 1);
     }
     
     return $session;

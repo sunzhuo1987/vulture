@@ -230,8 +230,9 @@ sub forward{
 		}
 	}
 
-
-	$mech->cookie_jar->set_cookie( $cleaned_cookies );
+	$mech->delete_header('Cookie');
+	$mech->add_header('Cookie',$cleaned_cookies);
+	#$mech->cookie_jar->set_cookie( $cleaned_cookies );
 
 	$mech->delete_header('Host');
 	$mech->add_header('Host' => $r->headers_in->{'Host'});
@@ -280,11 +281,7 @@ sub forward{
 	}elsif ((int($sso_is_post) != 1)) {
 		$log->debug("Automatic POST enabled");
 		#Push user-agent, etc.
-		my $url = URI->new($app->{url}.$app->{logon_url});
 		#Get login page in order to fill the form and click the submit buttom
-		$request = HTTP::Request->new(GET => $url);
-		$request->remove_header('User-Agent');
-		$request->push_header('User-Agent' => $r->headers_in->{'User-Agent'});
 		$mech->delete_header('User-Agent');
 		$mech->add_header('User-Agent' => $r->headers_in->{'User-Agent'});
 		my $sth = $dbh->prepare("SELECT name, type, value FROM header WHERE app_id= ?");
@@ -302,8 +299,6 @@ sub forward{
 
 			#Try to push custom headers
 			eval {
-				$request->remove_header($name);
-				$request->push_header($name => $value);
 				$mech->delete_header($name);
 				$mech->add_header($name => $value);
 				$log->debug("Pushing custom header $name => $value");
@@ -450,18 +445,18 @@ sub forward{
 	#Keep cookies to be able to log out
 	#$session_app{cookie} = join('; ', map { "'$_'=\"${cookies_app{$_}}\"" } keys %cookies_app), "\n";
 
+	my $path="/";
 	#Pre-send cookies to client after parsing
 	if ($app->{name} =~ /\/(.*)/) {
 		$path="/".$1."/";
 	}
 	foreach my $k (keys %cookies_app){
-		my $path="/";
 		$log->debug("path is ".$path);
 		$r->err_headers_out->add('Set-Cookie' => $k."=".$cookies_app{$k}."; domain=".$r->hostname."; path=".$path);  # Send cookies to browser's client
 			$log->debug("PROPAG ".$k."=".$cookies_app{$k});
 	}
 	if ($route ne '') {
-		$r->err_headers_out->add('Set-Coolie' => $app->{Balancer_Stickyness}."=".$route."; domain=".$r->hostname."; path=".$path);
+		$r->err_headers_out->add('Set-Cookie' => $app->{Balancer_Stickyness}."=".$route."; domain=".$r->hostname."; path=".$path);
 	}
 
 	#Handle action needed

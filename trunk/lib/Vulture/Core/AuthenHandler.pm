@@ -119,6 +119,10 @@ sub handler:method
                 my (%current_app);
                 Core::VultureUtils::session(\%current_app, undef, $id_app,undef ,$mc_conf);
 
+		if ($current_app{app_name} eq '') {
+			Core::VultureUtils::session(\%current_app, undef, $r->pnotes("id_session_app"),undef ,$mc_conf);
+		}
+
                 #Getting all auths methods used previously to compare with current app auths
                 my $query = "SELECT auth.name, auth.auth_type, auth.id_method FROM app, intf, auth, auth_multiple WHERE app.name = ? AND intf.id = ? AND auth_multiple.app_id = app.id AND auth_multiple.auth_id = auth.id";
                 $log->debug($query);
