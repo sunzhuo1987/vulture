@@ -341,6 +341,9 @@ sub forward{
 			#Simulate click
 			$request = $form->click();
 		}
+		else{
+			return Apache2::Const::OK;
+		}
 	}
 	#Direct POST
 	else {
@@ -361,7 +364,9 @@ sub forward{
 			$request->push_header('Content-Type' => 'application/x-www-form-urlencoded');
 
 		}
-
+		else{
+			return Apache2::Const::OK;
+		}
 	}
 
 	$log->debug($cookies);
