@@ -195,7 +195,7 @@ sub handler {
         if($app and !$app->{'auth_basic'} and not $r->pnotes('static')) {
             $log->debug("Display auth form");
             $r->content_type('text/html');
-            $r->print(Core::ResponseHandlerv2::display_auth_form($r, $log, $dbh, $app));
+            $r->print(Core::ResponseHandlerv2::display_auth_form($r, $log, $dbh, $app, $intf));
             return Apache2::Const::OK;
         }
 	    $log->debug("Serving static file");
@@ -204,7 +204,7 @@ sub handler {
 }
 
 sub display_auth_form {
-    my ($r, $log, $dbh, $app) = @_;
+    my ($r, $log, $dbh, $app, $intf) = @_;
     my $req = Apache2::Request->new($r);
     my $mc_conf = $r->pnotes('mc_conf');
     #CAS
@@ -218,7 +218,7 @@ sub display_auth_form {
 
     #Get session SSO for filling random token
     my (%session_SSO);
-    Core::VultureUtils::session(\%session_SSO, $app->{timeout}, $r->pnotes('id_session_SSO'), $log, $mc_conf, $app->{update_access_time});
+    Core::VultureUtils::session(\%session_SSO, $intf->{timeout}, $r->pnotes('id_session_SSO'), $log, $mc_conf, $app->{update_access_time});
 
         #if($r->unparsed_uri =~ /vulture_app=([^;]*)/){
         #       $uri = $1;
