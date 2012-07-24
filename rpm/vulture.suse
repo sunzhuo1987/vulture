@@ -25,6 +25,8 @@ export NAME=vulture
 export TMPDIR=/tmp
 export HTTPD_BIN=/usr/sbin/httpd2
 export MEMCACHED="/usr/sbin/memcached"
+export MEMCACHED_IP=127.0.0.1
+export MEMCACHED_PORT=9091
 
 # Source an auxiliary options file if we have one, and pick up OPTIONS,
 if [ -r /etc/sysconfig/${NAME} ] ; then
@@ -37,10 +39,13 @@ RETVAL=0
 function start() {
 	/opt/vulture/bin/test-perl.sh || exit 1;
 	echo -n $"Starting ${NAME}: "
+        $MEMCACHED -d -m 512 -l $MEMCACHED_IP -p $MEMCACHED_PORT -u apache
+	python ${VULTURE_HOME}/${NAME}/admin/vulture/memcached.py start >/dev/null 2>&1 &
+	python "${VULTURE_HOME}/${NAME}/conf/vintf_startup.py" up
+	sleep 2
         for i in `ls ${VULTURE_HOME}/${NAME}/conf/*.conf 2> /dev/null`; do
                 daemon "$HTTPD_BIN -f $i"
         done
-        $MEMCACHED -u wwwrun -d -m 512 -l 127.0.0.1 -p 9091
         echo
 	[ $RETVAL -eq 0 ] && touch /var/lock/subsys/${NAME}
 	return $RETVAL
@@ -52,7 +57,9 @@ function stop() {
         for i in `ls ${VULTURE_HOME}/${NAME}/conf/*.pid 2> /dev/null`; do
                 kill `cat $i`
         done
+	python ${VULTURE_HOME}/${NAME}/admin/vulture/memcached.py stop 
         killproc $MEMCACHED
+	python "${VULTURE_HOME}/${NAME}/conf/vintf_startup.py" down
         [ $RETVAL -eq 0 ] && return  0 || return 1
         echo
         [ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/${NAME}
@@ -61,6 +68,7 @@ function stop() {
 
 function reload() {
 	echo -n "Reloading ${NAME}: "
+	python "${VULTURE_HOME}/${NAME}/conf/vintf_startup.py" up
 	for i in `ls ${VULTURE_HOME}/${NAME}/conf/*.conf 2> /dev/null`; do
 		daemon "$HTTPD_BIN -f $i -k graceful"
 	done

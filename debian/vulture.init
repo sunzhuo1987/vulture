@@ -26,12 +26,14 @@ NAME=vulture
 RETVAL=0
 APACHE=/usr/sbin/apache2
 MEMCACHED=/usr/bin/memcached
+MEMCACHED_IP=127.0.0.1
+MEMCACHED_PORT=9091
 
 case "$1" in
   start)
 	${Vulture_HOME}/${NAME}/bin/test-perl.sh || exit 1;
 	echo -n "Starting $NAME: ";
-	$MEMCACHED -d -m 512 -l 127.0.0.1 -p 9091 -u www-data
+	$MEMCACHED -d -m 512 -l $MEMCACHED_IP -p $MEMCACHED_PORT -u www-data
 	sleep 2
 	python ${Vulture_HOME}/${NAME}/admin/vulture/memcached.py start >/dev/null 2>&1 &
 	python "${Vulture_HOME}/${NAME}/conf/vintf_startup.py" up

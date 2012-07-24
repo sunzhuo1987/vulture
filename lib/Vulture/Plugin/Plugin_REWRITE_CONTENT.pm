@@ -8,7 +8,7 @@ use warnings;
 
 BEGIN {
     use Exporter ();
-    our @ISA = qw(Exporter);
+    our @ISA       = qw(Exporter);
     our @EXPORT_OK = qw(&plugin);
 }
 
@@ -30,13 +30,13 @@ use Data::Dumper;
 use Apache2::Filter();
 use Plugin::Plugin_OutputFilterHandler;
 
-sub plugin{
-	my ($package_name, $r, $log, $dbh, $intf, $app) = @_;
-	$log->debug("########## Plugin_REWRITE_CONTENT ##########");
+sub plugin {
+    my ( $package_name, $r, $log, $dbh, $intf, $app ) = @_;
+    $log->debug("########## Plugin_REWRITE_CONTENT ##########");
 
-	$r->add_output_filter(\&Plugin::Plugin_OutputFilterHandler::handler);
-	
-	return undef;
+    $r->add_output_filter( \&Plugin::Plugin_OutputFilterHandler::handler );
+
+    return undef;
 }
 
 1;

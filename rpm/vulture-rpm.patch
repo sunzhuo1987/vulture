@@ -1,13 +1,12 @@
-diff -ru '--exclude=.svn' vulture/admin/vulture_httpd.conf vulture-2.0.3/admin/vulture_httpd.conf
---- vulture/admin/vulture_httpd.conf	2012-06-25 17:29:35.120196237 +0200
-+++ vulture-2.0.3/admin/vulture_httpd.conf	2012-06-25 17:33:04.596191340 +0200
-@@ -23,13 +23,23 @@
+--- vulture-2.0.4.ori/admin/vulture_httpd.conf	2012-07-18 16:05:15.861716420 -0400
++++ vulture-2.0.4/admin/vulture_httpd.conf	2012-07-18 16:06:30.384715654 -0400
+@@ -23,10 +23,20 @@
  user {{ www_user }}
  group {{ www_user }}
  
--LoadFile			/usr/lib/libxml2.so.2
+-LoadFile                        /usr/lib/libxml2.so.2
 +LoadFile			/usr/lib64/libxml2.so.2
- LoadModule perl_module		{{ serverroot }}/modules/mod_perl.so
+ LoadModule perl_module          {{ serverroot }}/modules/mod_perl.so
  LoadModule apreq_module    {{ serverroot }}/modules/mod_apreq2.so
  LoadModule env_module           {{ serverroot }}/modules/mod_env.so
 +LoadModule setenvif_module      {{ serverroot }}/modules/mod_setenvif.so
@@ -19,43 +18,7 @@ diff -ru '--exclude=.svn' vulture/admin/vulture_httpd.conf vulture-2.0.3/admin/v
 +LoadModule proxy_ftp_module     {{ serverroot }}/modules/mod_proxy_ftp.so
 +LoadModule proxy_http_module    {{ serverroot }}/modules/mod_proxy_http.so
 +LoadModule proxy_connect_module {{ serverroot }}/modules/mod_proxy_connect.so
++ 
  {{ httpd_custom|safe }}
- LoadModule proxy_balancer_module	{{ serverroot }}/modules/mod_proxy_balancer.so
--{% if MS_path.value %}
-+## Mod Security Path {{ MS_path.value }}
-+{% if MS_path.value %} 
- LoadModule security2_module {{ MS_path.value }}
- {% else %}
- LoadModule security2_module  {{ serverroot }}/modules/mod_security2.so
-@@ -94,7 +104,7 @@
-         LogLevel {{ a.0.log.level|safe }}
-         LogFormat {{ a.0.log.format|safe }} vultureFormat
-         ErrorLog {{ a.0.log.dir|safe }}Vulture-{{ a.0.name|cut:"/" }}-error_log
--        CustomLog {{ a.0.log.dir|safe }}Vulture-{{ a.0.name|cut:"/" }}-access_log vultureFormat
-+        CustomLog {{ a.0.log.dir|safe }}Vulture-{{ a.0.name|cut:"/" }}-access_log vultureFormat 
-         SSLProxyEngine On
- 
-         {% if a.0.isFtp %}
-@@ -160,7 +170,7 @@
-                 {% endif %}
-             {% endfor %}
-             SSLOptions              +StdEnvVars
--	    SSLProtocol	-ALL +SSLv3 +TLSv1
-+	    SSLProtocol -ALL +SSLv3 +TLSv1
-         {% endif %}
-         ProxyRequests Off
-         ProxyVia Off
-@@ -196,11 +206,9 @@
- 		    Include  {{ VultureConfPath }}security-rules/activated/{{ app.name|cut:"/" }}/vulture-{{ app.name|cut:"/" }}.conf
- 		    Include  {{ VultureConfPath }}security-rules/activated/{{ app.name|cut:"/" }}/modsec*.conf
- 		{% endif %}
--		ProxyPass	 / {{ app.url }}/ {% if app.Balancer_Activated %}stickysession={{ app.Balancer_Stickyness }} nofailover=Off {% endif %}
-+		ProxyPass	 / {{ app.url }}/ {% if app.Balancer_Activated %} stickysession={{ Balancer.Stickyness }} nofailover=Off{% endif %}
- 		ProxyPassReverse / {{ app.url }}/
- 		{{ app.getCookieDomain }}
--		
--		## Custom defined virtualhost directives for app
- 		{{ app.virtualhost_directives|safe }}
- 	{% endif %}
- {% endfor %}
-
+ LoadModule proxy_balancer_module        {{ serverroot }}/modules/mod_proxy_balancer.so
+ {% if MS_path.value %}
