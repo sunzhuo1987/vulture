@@ -134,8 +134,7 @@ sub plugin {
                 and $user_hash{ticket_service} eq $service
                 and exists $user_hash{ticket_created} )
             {
-                my $login;
-                $res = "yes\n$login\n";
+                $res = "yes\n$key\n";
 
                 #Unvalidate ticket
                 delete $hashref->{ticket};
