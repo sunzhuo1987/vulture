@@ -169,27 +169,6 @@ sub get_app {
 
     return {} unless ( $host and $intf and $dbh );
 
-    #Use memcached if possible
-    my $obj = get_memcached( "$host:app", get_memcached_conf($dbh) );
-    if ($obj) {
-
-#$query = "SELECT intf.id FROM app, intf, app_intf WHERE app.name = ? AND app_intf.intf_id = intf.id AND app.id = app_intf.app_id";
-#$query = 'SELECT intf.id FROM intf JOIN app_intf ON intf.id = app_intf.intf_id JOIN app ON app_intf.app_id = app.id WHERE app.name=?';
-        $query =
-'SELECT intf.id FROM intf JOIN app_intf ON intf.id = app_intf.intf_id JOIN app ON app_intf.app_id = app.id WHERE ? LIKE app.name || "%" ORDER BY app.name DESC';
-        $log->debug($query);
-        $sth = $dbh->prepare($query);
-        $sth->execute($host);
-        my $var;
-        while ( $var = $sth->fetchrow ) {
-            if ( $var eq $intf ) {
-                $obj->{'intf'} = $intf;
-            }
-        }
-        $sth->finish();
-    }
-    return $obj if $obj;
-
 #Getting app and wildcards
 #$query = "SELECT app.id, app.name, app.alias, app.url, app.log_id, app.sso_forward_id AS sso_forward, app.logon_url, app.logout_url, intf.port, app.remote_proxy, app.up, app.auth_basic, app.display_portal, app.canonicalise_url, app.timeout, app.update_access_time FROM app, intf, app_intf WHERE intf.id = ? AND app_intf.intf_id = intf.id AND app.id = app_intf.app_id";
     $query =
@@ -234,6 +213,27 @@ sub get_app {
     }
     $ref->{'intf'} = $intf;
     return {} unless $ref->{id};
+    #Use memcached if possible
+    my $obj = get_memcached( $ref->{name}.":app", get_memcached_conf($dbh) );
+    if ($obj) {
+
+#$query = "SELECT intf.id FROM app, intf, app_intf WHERE app.name = ? AND app_intf.intf_id = intf.id AND app.id = app_intf.app_id";
+#$query = 'SELECT intf.id FROM intf JOIN app_intf ON intf.id = app_intf.intf_id JOIN app ON app_intf.app_id = app.id WHERE app.name=?';
+        $query =
+'SELECT intf.id FROM intf JOIN app_intf ON intf.id = app_intf.intf_id JOIN app ON app_intf.app_id = app.id WHERE ? LIKE app.name || "%" ORDER BY app.name DESC';
+        $log->debug($query);
+        $sth = $dbh->prepare($query);
+        $sth->execute($ref->{name});
+        my $var;
+        while ( $var = $sth->fetchrow ) {
+            if ( $var eq $intf ) {
+                $obj->{'intf'} = $intf;
+            }
+        }
+        $sth->finish();
+    }
+    return $obj if $obj;
+
 
 #Getting auth
 #$query = "SELECT auth.name, auth.auth_type, auth.id_method FROM auth, auth_multiple WHERE auth_multiple.app_id = ? AND auth_multiple.auth_id = auth.id";
@@ -271,7 +271,7 @@ sub get_app {
     $sth->finish();
 
     #Caching app if possible
-    set_memcached( "$host:app", $ref, undef, get_memcached_conf($dbh) );
+    set_memcached( $ref->{name}.":app", $ref, undef, get_memcached_conf($dbh) );
     return $ref;
 }
 

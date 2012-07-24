@@ -231,7 +231,7 @@ def reload_intf(request, intf_id):
                               
 @permission_required('vulture.reload_intf')
 def reload_all_intfs(request):
-    k_output = "Reloading all interface\n"
+    k_output = "Reloading all interface :<br>"
     intfs = Intf.objects.all()
     for intf in intfs :
         if intf.need_restart:
@@ -245,7 +245,7 @@ def reload_all_intfs(request):
                      k_output += outp
                  else: 
                      k_output += "everything ok"
-		 k_output += "\n"
+		 k_output += "<br>"
                  apps = App.objects.filter(intf=intf).all()
                  for app in apps:
                      # Delete memcached records to update config
