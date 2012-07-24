@@ -1,7 +1,7 @@
 Requires: sudo make gcc httpd httpd-devel krb5-devel libapreq2 perl-DBD-MySQL libidn libmcrypt libmcrypt-devel libmemcached libmemcached-devel postgresql postgresql-devel memcached memcached-devel mod_auth_kerb mod_perl mod_perl-devel mod_python mod_wsgi mysql mysql-server perl-Apache-Session perl-Authen-Krb5 perl-BSD-Resource perl-Cache-Memcached perl-Class-Accessor perl-Class-Data-Inheritable perl-Convert-ASN1 perl-Crypt-Blowfish perl-Crypt-CBC perl-Crypt-OpenSSL-AES perl-Crypt-PasswdMD5 perl-Crypt-SSLeay perl-DBD-Pg perl-DBD-SQLite perl-DBI perl-Devel-Symdump perl-Digest-SHA1 perl-IO-Socket-SSL perl-IO-Tty perl-IPC-Run perl-LDAP perl-libapreq2 perl-Net-Daemon perl-Net-LibIDN perl-Net-SSLeay perl-NTLM perl-Params-Validate perl-String-CRC32 perl-Sub-Name perl-WWW-Mechanize python python-devel python-ldap python-memcached python-sqlite sqlite sqlite-devel python-imaging python-hashlib pyOpenSSL libxml2 mod_security mod_ssl
 %define serverroot /opt
 Vendor: Advens
-%define release 0
+#%define release 0
 %define name vulture
 %define version 2.0.4
 AutoReqProv: no
@@ -176,6 +176,19 @@ o.write(B.b64encode(f.read(128))[:32])' > %{serverroot}/%{name}/conf/aes-encrypt
 
 
 %changelog
+* ????????? 2012 Etienne Helluy <etienne.helluy-lafont@advens.fr> 2.0.4-0
+- 2.0.4
+- add clustering support
+- balancer proxifying support
+- add support for ftp:// proxifying
+- add support for virtual directories
+- add network interfaces configuration interface
+- fix vulnerability in get_translations
+- fix several xss vulnerabilities
+- fix file disclosure vulnerability
+- fix weak ciphers allowed for ssl
+- fix command execution in admin panel
+- fix bugs
 * Fri Oct 7 2011 Arnaud Desmons <logarno@gmail.com> 2.0.1-1
 - 2.0.1
 

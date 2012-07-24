@@ -1,5 +1,18 @@
 vulture (2.0.4) stable; urgency=low
-  * vulture now supports clustering
+  * add clustering support
+  * balancer proxifying support
+  * add support for ftp:// proxifying
+  * add support for virtual directories
+  * add network interfaces configuration interface
+  * fix vulnerability in get_translations
+  * fix several xss vulnerabilities
+  * fix file disclosure vulnerability
+  * fix weak ciphers allowed for ssl
+  * fix command execution in admin panel
+  * fix bugs
+
+ -- Etienne Helluy-Lafont <etienne.helluy-lafont@advens.fr> 
+
 vulture (2.0.3) stable; urgency=low
 
   * now we can choose to use old way to login (Direct Post) on protected app 
