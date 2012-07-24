@@ -1,3 +1,5 @@
+vulture (2.0.4) stable; urgency=low
+  * vulture now supports clustering
 vulture (2.0.3) stable; urgency=low
 
   * now we can choose to use old way to login (Direct Post) on protected app 

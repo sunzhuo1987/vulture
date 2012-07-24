@@ -3,7 +3,7 @@ Requires: sudo gcc make httpd krb5-devel libapreq2-3 libidn libmcrypt libmcrypt-
 Vendor: Advens
 %define release 1
 %define name vulture
-%define version 2.0.3
+%define version 2.0.4
 AutoReqProv: no
 
 Summary: Vulture Reverse Proxy

@@ -15,225 +15,284 @@ use DBI;
 
 use Apache2::Const -compile => qw(OK DECLINED REDIRECT HTTP_UNAUTHORIZED);
 
-use Core::VultureUtils qw(&session &get_style &get_translations &generate_random_string);
+use Core::VultureUtils
+  qw(&session &get_style &get_translations &generate_random_string);
 use SSO::ProfileManager qw(&get_profile);
 
 use Apache::SSLLookup;
 use HTML::Entities;
 
 sub handler {
-  	my $r = Apache::SSLLookup->new(shift);
+    my $r = Apache::SSLLookup->new(shift);
 
-	my $log = $r->pnotes('log');
-	
-	#Getting data from pnotes
-	my $app = $r->pnotes('app');
-	my $dbh = $r->pnotes('dbh');
-    	my $intf = $r->pnotes('intf');
-	my $mc_conf = $r->pnotes('mc_conf');
+    my $log = $r->pnotes('log');
 
-	#$user may not be set if Authentication is done via Apache (ex: mod_auth_kerb)
-	my $user = $r->pnotes('username') || $r->user;
-	my $password = $r->pnotes('password');
+    #Getting data from pnotes
+    my $app     = $r->pnotes('app');
+    my $dbh     = $r->pnotes('dbh');
+    my $intf    = $r->pnotes('intf');
+    my $mc_conf = $r->pnotes('mc_conf');
 
-	my (%session_app);
-	Core::VultureUtils::session(\%session_app, $app->{timeout}, $r->pnotes('id_session_app'), $log,$mc_conf, $app->{update_access_time});
-	my (%session_SSO);
-	Core::VultureUtils::session(\%session_SSO, $intf->{timeout}, $r->pnotes('id_session_SSO'), $log, $mc_conf, $app->{update_access_time});
+  #$user may not be set if Authentication is done via Apache (ex: mod_auth_kerb)
+    my $user = $r->pnotes('username') || $r->user;
+    my $password = $r->pnotes('password');
 
-	#Query counter
-	#my $query = "UPDATE stats SET value=value+1 WHERE var='responsehandler_counter'";
-	#$log->debug($query);
-	#$dbh->do($query) or $log->error($dbh->errstr);
+    my (%session_app);
+    Core::VultureUtils::session( \%session_app, $app->{timeout},
+        $r->pnotes('id_session_app'),
+        $log, $mc_conf, $app->{update_access_time} );
+    my (%session_SSO);
+    Core::VultureUtils::session( \%session_SSO, $intf->{timeout},
+        $r->pnotes('id_session_SSO'),
+        $log, $mc_conf, $app->{update_access_time} );
 
-	$log->debug("########## ResponseHandlerv2 ##########");
-       	    
-	#Bypass everything to display custom message (ex : custom auth)
-	if($r->pnotes('response_content') or $r->pnotes('response_headers') or $r->pnotes('response_content_type')){
-	    $log->debug("Bypass ResponseHandler because we have a response to display");
-		if($r->pnotes('response_headers')){
-			my @headers = split /\n/, $r->pnotes('response_headers');
-			
-            foreach my $header (@headers){
+#Query counter
+#my $query = "UPDATE stats SET value=value+1 WHERE var='responsehandler_counter'";
+#$log->debug($query);
+#$dbh->do($query) or $log->error($dbh->errstr);
+
+    $log->debug("########## ResponseHandlerv2 ##########");
+
+    #Bypass everything to display custom message (ex : custom auth)
+    if (   $r->pnotes('response_content')
+        or $r->pnotes('response_headers')
+        or $r->pnotes('response_content_type') )
+    {
+        $log->debug(
+            "Bypass ResponseHandler because we have a response to display");
+        if ( $r->pnotes('response_headers') ) {
+            my @headers = split /\n/, $r->pnotes('response_headers');
+
+            foreach my $header (@headers) {
                 $log->debug('Parse header');
-				if($header =~ /^([^:]+):(.*)$/){
-                    $log->debug('Find header '.$1.' => '.$2);
-					$r->err_headers_out->set($1 => $2);
-				}
-			}
+                if ( $header =~ /^([^:]+):(.*)$/ ) {
+                    $log->debug( 'Find header ' . $1 . ' => ' . $2 );
+                    $r->err_headers_out->set( $1 => $2 );
+                }
+            }
             $r->status(Apache2::Const::REDIRECT);
-		}
-		$r->print($r->pnotes('response_content')) if defined $r->pnotes('response_content');
-		$r->content_type($r->pnotes('response_content_type')) if defined $r->pnotes('response_content_type');
-        
+        }
+        $r->print( $r->pnotes('response_content') )
+          if defined $r->pnotes('response_content');
+        $r->content_type( $r->pnotes('response_content_type') )
+          if defined $r->pnotes('response_content_type');
+
         #Force headers to be send out
         $r->rflush;
-		return Apache2::Const::OK;
-	}
+        return Apache2::Const::OK;
+    }
 
-	#SSO Forwarding
-	if(exists $session_app{SSO_Forwarding}){
-		if(defined $session_app{SSO_Forwarding}){
-			my $module_name = "SSO::SSO_".uc($session_app{SSO_Forwarding});
-			eval {
-				(my $file = $module_name) =~ s|::|/|g;
-				require $file . '.pm';
-				$module_name->import("forward");
-				1;
-			} or do {
-				my $error = $@;
-			};
-			
-			#Get return
-			$module_name->forward($r, $log, $dbh, $app, $user, $password);
-		}
-		delete $session_app{SSO_Forwarding};
-		$session_app{SSO_Forwarding} = $r->pnotes('SSO_Forwarding') if defined $r->pnotes('SSO_Forwarding');
+    #SSO Forwarding
+    if ( exists $session_app{SSO_Forwarding} ) {
+        if ( defined $session_app{SSO_Forwarding} ) {
+            my $module_name = "SSO::SSO_" . uc( $session_app{SSO_Forwarding} );
+            eval {
+                ( my $file = $module_name ) =~ s|::|/|g;
+                require $file . '.pm';
+                $module_name->import("forward");
+                1;
+            } or do {
+                my $error = $@;
+            };
 
-		return Apache2::Const::OK;
-	}
-	
-	#If user is logged, then redirect
-	if($user){
+            #Get return
+            $module_name->forward( $r, $log, $dbh, $app, $user, $password );
+        }
+        delete $session_app{SSO_Forwarding};
+        $session_app{SSO_Forwarding} = $r->pnotes('SSO_Forwarding')
+          if defined $r->pnotes('SSO_Forwarding');
 
-		#SSO Forwarding once
-		if(not defined $session_app{SSO_Forwarding} and $app->{sso_forward}){
-			my $query = "SELECT count(*) FROM field, sso, app WHERE field.sso_id = sso.id AND sso.id = app.sso_forward_id AND app.id=?";
-			$log->debug($query);
-            my $href = SSO::ProfileManager::get_profile($r, $log, $dbh, $app, $user);
-            
-			my $length1 = $dbh->selectrow_array($query, undef, $app->{id});
+        return Apache2::Const::OK;
+    }
+
+    #If user is logged, then redirect
+    if ($user) {
+
+        #SSO Forwarding once
+        if ( not defined $session_app{SSO_Forwarding} and $app->{sso_forward} )
+        {
+            my $query =
+"SELECT count(*) FROM field, sso, app WHERE field.sso_id = sso.id AND sso.id = app.sso_forward_id AND app.id=?";
+            $log->debug($query);
+            my $href =
+              SSO::ProfileManager::get_profile( $r, $log, $dbh, $app, $user );
+
+            my $length1 = $dbh->selectrow_array( $query, undef, $app->{id} );
             my $length2 = grep { $_ ne "" } values %$href;
-            
-            $log->debug($length1."vs".$length2);
 
-            my $query_type = "SELECT sso.type FROM sso, app WHERE app.id = ? AND sso.id = app.sso_forward_id";
+            $log->debug( $length1 . "vs" . $length2 );
+
+            my $query_type =
+"SELECT sso.type FROM sso, app WHERE app.id = ? AND sso.id = app.sso_forward_id";
             $log->debug($query_type);
-			my $type = $dbh->selectrow_array($query_type, undef, $app->{id});
+            my $type = $dbh->selectrow_array( $query_type, undef, $app->{id} );
 
-            #Learning ok or no need of learning
-			#If results are the same, it means user has already complete the SSO Learning phase
-            if ($length1 == 0 or $type eq 'sso_forward_htaccess' or $length2 == $length1){
+#Learning ok or no need of learning
+#If results are the same, it means user has already complete the SSO Learning phase
+            if (   $length1 == 0
+                or $type eq 'sso_forward_htaccess'
+                or $length2 == $length1 )
+            {
                 $log->debug("Getting pass for SSO Forward");
                 $session_app{SSO_Forwarding} = 'FORWARD';
 
-            #Learning was not done yet
-            } else {
-				my $sso_learning_ext = '';
-				$sso_learning_ext = $app->{'sso_learning_ext'};
-				$log->debug("#######".$sso_learning_ext."#####");
-				
-				if (($sso_learning_ext ne '')) {
-					$log->debug("REDIRECTING SSO LEARNING TO EXTERNAL APP".$sso_learning_ext );
-	                my $html;
-					$html = '<html><head><meta http-equiv="Refresh" content="0; url='.$sso_learning_ext.'"/></head></html>';
-					$r->content_type('text/html');
-					$r->print($html);
-					return Apache2::Const::OK;
-				}
-				else {
-					$log->debug("Getting pass for SSO Learning");
-					$session_app{SSO_Forwarding} = 'LEARNING';
-				}
+                #Learning was not done yet
             }
-		}
+            else {
+                my $sso_learning_ext = '';
+                $sso_learning_ext = $app->{'sso_learning_ext'};
+                $log->debug( "#######" . $sso_learning_ext . "#####" );
+
+                if ( ( $sso_learning_ext ne '' ) ) {
+                    $log->debug( "REDIRECTING SSO LEARNING TO EXTERNAL APP"
+                          . $sso_learning_ext );
+                    my $html;
+                    $html =
+                      '<html><head><meta http-equiv="Refresh" content="0; url='
+                      . $sso_learning_ext
+                      . '"/></head></html>';
+                    $r->content_type('text/html');
+                    $r->print($html);
+                    return Apache2::Const::OK;
+                }
+                else {
+                    $log->debug("Getting pass for SSO Learning");
+                    $session_app{SSO_Forwarding} = 'LEARNING';
+                }
+            }
+        }
+
         #Display portal instead of redirect user
-        if($app->{'display_portal'}){
+        if ( $app->{'display_portal'} ) {
             $log->debug("Display portal with all applications");
+
             #Getting all app info
-            my $portal = Core::ResponseHandlerv2::display_portal($r,$log, $dbh, $app);
+            my $portal =
+              Core::ResponseHandlerv2::display_portal( $r, $log, $dbh, $app );
             $r->content_type('text/html');
             $r->print($portal);
             return Apache2::Const::OK;
-        } elsif(defined($session_app{url_to_redirect})) {
+        }
+        elsif ( defined( $session_app{url_to_redirect} ) ) {
+
             #Redirect user
-		    $r->status(200);
+            $r->status(200);
             my $incoming_uri = $app->{name};
-            if ($incoming_uri !~ /^(http|https):\/\/(.*)/ ) {
+            if ( $incoming_uri !~ /^(http|https):\/\/(.*)/ ) {
+
                 #Fake scheme for making APR::URI parse
-                $incoming_uri = 'http://'.$incoming_uri;
+                $incoming_uri = 'http://' . $incoming_uri;
             }
+
             #Rewrite URI with scheme, port, path,...
-            my $rewrite_uri = APR::URI->parse($r->pool, $incoming_uri);
-                
+            my $rewrite_uri = APR::URI->parse( $r->pool, $incoming_uri );
+
             $rewrite_uri->scheme('http');
             $rewrite_uri->scheme('https') if $r->is_https;
-            $rewrite_uri->port($r->get_server_port());
+            $rewrite_uri->port( $r->get_server_port() );
             my $path = $session_app{url_to_redirect};
             $rewrite_uri->path($path);
-		    $r->err_headers_out->set('Location' => $rewrite_uri->unparse);
-		    $log->debug('Redirecting to '.$rewrite_uri->unparse);
-		    return Apache2::Const::REDIRECT;
+            $r->err_headers_out->set( 'Location' => $rewrite_uri->unparse );
+            $log->debug( 'Redirecting to ' . $rewrite_uri->unparse );
+            return Apache2::Const::REDIRECT;
 
-        } elsif(defined $r->pnotes('url_to_redirect')){
+        }
+        elsif ( defined $r->pnotes('url_to_redirect') ) {
             $r->status(200);
 
-		    my $url = $r->pnotes('url_to_redirect');
-		    $r->err_headers_out->set('Location' => $url);
-		    $log->debug('Redirecting to '.$url);
+            my $url = $r->pnotes('url_to_redirect');
+            $r->err_headers_out->set( 'Location' => $url );
+            $log->debug( 'Redirecting to ' . $url );
 
-		    return Apache2::Const::REDIRECT;
+            return Apache2::Const::REDIRECT;
 
-        } else {
-		#Redirect to CAS
-			my $html;
-            if($intf->{'cas_display_portal'}){
-                $html = Core::ResponseHandlerv2::display_portal ($r,$log,$dbh, $app);
-            } elsif($intf->{'cas_redirect'}){
-                $html = '<html><head><meta http-equiv="Refresh" content="0; url='.$intf->{'cas_redirect'}.'"/></head></html>';
-            } else {
-                $html = "<html><head><title>Successful login</title></head><body>You are successfull loged on SSO</body></html>";
+        }
+        else {
+
+            #Redirect to CAS
+            my $html;
+            if ( $intf->{'cas_display_portal'} ) {
+                $html = Core::ResponseHandlerv2::display_portal( $r, $log, $dbh,
+                    $app );
+            }
+            elsif ( $intf->{'cas_redirect'} ) {
+                $html =
+                    '<html><head><meta http-equiv="Refresh" content="0; url='
+                  . $intf->{'cas_redirect'}
+                  . '"/></head></html>';
+            }
+            else {
+                $html =
+"<html><head><title>Successful login</title></head><body>You are successfull loged on SSO</body></html>";
             }
             $r->print($html);
             $r->content_type('text/html');
             return Apache2::Const::OK;
         }
-    
-    #No user set before. Need to display Vulture auth
-	} else {
+
+        #No user set before. Need to display Vulture auth
+    }
+    else {
+
         #Display Vulture auth
-        if($app and !$app->{'auth_basic'} and not $r->pnotes('static')) {
+        if ( $app and !$app->{'auth_basic'} and not $r->pnotes('static') ) {
             $log->debug("Display auth form");
             $r->content_type('text/html');
-            $r->print(Core::ResponseHandlerv2::display_auth_form($r, $log, $dbh, $app, $intf));
+            $r->print(
+                Core::ResponseHandlerv2::display_auth_form(
+                    $r, $log, $dbh, $app, $intf
+                )
+            );
             return Apache2::Const::OK;
         }
-	    $log->debug("Serving static file");
+        $log->debug("Serving static file");
     }
-	return Apache2::Const::DECLINED;
+    return Apache2::Const::DECLINED;
 }
 
 sub display_auth_form {
-    my ($r, $log, $dbh, $app, $intf) = @_;
-    my $req = Apache2::Request->new($r);
+    my ( $r, $log, $dbh, $app, $intf ) = @_;
+    my $req     = Apache2::Request->new($r);
     my $mc_conf = $r->pnotes('mc_conf');
+
     #CAS
     my $service = $req->param('service');
+
     #END CAS
 
-    my $uri = $r->unparsed_uri;
+    my $uri     = $r->unparsed_uri;
     my $message = $r->pnotes("auth_message");
     $message ||= '';
     my $translated_message;
 
     #Get session SSO for filling random token
     my (%session_SSO);
-    Core::VultureUtils::session(\%session_SSO, $intf->{timeout}, $r->pnotes('id_session_SSO'), $log, $mc_conf, $app->{update_access_time});
+    Core::VultureUtils::session( \%session_SSO, $intf->{timeout},
+        $r->pnotes('id_session_SSO'),
+        $log, $mc_conf, $app->{update_access_time} );
 
-        #if($r->unparsed_uri =~ /vulture_app=([^;]*)/){
-        #       $uri = $1;
-        #}
-    
+    #if($r->unparsed_uri =~ /vulture_app=([^;]*)/){
+    #       $uri = $1;
+    #}
+
     #Get translations
-    my $translations = Core::VultureUtils::get_translations($r, $log, $dbh, $message);
-    
+    my $translations =
+      Core::VultureUtils::get_translations( $r, $log, $dbh, $message );
+
     #Avoid bot request (token)
     my $token = Core::VultureUtils::generate_random_string(32);
     $session_SSO{random_token} = $token;
-    
+
     #Get style
-    my $form = "<div id=\"form_vulture\"><form method=\"POST\" name=\"auth_form\" action=\"".encode_entities($uri)."\"><table>";
-    $form .= "<tr class=\"row\"><td></td><td class=\"hidden\" name=\"service\" value=\"".encode_entities($service)."\"></td></tr>" if defined $service;
+    my $form =
+"<div id=\"form_vulture\"><form method=\"POST\" name=\"auth_form\" action=\""
+      . encode_entities($uri)
+      . "\"><table>";
+    $form .=
+"<tr class=\"row\"><td></td><td class=\"hidden\" name=\"service\" value=\""
+      . encode_entities($service)
+      . "\"></td></tr>"
+      if defined $service;
     $form .= <<FOO
 <tr class="row"><td class="input">$translations->{'USER'}{'translation'}</td><td><input type="text" name="vulture_login"></td></tr>
 <tr class="row"><td class="input">$translations->{'PASSWORD'}{'translation'}</td><td><input type="password" autocomplete="off" name="vulture_password"></td></tr>
@@ -243,45 +302,70 @@ sub display_auth_form {
 </form>
 </div>
 FOO
-;
-	if (defined $translations->{$message}) {
-		return Core::VultureUtils::get_style($r, $log, $dbh, $app, 'LOGIN', 'Please authenticate', {FORM => $form, ERRORS => $translations->{$message}{'translation'}}, $translations);
-	}
-	return Core::VultureUtils::get_style($r, $log, $dbh, $app, 'LOGIN', 'Please authenticate', {FORM => $form}, $translations);
+      ;
+    if ( defined $translations->{$message} ) {
+        return Core::VultureUtils::get_style(
+            $r, $log, $dbh, $app, 'LOGIN',
+            'Please authenticate',
+            {
+                FORM   => $form,
+                ERRORS => $translations->{$message}{'translation'}
+            },
+            $translations
+        );
+    }
+    return Core::VultureUtils::get_style(
+        $r, $log, $dbh, $app, 'LOGIN',
+        'Please authenticate',
+        { FORM => $form },
+        $translations
+    );
 }
 
 sub display_portal {
-        my ($r,$log,$dbh, $app) = @_;
+    my ( $r, $log, $dbh, $app ) = @_;
 
     my $intf_id = $r->dir_config('VultureID');
-    my $query = "SELECT app.name FROM app, app_intf WHERE app_intf.intf_id=? AND app.id = app_intf.app_id";
+    my $query =
+"SELECT app.name FROM app, app_intf WHERE app_intf.intf_id=? AND app.id = app_intf.app_id";
     $log->debug($query);
 
-    my $all_apps = $dbh->selectall_arrayref($query, undef, $intf_id);
-    
+    my $all_apps = $dbh->selectall_arrayref( $query, undef, $intf_id );
+
     #Get translations
-    my $translations = Core::VultureUtils::get_translations($r, $log, $dbh, 'APPLICATION');
-    
+    my $translations =
+      Core::VultureUtils::get_translations( $r, $log, $dbh, 'APPLICATION' );
+
     #Get all apps
     my $html_apps = "<ul>";
     foreach my $app (@$all_apps) {
         my $incoming_uri = @$app[0];
-        if ($incoming_uri !~ /^(http|https):\/\/(.*)/ ) {
+        if ( $incoming_uri !~ /^(http|https):\/\/(.*)/ ) {
+
             #Fake scheme for making APR::URI parse
-            $incoming_uri = 'http://'.$incoming_uri;
+            $incoming_uri = 'http://' . $incoming_uri;
         }
+
         #Rewrite URI with scheme, port, path,...
-        my $rewrite_uri = APR::URI->parse($r->pool, $incoming_uri);
-            
+        my $rewrite_uri = APR::URI->parse( $r->pool, $incoming_uri );
+
         $rewrite_uri->scheme('http');
         $rewrite_uri->scheme('https') if $r->is_https;
-        $rewrite_uri->port($r->get_server_port());
-        $html_apps .= "<li><a href='".$rewrite_uri->unparse."'><h3>Application ".@$app[0]."</h3></a></li>";
+        $rewrite_uri->port( $r->get_server_port() );
+        $html_apps .=
+            "<li><a href='"
+          . $rewrite_uri->unparse
+          . "'><h3>Application "
+          . @$app[0]
+          . "</h3></a></li>";
     }
     $html_apps .= "</ul>";
-    
+
     #Get style
-    my $html = Core::VultureUtils::get_style($r, $log, $dbh, $app, 'DISPLAY_PORTAL', 'SSO portal', {APPS => $html_apps}, $translations);
+    my $html =
+      Core::VultureUtils::get_style( $r, $log, $dbh, $app, 'DISPLAY_PORTAL',
+        'SSO portal', { APPS => $html_apps },
+        $translations );
     $html ||= '';
     return $html =~ /<body>.+<\/body>/ ? $html : $html_apps;
 }
