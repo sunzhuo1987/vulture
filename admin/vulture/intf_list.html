@@ -12,7 +12,7 @@
 
 {% block content %}
 	<div id="main_content_1" class="main_content">
-        {% if k_output %}<div style="border: 1px dashed black; padding: 1em; margin: 3em"><code style="color: red">{{ k_output }}</code></div>{% endif %}
+        {% if k_output %}<div style="border: 1px dashed black; padding: 1em; margin: 3em"><code style="color: red">{% autoescape off  %}{{ k_output }}{% endautoescape %}</code></div>{% endif %}
         <table>
             <tr>
                 <th>{% trans "Name" %}</th>
