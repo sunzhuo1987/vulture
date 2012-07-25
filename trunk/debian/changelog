@@ -1,4 +1,5 @@
 vulture (2.0.4) stable; urgency=low
+
   * add clustering support
   * balancer proxifying support
   * add support for ftp:// proxifying
@@ -11,7 +12,7 @@ vulture (2.0.4) stable; urgency=low
   * fix command execution in admin panel
   * fix bugs
 
- -- Etienne Helluy-Lafont <etienne.helluy-lafont@advens.fr> 
+ -- Etienne Helluy-Lafont <etienne.helluy-lafont@advens.fr>  Wed, 25 Jul 2012 14:42:00 +0200
 
 vulture (2.0.3) stable; urgency=low
 
@@ -67,7 +68,7 @@ vulture (1.99) unstable; urgency=low
 
  -- Arnaud Desmons <arnaud.desmons@advens.fr>  Mon,  28 Apr 2008 12:00:00 +0200
 
-vulture (1.98) unstable; urgency=low
+ulture (1.98) unstable; urgency=low
 
   * 1.98
 
