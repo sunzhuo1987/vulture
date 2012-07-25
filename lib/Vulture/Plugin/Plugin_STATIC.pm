@@ -25,7 +25,7 @@ sub plugin {
     my @captured = @{$options};
     my $mc_conf  = $r->pnotes('mc_conf');
     $log->debug("########## Plugin_STATIC ##########");
-    my $cookie_app_name = $r->dir_config('VultureProxyCookieName');
+    my $cookie_app_name = $r->dir_config('VultureAppCookieName');
     #check if we are serving static content from sso_portal
     my ($id_app) = Core::VultureUtils::get_cookie( $r->headers_in->{Cookie},
         $cookie_app_name . '=([^;]*)' );
