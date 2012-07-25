@@ -83,7 +83,7 @@ sub handler {
     else {
         $log->debug("Your Vulture's database is up-to-date. Congratulations !");
     }
-    my $cookie_app_name=$r->dir_config('VultureProxyCookieName');
+    my $cookie_app_name=$r->dir_config('VultureAppCookieName');
 
     #If protocol is different from HTTP or HTTPS, reject the connexion
     if ( $protocol !~ /HTTP/ and $protocol !~ /HTTPS/ ) {

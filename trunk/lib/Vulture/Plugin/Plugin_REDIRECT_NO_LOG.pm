@@ -19,7 +19,7 @@ sub plugin {
     my ( $package_name, $r, $log, $dbh, $intf, $app, $options ) = @_;
     $log->debug("########## Plugin_REDIRECT_NO_LOG ##########");
     my $mc_conf = $r->pnotes('mc_conf');
-    my $cookie_app_name = $r->dir_config('VultureProxyCookieName');
+    my $cookie_app_name = $r->dir_config('VultureAppCookieName');
     #Getting SSO session if exists.
     my $SSO_cookie_name =
       Core::VultureUtils::get_cookie( $r->headers_in->{Cookie},
