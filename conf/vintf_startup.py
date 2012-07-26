@@ -1,5 +1,6 @@
 import sys,os
 sys.path.append("/opt/vulture")
+sys.path.append("/var/www/vulture")
 sys.path.append("/var/www/vulture/admin")
 sys.path.append("/opt/vulture/admin")
 os.environ["DJANGO_SETTINGS_MODULE"] = "admin.settings"
@@ -12,3 +13,4 @@ if len(sys.argv)==2:
 	else:
 		for v in vintfs:
 			v.stop()
+#ok
