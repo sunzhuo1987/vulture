@@ -176,7 +176,7 @@ o.write(B.b64encode(f.read(128))[:32])' > %{serverroot}/%{name}/conf/aes-encrypt
 
 
 %changelog
-* ????????? 2012 Etienne Helluy <etienne.helluy-lafont@advens.fr> 2.0.4-0
+* Wed Jul 25 2012 Etienne Helluy <etienne.helluy-lafont@advens.fr> 2.0.4-0
 - 2.0.4
 - add clustering support
 - balancer proxifying support
@@ -189,6 +189,7 @@ o.write(B.b64encode(f.read(128))[:32])' > %{serverroot}/%{name}/conf/aes-encrypt
 - fix weak ciphers allowed for ssl
 - fix command execution in admin panel
 - fix bugs
+
 * Fri Oct 7 2011 Arnaud Desmons <logarno@gmail.com> 2.0.1-1
 - 2.0.1
 

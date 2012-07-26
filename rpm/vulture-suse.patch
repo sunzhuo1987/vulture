@@ -1,6 +1,6 @@
-diff -ru '--exclude=.svn' vulture-rpm/admin/vulture/models.py vulture-sused/admin/vulture/models.py
---- vulture-rpm/admin/vulture/models.py	2012-07-26 11:18:19.536407439 +0200
-+++ vulture-sused/admin/vulture/models.py	2012-07-26 11:04:51.516425363 +0200
+diff -ru '--exclude=.svn' vulture-2.0.4.ori/admin/vulture/models.py vulture-2.0.4/admin/vulture/models.py
+--- vulture-2.0.4.ori/admin/vulture/models.py	2012-07-26 11:18:19.536407439 +0200
++++ vulture-2.0.4/admin/vulture/models.py	2012-07-26 11:04:51.516425363 +0200
 @@ -169,6 +169,7 @@
                       "dbname" : settings.DATABASES['default']['NAME'],
                       "serverroot" : settings.SERVERROOT,
@@ -9,9 +9,9 @@ diff -ru '--exclude=.svn' vulture-rpm/admin/vulture/models.py vulture-sused/admi
                       "httpd_custom" : settings.HTTPD_CUSTOM,
                       "app_list" : dirapp,
                       "intf" : self,
-diff -ru '--exclude=.svn' vulture-rpm/admin/vulture_httpd.conf vulture-sused/admin/vulture_httpd.conf
---- vulture-rpm/admin/vulture_httpd.conf	2012-07-26 11:18:32.504406127 +0200
-+++ vulture-sused/admin/vulture_httpd.conf	2012-07-26 11:12:35.140414791 +0200
+diff -ru '--exclude=.svn' vulture-2.0.4.ori/admin/vulture_httpd.conf vulture-2.0.4/admin/vulture_httpd.conf
+--- vulture-2.0.4.ori/admin/vulture_httpd.conf	2012-07-26 11:18:32.504406127 +0200
++++ vulture-2.0.4/admin/vulture_httpd.conf	2012-07-26 11:12:35.140414791 +0200
 @@ -21,22 +21,12 @@
  PidFile {{ VultureConfPath }}{{ intf.id }}.pid
  
@@ -37,9 +37,9 @@ diff -ru '--exclude=.svn' vulture-rpm/admin/vulture_httpd.conf vulture-sused/adm
  {{ httpd_custom|safe }}
  LoadModule proxy_balancer_module        {{ serverroot }}/modules/mod_proxy_balancer.so
  {% if MS_path.value %}
-diff -ru '--exclude=.svn' vulture-rpm/lib/Vulture/Core/FixupHandler.pm vulture-sused/lib/Vulture/Core/FixupHandler.pm
---- vulture-rpm/lib/Vulture/Core/FixupHandler.pm	2012-07-26 11:18:19.584407447 +0200
-+++ vulture-sused/lib/Vulture/Core/FixupHandler.pm	2012-07-26 11:10:26.560417461 +0200
+diff -ru '--exclude=.svn' vulture-2.0.4.ori/lib/Vulture/Core/FixupHandler.pm vulture-2.0.4/lib/Vulture/Core/FixupHandler.pm
+--- vulture-2.0.4.ori/lib/Vulture/Core/FixupHandler.pm	2012-07-26 11:18:19.584407447 +0200
++++ vulture-2.0.4/lib/Vulture/Core/FixupHandler.pm	2012-07-26 11:10:26.560417461 +0200
 @@ -12,9 +12,17 @@
  use Apache2::Log;
  
@@ -59,9 +59,9 @@ diff -ru '--exclude=.svn' vulture-rpm/lib/Vulture/Core/FixupHandler.pm vulture-s
      my $r   = Apache::SSLLookup->new(shift);
      my $log = $r->pnotes('log');
  
-diff -ru '--exclude=.svn' vulture-rpm/lib/Vulture/Core/ResponseHandlerv2.pm vulture-sused/lib/Vulture/Core/ResponseHandlerv2.pm
---- vulture-rpm/lib/Vulture/Core/ResponseHandlerv2.pm	2012-07-26 11:18:19.580407445 +0200
-+++ vulture-sused/lib/Vulture/Core/ResponseHandlerv2.pm	2012-07-26 11:10:26.112417375 +0200
+diff -ru '--exclude=.svn' vulture-2.0.4.ori/lib/Vulture/Core/ResponseHandlerv2.pm vulture-2.0.4/lib/Vulture/Core/ResponseHandlerv2.pm
+--- vulture-2.0.4.ori/lib/Vulture/Core/ResponseHandlerv2.pm	2012-07-26 11:18:19.580407445 +0200
++++ vulture-2.0.4/lib/Vulture/Core/ResponseHandlerv2.pm	2012-07-26 11:10:26.112417375 +0200
 @@ -19,10 +19,18 @@
    qw(&session &get_style &get_translations &generate_random_string);
  use SSO::ProfileManager qw(&get_profile);
@@ -82,9 +82,9 @@ diff -ru '--exclude=.svn' vulture-rpm/lib/Vulture/Core/ResponseHandlerv2.pm vult
      my $r = Apache::SSLLookup->new(shift);
  
      my $log = $r->pnotes('log');
-diff -ru '--exclude=.svn' vulture-rpm/lib/Vulture/Core/TransHandlerv2.pm vulture-sused/lib/Vulture/Core/TransHandlerv2.pm
---- vulture-rpm/lib/Vulture/Core/TransHandlerv2.pm	2012-07-26 11:18:19.580407445 +0200
-+++ vulture-sused/lib/Vulture/Core/TransHandlerv2.pm	2012-07-26 11:10:25.304417307 +0200
+diff -ru '--exclude=.svn' vulture-2.0.4.ori/lib/Vulture/Core/TransHandlerv2.pm vulture-2.0.4/lib/Vulture/Core/TransHandlerv2.pm
+--- vulture-2.0.4.ori/lib/Vulture/Core/TransHandlerv2.pm	2012-07-26 11:18:19.580407445 +0200
++++ vulture-2.0.4/lib/Vulture/Core/TransHandlerv2.pm	2012-07-26 11:10:25.304417307 +0200
 @@ -11,7 +11,6 @@
  use Apache2::RequestRec  ();
  use Apache2::RequestIO   ();
@@ -109,9 +109,9 @@ diff -ru '--exclude=.svn' vulture-rpm/lib/Vulture/Core/TransHandlerv2.pm vulture
      my $r            = Apache::SSLLookup->new(shift);
      my $uri          = $r->uri;
      my $unparsed_uri = $r->unparsed_uri;
-diff -ru '--exclude=.svn' vulture-rpm/rpm/httpd.conf vulture-sused/rpm/httpd.conf
---- vulture-rpm/rpm/httpd.conf	2012-07-26 11:18:19.592407448 +0200
-+++ vulture-sused/rpm/httpd.conf	2012-07-26 11:14:50.656411701 +0200
+diff -ru '--exclude=.svn' vulture-2.0.4.ori/rpm/httpd.conf vulture-2.0.4/rpm/httpd.conf
+--- vulture-2.0.4.ori/rpm/httpd.conf	2012-07-26 11:18:19.592407448 +0200
++++ vulture-2.0.4/rpm/httpd.conf	2012-07-26 11:14:50.656411701 +0200
 @@ -1,4 +1,4 @@
 -ServerRoot /etc/httpd
 +ServerRoot /etc/apache2
@@ -129,9 +129,9 @@ diff -ru '--exclude=.svn' vulture-rpm/rpm/httpd.conf vulture-sused/rpm/httpd.con
  
  PidFile /opt/vulture/conf/vulture.pid
  
-diff -ru '--exclude=.svn' vulture-rpm/rpm/settings.py vulture-sused/rpm/settings.py
---- vulture-rpm/rpm/settings.py	2012-07-26 11:18:19.592407448 +0200
-+++ vulture-sused/rpm/settings.py	2012-07-26 11:15:38.460410888 +0200
+diff -ru '--exclude=.svn' vulture-2.0.4.ori/rpm/settings.py vulture-2.0.4/rpm/settings.py
+--- vulture-2.0.4.ori/rpm/settings.py	2012-07-26 11:18:19.592407448 +0200
++++ vulture-2.0.4/rpm/settings.py	2012-07-26 11:15:38.460410888 +0200
 @@ -22,16 +22,17 @@
     '/opt/vulture/admin/fixtures/',
  )
