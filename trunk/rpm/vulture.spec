@@ -53,8 +53,6 @@ Vulture Reverse Proxy
      $RPM_BUILD_ROOT%{serverroot}/%{name}/conf/httpd.conf
      install -m0644 rpm/vulture.wsgi\
      $RPM_BUILD_ROOT%{serverroot}/%{name}/conf/vulture.wsgi
-     install -m0644 rpm/vintf_startup.py\
-     $RPM_BUILD_ROOT%{serverroot}/%{name}/conf/vintf_startup.py
      install -m0644 conf/openssl.cnf\
      $RPM_BUILD_ROOT%{serverroot}/%{name}/conf/openssl.cnf
      install -d -m0755 rpm $RPM_BUILD_ROOT%{serverroot}/%{name}/rpm/

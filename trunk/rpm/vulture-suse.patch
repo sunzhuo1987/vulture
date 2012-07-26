@@ -1,5 +1,5 @@
 diff -ru '--exclude=.svn' vulture-2.0.4.ori/admin/vulture/models.py vulture-2.0.4/admin/vulture/models.py
---- vulture-2.0.4.ori/admin/vulture/models.py	2012-07-26 11:18:19.536407439 +0200
+--- vulture-2.0.4.ori/admin/vulture/models.py	2012-07-26 12:09:51.672343059 +0200
 +++ vulture-2.0.4/admin/vulture/models.py	2012-07-26 11:04:51.516425363 +0200
 @@ -169,6 +169,7 @@
                       "dbname" : settings.DATABASES['default']['NAME'],
@@ -10,9 +10,9 @@ diff -ru '--exclude=.svn' vulture-2.0.4.ori/admin/vulture/models.py vulture-2.0.
                       "app_list" : dirapp,
                       "intf" : self,
 diff -ru '--exclude=.svn' vulture-2.0.4.ori/admin/vulture_httpd.conf vulture-2.0.4/admin/vulture_httpd.conf
---- vulture-2.0.4.ori/admin/vulture_httpd.conf	2012-07-26 11:18:32.504406127 +0200
-+++ vulture-2.0.4/admin/vulture_httpd.conf	2012-07-26 11:12:35.140414791 +0200
-@@ -21,22 +21,12 @@
+--- vulture-2.0.4.ori/admin/vulture_httpd.conf	2012-07-26 12:10:04.420342736 +0200
++++ vulture-2.0.4/admin/vulture_httpd.conf	2012-07-26 12:11:32.244341164 +0200
+@@ -21,9 +21,9 @@
  PidFile {{ VultureConfPath }}{{ intf.id }}.pid
  
  user {{ www_user }}
@@ -24,21 +24,8 @@ diff -ru '--exclude=.svn' vulture-2.0.4.ori/admin/vulture_httpd.conf vulture-2.0
  LoadModule perl_module          {{ serverroot }}/modules/mod_perl.so
  LoadModule apreq_module    {{ serverroot }}/modules/mod_apreq2.so
  LoadModule env_module           {{ serverroot }}/modules/mod_env.so
--LoadModule setenvif_module      {{ serverroot }}/modules/mod_setenvif.so
--LoadModule alias_module         {{ serverroot }}/modules/mod_alias.so
--LoadModule log_config_module    {{ serverroot }}/modules/mod_log_config.so
--LoadModule ssl_module           {{ serverroot }}/modules/mod_ssl.so
--LoadModule authz_host_module    {{ serverroot }}/modules/mod_authz_host.so
--LoadModule proxy_module         {{ serverroot }}/modules/mod_proxy.so
--LoadModule proxy_ftp_module     {{ serverroot }}/modules/mod_proxy_ftp.so
--LoadModule proxy_http_module    {{ serverroot }}/modules/mod_proxy_http.so
--LoadModule proxy_connect_module {{ serverroot }}/modules/mod_proxy_connect.so
-- 
- {{ httpd_custom|safe }}
- LoadModule proxy_balancer_module        {{ serverroot }}/modules/mod_proxy_balancer.so
- {% if MS_path.value %}
 diff -ru '--exclude=.svn' vulture-2.0.4.ori/lib/Vulture/Core/FixupHandler.pm vulture-2.0.4/lib/Vulture/Core/FixupHandler.pm
---- vulture-2.0.4.ori/lib/Vulture/Core/FixupHandler.pm	2012-07-26 11:18:19.584407447 +0200
+--- vulture-2.0.4.ori/lib/Vulture/Core/FixupHandler.pm	2012-07-26 12:09:51.752343056 +0200
 +++ vulture-2.0.4/lib/Vulture/Core/FixupHandler.pm	2012-07-26 11:10:26.560417461 +0200
 @@ -12,9 +12,17 @@
  use Apache2::Log;
@@ -49,7 +36,7 @@ diff -ru '--exclude=.svn' vulture-2.0.4.ori/lib/Vulture/Core/FixupHandler.pm vul
  sub handler {
 +    my $module_n="Apache::SSLLookup";
 +    eval{
-+        (my $file = $module_name) =~ s|::|/|g;
++        (my $file = $module_n) =~ s|::|/|g;
 +        require "$file.pm";
 +        $module_n->import("plugin");
 +        1;
@@ -60,7 +47,7 @@ diff -ru '--exclude=.svn' vulture-2.0.4.ori/lib/Vulture/Core/FixupHandler.pm vul
      my $log = $r->pnotes('log');
  
 diff -ru '--exclude=.svn' vulture-2.0.4.ori/lib/Vulture/Core/ResponseHandlerv2.pm vulture-2.0.4/lib/Vulture/Core/ResponseHandlerv2.pm
---- vulture-2.0.4.ori/lib/Vulture/Core/ResponseHandlerv2.pm	2012-07-26 11:18:19.580407445 +0200
+--- vulture-2.0.4.ori/lib/Vulture/Core/ResponseHandlerv2.pm	2012-07-26 12:09:51.748343057 +0200
 +++ vulture-2.0.4/lib/Vulture/Core/ResponseHandlerv2.pm	2012-07-26 11:10:26.112417375 +0200
 @@ -19,10 +19,18 @@
    qw(&session &get_style &get_translations &generate_random_string);
@@ -72,7 +59,7 @@ diff -ru '--exclude=.svn' vulture-2.0.4.ori/lib/Vulture/Core/ResponseHandlerv2.p
  sub handler {
 +    my $module_n="Apache::SSLLookup";
 +    eval{
-+        (my $file = $module_name) =~ s|::|/|g;
++        (my $file = $module_n) =~ s|::|/|g;
 +        require "$file.pm";
 +        $module_n->import("plugin");
 +        1;
@@ -83,7 +70,7 @@ diff -ru '--exclude=.svn' vulture-2.0.4.ori/lib/Vulture/Core/ResponseHandlerv2.p
  
      my $log = $r->pnotes('log');
 diff -ru '--exclude=.svn' vulture-2.0.4.ori/lib/Vulture/Core/TransHandlerv2.pm vulture-2.0.4/lib/Vulture/Core/TransHandlerv2.pm
---- vulture-2.0.4.ori/lib/Vulture/Core/TransHandlerv2.pm	2012-07-26 11:18:19.580407445 +0200
+--- vulture-2.0.4.ori/lib/Vulture/Core/TransHandlerv2.pm	2012-07-26 12:09:51.748343057 +0200
 +++ vulture-2.0.4/lib/Vulture/Core/TransHandlerv2.pm	2012-07-26 11:10:25.304417307 +0200
 @@ -11,7 +11,6 @@
  use Apache2::RequestRec  ();
@@ -99,7 +86,7 @@ diff -ru '--exclude=.svn' vulture-2.0.4.ori/lib/Vulture/Core/TransHandlerv2.pm v
  sub handler {
 +    my $module_n="Apache::SSLLookup";
 +    eval{
-+        (my $file = $module_name) =~ s|::|/|g;
++        (my $file = $module_n) =~ s|::|/|g;
 +        require "$file.pm";
 +        $module_n->import("plugin");
 +        1;
@@ -110,7 +97,7 @@ diff -ru '--exclude=.svn' vulture-2.0.4.ori/lib/Vulture/Core/TransHandlerv2.pm v
      my $uri          = $r->uri;
      my $unparsed_uri = $r->unparsed_uri;
 diff -ru '--exclude=.svn' vulture-2.0.4.ori/rpm/httpd.conf vulture-2.0.4/rpm/httpd.conf
---- vulture-2.0.4.ori/rpm/httpd.conf	2012-07-26 11:18:19.592407448 +0200
+--- vulture-2.0.4.ori/rpm/httpd.conf	2012-07-26 12:09:51.784343051 +0200
 +++ vulture-2.0.4/rpm/httpd.conf	2012-07-26 11:14:50.656411701 +0200
 @@ -1,4 +1,4 @@
 -ServerRoot /etc/httpd
@@ -130,7 +117,7 @@ diff -ru '--exclude=.svn' vulture-2.0.4.ori/rpm/httpd.conf vulture-2.0.4/rpm/htt
  PidFile /opt/vulture/conf/vulture.pid
  
 diff -ru '--exclude=.svn' vulture-2.0.4.ori/rpm/settings.py vulture-2.0.4/rpm/settings.py
---- vulture-2.0.4.ori/rpm/settings.py	2012-07-26 11:18:19.592407448 +0200
+--- vulture-2.0.4.ori/rpm/settings.py	2012-07-26 12:09:51.784343051 +0200
 +++ vulture-2.0.4/rpm/settings.py	2012-07-26 11:15:38.460410888 +0200
 @@ -22,16 +22,17 @@
     '/opt/vulture/admin/fixtures/',
@@ -152,4 +139,4 @@ diff -ru '--exclude=.svn' vulture-2.0.4.ori/rpm/settings.py vulture-2.0.4/rpm/se
 +WWW_GROUP='www'
  
  PERL_SWITCHES = '-I/opt/vulture/lib/i386-linux-thread-multi -I/opt/vulture/lib/i386-linux-thread-multi/Vulture -I/opt/vulture/lib/x86_64-linux-thread-multi -I/opt/vulture/lib/i486-linux-thread-multi -I/opt/vulture/lib/i586-linux-thread-multi -I/opt/vulture/lib/i486-linux-gnu-thread-multi -I/opt/vulture/lib -I/opt/vulture/usr/local/lib64/perl5 -I/opt/vulture/usr/lib/perl5 -I/opt/vulture/usr/lib64/perl5 -I/opt/vulture/usr/lib64/perl5/site_perl/5.8.8/x86_64-linux-thread-multi/Apache2'
- 
+
