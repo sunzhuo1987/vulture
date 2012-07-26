@@ -70,7 +70,6 @@ install:
 		install -m0600 debian/httpd.conf $(DESTDIR)$(PREFIX)/$(NAME)/conf/httpd.conf && \
 		install -m0600 debian/settings.py $(DESTDIR)$(PREFIX)/$(NAME)/admin/settings.py && \
         	install -m0600 debian/vulture.wsgi $(DESTDIR)$(PREFIX)/$(NAME)/conf/vulture.wsgi && \
-        	install -m0600 debian/vintf_startup.py $(DESTDIR)$(PREFIX)/$(NAME)/conf/vintf_startup.py && \
 		chmod 744 $(DESTDIR)$(PREFIX)/$(NAME)/admin/manage.py; \
 	fi; \
 
