@@ -39,7 +39,7 @@ RETVAL=0
 function start() {
 	/opt/vulture/bin/test-perl.sh || exit 1;
 	echo -n $"Starting ${NAME}: "
-        $MEMCACHED -d -m 512 -l $MEMCACHED_IP -p $MEMCACHED_PORT -u apache
+        $MEMCACHED -d -m 512 -l $MEMCACHED_IP -p $MEMCACHED_PORT -u wwwrun
 	python ${VULTURE_HOME}/${NAME}/admin/vulture/memcached.py start >/dev/null 2>&1 &
 	python "${VULTURE_HOME}/${NAME}/conf/vintf_startup.py" up
 	sleep 2

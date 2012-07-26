@@ -162,6 +162,20 @@ cd ..
 
 
 %changelog
+* Wed Jul 25 2012 Etienne Helluy <etienne.helluy-lafont@advens.fr> 2.0.4-0
+- 2.0.4
+- add clustering support
+- balancer proxifying support
+- add support for ftp:// proxifying
+- add support for virtual directories
+- add network interfaces configuration interface
+- fix vulnerability in get_translations
+- fix several xss vulnerabilities
+- fix file disclosure vulnerability
+- fix weak ciphers allowed for ssl
+- fix command execution in admin panel
+- fix bugs
+
 * Fri Oct 7 2011 Arnaud Desmons <logarno@gmail.com> 2.0.1-1
 - 2.0.1
 
