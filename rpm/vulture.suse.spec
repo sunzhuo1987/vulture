@@ -1,7 +1,7 @@
 Requires: sudo gcc make httpd krb5-devel libapreq2-3 libidn libmcrypt libmcrypt-devel libmemcached libmemcached-devel postgresql postgresql-devel memcached apache2-mod_auth_kerb apache2-devel apache2-mod_perl apache2-mod_perl-devel apache2-mod_python apache2-mod_wsgi perl-BSD-Resource perl-Class-Accessor perl-Class-Data-Inheritable perl-Convert-ASN1 perl-Crypt-Blowfish perl-Crypt-CBC perl-Crypt-SSLeay perl-DBD-Pg perl-DBD-SQLite perl-DBI perl-Devel-Symdump perl-Digest-SHA1 perl-IO-Socket-SSL perl-IO-Tty perl-IPC-Run perl-ldap perl-Net-Daemon perl-Net-LibIDN perl-Net-SSLeay perl-Params-Validate perl-Sub-Name perl-WWW-Mechanize python python-devel python-ldap python-sqlite python-pysqlite sqlite sqlite-devel python-imaging pyOpenSSL libxml2 apache2-mod_security2 python-memcached
 %define serverroot /opt
 Vendor: Advens
-%define release 1
+%define release 0
 %define name vulture
 %define version 2.0.4
 AutoReqProv: no
