@@ -26,7 +26,6 @@ Depends: openssl, libmcrypt4, sqlite, sudo, libxml2, memcached, sqlite3,
 # Python stuff
  python-django (>= 1.2.0), python, python-openssl, python-sqlite, python-pysqlite2,
  libapache2-mod-python, python-ldap, python-openssl, python-imaging, python-pylibmc
-
 Description: Vulture is an HTTP reverse proxy
  Vulture is an HTTP reverse proxy. It does many security checks
  (authentication, rewriting, filtering) before proxying request
