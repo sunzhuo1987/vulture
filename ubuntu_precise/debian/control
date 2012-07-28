@@ -11,10 +11,10 @@ Standards-Version: 3.6.1
 Package: vulture
 Architecture: all
 Depends: openssl, libmcrypt4, sqlite, sudo, libxml2, memcached, sqlite3,
- #Apache stuff
+# Apache stuff
  apache2.2-common, libapache2-mod-perl2, libapache-mod-security, libapache2-mod-wsgi,
  libapache2-mod-auth-kerb, libapache2-mod-apreq2, apache2-mpm-prefork, 
- #Perl stuff
+# Perl stuff
  libwww-perl, libwww-mechanize-perl, libwww-mechanize-gzip-perl, libnet-ldap-perl,
  libdbi-perl, libdbd-pg-perl, libdbd-mysql-perl, libapache-session-perl, libconvert-asn1-perl,
  liburi-perl, libcrypt-cbc-perl, libdigest-sha-perl, libauthen-radius-perl,
@@ -23,7 +23,7 @@ Depends: openssl, libmcrypt4, sqlite, sudo, libxml2, memcached, sqlite3,
  libapache-ssllookup-perl, libdigest-sha1-perl, libipc-run-perl, libcache-memcached-perl,
  libstring-crc32-perl, libapache2-request-perl, libdbd-sqlite3-perl, libapache2-authenntlm-perl,
  libauthen-simple-kerberos-perl, libio-compress-perl,
- #Python stuff
+# Python stuff
  python-django (>= 1.2.0), python, python-openssl, python-sqlite, python-pysqlite2,
  libapache2-mod-python, python-ldap, python-openssl, python-imaging, python-pylibmc
 
