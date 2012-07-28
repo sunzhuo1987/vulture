@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}
+	{% trans "System" %} - <small>{% trans "Virtual Interfaces list" %}</small>
+{% endblock %}
+
+{% block tabs %}
+    <li><a href="#" id="main_tab_1" class="active">{% trans "List" %}</a></li>
+    <li><a href="/vintf/new/">{% trans "Add" %}</a></li>
+{% endblock %}
+
+{% block content %}
+	<div id="main_content_1" class="main_content">
+        <table>
+            <tr>
+                <th>{% trans "Name" %}</th>
+                <th>{% trans "Interface" %}</th>
+                <th>{% trans "IP" %}</th>
+                <th>{% trans "Netmask" %}</th>
+                <th>{% trans "Broadcast" %}</th>
+                <th style="width: 32px;">{% trans "Status" %}</th>
+                <th style="width: 72px;"></th>
+            </tr>
+            {% for object in object_list %}
+                <tr>
+                    <td>{{ object.name }}</td>
+                    <td>{{ object.intf }}</td>
+                    <td>{{ object.ip }}</td>
+                    <td>{% if object.netmask %}{{ object.netmask }}{% else %}{% trans "None" %}{% endif %}</td>
+                    <td>{% if object.broadcast %}{{ object.broadcast }}{% else %}{% trans "None" %}{% endif %}</td>
+                    <td>{% if object.isStarted %}<img src="/img/vulture2/ok.png" alt="ok" />{% else %}<img src="/img/vulture2/stop.png" alt="stop" />{% endif %}</td>
+                    <td>
+                        {% if object.isStarted %}
+                            <a href="/vintf/{{ object.id }}/stop"><img src="/img/vulture2/stop.png" /></a>
+                        {% else %}
+                            <a href="/vintf/{{ object.id }}/start/"><img src="/img/vulture2/start.png" alt="start" /></a>
+                        {% endif %}
+                        <a href="/vintf/{{ object.id }}/del/"><img src="/img/vulture2/trash.png" alt="delete" /></a><a href="/vintf/{{ object.id }}"><img src="/img/vulture2/edit.png" alt="edit" /></a>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="5" style="text-align:center;">{% trans "The list is empty. You can add an item " %}<a href="/vintf/new/">{% trans "here" %}</a></td></tr>
+            {% endfor %}
+        </table>
+    </div>
+{% endblock %}
