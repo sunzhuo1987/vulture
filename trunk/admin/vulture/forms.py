@@ -120,7 +120,7 @@ class AppForm(forms.ModelForm):
     securitybase = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple,required=False)
     securityexp = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple,required=False)
     securityopt = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple,required=False)
-    secuityslr = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple,required=False)
+    securityslr = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple,required=False)
     
     
 
