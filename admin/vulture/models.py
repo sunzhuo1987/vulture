@@ -35,6 +35,12 @@ from django import forms
 import base64
 import ifconfig
 
+class PluginCAS(models.Model):
+    auth = models.ForeignKey('Auth',null=1,blank=1)
+    field = models.CharField(max_length=128,null=1,blank=1)
+    class Meta:
+        db_table='plugin_cas';
+
 class VINTF(models.Model): 
     name = models.CharField(max_length=128,unique=1,null=0)
     intf = models.CharField(max_length=128,unique=1,null=0)

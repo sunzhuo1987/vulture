@@ -135,4 +135,6 @@ urlpatterns = patterns('',
   (r'^conf/new/$','vulture.views.vulture_create_object_adm' , dict({'model':Conf}, post_save_redirect='/conf')),
   (r'^conf/(?P<object_id>\d+)/del/$','vulture.views.vulture_delete_object_adm' , dict({'model':Conf}, template_name='vulture/generic_confirm_delete.html',extra_context= dict(category='System', name='Globales', url='/conf'), post_delete_redirect='/conf/')),
   (r'^cluster/$',	'vulture.views.manage_cluster'),
+  (r'^plugincas/$','vulture.views.plugincas_config'),
 )
+
