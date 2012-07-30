@@ -83,7 +83,12 @@ class MyUserChangeForm(UserChangeForm):
         del self.fields['date_joined']
         del self.fields['is_active']
         # This is a declared field we really want to be removed
-        
+       
+class PluginCASForm(forms.ModelForm):
+    auth = forms.ModelChoiceField(required=False, queryset=Auth.objects.filter(auth_type__in=['sql','ldap']))
+    class Meta:
+        model = PluginCAS
+         
 class AppForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(forms.ModelForm, self).__init__(*args, **kwargs)
@@ -115,7 +120,7 @@ class AppForm(forms.ModelForm):
     securitybase = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple,required=False)
     securityexp = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple,required=False)
     securityopt = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple,required=False)
-    securityslr = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple,required=False)
+    secuityslr = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple,required=False)
     
     
 

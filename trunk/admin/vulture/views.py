@@ -576,6 +576,19 @@ def edit_sso(request,object_id=None):
         return HttpResponseRedirect('/sso/')
     return render_to_response('vulture/sso_form.html', {'form': form, 'user' : request.user})
 
+@login_required
+def plugincas_config (request):
+    allcas = PluginCAS.objects.all()
+    conf = allcas and allcas[0] or None
+    form = PluginCASForm(request.POST or None, instance = conf)
+    if request.method == 'POST' and form.is_valid(): 
+        if not conf: 
+            conf = form.save(commit=False)
+        conf.auth = request.POST['auth'] and Auth.objects.get(id=request.POST['auth']) or None
+        conf.field = request.POST['field'] and request.POST['field'] or None
+        conf.save()
+    return render_to_response('vulture/plugincas_form.html', {'form': form, 'user' : request.user})
+
 @permission_required('vulture.change_acl')
 def edit_acl(request,object_id=None):
     form = ACLForm(request.POST or None,instance=object_id and ACL.objects.get(id=object_id))

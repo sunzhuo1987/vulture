@@ -18,7 +18,7 @@ use Apache2::Request;
 use APR::URI;
 
 use Core::VultureUtils
-  qw(&session &get_memcached &set_memcached &get_cookie &get_app);
+  qw(&session &get_memcached &set_memcached &get_cookie &get_app &get_DB_object);
 
 use Apache2::Const -compile => qw(OK FORBIDDEN);
 
@@ -170,7 +170,7 @@ sub plugin {
         my $user_found = 0;
 
         #Check if all parameters are set
-        unless ( defined $ticket and defined $service ) {
+        unless (defined $ticket and defined $service ) {
             $errorCode = "INVALID_REQUEST";
         }
         else {
@@ -194,17 +194,18 @@ sub plugin {
                 }
 
                 #Check if parameter matches with stored tickets
-                if ( exists $user_hash{ticket}
+                if (exists $user_hash{ticket}
                     and $user_hash{ticket} eq $ticket )
                 {
 
                     #Service must match with stored service
-                    if ( exists $user_hash{ticket_service}
+                    if (exists $user_hash{ticket_service}
                         and $user_hash{ticket_service} ne $service )
                     {
                         $errorCode = "INVALID_SERVICE";
                     }
                     else {
+			$log->debug('CAS : more field ? ' . get_cas_field($log, $dbh,$login));
                         $xml .=
 "<cas:authenticationSuccess><cas:user>$login</cas:user></cas:authenticationSuccess>";
                         $user_found = 1;
@@ -246,5 +247,49 @@ sub plugin {
         return Apache2::Const::FORBIDDEN;
     }
 }
+sub get_cas_field {
+    my ($log, $dbh,$login) = @_;
+    my $fval = '';
+    my $q1 = 'SELECT field,auth_type,id_method FROM plugin_cas,auth where auth.id = plugin_cas.auth_id ';
+    my $sth   = $dbh->prepare($q1);
+    $sth->execute();
+    my $var = $sth->fetchrow_hashref; 
+    $sth->finish();
+    # No additionnal field 
+    return undef unless $var;
+    my $field = $var->{'field'};
+    my $atype = $var->{'auth_type'};
+    my $method = $var->{'id_method'};
+    # field retreived from sql
+    if ($atype eq 'sql'){
+        my ( $new_dbh, $ref ) = get_DB_object( $log, $dbh, $method );
+        if (not $new_dbh or not $ref){
+            $log->debug("CAS: Unable to use to sql method");
+            return undef;
+        }
+        my $qsql =
+            "SELECT $field FROM "
+          . $ref->{'table'}
+          . " WHERE "
+          . $ref->{'user_column'}
+          . "=?";
+        $log->debug("CAS (sql): $qsql");
+        my $ssth = $new_dbh->prepare($qsql);
+        $ssth->execute($login);
+        my $result = $ssth->fetchrow;
+        $ssth->finish();
+        $new_dbh->disconnect();
+        return $result if ($result);
+        $log->debug("CAS: unable to retreive $field for $login");
+        return undef;
+    }
+    elsif ($atype eq 'ldap'){
+        return 'ldap...'; 
+    }
+    else{
+        $log->debug('Plugin_CAS : Bad authentification method?');
+        return undef;
+    }
+} 
 
 1;
