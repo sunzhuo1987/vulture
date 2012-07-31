@@ -205,9 +205,16 @@ sub plugin {
                         $errorCode = "INVALID_SERVICE";
                     }
                     else {
-			$log->debug('CAS : more field ? ' . get_cas_field($log, $dbh,$login));
-                        $xml .=
-"<cas:authenticationSuccess><cas:user>$login</cas:user></cas:authenticationSuccess>";
+                        my ($field,$fieldval) =
+                            get_cas_field($log, $dbh,$login);
+                        $xml .= "<cas:authenticationSuccess>";
+                        $xml .= "<cas:user>$login</cas:user>";
+                        if ($field){
+                            $xml .= "<cas:attributes>";
+                            $xml .= "<cas:$field>$fieldval</cas:$field>";
+                            $xml .= "</cas:attributes>";
+                        }
+			$xml .= "</cas:authenticationSuccess>";
                         $user_found = 1;
                     }
 
@@ -256,7 +263,7 @@ sub get_cas_field {
     my $var = $sth->fetchrow_hashref; 
     $sth->finish();
     # No additionnal field 
-    return undef unless $var;
+    return undef unless $var or not $var->{'field'};
     my $field = $var->{'field'};
     my $atype = $var->{'auth_type'};
     my $method = $var->{'id_method'};
@@ -264,7 +271,7 @@ sub get_cas_field {
     if ($atype eq 'sql'){
         my ( $new_dbh, $ref ) = get_DB_object( $log, $dbh, $method );
         if (not $new_dbh or not $ref){
-            $log->debug("CAS: Unable to use to sql method");
+            $log->error("CAS: Unable to use to sql method");
             return undef;
         }
         my $qsql =
@@ -279,17 +286,47 @@ sub get_cas_field {
         my $result = $ssth->fetchrow;
         $ssth->finish();
         $new_dbh->disconnect();
-        return $result if ($result);
-        $log->debug("CAS: unable to retreive $field for $login");
+        return ($field,$result) if ($result);
+        $log->error("CAS: unable to retreive $field for $login in SQL");
         return undef;
     }
     elsif ($atype eq 'ldap'){
-        return 'ldap...'; 
+        my (
+            $ldap,              $ldap_url_attr,
+            $ldap_uid_attr,     $ldap_user_ou,
+            $ldap_group_ou,     $ldap_user_filter,
+            $ldap_group_filter, $ldap_user_scope,
+            $ldap_group_scope,  $ldap_base_dn,
+            $ldap_group_member, $ldap_group_is_dn,
+            $ldap_group_attr,   $ldap_chpass_attr,
+            $ldap_account_locked_attr
+        ) = Core::VultureUtils::get_LDAP_object( $log, $dbh, $method );
+        unless ($ldap) {
+            $log->error("CAS: cannot get ldap object ..");
+            return undef;
+        }
+        my $user = Net::LDAP::Util::escape_filter_value($login);
+        my $filter = "(&"
+              . $ldap_user_filter . "("
+              . $ldap_uid_attr . "="
+              . $user . "))";
+        $log->debug( "CAS : [LDAP SEARCH] $field where $filter");
+        my $result = $ldap->search(
+            base => $ldap_user_ou ? $ldap_user_ou : $ldap_base_dn,
+            scope  => $ldap_user_scope,
+            filter => $filter,
+            attrs => [$field]
+        );
+        $ldap->unbind;
+        if (not $result->count ) {
+            $log->error("CAS : Unable to get $field for $user in LDAP");
+            return undef;
+        }
+        return ($field,$result->entry->get_value($field));
     }
     else{
-        $log->debug('Plugin_CAS : Bad authentification method?');
+        $log->error('Plugin_CAS : Bad authentification method?');
         return undef;
     }
-} 
-
+}
 1;
