@@ -11,6 +11,7 @@ import time
 import signal
 from django.conf import settings
 import sys,os
+import unicodedata
 try:
 	sys.path.append("/opt/vulture")
 	sys.path.append("/opt/vulture/admin")
@@ -346,7 +347,7 @@ class MC:
 	@staticmethod
 	def get_SQL_table(table):
 		sth = MC.db.execute("SELECT * from "+table+";")
-		SRows = sth.fetchall();
+		Rows = sth.fetchall();
 		di = MC.convert_sqliteRow_to_dict(SRows)
 		return di
 	
@@ -377,6 +378,7 @@ class MC:
 					print "this row doesn't exist in database : "+str(Mrow)
 					dele = "DELETE FROM "+table+" WHERE "
 					first = 1
+                                        liks = []
 					for k,v in Mrow.iteritems():
 						if k == "id":
 							continue
@@ -384,9 +386,9 @@ class MC:
 							dele += " AND "
 						else:
 							first = 0
-						dele += k+"='"+str(v)+"'"
-#					print "will dlete: "+dele
-					MC.db.execute(dele)
+                                                dele += k+"=?"
+                                                liks += [v]
+					MC.db.execute(dele,liks)
 					vals = ()
 					keys ="("
 					args ="("
@@ -397,7 +399,7 @@ class MC:
 							keys+=","
 						i+=1
 						vals+=(value,)
-						keys+='"'+str(key)+'"'
+						keys+='"'+key+'"'
 						args+="?"
 					args+=")"
 					keys+=")"
