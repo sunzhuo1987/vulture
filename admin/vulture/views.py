@@ -475,7 +475,6 @@ def edit_app(request,object_id=None):
             #create directory for app conf if needed
             if not os.path.exists(path+'activated/'+appdirname):
                 os.mkdir(path+'activated/'+appdirname,0770)
-            #os.popen("mkdir -p "+path+"activated/"+appdirname)
                 
             for key, v in directory.iteritems():
                 value = request.POST.getlist(v)
@@ -487,7 +486,6 @@ def edit_app(request,object_id=None):
                             break
                     if found == 0:
                         os.remove(path+"activated/"+appdirname+"/"+init)
-                        #os.popen("rm "+path+"activated/"+appdirname+"/"+init)
                 for val in value:
                     try:
                         os.symlink(path+key+val,path+"activated/"+appdirname+"/"+val)
@@ -746,22 +744,25 @@ def view_event (request, object_id=None):
     else:
         type = 'error'
     if 'filter' in query:
-        filter = query['filter'].replace("'","")
+        filter = query['filter'].replace("\\","\\\\")
+        filter = query['filter'].replace("'","\\'")
     else:
         filter = ''
 
     for app in app_list:
         i = i + 1
         log = Log.objects.get (id=app.log_id)
-
         if object_id == str (i):
-            content = os.popen("/usr/bin/tail -n '%s' '%s' | grep -e '%s' | tac " % (records_nb, (log.dir + 'Vulture-' + app.name + '-' + type + '_log'), filter)).read() or "Can't read files"
+	    location="%s/Vulture-%s-%s_log"%(log.dir,app.name,type)
+	    location=location.replace("\\","\\\\")
+	    location=location.replace("'","\\'")
+	    cmd = "/usr/bin/tail -n '%s' '%s' | grep -e '%s' | tac " % (records_nb,location, filter)
+            content = os.popen(cmd).read() or "Can't read files"
             length = len(content.split("\n"))
             selected = 'selected'
         else:
             selected=''
-
-        file_list.append ((i,selected,app.name))
+    file_list.append ((i,selected,app.name))
     return render_to_response('vulture/event_list.html', {'file_list': file_list, 'log_content': content, 'type_list': type_list, 'type' : type, 'records' : records_nb, 'length' : length, 'filter' : filter, 'active_sessions' : active_sessions, 'user' : request.user, 'stats_month' : stats_month, 'stats_day' : stats_day, 'stats_hour' : stats_hour, 'stats_failed_month' : stats_failed_month, 'stats_failed_day' : stats_failed_day, 'stats_failed_hour' : stats_failed_hour, 'connections_failed' : connections_failed})
     
 @login_required
