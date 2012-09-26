@@ -25,7 +25,7 @@
                 if(help){
                     last_td.append('<div class="help">' + help + '</div>');
                     $(this).find(".support").bind("mouseover", {help: help}, function (e) {
-                        last_td.find(".help").css("display", "block").css("top", (e.clientY + 10)).css("left", (e.clientX + 10));
+                        last_td.find(".help").css("display", "block").css("top", (e.layerY - 5)).css("left", (e.layerX + 20));
                     }).bind("mouseout", {help: help}, function (e) {
                         last_td.find(".help").css("display", "none");
                     });
