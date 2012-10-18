@@ -17,6 +17,7 @@
                 <tr><th>{% trans "Name" %}</th><td class="input">{{ form.name }}{% if form.name.errors %}<div class="error">{{ form.name.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
                 <tr><th>{% trans "URL Login" %}</th><td class="input">{{ form.url_login }}{% if form.url_login.errors %}<div class="error">{{ form.url_login.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
                 <tr><th>{% trans "URL Validate" %}</th><td class="input">{{ form.url_validate }}{% if form.url_validate.errors %}<div class="error">{{ form.url_validate.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+                <tr><th>{% trans "CAS Attribute" %}</th><td class="input">{{ form.cas_attribute }}{% if form.cas_attribute.errors %}<div class="error">{{ form.cas_attribute.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
             </table>
         </div>
         <br />

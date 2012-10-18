@@ -25,7 +25,7 @@ use WWW::Mechanize::GZip;
 use HTTP::Request;
 use HTML::Form;
 
-use Apache2::Const -compile => qw(OK REDIRECT);
+use Apache2::Const -compile => qw(OK REDIRECT FORBIDDEN);
 
 use Core::VultureUtils qw(&session);
 use SSO::ProfileManager qw(&get_profile &delete_profile);
@@ -158,7 +158,7 @@ sub handle_action {
                 $r->print($options);
             }
             else {
-                $r->print( $response->as_string );
+                $r->print( $response->content );
             }
             return Apache2::Const::OK;
         }
@@ -273,7 +273,7 @@ sub forward {
     }
 
     $mech->delete_header('Cookie');
-    $mech->add_header( 'Cookie', $cleaned_cookies );
+    $mech->add_header( 'Cookie', $cleaned_cookies ) if ($cleaned_cookies ne '');
 
     #$mech->cookie_jar->set_cookie( $cleaned_cookies );
 
@@ -286,7 +286,7 @@ sub forward {
             $app->{remote_proxy} = substr( $app->{remote_proxy}, 0, -1 );
         }
 
-        #$mech->proxy(['http', 'https'], $app->{remote_proxy});
+        $mech->proxy(['http', 'https'], $app->{remote_proxy});
     }
     $ENV{HTTPS_PROXY} = $app->{remote_proxy};
     $ENV{HTTP_PROXY}  = $app->{remote_proxy};
@@ -355,9 +355,11 @@ sub forward {
 
             #Try to push custom headers
             eval {
-                $mech->delete_header($name);
-                $mech->add_header( $name => $value );
-                $log->debug("Pushing custom header $name => $value");
+			$request->remove_header($name);
+			$request->push_header($name => $value);
+			$mech->delete_header($name);
+			$mech->add_header($name => $value);
+			$log->debug("Pushing custom header $name => $value");
             };
         }
         $sth->finish();
@@ -379,26 +381,45 @@ sub forward {
           %{ SSO::ProfileManager::get_profile( $r, $log, $dbh, $app, $user ) };
 
         #Get form which contains fields set in admin
-        while ( my ( $key, $value ) = each(%results) ) {
-            $log->debug($key);
-            if ( $key eq "cookie" ) {
-                $cookies = $value;
-                delete( $results{$key} );
-            }
-        }
+#		while (my ($key, $value) = each(%results)){
+		while (my ($key, @vals) = each(%results)){
+			my ($value,$type) = ($vals[0][0],$vals[0][1]);
+			$log->debug($key);
+			if ($type eq "cookie") {
+				$cookies .= ";".$key."=".$value;
+				$r->err_headers_out->add('set-cookie' => $key."=".$value."; path=/");
+				delete($results{$key});
+			}
+		}
 
         #Get the form input that we are interested in
         my $form = $mech->form_with_fields( keys %results ) if %results;
 
         #Fill form with profile
-        if ( $form and %results ) {
-            while ( my ( $key, $value ) = each(%results) ) {
-                $mech->field( $key, $value );
-            }
+	if ($form and %results){
+			my $gotclick = 0;
+		foreach my $inputis ($form->inputs){
+			$log->debug("FWD: look click in ".$inputis->type);
+			if ( $inputis->type eq 'submit') {
+				$gotclick = 1;
+				$log->debug("Setting got click to 1");
+			}
+			
+		}
+		while (my ($key, $value) = each(%results)){
+			$mech->field($key, $value);
+		}
 
-            #Simulate click
-            $request = $form->click();
-        }
+		#Simulate click
+		if ($gotclick == 1){
+				$log->debug("using form click");
+				$request = $form->click();
+		}
+		else{
+			$log->debug("using form make request");
+			$request = $form->make_request();
+		}
+	}
         else {
             return Apache2::Const::OK;
         }
@@ -413,21 +434,23 @@ sub forward {
         #Getting fields from profile
         my %results =
           %{ SSO::ProfileManager::get_profile( $r, $log, $dbh, $app, $user ) };
-        if (%results) {
-            while ( my ( $key, $value ) = each(%results) ) {
-                if ( $key eq "cookie" ) {
-                    $cookies = $value;
-                    delete( $results{$key} );
-                }
-                $post .= uri_escape($key) . "=" . uri_escape($value) . "&";
-            }
-            $request =
-              HTTP::Request->new( 'POST', $base_url . $app->{logon_url},
-                undef, $post );
-
-            #Setting headers
-            $request->push_header(
-                'Content-Type' => 'application/x-www-form-urlencoded' );
+	if (%results){
+		$request = HTTP::Request->new('POST', $base_url.$app->{logon_url}, undef, $post);
+#			while (my ($key, $value) = each(%results)){
+		while (my ($key, @vals) = each(%results)){
+			my ($value,$type) = ($vals[0][0],$vals[0][1]);
+#				if ($key =~ /(.*)TMP(.*)/) {
+			if ($type eq 'cookie'){
+				$cookies .= ";".$key."=".$value;
+				$r->err_headers_out->add('Set-Cookie' => $key."=".$value."; path=/");
+				delete($results{$key});
+				next;
+			}
+			$post .= uri_escape($key)."=".uri_escape($value)."&";
+		}
+		$log->debug("request is ".$request->as_string());
+		#Setting headers
+		$request->push_header('Content-Type' => 'application/x-www-form-urlencoded');
 
         }
         else {
@@ -505,12 +528,27 @@ sub forward {
     }
     $sth->finish();
 
+	if ($cookies !~ /;$/ and $cookies ne '') {
+		$cookies .=";";
+	}
+	$cleaned_cookies = '';
+	
+	foreach (split(';', $cookies)) {
+		if (/([^,; ]+)=([^,; ]+)/) {
+			if ($1 ne $r->dir_config('VultureAppCookieName') and $1 ne $r->dir_config('VultureProxyCookieName')){
+				$cleaned_cookies .= $1."=".$2.";";
+			}
+		}
+	}
+	$cookies = $cleaned_cookies;
+	$log->debug("This is cookie that we get from GET request ". $mech->cookie_jar->as_string);
     foreach ( split( "\n", $mech->cookie_jar->as_string ) ) {
         if (/([^,; ]+)=([^,; ]+)/) {
             $cookies .= $1 . "=" . $2 . ";";
             $log->debug( "ADD/REPLACE " . $1 . "=" . $2 );
         }
     }
+    $request->remove_header('Cookie');
     $request->push_header( 'Cookie' => $cookies );    # adding/replace
 
     #$log->debug($request->as_string);
@@ -522,12 +560,33 @@ sub forward {
 
     #Cookie coming from response and from POST response
     our %cookies_app;
-    $log->debug( $mech->cookie_jar->as_string );
-    $mech->cookie_jar->scan( \&SSO::SSO_FORWARD::callback );
+	if ((int($sso_is_post) != 1)) {
+		$post_response = $mech->request($request);
+#	$log->debug($mech->cookie_jar->as_string);
+		$mech->cookie_jar->scan( \&SSO::SSO_FORWARD::callback );
+	} else {	
+		my $ua = LWP::UserAgent->new;
+		$post_response = $ua->request($request);
+		foreach ($post_response->headers->header('Set-Cookie')) {
+		       if (/([^,; ]+)=([^,; ]+)/) {
+				$cookies_app{$1} = $2;		# ajout/remplacement
+				$log->debug("ADD/REPLACE ".$1."=".$2);
+		       }
+	       }
+	}
 
 #Keep cookies to be able to log out
 #$session_app{cookie} = join('; ', map { "'$_'=\"${cookies_app{$_}}\"" } keys %cookies_app), "\n";
 
+	foreach my $pr (split("\n",$post_response->content())) {
+		if ($pr =~ /document\.cookie='(.*);path=(.*)'/) {
+			my ($var,$val,$path);
+			($var,$val) = split("=",$1);
+			$path=$2;
+			$log->debug('Set-Cookie' => $var."=".$val."; domain=".$r->hostname."; path=".$path);
+			$r->err_headers_out->add('Set-Cookie' => $var."=".$val."; path=".$path);
+		}
+	}
     my $path = "/";
 
     #Pre-send cookies to client after parsing
