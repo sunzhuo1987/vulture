@@ -91,8 +91,14 @@ sub checkAuth {
 
         $log->debug( $response->decoded_content );
 
+	my $find_user = "<cas:user>(.+)<\/cas:user>";
+	if (defined $ref->{cas_attribute} and $ref->{cas_attribute} ) {
+		$find_user = "<cas:".$ref->{cas_attribute}.">(.+)<\/cas:".$ref->{cas_attribute}.">";
+		$log->debug("changing cas attribute with".$find_user);
+	}
+
         #Check answer
-        if ( $response->decoded_content =~ /<cas:user>(.+)<\/cas:user>/ ) {
+        if ( $response->decoded_content =~ /$find_user/ ) {
 
             #Get user from CAS
             $r->pnotes( 'username' => $1 );

@@ -39,7 +39,7 @@ sub proxy_redirect {
     my $cookies         = $r->headers_in->{Cookie};
     my $cleaned_cookies = '';
     foreach ( split( ';', $cookies ) ) {
-        if (/([^,; ]+)=([^,; ]+)/) {
+        if (/([^,; ]+)=([^,;]*)/) {
             if (    $1 ne $r->dir_config('VultureAppCookieName')
                 and $1 ne $r->dir_config('VultureProxyCookieName') )
             {

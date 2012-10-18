@@ -498,6 +498,7 @@ class CAS(models.Model):
     name = models.CharField(max_length=128,unique=1)
     url_login = models.CharField(max_length=256)
     url_validate = models.CharField(max_length=256)
+    cas_attribute = models.CharField(max_length=256)
     def __str__(self):
         return self.name
     class Meta:
@@ -568,6 +569,8 @@ class Field(models.Model):
         ('cookie', 'cookie'),
         ('current user', 'autologon_user'),
         ('current password', 'autologon_password'),
+	('script','script'),
+	('script-cookie','script-cookie'),
         )
     sso = models.ForeignKey('SSO')
     field_desc = models.CharField(max_length=128)

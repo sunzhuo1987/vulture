@@ -13,6 +13,8 @@ use Apache2::Log;
 use Apache2::Request;
 use DBI;
 
+use Data::Dumper;
+
 use Apache2::Const -compile => qw(OK DECLINED REDIRECT HTTP_UNAUTHORIZED);
 
 use Core::VultureUtils
@@ -116,9 +118,14 @@ sub handler {
             $log->debug($query);
             my $href =
               SSO::ProfileManager::get_profile( $r, $log, $dbh, $app, $user );
-
+	
             my $length1 = $dbh->selectrow_array( $query, undef, $app->{id} );
-            my $length2 = grep { $_ ne "" } values %$href;
+#            my $length2 = grep { $_ ne "" } values %$href;		
+	    my $length2 = 0;
+            while (my ($key, @vals) = each(%$href)){
+                my ($value,$type) = ($vals[0][0],$vals[0][1]);
+		$length2 = $length2 + 1 if ($value ne "");
+	    }
 
             $log->debug( $length1 . "vs" . $length2 );
 

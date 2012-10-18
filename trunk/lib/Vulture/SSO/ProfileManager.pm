@@ -13,6 +13,7 @@ use CGI qw/:standard/;
 use Apache2::Log;
 use Apache2::Reload;
 
+use Apache2::Const -compile => qw(OK REDIRECT FORBIDDEN);
 use LWP;
 
 use Crypt::CBC;
@@ -46,7 +47,7 @@ sub get_profile {
 #Getting specials fields like "autologon_* or hidden fields"
 #my $query = "SELECT field_var, field_type, field_encrypted, field_value, field_prefix, field_suffix FROM field, sso, app WHERE field.sso_id = sso.id AND sso.id = app.sso_forward_id AND app.id=? AND (field_type = 'autologon_password' OR field_type = 'autologon_user' OR field_type = 'hidden')";
     my $query =
-"SELECT field_var, field_type, field_encrypted, field_value, field_prefix, field_suffix FROM field JOIN  sso ON field.sso_id=sso.id JOIN  app ON sso.id = app.sso_forward_id WHERE app.id=? AND (field_type = 'autologon_password' OR field_type = 'autologon_user' OR field_type = 'hidden')";
+"SELECT field_var, field_type, field_encrypted, field_value, field_prefix, field_suffix FROM field JOIN  sso ON field.sso_id=sso.id JOIN  app ON sso.id = app.sso_forward_id WHERE app.id=? AND (field_type = 'autologon_password' OR field_type = 'autologon_user' OR field_type = 'hidden' OR field_type='script' OR field_type='script-cookie')";
     $log->debug($query);
     my $sth = $dbh->prepare($query);
     $sth->execute( $app->{id} );
@@ -60,17 +61,26 @@ sub get_profile {
             $field_suffix )
           = @$row;
         if ( $type eq 'autologon_user' ) {
-            $return->{$var} = $field_prefix . $user . $field_suffix;
+		    #$return->{$var} = $field_prefix.$user.$field_suffix;
+		    $return->{$var} = [$field_prefix.$user.$field_suffix,$type];
         }
         elsif ( $type eq 'autologon_password' ) {
-            $return->{$var} = $field_prefix . $password . $field_suffix;
+		    #$return->{$var} = $field_prefix.$password.$field_suffix;
+		    $return->{$var} = [$field_prefix.$password.$field_suffix,$type];
         }
+	elsif($type eq 'script') {
+		    $log->debug("sso type is script");
+		    $value = `$value $user`;
+		    #return->{$var} = $field_prefix.$value.$field_suffix;
+		    $return->{$var} = [$field_prefix.$value.$field_suffix,$type];
+	}
         else {
             if ($need_decryption) {
                 $log->debug("Decrypting $var");
                 $value = decrypt( decode_base64($value) );
             }
-            $return->{$var} = $field_prefix . $value . $field_suffix;
+		    #$return->{$var} = $field_prefix.$value.$field_suffix;        
+		    $return->{$var} = [$field_prefix.$value.$field_suffix,$type];
         }
     }
 
@@ -84,7 +94,7 @@ sub get_profile {
 
     #Getting fields to retrieve
     $query =
-"SELECT field_var, field_mapped, field_encrypted, field_value, field_prefix, field_suffix FROM field, sso, app WHERE field.sso_id = sso.id AND sso.id = app.sso_forward_id AND app.id=? AND field.field_type != 'autologon_user' AND field.field_type != 'autologon_password' AND field.field_type != 'hidden'";
+"SELECT field_var, field_mapped, field_encrypted, field_value, field_prefix, field_suffix, field_type FROM field, sso, app WHERE field.sso_id = sso.id AND sso.id = app.sso_forward_id AND app.id=? AND field.field_type != 'autologon_user' AND field.field_type != 'autologon_password' AND field.field_type != 'hidden' AND field.field_type != 'script' AND field.field_type != 'script-cookie'";
     $sth = $dbh->prepare($query);
     $sth->execute( $app->{id} );
     my @fields = @{ $sth->fetchall_arrayref };
@@ -117,25 +127,23 @@ sub get_profile {
             #Parse fields to get values
             foreach my $field (@fields) {
                 my ( $var, $mapping, $need_decryption, $value, $field_prefix,
-                    $field_suffix )
+                    $field_suffix ,$type)
                   = @$field;
 
                 if ( defined $ref->{$mapping} ) {
 
                     #Decryption is needed
                     if ($need_decryption) {
-                        $return->{$var} =
-                            $field_prefix
-                          . decrypt( $r, decode_base64( $ref->{$mapping} ) )
-                          . $field_suffix;
+	                    #$return->{$var} = $field_prefix.decrypt($r, decode_base64($ref->{$mapping})).$field_suffix;
+			    $return->{$var} = [$field_prefix.decrypt($r, decode_base64($ref->{$mapping})).$field_suffix,$type];
                     }
                     else {
-                        $return->{$var} =
-                          $field_prefix . $ref->{$mapping} . $field_suffix;
+	                    #$return->{$var} = $field_prefix.$ref->{$mapping}.$field_suffix;
+			    $return->{$var} = [$field_prefix.$ref->{$mapping}.$field_suffix,$type];
                     }
                 }
                 else {
-                    $return->{$var} = $field_prefix . $value . $field_suffix;
++                        $return->{$var} = [$field_prefix.$value.$field_suffix || '',$type]
                 }
             }
             return $return;
@@ -189,23 +197,19 @@ sub get_profile {
             #User found. Get property and return ref
             foreach my $field (@fields) {
                 my ( $var, $mapping, $need_decryption, $value, $field_prefix,
-                    $field_suffix )
+                    $field_suffix, $type )
                   = @$field;
                 $log->debug("Checking access for property $mapping");
                 if ( $entry->exists($mapping) ) {
 
                     #Decryption is needed
                     if ($need_decryption) {
-                        $return->{$var} = $field_prefix
-                          . decrypt( $r,
-                            decode_base64( $entry->get_value($mapping) ) )
-                          . $field_suffix;
+	                    #$return->{$var} = $field_prefix.decrypt($r, decode_base64($entry->get_value($mapping))).$field_suffix;
+	                    $return->{$var} = [$field_prefix.decrypt($r, decode_base64($entry->get_value($mapping))).$field_suffix,$type];
                     }
                     else {
-                        $return->{$var} =
-                            $field_prefix
-                          . $entry->get_value($mapping)
-                          . $field_suffix;
+	                    #$return->{$var} = $field_prefix.$entry->get_value($mapping).$field_suffix;
+	                    $return->{$var} = [$field_prefix.$entry->get_value($mapping).$field_suffix,$type];
                     }
                 }
                 else {

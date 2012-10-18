@@ -45,6 +45,8 @@
                         select.append($('<option>').attr('value', 'cookie').text('cookie'));
                         select.append($('<option>').attr('value', 'autologon_user').text('autologon_user'));
                         select.append($('<option>').attr('value', 'autologon_password').text('autologon_password'));
+                        select.append($('<option>').attr('value', 'script').text('script'));
+                        select.append($('<option>').attr('value', 'script-cookie').text('script-cookie'));
                     tr.append($('<td>').append(select));
                     tr.append($('<td>').append($('<input type="checkbox">').attr('name', 'field_encrypted-' + nbfields)));
                     tr.append($('<td>').append($('<input type="text">').attr('name', 'field_value-' + nbfields).attr('maxlength', '100')));
