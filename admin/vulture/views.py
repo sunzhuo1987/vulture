@@ -386,9 +386,10 @@ def edit_app(request,object_id=None):
             for row in modsecurityconf:
                 if row in dataPosted:
                     if row == 'version':
-                        f.write("# Specify CRS version in the audit logs.\n")
-                        f.write("SecComponentSignature \"core ruleset/"+dataPosted['version']+"\""+"\n")
-                        f.write("\n\n")
+			if not "/" in app.name:
+				f.write("# Specify CRS version in the audit logs.\n")
+				f.write("SecComponentSignature \"core ruleset/"+dataPosted['version']+"\""+"\n")
+				f.write("\n\n")
                     elif row == 'action':
                         if dataPosted['action'] == "Log_Only":
                             f.write("SecRuleEngine DetectionOnly"+"\n")
