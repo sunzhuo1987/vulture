@@ -149,6 +149,8 @@ sub handle_action {
         $sth->finish();
     }
 
+    my $followredirect=1;
+
     #Trigger action to do
     if ($type) {
         $log->debug( $type . ' => ' . $options );
@@ -182,6 +184,10 @@ sub handle_action {
             $r->status(302);
             return Apache2::Const::REDIRECT;
         }
+        elsif ( $type eq 'nofollowredirect' ) {
+            $followredirect=0;
+        }
+
     }
 
 #If no action defined, redirect client to Location header (if defined) or to the /
@@ -194,7 +200,7 @@ sub handle_action {
     $rewrite_uri->port( $r->get_server_port() );
     $rewrite_uri->path( $r->unparsed_uri );
     $redirect = $rewrite_uri->unparse;
-    if ( $response->headers->header('Location') ) {
+    if ( $response->headers->header('Location') and $followredirect == 1 ) {
         $redirect = SSO::SSO_FORWARD::rewrite_uri(
             $r, $app,
             $response->headers->header('Location'),
@@ -556,7 +562,7 @@ sub forward {
     #Send !!! simple !!! request (POST or GET (htaccess))
     #The client browser must do the rest
     #This is done after the handler action function
-    $post_response = $mech->request($request);
+    #$post_response = $mech->request($request);
 
     #Cookie coming from response and from POST response
     our %cookies_app;

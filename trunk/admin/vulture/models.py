@@ -524,6 +524,7 @@ class SSO(models.Model):
         ('message', 'message'),
         ('redirect', 'redirect'),
 		('relearning' , 'relearning'),
+        ('nofollowredirect','nofollowredirect'),
         )
     name = models.CharField(max_length=128, unique=1)
     type = models.CharField(max_length=20, choices=SSO_TYPES, blank=1)

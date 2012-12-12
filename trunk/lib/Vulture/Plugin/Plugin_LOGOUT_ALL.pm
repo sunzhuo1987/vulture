@@ -105,6 +105,7 @@ sub plugin {
                 #Pushing cookies
                 $log->debug( $current_app{cookie} );
                 $request->push_header( 'Cookie' => $current_app{cookie} );
+                $request->push_header( 'Cookie' => $r->headers_in->{'Cookie'});
                 $request->push_header(
                     'User-Agent' => $r->headers_in->{'User-Agent'} );
                 $request->push_header( 'Host' => $host );
