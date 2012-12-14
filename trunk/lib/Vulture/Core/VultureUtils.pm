@@ -26,6 +26,7 @@ use DBI;
 
 use Cache::Memcached;
 use APR::Table;
+use Math::Random::Secure qw(irand);
 
 our ($memd);
 
@@ -172,7 +173,7 @@ sub get_app {
 #Getting app and wildcards
 #$query = "SELECT app.id, app.name, app.alias, app.url, app.log_id, app.sso_forward_id AS sso_forward, app.logon_url, app.logout_url, intf.port, app.remote_proxy, app.up, app.auth_basic, app.display_portal, app.canonicalise_url, app.timeout, app.update_access_time FROM app, intf, app_intf WHERE intf.id = ? AND app_intf.intf_id = intf.id AND app.id = app_intf.app_id";
     $query =
-'SELECT app.id, app.name, app.alias, app.url, app.log_id, app.sso_forward_id AS sso_forward, app.logon_url, app.logout_url, intf.port, app.remote_proxy, app.up, app.auth_basic, app.display_portal, app.canonicalise_url, app.timeout, app.update_access_time, app.sso_learning_ext, app.secondary_authentification_failure_options,app.Balancer_Node,app.Balancer_Stickyness FROM app JOIN app_intf ON app.id = app_intf.app_id JOIN intf ON app_intf.intf_id = intf.id WHERE intf.id = ? ORDER BY app.name ASC';
+'SELECT app.id, app.name, app.alias, app.url, app.log_id, app.sso_forward_id AS sso_forward, app.logon_url, app.logout_url, intf.port, app.remote_proxy, app.up, app.auth_url,app.auth_basic, app.display_portal, app.canonicalise_url, app.timeout, app.update_access_time, app.sso_learning_ext, app.secondary_authentification_failure_options,app.Balancer_Node,app.Balancer_Stickyness FROM app JOIN app_intf ON app.id = app_intf.app_id JOIN intf ON app_intf.intf_id = intf.id WHERE intf.id = ? ORDER BY app.name ASC';
     $log->debug($query);
     $sth = $dbh->prepare($query);
     $sth->execute($intf);
@@ -448,7 +449,7 @@ sub get_style {
     #Querying database for style
     my $intf_id = $r->dir_config('VultureID');
     my $query =
-"SELECT CASE WHEN app.appearance_id NOT NULL THEN app.appearance_id WHEN intf.appearance_id NOT NULL THEN intf.appearance_id ELSE '' END AS 'id_appearance', style_css.value AS css, style_image.image AS image, style_tpl.value AS tpl FROM app,intf, style_tpl LEFT JOIN style_style ON style_style.id = id_appearance LEFT JOIN style_css ON style_css.id = style_style.css_id LEFT JOIN style_image ON style_image.id = style_style.image_id WHERE ";
+"SELECT CASE WHEN app.appearance_id NOT NULL THEN app.appearance_id WHEN intf.appearance_id NOT NULL THEN intf.appearance_id ELSE '' END AS 'id_appearance', style_css.value AS css, style_image.image AS image, style_tpl.head as tpl_head, style_tpl.value AS tpl FROM app,intf, style_tpl LEFT JOIN style_style ON style_style.id = id_appearance LEFT JOIN style_css ON style_css.id = style_style.css_id LEFT JOIN style_image ON style_image.id = style_style.image_id WHERE ";
 
     #App id if not null
     $query .= "app.id= '" . $app->{id} . "' AND " if ( $app->{id} );
@@ -482,13 +483,16 @@ sub get_style {
     $sth->finish();
 
     #Headers
-    $html =
-'<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/><title>'
-      . $title
-      . '</title>';
+    ###################################
+    $html = '<html><head>';
+    $html .= ('<meta http-equiv="Content-Type" ' 
+             .'content="text/html;charset=utf-8"/>');
+    $html .= '<meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>';
+    $html .="<title>$title</title>";
     $html .= "<style type=\"text/css\">" . $ref->{css} . "</style>"
-      if ( defined $ref->{css} );
-    $html .= "</head><body>";
+    if ( defined $ref->{css} );
+    $html .= $ref->{tpl_head};
+    $html .= "</head><body>"; 
 
     #Parse template
     if ( defined $ref->{tpl} ) {
@@ -608,12 +612,10 @@ sub generate_random_string {
     # the length of the random string to generate
 
     my @chars = ( 'a' .. 'z', 'A' .. 'Z', '0' .. '9', '-' );
-    my $random_string;
+    my $clen = @chars;
+    my $random_string = '';
     foreach ( 1 .. $length_of_randomstring ) {
-
-        # rand @chars will generate a random
-        # number between 0 and scalar @chars
-        $random_string .= $chars[ rand @chars ];
+        $random_string .= $chars[ irand($clen) ];
     }
     return $random_string;
 }

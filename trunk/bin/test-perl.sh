@@ -40,6 +40,7 @@ HTTP::Date
 HTTP::Request
 LWP::Debug
 LWP::UserAgent
+Math::Random::Secure
 MIME::Base64
 Net::IP::Match::Regexp
 Net::LDAP
