@@ -216,6 +216,7 @@
         <div id="main_content_3" class="main_content">
             <table>
                 <tr><th>{% trans "Authentication" %}</th><td class="input">{{ form.auth }}{% if form.auth.errors %}<div class="error">{{ form.auth.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+                <tr><th>{% trans "Authentication url" %}</th><td class="input">{{ form.auth_url }}{% if form.auth_url.errors %}<div class="error">{{ form.auth_url.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
                 <tr><th>{% trans "Basic Auth" %}</th><td class="input">{{ form.auth_basic }}{% if form.auth_basic.errors %}<div class="error">{{ form.auth_basic.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
                 <tr><th>{% trans "Display portal" %}</th><td class="input">{{ form.display_portal }}{% if form.display_portal.errors %}<div class="error">{{ form.display_portal.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
             </table>

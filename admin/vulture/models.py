@@ -636,6 +636,7 @@ class App(models.Model):
     remote_proxy_SSLProxyVerify = models.CharField(max_length=10,blank=1,choices=SSL_PROXY_VERIFY)
     timeout = models.IntegerField(null=1,blank=1)
     auth= models.ManyToManyField('Auth',null=1,blank=1,db_table='auth_multiple')
+    auth_url = models.CharField(max_length=256,blank=1)
     auth_basic = models.BooleanField(default=0)
     display_portal = models.BooleanField()
     auth_server_failure_action = models.CharField(max_length=128, blank=1, null=1, choices=ACTIONS, default='nothing')
@@ -1046,6 +1047,7 @@ class Template(models.Model):
         )
     name = models.CharField(max_length=128,unique=1)    
     type = models.CharField(max_length=50, choices=TEMPLATE_TYPES)
+    head = models.TextField(blank=1)
     value = models.TextField()
     
     def __unicode__(self):

@@ -397,8 +397,9 @@ sub handler {
                 $rewrite_uri->scheme('http');
                 $rewrite_uri->scheme('https') if $r->is_https;
                 $rewrite_uri->port( $r->get_server_port() );
-                $rewrite_uri->path(
-                    "/?$cookie_app_name=" . $session_app{_session_id} );
+                $rewrite_uri->path( $rewrite_uri->path
+                .$app->{auth_url}."?$cookie_app_name=" . $session_app{_session_id} );
+
 
                 #Set cookie
                 #$r->err_headers_out->set('Location' => $rewrite_uri->unparse);
