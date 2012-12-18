@@ -107,6 +107,7 @@
                 <tr><th>{% trans "SSO Portal" %}</th><td class="input">{{ form.sso_portal }}{% if form.sso_portal %}<div class="error">{{ form.sso_portal.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
                 <tr><th>{% trans "Timeout for user session" %}</th><td class="input">{{ form.sso_timeout }}{% if form.sso_timeout.errors %}<div class="error">{{ form.sso_timeout.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
                 <tr><th>{% trans "Update user session timeout" %}</th><td class="input">{{ form.sso_update_access_time }}{% if form.sso_update_access_time.errors %}<div class="error">{{ form.sso_update_access_time.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+                <tr><th>{% trans "Check crsf token" %}</th><td class="input">{{ form.check_csrf }}{% if form.check_csrf.errors %}<div class="error">{{ form.check_csrf.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
             </table>
         </div>
 
