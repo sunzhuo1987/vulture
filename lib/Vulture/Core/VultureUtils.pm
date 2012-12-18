@@ -12,7 +12,7 @@ BEGIN {
     use Exporter ();
     our @ISA = qw(Exporter);
     our @EXPORT_OK =
-      qw(&get_memcached_conf &version_check &get_app &get_intf &session &get_cookie &get_memcached &set_memcached &get_DB_object &get_LDAP_object &get_style &get_translations &generate_random_string &notify);
+      qw(&get_memcached_conf &version_check &get_app &get_intf &session &get_cookie &get_memcached &set_memcached &get_DB_object &get_LDAP_object &get_style &get_translations &generate_random_string &notify &get_LDAP_field &get_LDAP_mobile);
 }
 
 use Apache::Session::Generate::MD5;
@@ -282,7 +282,7 @@ sub get_intf {
 
     #Getting intf
     $query =
-"SELECT id, ip, port, ssl_engine, log_id, sso_portal, sso_timeout, sso_update_access_time, cert, key, ca, cas_portal, cas_display_portal, cas_auth_basic AS auth_basic, cas_st_timeout, cas_redirect FROM intf WHERE id = ?";
+"SELECT id, ip, port, ssl_engine, log_id, sso_portal, sso_timeout, sso_update_access_time,check_csrf, cert, key, ca, cas_portal, cas_display_portal, cas_auth_basic AS auth_basic, cas_st_timeout, cas_redirect FROM intf WHERE id = ?";
     $log->debug($query);
     $sth = $dbh->prepare($query);
     $sth->execute($intf);
@@ -362,7 +362,7 @@ sub get_LDAP_object {
     my ( $log, $dbh, $id_method ) = @_;
 
     my $query =
-"SELECT host, port, scheme, cacert_path, dn, password, base_dn, user_ou, user_scope, user_attr, user_filter, group_ou, group_scope, group_attr, group_filter, group_member, are_members_dn, url_attr, protocol, chpass_attr, user_account_locked_attr FROM ldap WHERE id = ?";
+"SELECT host, port, scheme, cacert_path, dn, password, base_dn, user_ou, user_scope, user_attr, user_filter, group_ou, group_scope, group_attr, group_filter, group_member, are_members_dn, url_attr, protocol, chpass_attr, user_account_locked_attr, user_mobile FROM ldap WHERE id = ?";
     $log->debug($query);
     my $sth = $dbh->prepare($query);
     $sth->execute($id_method);
@@ -377,7 +377,7 @@ sub get_LDAP_object {
         $ldap_group_filter, $ldap_group_member,
         $ldap_group_is_dn,  $ldap_url_attr,
         $ldap_protocol,     $ldap_chpass_attr,
-        $ldap_account_locked_attr
+        $ldap_account_locked_attr, $ldap_user_mobile
     ) = $sth->fetchrow;
 
     $ldap_cacert_path = "/var/www/vulture/conf/cacerts"
@@ -638,5 +638,58 @@ sub notify {
     #Log active users
     $sth->execute( $app_id, $user, 'active_sessions', $e_ts, $info );
     $sth->finish();
+}
+sub get_LDAP_field {
+    my ($log, $dbh,$ldap_id,$login,$field) = @_;
+    my (
+        $ldap,              $ldap_url_attr,
+        $ldap_uid_attr,     $ldap_user_ou,
+        $ldap_group_ou,     $ldap_user_filter,
+        $ldap_group_filter, $ldap_user_scope,
+        $ldap_group_scope,  $ldap_base_dn,
+        $ldap_group_member, $ldap_group_is_dn,
+        $ldap_group_attr,   $ldap_chpass_attr,
+        $ldap_account_locked_attr
+    ) = Core::VultureUtils::get_LDAP_object( $log, $dbh, $ldap_id );
+    unless ($ldap) {
+        $log->error("LDAP: cannot get ldap object ..");
+        return undef;
+    }
+    my $user = Net::LDAP::Util::escape_filter_value($login);
+    my $filter = "(&"
+          . $ldap_user_filter . "("
+          . $ldap_uid_attr . "="
+          . $user . "))";
+    $log->debug( "[LDAP SEARCH] $field where $filter");
+    my $result = $ldap->search(
+               base => $ldap_user_ou ? $ldap_user_ou : $ldap_base_dn,
+        scope  => $ldap_user_scope,
+               filter => $filter,
+        attrs => [$field]
+    );
+    $ldap->unbind;
+    if (not $result->count ) {
+        $log->error("LDAP: Unable to get $field for $user in LDAP");
+        return undef;
+    }
+    return $result->entry->get_value($field);
+}
+sub get_LDAP_mobile{
+    my ($log, $dbh,$ldap_id,$login) = @_;
+    my (
+        $ldap,              $ldap_url_attr,
+        $ldap_uid_attr,     $ldap_user_ou,
+        $ldap_group_ou,     $ldap_user_filter,
+        $ldap_group_filter, $ldap_user_scope,
+        $ldap_group_scope,  $ldap_base_dn,
+        $ldap_group_member, $ldap_group_is_dn,
+        $ldap_group_attr,   $ldap_chpass_attr,
+        $ldap_account_locked_attr, $ldap_user_mobile
+    ) = Core::VultureUtils::get_LDAP_object( $log, $dbh, $ldap_id );
+    unless ($ldap) {
+        $log->error("LDAP: cannot get ldap mobile ..");
+        return undef;
+    }
+    return get_LDAP_field($log,$dbh,$ldap_id,$login,$ldap_user_mobile);
 }
 1;

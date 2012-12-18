@@ -249,12 +249,20 @@ sub handler : method {
         }
     }
     $ret = multipleAuth( $r, $log, $dbh, $auths, $app, $user, $password, 0, 0 )
-      if (
+    if (
         defined $user
-        and (  ($app->{'check_csrf'} == 0 or $token eq $session_SSO{random_token}) or $app->{'auth_basic'})
+        #csrf check when not unchecked in app or intf
+        #use app params when available, else intf 
+        and (   
+            #bypass csrf check when app don't use it
+            (defined $app->{'check_csrf'} and ( not $app->{'check_csrf'} or $app->{'auth_basic'}))
+            #bypass csrf check when intf don't use it
+            or (not defined $app->{'check_csrf'} and not $intf->{'check_csrf'})
+            or $token eq $session_SSO{random_token}
+        )
+        #dont redo auth when we authentified in cas or ntlm
         and not (defined $cas or defined $ntlm)
-      );
-
+    );
     $log->debug( "Return from auth => " . $r->pnotes('auth_message') )
       if defined $r->pnotes('auth_message');
 

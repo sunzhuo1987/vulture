@@ -126,6 +126,7 @@ class Intf(models.Model):
     sso_portal = models.CharField(max_length=256,blank=1,null=1)
     sso_timeout = models.IntegerField(blank=1,null=1)
     sso_update_access_time = models.BooleanField(default=0)
+    check_csrf = models.BooleanField(default=True);
     appearance = models.ForeignKey('Appearance', blank=1, null=1)
     cas_portal = models.CharField(max_length=256,blank=1,null=1)
     cas_auth = models.ManyToManyField('Auth',null=1,blank=1,db_table='intf_auth_multiple')
