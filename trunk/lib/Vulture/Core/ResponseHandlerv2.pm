@@ -247,7 +247,7 @@ sub handler {
             $r->content_type('text/html');
             $r->print(
                 Core::ResponseHandlerv2::display_auth_form(
-                    $r, $log, $dbh, $app, $intf
+                    $r, $log, $dbh, $app, $intf,\%session_SSO
                 )
             );
             return Apache2::Const::OK;
@@ -258,7 +258,7 @@ sub handler {
 }
 
 sub display_auth_form {
-    my ( $r, $log, $dbh, $app, $intf ) = @_;
+    my ( $r, $log, $dbh, $app, $intf ,$session_SSO) = @_;
     my $req     = Apache2::Request->new($r);
     my $mc_conf = $r->pnotes('mc_conf');
 
@@ -272,23 +272,13 @@ sub display_auth_form {
     $message ||= '';
     my $translated_message;
 
-    #Get session SSO for filling random token
-    my (%session_SSO);
-    Core::VultureUtils::session( \%session_SSO, $intf->{timeout},
-        $r->pnotes('id_session_SSO'),
-        $log, $mc_conf, $app->{update_access_time} );
-
-    #if($r->unparsed_uri =~ /vulture_app=([^;]*)/){
-    #       $uri = $1;
-    #}
-
     #Get translations
     my $translations =
       Core::VultureUtils::get_translations( $r, $log, $dbh, $message );
 
     #Avoid bot request (token)
     my $token = Core::VultureUtils::generate_random_string(32);
-    $session_SSO{random_token} = $token;
+    $session_SSO->{random_token} = $token;
 
     #Get style
     my $form =

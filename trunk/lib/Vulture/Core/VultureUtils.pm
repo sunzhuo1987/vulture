@@ -173,7 +173,7 @@ sub get_app {
 #Getting app and wildcards
 #$query = "SELECT app.id, app.name, app.alias, app.url, app.log_id, app.sso_forward_id AS sso_forward, app.logon_url, app.logout_url, intf.port, app.remote_proxy, app.up, app.auth_basic, app.display_portal, app.canonicalise_url, app.timeout, app.update_access_time FROM app, intf, app_intf WHERE intf.id = ? AND app_intf.intf_id = intf.id AND app.id = app_intf.app_id";
     $query =
-'SELECT app.id, app.name, app.alias, app.url, app.log_id, app.sso_forward_id AS sso_forward, app.logon_url, app.logout_url, intf.port, app.remote_proxy, app.up, app.auth_url,app.auth_basic, app.display_portal, app.canonicalise_url, app.timeout, app.update_access_time, app.sso_learning_ext, app.secondary_authentification_failure_options,app.Balancer_Node,app.Balancer_Stickyness FROM app JOIN app_intf ON app.id = app_intf.app_id JOIN intf ON app_intf.intf_id = intf.id WHERE intf.id = ? ORDER BY app.name ASC';
+'SELECT app.id, app.name, app.alias, app.url, app.log_id, app.sso_forward_id AS sso_forward, app.logon_url, app.logout_url, intf.port, app.remote_proxy, app.up, app.auth_url,app.auth_basic, app.display_portal,app.check_csrf , app.canonicalise_url, app.timeout, app.update_access_time, app.sso_learning_ext, app.secondary_authentification_failure_options,app.Balancer_Node,app.Balancer_Stickyness FROM app JOIN app_intf ON app.id = app_intf.app_id JOIN intf ON app_intf.intf_id = intf.id WHERE intf.id = ? ORDER BY app.name ASC';
     $log->debug($query);
     $sth = $dbh->prepare($query);
     $sth->execute($intf);

@@ -251,9 +251,8 @@ sub handler : method {
     $ret = multipleAuth( $r, $log, $dbh, $auths, $app, $user, $password, 0, 0 )
       if (
         defined $user
-        and (  $token eq $session_SSO{random_token}
-            or $app->{'auth_basic'}
-            or not defined $cas )
+        and (  ($app->{'check_csrf'} == 0 or $token eq $session_SSO{random_token}) or $app->{'auth_basic'})
+        and not (defined $cas or defined $ntlm)
       );
 
     $log->debug( "Return from auth => " . $r->pnotes('auth_message') )
