@@ -18,7 +18,7 @@ use Data::Dumper;
 use Apache2::Const -compile => qw(OK DECLINED REDIRECT HTTP_UNAUTHORIZED);
 
 use Core::VultureUtils
-  qw(&session &get_style &get_translations &generate_random_string);
+  qw(&session &get_style &get_translations &generate_random_string &load_module);
 use SSO::ProfileManager qw(&get_profile);
 
 use Apache::SSLLookup;
@@ -88,15 +88,7 @@ sub handler {
     if ( exists $session_app{SSO_Forwarding} ) {
         if ( defined $session_app{SSO_Forwarding} ) {
             my $module_name = "SSO::SSO_" . uc( $session_app{SSO_Forwarding} );
-            eval {
-                ( my $file = $module_name ) =~ s|::|/|g;
-                require $file . '.pm';
-                $module_name->import("forward");
-                1;
-            } or do {
-                my $error = $@;
-            };
-
+            load_module($module_name,'forward');
             #Get return
             $module_name->forward( $r, $log, $dbh, $app, $user, $password );
         }
