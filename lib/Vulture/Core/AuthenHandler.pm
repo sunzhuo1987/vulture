@@ -17,10 +17,10 @@ use Apache::SSLLookup;
 
 use Authen::Smb;
 
-use Apache2::Const -compile => qw(OK HTTP_UNAUTHORIZED);
+use Apache2::Const -compile => qw(OK HTTP_UNAUTHORIZED FORBIDDEN);
 
 use Core::VultureUtils
-  qw(&session &get_memcached &set_memcached &generate_random_string &notify);
+  qw(&session &get_memcached &set_memcached &generate_random_string &notify &load_module);
 use Core::ActionManager qw(&handle_action);
 
 #USED FOR NTLM
@@ -256,7 +256,7 @@ sub handler : method {
         and (   
             #bypass csrf check when app don't use it
             (defined $app->{'check_csrf'} and ( not $app->{'check_csrf'} or $app->{'auth_basic'}))
-            #bypass csrf check when intf don't use it
+            #bypass csrf check when intf don't use it and we don't have an app
             or (not defined $app->{'check_csrf'} and not $intf->{'check_csrf'})
             or $token eq $session_SSO{random_token}
         )
@@ -420,14 +420,7 @@ sub multipleAuth {
         }
         my $module_name = "Auth::Auth_" . uc( @$row[1] );
         $log->debug("Load $module_name");
-        eval {
-            ( my $file = $module_name ) =~ s|::|/|g;
-            require $file . '.pm';
-            $module_name->import("checkAuth");
-            1;
-        } or do {
-            my $error = $@;
-        };
+        load_module($module_name,'checkAuth');
 
         #Get return
         #for NTML and other authentification method without login or password

@@ -51,9 +51,9 @@ sub plugin {
                 #Redirect
                 if ( trim( $session_app{app_name} ) eq trim($k) ) {
                     $r->pnotes( 'response_content' =>
-'<html><head><meta http-equiv="Refresh" content="0; url='
+"<html><head><meta http-equiv=\"Refresh\" content=\"0; url='"
                           . $v
-                          . '"/></head></html>' );
+                          . "'\"/></head></html>");
                     $r->pnotes( 'response_content_type' => 'text/html' );
 
                     $r->set_handlers( PerlAuthenHandler => undef );
