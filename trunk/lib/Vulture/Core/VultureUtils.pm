@@ -12,7 +12,10 @@ BEGIN {
     use Exporter ();
     our @ISA = qw(Exporter);
     our @EXPORT_OK =
-      qw(&get_memcached_conf &version_check &get_app &get_intf &session &get_cookie &get_memcached &set_memcached &get_DB_object &get_LDAP_object &get_style &get_translations &generate_random_string &notify &get_LDAP_field &get_LDAP_mobile);
+      qw(&get_memcached_conf &version_check &get_app &get_intf &session 
+      &get_cookie &get_memcached &set_memcached &get_DB_object
+      &get_LDAP_object &get_style &get_translations &generate_random_string 
+      &notify &get_LDAP_field &get_LDAP_mobile &load_module);
 }
 
 use Apache::Session::Generate::MD5;
@@ -171,10 +174,9 @@ sub get_app {
     return {} unless ( $host and $intf and $dbh );
 
 #Getting app and wildcards
-#$query = "SELECT app.id, app.name, app.alias, app.url, app.log_id, app.sso_forward_id AS sso_forward, app.logon_url, app.logout_url, intf.port, app.remote_proxy, app.up, app.auth_basic, app.display_portal, app.canonicalise_url, app.timeout, app.update_access_time FROM app, intf, app_intf WHERE intf.id = ? AND app_intf.intf_id = intf.id AND app.id = app_intf.app_id";
     $query =
 'SELECT app.id, app.name, app.alias, app.url, app.log_id, app.sso_forward_id AS sso_forward, app.logon_url, app.logout_url, intf.port, app.remote_proxy, app.up, app.auth_url,app.auth_basic, app.display_portal,app.check_csrf , app.canonicalise_url, app.timeout, app.update_access_time, app.sso_learning_ext, app.secondary_authentification_failure_options,app.Balancer_Node,app.Balancer_Stickyness FROM app JOIN app_intf ON app.id = app_intf.app_id JOIN intf ON app_intf.intf_id = intf.id WHERE intf.id = ? ORDER BY app.name ASC';
-    $log->debug($query);
+#    $log->debug($query);
     $sth = $dbh->prepare($query);
     $sth->execute($intf);
     my $apps = $sth->fetchall_hashref('name');
@@ -217,12 +219,9 @@ sub get_app {
     #Use memcached if possible
     my $obj = get_memcached( $ref->{name}.":app", get_memcached_conf($dbh) );
     if ($obj) {
-
-#$query = "SELECT intf.id FROM app, intf, app_intf WHERE app.name = ? AND app_intf.intf_id = intf.id AND app.id = app_intf.app_id";
-#$query = 'SELECT intf.id FROM intf JOIN app_intf ON intf.id = app_intf.intf_id JOIN app ON app_intf.app_id = app.id WHERE app.name=?';
         $query =
 'SELECT intf.id FROM intf JOIN app_intf ON intf.id = app_intf.intf_id JOIN app ON app_intf.app_id = app.id WHERE ? LIKE app.name || "%" ORDER BY app.name DESC';
-        $log->debug($query);
+#        $log->debug($query);
         $sth = $dbh->prepare($query);
         $sth->execute($ref->{name});
         my $var;
@@ -240,14 +239,14 @@ sub get_app {
 #$query = "SELECT auth.name, auth.auth_type, auth.id_method FROM auth, auth_multiple WHERE auth_multiple.app_id = ? AND auth_multiple.auth_id = auth.id";
     $query =
 ' SELECT auth.name, auth.auth_type, auth.id_method FROM auth JOIN auth_multiple ON auth.id = auth_multiple.auth_id WHERE auth_multiple.app_id = ?';
-    $log->debug($query);
+#    $log->debug($query);
     $ref->{'auth'} = $dbh->selectall_arrayref( $query, undef, $ref->{id} );
 
 #Getting ACL
 #$query = "SELECT acl.id, acl.name, auth.auth_type AS acl_type, auth.id_method FROM acl, auth, app WHERE app.id = ? AND acl.id = app.acl_id AND auth.id = acl.auth_id";
     $query =
 'SELECT acl.id, acl.name, auth.auth_type AS acl_type, auth.id_method FROM acl JOIN auth ON acl.auth_id = auth.id JOIN app ON acl.id = app.acl_id WHERE app.id = ?';
-    $log->debug($query);
+#    $log->debug($query);
     $sth = $dbh->prepare($query);
     $sth->execute( $ref->{id} );
     $ref->{'acl'} = $sth->fetchrow_hashref;
@@ -256,7 +255,7 @@ sub get_app {
     #Getting actions
     $query =
 "SELECT auth_server_failure_action, auth_server_failure_options, account_locked_action, account_locked_options, login_failed_action, login_failed_options, need_change_pass_action, need_change_pass_options, acl_failed_action, acl_failed_options FROM app WHERE app.id = ?";
-    $log->debug($query);
+#    $log->debug($query);
     $sth = $dbh->prepare($query);
     $sth->execute( $ref->{id} );
     $ref->{'actions'} = $sth->fetchrow_hashref;
@@ -265,7 +264,7 @@ sub get_app {
     #Getting SSO
     $query =
 "SELECT sso.type, sso.follow_get_redirect, sso.is_post FROM sso JOIN app ON sso.id = app.sso_forward_id WHERE app.id=?";
-    $log->debug($query);
+ #   $log->debug($query);
     $sth = $dbh->prepare($query);
     $sth->execute( $ref->{id} );
     $ref->{'sso'} = $sth->fetchrow_hashref;
@@ -283,7 +282,7 @@ sub get_intf {
     #Getting intf
     $query =
 "SELECT id, ip, port, ssl_engine, log_id, sso_portal, sso_timeout, sso_update_access_time,check_csrf, cert, key, ca, cas_portal, cas_display_portal, cas_auth_basic AS auth_basic, cas_st_timeout, cas_redirect FROM intf WHERE id = ?";
-    $log->debug($query);
+  #  $log->debug($query);
     $sth = $dbh->prepare($query);
     $sth->execute($intf);
     $ref = $sth->fetchrow_hashref;
@@ -313,7 +312,7 @@ sub get_DB_object {
     my ( $log, $dbh, $id_method ) = @_;
     my $query = "SELECT * FROM sql WHERE id = ?";
     my $sth   = $dbh->prepare($query);
-    $log->debug($query);
+   # $log->debug($query);
     $sth->execute($id_method);
     my $ref = $sth->fetchrow_hashref;
     $sth->finish();
@@ -594,12 +593,10 @@ sub get_translations {
         "SELECT message, translation FROM localization WHERE "
       . $language_query . " AND "
       . $message_query;
-    $log->debug( "query: " . $query );
     my $sth = $dbh->prepare($query);
     $c = 1;
     foreach my $par (@arg_tab) {
         $sth->bind_param( $c, $par );
-        $log->debug( "param " . $c . " : " . $par );
         $c += 1;
     }
     $sth->execute();
@@ -691,5 +688,18 @@ sub get_LDAP_mobile{
         return undef;
     }
     return get_LDAP_field($log,$dbh,$ldap_id,$login,$ldap_user_mobile);
+}
+sub load_module{
+    my ($module_name,$func)= @_;
+#load function from module
+    eval {
+    ( my $file = $module_name ) =~ s|::|/|g;
+        require $file . '.pm';
+        $module_name->import($func);
+        1;
+    } or do {
+        my $error = $@;
+        return $error;
+    };
 }
 1;
