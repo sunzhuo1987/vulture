@@ -16,7 +16,7 @@ use DBI;
 
 use Apache2::Const -compile => qw(OK HTTP_UNAUTHORIZED);
 
-use Core::VultureUtils qw(&session &get_memcached &notify);
+use Core::VultureUtils qw(&session &get_memcached &notify &load_module);
 use Core::ActionManager qw(&handle_action);
 
 sub handler {
@@ -75,15 +75,7 @@ sub handler {
                 my $ret = Apache2::Const::HTTP_UNAUTHORIZED;
                 my $module_name =
                   "ACL::ACL_" . uc( $app->{'acl'}->{'acl_type'} );
-
-                eval {
-                    ( my $file = $module_name ) =~ s|::|/|g;
-                    require $file . '.pm';
-                    $module_name->import("checkACL");
-                    1;
-                } or do {
-                    my $error = $@;
-                };
+                load_module($module_name,'checkACL');
 
                 #Get return
                 $ret =
