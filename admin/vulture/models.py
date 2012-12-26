@@ -368,8 +368,17 @@ class Profile(models.Model):
         db_table = 'profile'
 
 class Auth(models.Model):
+    TYPES = (
+        ('sql','sql'),
+        ('ldap','ldap'),
+        ('ssl','ssl'),
+        ('ntml','ntml'),
+        ('kerberos','kerberos'),
+        ('cas','cas'),
+        ('logic','logic'),
+        )
     name = models.CharField(max_length=128, unique=1)
-    auth_type = models.CharField(max_length=20)
+    auth_type = models.CharField(max_length=20,choices=TYPES)
     id_method = models.IntegerField()
     def getAuth(self):
         if self.auth_type == 'sql':
@@ -384,6 +393,8 @@ class Auth(models.Model):
             return Kerberos.objects.get(id=self.id_method)
         elif self.auth_type == 'cas':
             return CAS.objects.get(id=self.id_method)
+        elif self.auth_type == 'logic':
+            return Logic.objects.get(id=self.id_method)
         else:
             return None
     def is_ssl(self):
