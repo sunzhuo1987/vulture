@@ -487,6 +487,16 @@ class SQL(models.Model):
     class Meta:
         db_table = 'sql'
 
+class Logic(models.Model):
+    OPERATORS = (
+        ('OR','OR'),
+        ('AND','AND'),
+        )
+    operator = models.CharField(max_length=3,choices=OPERATORS)
+    auths = models.ManyToManyField(Auth)
+    class Meta:
+        db_table = 'logic'
+
 class Kerberos(models.Model):
     name = models.CharField(max_length=128,unique=1)
     realm = models.CharField(max_length=256)
