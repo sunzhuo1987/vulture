@@ -28,28 +28,6 @@ use APR::SockAddr;
 
 use DBI;
 
-#All headers variables for SSL
-my %headers_vars = (
-    2  => 'SSL_CLIENT_I_DN',
-    3  => 'SSL_CLIENT_M_SERIAL',
-    4  => 'SSL_CLIENT_S_DN',
-    5  => 'SSL_CLIENT_V_START',
-    6  => 'SSL_CLIENT_V_END',
-    7  => 'SSL_CLIENT_S_DN_C',
-    8  => 'SSL_CLIENT_S_DN_ST',
-    9  => 'SSL_CLIENT_S_DN_Email',
-    10 => 'SSL_CLIENT_S_DN_L',
-    11 => 'SSL_CLIENT_S_DN_O',
-    12 => 'SSL_CLIENT_S_DN_OU',
-    13 => 'SSL_CLIENT_S_DN_CN',
-    14 => 'SSL_CLIENT_S_DN_T',
-    15 => 'SSL_CLIENT_S_DN_I',
-    16 => 'SSL_CLIENT_S_DN_G',
-    17 => 'SSL_CLIENT_S_DN_S',
-    18 => 'SSL_CLIENT_S_DN_D',
-    19 => 'SSL_CLIENT_S_DN_UID',
-);
-
 sub handler {
 
     my $r            = Apache::SSLLookup->new(shift);
@@ -68,7 +46,8 @@ sub handler {
     $r->pnotes( 'config'  => $config );
     $r->pnotes( 'mc_conf' => $mc_conf );
     
-    $log->debug("########## TransHandler ($protocol|".$r->hostname.$r->unparsed_uri.")");
+    $log->debug("########## TransHandler ($protocol|"
+            . $r->hostname.$r->unparsed_uri.")");
     #protocol check
     if ( $protocol !~ /HTTP/ and $protocol !~ /HTTPS/ ) {
         $log->error("Rejecting bad protocol $protocol");
@@ -126,14 +105,16 @@ sub handler {
             return authen_app($log,$r,$dbh,$app,\%session_app,$proxy_url);
         }
         else {
-        #Not authentified in this app. Setting cookie for app. Redirecting to SSO Portal.
+            # Not authentified in this app. Setting cookie for app. 
+            # Redirecting to SSO Portal.
             $log->debug( "App "
                   . $r->hostname
-                  . " is secured and user is not authentified in app. Let's have fun with AuthenHandler / redirect to SSO Portal "
+                  . " is secured and user is not authentified in app. Let's"
+                  . " have fun with AuthenHandler / redirect to SSO Portal."
                   . $intf->{'sso_portal'} );
             $r->status(200);
 
-            #Fill session for SSO Portal
+            # Fill session for SSO Portal
             $session_app{app_name} = $app->{name};
             if ( $r->pnotes('url_to_redirect') ) {
                 $session_app{url_to_redirect} = $r->pnotes('url_to_redirect');
@@ -141,17 +122,18 @@ sub handler {
             else {
                 $session_app{url_to_redirect} = $unparsed_uri;
             }
-#Redirect to SSO Portal if $r->pnotes('url_to_mod_proxy') is not set by Rewrite engine
+            # Redirect to SSO Portal
+            # if $r->pnotes('url_to_mod_proxy') wasn't set by Rewrite engine
             unless ( $r->pnotes('url_to_mod_proxy') ) {
                 return redirect_portal($log,$r,$app,$intf,
                         \%session_app);
             }
-#A plugin has send a $r->pnotes('url_to_mod_proxy') => proxify
+            # A plugin has send a $r->pnotes('url_to_mod_proxy') => proxify
             else {
                 return plugin_proxify($log,$r,$app,\%session_app);
            }
         }
-        #SSO Portal
+        # SSO Portal
     }
     elsif (
         $r->hostname =~ $intf->{'sso_portal'}
@@ -166,16 +148,16 @@ sub handler {
     {
         return portal_mode ($log,$r,$dbh,$app,$intf,$unparsed_uri);
     }
-    #CAS Portal
+    # CAS Portal
     elsif ( $r->hostname =~ $intf->{'cas_portal'} ) {
         return Apache2::Const::OK;
 
     }
-    #Application is down or unusable
+    # Application is down or unusable
     elsif ( $app and defined $app->{'up'} and not $app->{'up'} ) {
         return app_down($log,$r,$dbh,$app);
     }
-    #fail
+    # Fail
     else {
         return app_not_found($log,$r);
     }
@@ -215,8 +197,8 @@ sub plugins_th{
 }
 sub rewrite_content{
     my ($log,$r,$dbh,$app,$intf)=@_;
-    my $query =
-'SELECT pattern, type, options, options1 FROM plugincontent WHERE (app_id = ?  OR app_id IS NULL) ORDER BY type';
+    my $query = ('SELECT pattern, type, options, options1 FROM plugincontent'
+        . ' WHERE (app_id = ?  OR app_id IS NULL) ORDER BY type');
     $log->debug($query);
     my $plugins = $dbh->selectall_arrayref( $query, undef, $app->{id} );
     my $i = 0;
@@ -240,8 +222,8 @@ sub rewrite_content{
 }
 sub header_input{
     my ($log,$r,$dbh,$app,$intf)=@_;
-    my $query =
-'SELECT pattern, type, options, options1 FROM pluginheader WHERE app_id = ? OR app_id IS NULL ORDER BY type';
+    my $query = ('SELECT pattern, type, options, options1 FROM pluginheader'
+        . ' WHERE app_id = ? OR app_id IS NULL ORDER BY type');
     $log->debug($query);
     my $plugins = $dbh->selectall_arrayref( $query, undef, $app->{id} );
     foreach my $row (@$plugins) {
@@ -285,7 +267,8 @@ sub authen_app{
     $r->user( $session_app->{username} );
     $log->debug( "This app : "
           . $r->hostname
-          . " is secured or display portal is on. User has a valid cookie for this app"
+          . " is secured or display portal is on."
+          . " User has a valid cookie for this app"
     );
 
     #Add Authorization header for htaccess
@@ -362,8 +345,9 @@ sub redirect_portal{
     $rewrite_uri->scheme('http');
     $rewrite_uri->scheme('https') if $r->is_https;
     $rewrite_uri->port( $r->get_server_port() );
-    $rewrite_uri->path( $rewrite_uri->path
-    .$app->{auth_url}."?".$r->dir_config('VultureAppCookieName')."=" . $session_app->{_session_id} );
+    $rewrite_uri->path( $rewrite_uri->path . $app->{auth_url}."?"
+        .$r->dir_config('VultureAppCookieName')."=".$session_app->{_session_id}
+    );
     #Set cookie
     #$r->err_headers_out->set('Location' => $rewrite_uri->unparse);
     my $dir;
