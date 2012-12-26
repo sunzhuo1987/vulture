@@ -232,14 +232,14 @@ sub handler : method {
     foreach my $row (@$auths) {
         if ( uc( @$row[1] ) eq "NTLM" ) {
             $ret = multipleAuth( $r, $log, $dbh, $auths, $app, $user, $password,
-                $class, 1 );
+                $class, 1,\%session_SSO );
             $ntlm = 1;
             last;
         }
         elsif ( uc( @$row[1] ) eq "CAS" ) {
             $log->debug("CAS mode");
             $ret = multipleAuth( $r, $log, $dbh, $auths, $app, $user, $password,
-                $class, 1 );
+                $class, 1,\%session_SSO );
             $cas = 1;
             last;
         }
@@ -248,7 +248,8 @@ sub handler : method {
             $ssl = 1;
         }
     }
-    $ret = multipleAuth( $r, $log, $dbh, $auths, $app, $user, $password, 0, 0 )
+    $ret = multipleAuth( $r, $log, $dbh, $auths, $app, 
+        $user, $password, 0, 0, \%session_SSO)
     if (
         defined $user
         #csrf check when not unchecked in app or intf
@@ -340,7 +341,6 @@ sub handler : method {
                 $r->pnotes( 'url_to_redirect' => $service . '?ticket=' . $st );
             }
         }
-
         Core::VultureUtils::set_memcached( 'vulture_users_in', \%users, undef,
             $mc_conf );
 
@@ -410,7 +410,7 @@ sub getRequestData {
 sub multipleAuth {
     my (
         $r,    $log,      $dbh,   $auths, $app,
-        $user, $password, $class, $is_transparent
+        $user, $password, $class, $is_transparent, $session
     ) = @_;
     my $ret = Apache2::Const::FORBIDDEN;
 
@@ -428,13 +428,13 @@ sub multipleAuth {
             $log->debug("multipleAuth: Classic Authentication");
             $ret =
               $module_name->checkAuth( $r, $log, $dbh, $app, $user, $password,
-                @$row[2] );
+                @$row[2], $session);
         }
         else {
             $log->debug("multipleAuth: Transparent Authentication");
             $ret =
               $module_name->checkAuth( $r, $class, $log, $dbh, $app, $user,
-                $password, @$row[2] );
+                $password, @$row[2], $session );
         }
 
 #Auth module said "The authentication is successful" -- User has been authentified
