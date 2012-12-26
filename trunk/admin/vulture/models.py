@@ -372,7 +372,7 @@ class Auth(models.Model):
         ('sql','sql'),
         ('ldap','ldap'),
         ('ssl','ssl'),
-        ('ntml','ntml'),
+        ('ntlm','ntlm'),
         ('kerberos','kerberos'),
         ('cas','cas'),
         ('logic','logic'),
