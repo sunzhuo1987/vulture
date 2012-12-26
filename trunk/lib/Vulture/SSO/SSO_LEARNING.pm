@@ -38,7 +38,7 @@ sub forward {
 
     #Getting fields to send
     my $sql =
-"SELECT field.field_var, field.field_mapped, field.field_type, field.field_encrypted, field.field_value, field.field_prefix, field.field_suffix, field.field_desc FROM field, sso, app WHERE field.sso_id = sso.id AND sso.id = app.sso_forward_id AND app.id=? AND field.field_type != 'autologon_user' AND field.field_type != 'autologon_password' AND field.field_type != 'hidden'  AND field.field_type != 'cookie' ORDER BY field.field_type DESC";
+"SELECT field.field_var, field.field_mapped, field.field_type, field.field_encrypted, field.field_value, field.field_prefix, field.field_suffix, field.field_desc FROM field, sso, app WHERE field.sso_id = sso.id AND sso.id = app.sso_forward_id AND app.id=? AND field.field_type NOT IN ('autologon_user','autologon_password','hidden','cookie') ORDER BY field.field_type DESC";
     $log->debug($sql);
 
     my $sth = $dbh->prepare($sql);
