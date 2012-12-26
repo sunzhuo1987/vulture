@@ -452,7 +452,8 @@ sub forward {
 				delete($results{$key});
 				next;
 			}
-			$post .= uri_escape($key)."=".uri_escape($value)."&";
+			#$post .= uri_escape($key)."=".uri_escape($value)."&";
+			$post .= uri_escape($key)."=".uri_escape_utf8($value)."&";
 		}
 		$log->debug("request is ".$request->as_string());
 		#Setting headers
