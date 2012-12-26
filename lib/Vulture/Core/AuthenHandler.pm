@@ -139,11 +139,11 @@ sub handler : method {
 
     #Getting all auths methods used previously to compare with current app auths
                 my $query =
-"SELECT auth.name, auth.auth_type, auth.id_method FROM app, intf, auth, auth_multiple WHERE app.name = ? AND intf.id = ? AND auth_multiple.app_id = app.id AND auth_multiple.auth_id = auth.id";
+"SELECT auth.name, auth.auth_type, auth.id_method FROM app, auth_multiple, auth WHERE app.name = ? AND auth_multiple.app_id = app.id AND auth_multiple.auth_id = auth.id";
                 $log->debug($query);
                 my @auths = @{
                     $dbh->selectall_arrayref( $query, undef,
-                        $current_app{app_name}, $intf->{id} )
+                        $current_app{app_name})
                   };
                 my @current_auths =
                   @{ defined( $app->{'auth'} )
@@ -252,12 +252,12 @@ sub handler : method {
         $user, $password, 0, 0, \%session_SSO)
     if (
         defined $user
-        #csrf check when not unchecked in app or intf
-        #use app params when available, else intf 
+        # csrf check when not unchecked in app or intf
+        # use app params when available, else intf (ie. SSO portal) 
         and (   
-            #bypass csrf check when app don't use it
+            # bypass csrf check when app don't use it
             (defined $app->{'check_csrf'} and ( not $app->{'check_csrf'} or $app->{'auth_basic'}))
-            #bypass csrf check when intf don't use it and we don't have an app
+            # bypass csrf check when intf don't use it and we don't have an app
             or (not defined $app->{'check_csrf'} and not $intf->{'check_csrf'})
             or $token eq $session_SSO{random_token}
         )
@@ -413,7 +413,7 @@ sub multipleAuth {
         $user, $password, $class, $is_transparent, $session
     ) = @_;
     my $ret = Apache2::Const::FORBIDDEN;
-
+    # row : name,type,id_method
     foreach my $row (@$auths) {
         if (@$row[1] eq "ssl") {
             next;
