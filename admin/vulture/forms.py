@@ -155,6 +155,7 @@ class SQLForm(forms.ModelForm):
         # except:
             # raise forms.ValidationError("Database path is incorrect or cannot be read by Apache")           
         # return database
+    password = forms.CharField(widget=forms.PasswordInput)
     class Meta:
         model = SQL
 
