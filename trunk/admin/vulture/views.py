@@ -298,6 +298,8 @@ def edit_auth(request, url, object_id=None):
         form = RADIUSForm(request.POST or None,instance=object_id and RADIUS.objects.get(id=object_id))
     elif url == 'cas':
         form = CASForm(request.POST or None,instance=object_id and CAS.objects.get(id=object_id))
+    elif url == 'logic':
+        form = LogicForm(request.POST or None,instance=object_id and Logic.objects.get(id=object_id))
     # Save new/edited auth
     if request.method == 'POST' and form.is_valid():
         instance = form.save()
@@ -328,6 +330,8 @@ def remove_auth(request, url, object_id=None):
         object = get_object_or_404(RADIUS, id=object_id)
     elif url == 'cas':
         object = get_object_or_404(CAS, id=object_id)
+    elif url == 'logic':
+        object = get_object_or_404(Logic, id=object_id)
     # Remove auth
     if request.method == 'POST' and object_id:       
         auth = get_object_or_404(Auth, id_method=object.pk, auth_type=url)
