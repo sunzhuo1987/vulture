@@ -222,7 +222,7 @@ sub handler : method {
     $log->debug("Try to authenticate user");
 
     #Check type and use good auth module
-    my $ret = Apache2::Const::HTTP_UNAUTHORIZED;
+    my $ret = undef;
 
     my $auths = defined( $app->{'auth'} ) ? $app->{'auth'} : $intf->{'auth'};
 
@@ -230,35 +230,38 @@ sub handler : method {
     my $cas  = undef;
     my $ssl  = undef;
     foreach my $row (@$auths) {
+        $r->pnotes('last_auth_attempt'=>@$row[0]);
         if ( uc( @$row[1] ) eq "NTLM" ) {
             $ret = multipleAuth( $r, $log, $dbh, $auths, $app, $user, $password,
-                $class, 1,\%session_SSO );
+                $class,\%session_SSO );
             $ntlm = 1;
             last;
         }
         elsif ( uc( @$row[1] ) eq "CAS" ) {
             $log->debug("CAS mode");
             $ret = multipleAuth( $r, $log, $dbh, $auths, $app, $user, $password,
-                $class, 1,\%session_SSO );
+                $class,\%session_SSO );
             $cas = 1;
             last;
         }
         elsif ( uc( @$row[1] ) eq "SSL" ) {
-            $log->debug("SSL mode");
-            $ssl = 1;
+            if (defined $r->ssl_lookup('SSL_CLIENT_S_DN_CN')
+                and $r->ssl_lookup('SSL_CLIENT_S_DN_CN') ne '' ){
+                $log->debug("SSL mode");
+                $ret = Apache2::Const::OK;
+            }
         }
     }
     $ret = multipleAuth( $r, $log, $dbh, $auths, $app, 
-        $user, $password, 0, 0, \%session_SSO)
+        $user, $password, 0,\%session_SSO)
     if (
         defined $user
-        # csrf check when not unchecked in app or intf
-        # use app params when available, else intf (ie. SSO portal) 
         and (   
             # bypass csrf check when app don't use it
             (defined $app->{'check_csrf'} and ( not $app->{'check_csrf'} or $app->{'auth_basic'}))
             # bypass csrf check when intf don't use it and we don't have an app
             or (not defined $app->{'check_csrf'} and not $intf->{'check_csrf'})
+            # check csrf token
             or $token eq $session_SSO{random_token}
         )
         #dont redo auth when we authentified in cas or ntlm
@@ -283,13 +286,7 @@ sub handler : method {
         and $ret != scalar Apache2::Const::OK
         and ( $user or $password ) );
 
-    if (
-        ( defined $ret and $ret == scalar Apache2::Const::OK )
-        or (    defined $ssl
-            and $ssl == 1
-            and defined $r->ssl_lookup('SSL_CLIENT_S_DN_CN')
-            and $r->ssl_lookup('SSL_CLIENT_S_DN_CN') ne '' )
-      )
+    if (defined $ret and $ret == scalar Apache2::Const::OK )
     {
         $log->debug("Good user/password");
 
@@ -343,9 +340,7 @@ sub handler : method {
         }
         Core::VultureUtils::set_memcached( 'vulture_users_in', \%users, undef,
             $mc_conf );
-
         return Apache2::Const::OK;
-
         #Authentication failed for some reasons
     }
     else {
@@ -384,10 +379,8 @@ sub handler : method {
             return Apache2::Const::HTTP_UNAUTHORIZED;
         }
         else {
-
            #IF NTLM is used, we immediatly return the results of MultipleAuth();
             return $ret if ($ntlm);
-
             $log->debug(
 "No user / password... ask response handler to display the logon form"
             );
@@ -410,41 +403,28 @@ sub getRequestData {
 sub multipleAuth {
     my (
         $r,    $log,      $dbh,   $auths, $app,
-        $user, $password, $class, $is_transparent, $session
+        $user, $password, $class, $session
     ) = @_;
     my $ret = Apache2::Const::FORBIDDEN;
     # row : name,type,id_method
     foreach my $row (@$auths) {
-        if (@$row[1] eq "ssl") {
+        my ($name,$type,$id_method)=@$row;
+        if ($type eq 'ssl') {
             next;
         }
-        my $module_name = "Auth::Auth_" . uc( @$row[1] );
+        my $module_name = "Auth::Auth_" . uc($type);
         $log->debug("Load $module_name");
         load_module($module_name,'checkAuth');
-
-        #Get return
-        #for NTML and other authentification method without login or password
-        if ( $is_transparent == 0 ) {
-            $log->debug("multipleAuth: Classic Authentication");
-            $ret =
-              $module_name->checkAuth( $r, $log, $dbh, $app, $user, $password,
-                @$row[2], $session);
-        }
-        else {
-            $log->debug("multipleAuth: Transparent Authentication");
-            $ret =
-              $module_name->checkAuth( $r, $class, $log, $dbh, $app, $user,
-                $password, @$row[2], $session );
-        }
-
-#Auth module said "The authentication is successful" -- User has been authentified
-        return Apache2::Const::OK if $ret == Apache2::Const::OK;
-
-#Auth module said "The authentication is not authorized for the moment" -- It may be authorized after... ex: NTLM PROCESS
-        return Apache2::Const::HTTP_UNAUTHORIZED
-          if $ret == Apache2::Const::HTTP_UNAUTHORIZED;
+        # Try to authenticate with method
+        $ret = $module_name->checkAuth( $r, $log, $dbh, $app, 
+            $user, $password,$id_method, $session, $class);
+        # Auth module: The authentication is successful"
+        # -- User has been authentified
+        return $ret if $ret == Apache2::Const::OK;
+        # Auth module:The authentication is not authorized for the moment
+        # -- It may be authorized after... ex: NTLM PROCESS
+        return $ret if $ret == Apache2::Const::HTTP_UNAUTHORIZED;
     }
-
     #Auth module said "Authentication failed"  -- User is not authentified
     return Apache2::Const::FORBIDDEN;
 }
