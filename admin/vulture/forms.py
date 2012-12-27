@@ -192,6 +192,10 @@ class CASForm(forms.ModelForm):
     class Meta:
         model = CAS
 
+class LogicForm(forms.ModelForm):
+    class Meta:
+        model = Logic
+
 class SSOForm(forms.ModelForm):
     auth = forms.ModelChoiceField(required=True, queryset=Auth.objects.filter(auth_type__in=['sql','ldap']))
     class Meta:

@@ -503,10 +503,15 @@ class Logic(models.Model):
         ('OR','OR'),
         ('AND','AND'),
         )
-    operator = models.CharField(max_length=3,choices=OPERATORS)
+    name = models.CharField(max_length=128, unique=1)
+    op = models.CharField(max_length=3,choices=OPERATORS)
     auths = models.ManyToManyField(Auth)
     class Meta:
         db_table = 'logic'
+    def __unicode__(self):
+        return "( %s )"+(" %s "%self.op).join(
+            [a.name for a in self.auths.all()]
+            )
 
 class Kerberos(models.Model):
     name = models.CharField(max_length=128,unique=1)

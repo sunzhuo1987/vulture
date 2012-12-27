@@ -188,7 +188,6 @@ sub get_app {
     while ( my ( $name, $hashref ) = each(%$apps) ) {
         $fi = 0;
         $fi++ while ( $name =~ m/\//g );
-        $log->debug("ROOT: $host =~ $name , fields : $fi");
         if ( $host =~ /$name/ ) {
             if ( $fi > $max_fields ) {
                 $max_fields = $fi;
@@ -510,7 +509,6 @@ sub get_style {
                 }
                 elsif ( defined $fields->{$directive} ) {
                     $_ = $fields->{$directive};
-
                     #Custom translated string
                 }
                 elsif ( defined $translations->{$directive}

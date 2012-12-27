@@ -136,5 +136,9 @@ urlpatterns = patterns('',
   (r'^conf/(?P<object_id>\d+)/del/$','vulture.views.vulture_delete_object_adm' , dict({'model':Conf}, template_name='vulture/generic_confirm_delete.html',extra_context= dict(category='System', name='Globales', url='/conf'), post_delete_redirect='/conf/')),
   (r'^cluster/$',	'vulture.views.manage_cluster'),
   (r'^plugincas/$','vulture.views.plugincas_config'),
+  (r'^(?P<url>logic)/(?P<object_id>\d+)/$',    'vulture.views.edit_auth'),
+  (r'^(?P<url>logic)/new/$',                   'vulture.views.edit_auth'),
+  (r'^(?P<url>logic)/(?P<object_id>\d+)/del/$','vulture.views.remove_auth'), 
+  (r'^logic/$','vulture.views.vulture_object_list_adm', dict({'queryset': Logic.objects.all()}, template_name='vulture/generic_list.html', extra_context = dict(category='Authentication', name='Logic', url='/logic', ))),
 )
 
