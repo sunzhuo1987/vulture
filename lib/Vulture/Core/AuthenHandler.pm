@@ -46,8 +46,7 @@ sub get_nonce {
             alarm 0;
         };
     }
-
-    if ( $self->{nonce} ) {
+if ( $self->{nonce} ) {
         $log->debug( "Auth_NTLM: get_nonce -> Reuse " . $self->{nonce} );
         return $self->{nonce};
     }
@@ -92,6 +91,7 @@ sub handler : method {
     my ( $status, $password );
     my $user;
     my $token;
+    my $service = $req->param('service');
 
     $log->debug("########## AuthenHandler ##########");
 
@@ -106,7 +106,7 @@ sub handler : method {
 
     #Get user/password from URL or POST method
     elsif ( $r->method eq "POST" or $r->method eq "GET" ) {
-        ( $user, $password, $token ) = getRequestData($r);
+        ( $user, $password, $token) = getRequestData($r);
     }
     else {
         return Apache2::Const::HTTP_UNAUTHORIZED;
@@ -114,107 +114,15 @@ sub handler : method {
 
 #If user is not logged in SSO, skip this code
 #Check if credentials are good. If they are, give a vulture_proxy cookie and go to AuthzHandler for a vulture_app cookie
-    if ( $session_SSO{is_auth} ) {
-        my $diff_count = 0;
-        $log->debug("User is logged in SSO. Check if auths are the same");
-
-        #Foreach app where user is currently logged in
-        foreach my $key ( keys %session_SSO ) {
-            $log->debug($key);
-
-            #Reject bad app key
-            my @wrong_keys =
-              qw/is_auth username password last_access_time last_access_time _session_id random_token/;
-            unless ( grep $_ eq $key, @wrong_keys ) {
-                my $id_app = $session_SSO{$key};
-                my (%current_app);
-                Core::VultureUtils::session( \%current_app, undef, $id_app,
-                    undef, $mc_conf );
-
-                if ( $current_app{app_name} eq '' ) {
-                    Core::VultureUtils::session( \%current_app, undef,
-                        $r->pnotes("id_session_app"),
-                        undef, $mc_conf );
-                }
-
-    #Getting all auths methods used previously to compare with current app auths
-                my $query =
-"SELECT auth.name, auth.auth_type, auth.id_method FROM app, auth_multiple, auth WHERE app.name = ? AND auth_multiple.app_id = app.id AND auth_multiple.auth_id = auth.id";
-                $log->debug($query);
-                my @auths = @{
-                    $dbh->selectall_arrayref( $query, undef,
-                        $current_app{app_name})
-                  };
-                my @current_auths =
-                  @{ defined( $app->{'auth'} )
-                    ? $app->{'auth'}
-                    : $intf->{'auth'} };
-
-                my @difference = ();
-                my %count      = ();
-                my $element;
-                foreach $element ( @auths, @current_auths ) {
-                    $count{ @$element[0] }++;
-                }
-                foreach $element ( keys %count ) {
-                    if ( int( $count{$element} ) <= 1 ) {
-                        push( @{ \@difference }, $element );
-                    }
-                }
-
-                $log->debug("Before $diff_count");
-                $diff_count += scalar @difference;
-                $log->debug("Auth not in common $diff_count");
-            }
-        }
-
-        #Same auths
-        if ( $diff_count == 0 ) {
-            $log->debug("User is already authorized to access this SSO");
-
-            $r->pnotes( 'username' => $session_SSO{username} );
-            $r->pnotes( 'password' => $session_SSO{password} );
-
-            if ( defined $app->{name} and defined $r->pnotes('id_session_app') )
-            {
-                $session_SSO{ $app->{name} } = $r->pnotes('id_session_app');
-            }
-
-            #Setting Memcached table
-            my (%users);
-            %users = %{
-                Core::VultureUtils::get_memcached( 'vulture_users_in',
-                    $mc_conf )
-                  or {}
-              };
-            $users{ $session_SSO{username} } =
-              { 'SSO' => $r->pnotes('id_session_SSO') };
-
-            #Generate new service ticket
-            my $st = 'ST-' . Core::VultureUtils::generate_random_string(29);
-            my $service = $req->param('service');
-            if ( defined $service ) {
-                $log->debug("Creating new service ticket");
-                $users{ $session_SSO{username} }->{'ticket'}         = $st;
-                $users{ $session_SSO{username} }->{'ticket_service'} = $service;
-                $users{ $session_SSO{username} }->{'ticket_created'} = time();
-            }
-            if ( defined $service ) {
-                if ( $service =~ /\?/ ) {
-                    $r->pnotes(
-                        'url_to_redirect' => $service . '&ticket=' . $st );
-                }
-                else {
-                    $r->pnotes(
-                        'url_to_redirect' => $service . '?ticket=' . $st );
-                }
-            }
-            Core::VultureUtils::set_memcached( 'vulture_users_in', \%users,
-                undef, $mc_conf );
-
-           #Authentified, cookie is valid, let user go and check ACL (next step)
-            return Apache2::Const::OK;
-        }
+    if ( $session_SSO{is_auth} and check_sso_auths($r,\%session_SSO)){
+        # Same auths
+        $log->debug("User is already authorized to access this SSO");
+        $session_SSO{$app->{name}}=$r->pnotes('id_session_app')
+            if ( defined $app->{name} 
+                and defined $r->pnotes('id_session_app') );
+        return validate_auth(
+            $r, $session_SSO{username}, $session_SSO{password},
+            $service,\%session_SSO,0);
     }
 
     #Not authentified
@@ -271,20 +179,7 @@ sub handler : method {
       if defined $r->pnotes('auth_message');
 
     #Trigger action when change pass is needed / auth failed
-    Core::ActionManager::handle_action( $r, $log, $dbh, $intf, $app,
-        'NEED_CHANGE_PASS', 'You need to change your password' )
-      if ( uc( $r->pnotes('auth_message') ) eq 'NEED_CHANGE_PASS' );
-    Core::ActionManager::handle_action( $r, $log, $dbh, $intf, $app,
-        'ACCOUNT_LOCKED', 'You need to unlock your password' )
-      if ( uc( $r->pnotes('auth_message') ) eq 'ACCOUNT_LOCKED' );
-    Core::ActionManager::handle_action( $r, $log, $dbh, $intf, $app,
-        'AUTH_SERVER_FAILURE', 'Vulture can\'t contact authentication server' )
-      if ( uc( $r->pnotes('auth_message') ) eq 'AUTH_SERVER_FAILURE' );
-    Core::ActionManager::handle_action( $r, $log, $dbh, $intf, $app,
-        'LOGIN_FAILED', 'Login failed' )
-      if ( !$r->pnotes('auth_message')
-        and $ret != scalar Apache2::Const::OK
-        and ( $user or $password ) );
+    auth_triggers ($r,$ret,$user,$password,$intf,$app);
 
     if (defined $ret and $ret == scalar Apache2::Const::OK )
     {
@@ -298,52 +193,18 @@ sub handler : method {
           || $r->ssl_lookup('SSL_CLIENT_S_DN_CN');
         $password = $r->pnotes('password') || $password;
 
-        $log->debug( "user = " . $user );
-        $log->debug( "ruser = " . $r->user );
-
-        #Setting user for AuthzHandler
-        $r->pnotes( 'username' => $user );
-        $r->pnotes( 'password' => $password );
-
         $log->debug('Validate SSO session');
         $session_SSO{is_auth}  = 1;
+
+        # set credentials for this session
         $session_SSO{username} = $user;
         $session_SSO{password} = $password;
 
-        #Setting Memcached table
-        my (%users);
-        %users = %{
-            Core::VultureUtils::get_memcached( 'vulture_users_in', $mc_conf )
-              or {}
-          };
-        $users{$user} = { 'SSO' => $r->pnotes('id_session_SSO') };
-
-        Core::VultureUtils::notify( $dbh, undef, $user, 'connection',
-            scalar( keys %users ) );
-
-        #Generate new service ticket
-        my $st      = 'ST-' . Core::VultureUtils::generate_random_string(29);
-        my $service = $req->param('service');
-        if ( defined $service ) {
-            $log->debug("Creating new ticket");
-            $users{ $session_SSO{username} }->{'ticket'}         = $st;
-            $users{ $session_SSO{username} }->{'ticket_service'} = $service;
-            $users{ $session_SSO{username} }->{'ticket_created'} = time();
-        }
-        if ( defined $service ) {
-            if ( $service =~ /\?/ ) {
-                $r->pnotes( 'url_to_redirect' => $service . '&ticket=' . $st );
-            }
-            else {
-                $r->pnotes( 'url_to_redirect' => $service . '?ticket=' . $st );
-            }
-        }
-        Core::VultureUtils::set_memcached( 'vulture_users_in', \%users, undef,
-            $mc_conf );
-        return Apache2::Const::OK;
-        #Authentication failed for some reasons
+        return validate_auth(
+            $r,$user,$password,$service,\%session_SSO,1);
     }
     else {
+        #Authentication failed for some reasons
         unless ($ntlm) {
             my (%users);
             %users = %{
@@ -427,5 +288,128 @@ sub multipleAuth {
     }
     #Auth module said "Authentication failed"  -- User is not authentified
     return Apache2::Const::FORBIDDEN;
+}
+sub check_sso_auths{
+    my ($r,$session_SSO) = @_;
+    my $log     = $r->pnotes('log');
+    my $dbh     = $r->pnotes('dbh');
+    my $app     = $r->pnotes('app');
+    my $intf    = $r->pnotes('intf');
+    my $mc_conf = $r->pnotes('mc_conf');
+
+    $log->debug("User is logged in SSO. Check if auths are the same");
+    my $diff_count = 0;
+    #Foreach app where user is currently logged in
+    foreach my $key ( keys %$session_SSO ) {
+        $log->debug($key);
+        #Reject bad app key
+        my @wrong_keys =
+          qw/is_auth username password last_access_time last_access_time _session_id random_token/;
+        unless ( grep $_ eq $key, @wrong_keys ) {
+            my $id_app = $session_SSO->{$key};
+            my (%current_app);
+            Core::VultureUtils::session( \%current_app, undef, $id_app,
+                undef, $mc_conf );
+
+            if ( $current_app{app_name} eq '' ) {
+                Core::VultureUtils::session( \%current_app, undef,
+                    $r->pnotes("id_session_app"),
+                    undef, $mc_conf );
+            }
+
+#Getting all auths methods used previously to compare with current app auths
+            my $query =
+"SELECT auth.name, auth.auth_type, auth.id_method FROM app, auth_multiple, auth WHERE app.name = ? AND auth_multiple.app_id = app.id AND auth_multiple.auth_id = auth.id";
+            $log->debug($query);
+            my @auths = @{
+                $dbh->selectall_arrayref( $query, undef,
+                    $current_app{app_name})
+              };
+            my @current_auths =
+              @{ defined( $app->{'auth'} )
+                ? $app->{'auth'}
+                : $intf->{'auth'} };
+            my @difference = ();
+            my %count      = ();
+            my $element;
+            foreach $element ( @auths, @current_auths ) {
+                $count{ @$element[0] }++;
+            }
+            foreach $element ( keys %count ) {
+                if ( int( $count{$element} ) <= 1 ) {
+                    push( @{ \@difference }, $element );
+                }
+            }
+            $log->debug("Before $diff_count");
+            $diff_count += scalar @difference;
+            $log->debug("Auth not in common $diff_count");
+        }
+        return  ( ($diff_count == 0) ? 1 : 0 );
+    }
+}
+sub cas_set_ticket{
+    my ($r,$service,$session_SSO,$users) = @_;
+    my $log = $r->pnotes('log');
+    my $st = 'ST-' . Core::VultureUtils::generate_random_string(29);
+    $log->debug("Creating new ticket");
+    $users->{ $session_SSO->{username} }->{'ticket'}         = $st;
+    $users->{ $session_SSO->{username} }->{'ticket_service'} = $service;
+    $users->{ $session_SSO->{username} }->{'ticket_created'} = time();
+    if ( $service =~ /\?/ ) {
+        $r->pnotes( 'url_to_redirect' => $service . '&ticket=' . $st );
+    }
+    else {
+        $r->pnotes( 'url_to_redirect' => $service . '?ticket=' . $st );
+    }
+}
+sub validate_auth{
+    my ($r,$user,$password,$service,$session_SSO,$notify) = @_;
+    my $dbh     = $r->pnotes('dbh');
+    my $mc_conf = $r->pnotes('mc_conf');
+    $r->pnotes( 'username' => $user );
+    $r->pnotes( 'password' => $password );
+
+    #Setting Memcached table
+    my (%users);
+    %users = %{
+        Core::VultureUtils::get_memcached( 'vulture_users_in',
+            $mc_conf )
+          or {}
+      };
+    $users{ $user } = { 'SSO' => $r->pnotes('id_session_SSO') };
+
+    # log connection to app if required
+    Core::VultureUtils::notify( $dbh, undef, $user, 'connection',
+        scalar( keys %users ) ) if ($notify);
+
+    #Generate new service ticket if needed
+    if ( defined $service ) {
+        cas_set_ticket($r,$service,$session_SSO,\%users);
+    }
+    Core::VultureUtils::set_memcached('vulture_users_in',\%users,
+        undef, $mc_conf );
+
+   #Authentified, cookie is valid, let user go and check ACL (next step)
+    return Apache2::Const::OK;
+}
+sub auth_triggers{
+    my ($r,$ret,$user,$password,$intf,$app) = @_;
+    my $log = $r->pnotes('log');
+    my $dbh = $r->pnotes('dbh');
+    #Trigger action when change pass is needed / auth failed
+    Core::ActionManager::handle_action( $r, $log, $dbh, $intf, $app,
+        'NEED_CHANGE_PASS', 'You need to change your password' )
+      if ( uc( $r->pnotes('auth_message') ) eq 'NEED_CHANGE_PASS' );
+    Core::ActionManager::handle_action( $r, $log, $dbh, $intf, $app,
+        'ACCOUNT_LOCKED', 'You need to unlock your password' )
+      if ( uc( $r->pnotes('auth_message') ) eq 'ACCOUNT_LOCKED' );
+    Core::ActionManager::handle_action( $r, $log, $dbh, $intf, $app,
+        'AUTH_SERVER_FAILURE', 'Vulture can\'t contact authentication server' )
+      if ( uc( $r->pnotes('auth_message') ) eq 'AUTH_SERVER_FAILURE' );
+    Core::ActionManager::handle_action( $r, $log, $dbh, $intf, $app,
+        'LOGIN_FAILED', 'Login failed' )
+      if ( !$r->pnotes('auth_message')
+        and $ret != scalar Apache2::Const::OK
+        and ( $user or $password ) );
 }
 1;
