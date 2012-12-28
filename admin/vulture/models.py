@@ -181,7 +181,11 @@ class Intf(models.Model):
                      "intf" : self,
                      "MS_path" : MS_path,
                      })
-        return t.render(c)
+        return ("# This file was genered by Vulture, do not edit\n"
+                +"# Use application/virtualHost directives instead,\n"
+                +"# or edit vulture_httpd.conf in vulture/admin\n"
+                + t.render(c)
+                )
 
     def backupConf(self):
         backpath="%s%s_backup/"%(settings.CONF_PATH,self.id)
@@ -646,6 +650,18 @@ class App(models.Model):
         ('bytraffic','bytraffic'),
         ('bybusyness','bybusyness'),
         )
+    DEFLATE_LEVEL = (
+        (1,'min'),
+        (2,'2'),(3,'3'),(4,'4'),(5,'5'),
+        (6,'6'),(7,'7'),(8,'8'),(9,'max'),
+        )
+    DEFLATE_WIN_SIZE = (
+        (1,'min'),
+        (2,'2'),(3,'3'),(4,'4'),(5,'5'),
+        (6,'6'),(7,'7'),(8,'8'),(9,'9'),
+        (10,'10'),(11,'11'),(12,'12'),(13,'13'),
+        (14,'14'),(15,'max')
+        )
     name = models.CharField(max_length=128,unique=1)
     alias = models.CharField(max_length=128, blank=1, null=1)
     url = models.CharField(max_length=256)
@@ -731,8 +747,16 @@ class App(models.Model):
     Balancer_Node = models.TextField(blank=1, null=1)
     Balancer_Algo = models.CharField(max_length=128,choices=BALANCER_ALGO,default='byrequests')
     Balancer_Stickyness = models.CharField(max_length=128,blank=1,null=1)
-    
-    
+    deflate_activated = models.BooleanField(default=False)
+    deflate_types = models.CharField(max_length=128,blank=1,null=1)
+    deflate_buf_size = models.IntegerField(default=8096)
+    deflate_compression = models.IntegerField(default=9,
+            choices = DEFLATE_LEVEL)
+    deflate_memory = models.IntegerField(default=9,
+            choices = DEFLATE_LEVEL)
+    deflate_win_size = models.IntegerField(default=15,
+            choices =DEFLATE_WIN_SIZE)
+
     def isWildCard (self):
         return self.alias.startswith('*')
 

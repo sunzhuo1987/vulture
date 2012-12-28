@@ -51,6 +51,8 @@ sub plugin {
     my (%users);
 
     %users = %{ get_memcached( 'vulture_users_in', $mc_conf ) || {} };
+    return Apache2::Const::FORBIDDEN unless ($session_SSO{is_auth});
+
     delete $users{ $session_SSO{username} };
     set_memcached( 'vulture_users_in', \%users, undef, $mc_conf );
 
