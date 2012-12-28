@@ -42,7 +42,7 @@ sub plugin {
       || return Apache2::Const::FORBIDDEN;
     session( \%session_app, undef, $id_app, undef, $mc_conf );
     $log->debug($id_app);
-#    return Apache2::Const::FORBIDDEN unless $session_app{'is_auth'};
+    return Apache2::Const::FORBIDDEN unless $session_app{'is_auth'};
     $session_app{'is_auth'} = undef;
 
     #Debug for eval
