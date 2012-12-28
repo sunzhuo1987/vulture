@@ -120,9 +120,10 @@ sub handler : method {
         $session_SSO{$app->{name}}=$r->pnotes('id_session_app')
             if ( defined $app->{name} 
                 and defined $r->pnotes('id_session_app') );
-        return validate_auth(
+        validate_auth(
             $r, $session_SSO{username}, $session_SSO{password},
             $service,\%session_SSO,0);
+        return Apache2::Const::OK;
     }
 
     #Not authentified
@@ -200,8 +201,9 @@ sub handler : method {
         $session_SSO{username} = $user;
         $session_SSO{password} = $password;
 
-        return validate_auth(
+        validate_auth(
             $r,$user,$password,$service,\%session_SSO,1);
+        return Apache2::Const::OK;
     }
     else {
         #Authentication failed for some reasons
@@ -390,7 +392,6 @@ sub validate_auth{
         undef, $mc_conf );
 
    #Authentified, cookie is valid, let user go and check ACL (next step)
-    return Apache2::Const::OK;
 }
 sub auth_triggers{
     my ($r,$ret,$user,$password,$intf,$app) = @_;
@@ -409,7 +410,7 @@ sub auth_triggers{
     Core::ActionManager::handle_action( $r, $log, $dbh, $intf, $app,
         'LOGIN_FAILED', 'Login failed' )
       if ( !$r->pnotes('auth_message')
-        and $ret != scalar Apache2::Const::OK
+        and (not defined $ret) or $ret != scalar Apache2::Const::OK
         and ( $user or $password ) );
 }
 1;

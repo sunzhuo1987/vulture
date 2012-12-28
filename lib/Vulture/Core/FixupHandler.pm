@@ -47,7 +47,12 @@ sub proxy_redirect {
             }
         }
     }
-    $r->headers_in->set( "Cookie" => $cleaned_cookies );
+    if ($cleaned_cookies){
+        $r->headers_in->set( "Cookie" => $cleaned_cookies );
+    }
+    else{
+        $r->headers_in->unset( "Cookie");
+    }
 
     #Not canonicalising url (i.e : not escaping chars)
     if ( not $app->{'canonicalise_url'} ) {

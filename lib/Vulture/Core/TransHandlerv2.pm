@@ -350,15 +350,14 @@ sub redirect_portal{
     );
     #Set cookie
     #$r->err_headers_out->set('Location' => $rewrite_uri->unparse);
-    my $dir;
+    my $dir = '';
     if ( $app->{name} =~ /\/(.*)/ ) {
         $dir = $1;
     }
     $r->err_headers_out->add(
         'Set-Cookie' => $r->dir_config('VultureAppCookieName') . "="
           . $session_app->{_session_id}
-          . "; path=/"
-          . $dir
+          . "; path=/".$dir
           . "; domain=."
           . $r->hostname );
 
@@ -412,7 +411,7 @@ sub portal_mode{
         $SSO_cookie_name = $session_SSO{_session_id};
     }
     my $dir = "";
-    if ( $app->{name} =~ /\/(.*)/ ) {
+    if ( defined $app->{name} and $app->{name} =~ /\/(.*)/ ) {
         $dir = $1;
     }
 #Set cookie for SSO portal
