@@ -620,6 +620,7 @@ sub notify {
     my ( $sec, $min, $hour, $mday, $mon, $year, $wday, $yday, $isdst ) =
       localtime();
     $year += 1900;
+    $mon += 1;
     my $e_ts = "$year-$mon-$mday $hour:$min:$sec.0";
 
     #Filling database
