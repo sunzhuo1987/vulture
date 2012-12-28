@@ -410,7 +410,7 @@ sub auth_triggers{
     Core::ActionManager::handle_action( $r, $log, $dbh, $intf, $app,
         'LOGIN_FAILED', 'Login failed' )
       if ( !$r->pnotes('auth_message')
-        and (not defined $ret) or $ret != scalar Apache2::Const::OK
+        and (not defined $ret or $ret != scalar Apache2::Const::OK)
         and ( $user or $password ) );
 }
 1;
