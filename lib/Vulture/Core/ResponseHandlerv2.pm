@@ -58,7 +58,7 @@ sub handler {
         or $r->pnotes('response_headers')
         or $r->pnotes('response_content_type') )
     {
-        return Core::ResponseHandler::display_custom_response( $log, $r );
+        return Core::ResponseHandlerv2::display_custom_response( $log, $r );
     }
 
     #SSO Forwarding
@@ -161,14 +161,14 @@ sub handler {
         return Apache2::Const::OK;
     }
     elsif ( defined( $session_app{url_to_redirect} ) ) {
-        return Core::ResponseHandler::url_redirect($log,$r,$app,$session_app{url_to_redirect});
+        return Core::ResponseHandlerv2::url_redirect($log,$r,$app,$session_app{url_to_redirect});
     }
     elsif ( defined $r->pnotes('url_to_redirect') ) {
-        return Core::ResponseHandler::do_redirect($log,$r,$r->pnotes('url_to_redirect'));
+        return Core::ResponseHandlerv2::do_redirect($log,$r,$r->pnotes('url_to_redirect'));
     }
     else {
         #Redirect to CAS
-        return Core::ResponseHandler::cas_redirect($log,$r,$dbh,$intf,$app);
+        return Core::ResponseHandlerv2::cas_redirect($log,$r,$dbh,$intf,$app);
     }
 }
 sub url_redirect{
@@ -186,7 +186,7 @@ sub url_redirect{
     $rewrite_uri->scheme('https') if $r->is_https;
     $rewrite_uri->port( $r->get_server_port() );
     $rewrite_uri->path($url);
-    return Core::ResponseHandler::do_redirect($log,$r,$rewrite_uri->unparse);
+    return Core::ResponseHandlerv2::do_redirect($log,$r,$rewrite_uri->unparse);
 }
 sub do_redirect{
     my ($log,$r,$url) = @_;
