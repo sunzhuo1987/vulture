@@ -67,7 +67,7 @@ sub handler {
     unless ( $app->{'acl'} ) {
         $log->debug(
 "No ACL in this app. Validate app session for user $user");
-        validate_auth($r,$dbh,$app,$user,$password,
+        Core::AuthzHandler::validate_auth($r,$dbh,$app,$user,$password,
                     \%users,\%session_SSO,\%session_app);
         return Apache2::Const::OK;
     }
@@ -79,7 +79,7 @@ sub handler {
 
     # If user was set by AuthenHandler, then check his credentials
     my $module_name = "ACL::ACL_" . uc( $app->{'acl'}->{'acl_type'} );
-    load_module($module_name,'checkACL');
+    Core::VultureUtils::load_module($module_name,'checkACL');
     $ret = $module_name->checkACL( $r, $log, $dbh, $app, $user,
         $app->{'acl'}->{'id_method'} );
     # handle acl trigger
@@ -92,7 +92,7 @@ sub handler {
     if ( defined $ret and $ret == scalar Apache2::Const::OK ) {
         $log->debug("User $user has credentials for this app"
             . " regarding ACL. Validate app session" );
-        validate_auth($r,$dbh,$app,$user,$password,
+        Core::AuthzHandler::validate_auth($r,$dbh,$app,$user,$password,
             \%users,\%session_SSO,\%session_app);
         return Apache2::Const::OK;
     }

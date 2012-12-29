@@ -20,7 +20,7 @@ use Core::VultureUtils
 use SSO::ProfileManager qw(&get_profile);
 
 use Apache::SSLLookup;
-use HTML::Entities;
+use HTML::Entities qw(&encode_entities);
 
 sub handler {
     my $r = Apache::SSLLookup->new(shift);
@@ -58,14 +58,14 @@ sub handler {
         or $r->pnotes('response_headers')
         or $r->pnotes('response_content_type') )
     {
-        return display_custom_response( $log, $r );
+        return Core::ResponseHandler::display_custom_response( $log, $r );
     }
 
     #SSO Forwarding
     if ( exists $session_app{SSO_Forwarding} ) {
         if ( defined $session_app{SSO_Forwarding} ) {
             my $module_name = "SSO::SSO_" . uc( $session_app{SSO_Forwarding} );
-            load_module( $module_name, 'forward' );
+            Core::VultureUtils::load_module( $module_name, 'forward' );
             #Get return
             $module_name->forward( $r, $log, $dbh, $app, $user, $password );
         }
@@ -161,14 +161,14 @@ sub handler {
         return Apache2::Const::OK;
     }
     elsif ( defined( $session_app{url_to_redirect} ) ) {
-        return url_redirect($log,$r,$app,$session_app{url_to_redirect});
+        return Core::ResponseHandler::url_redirect($log,$r,$app,$session_app{url_to_redirect});
     }
     elsif ( defined $r->pnotes('url_to_redirect') ) {
-        return do_redirect($log,$r,$r->pnotes('url_to_redirect'));
+        return Core::ResponseHandler::do_redirect($log,$r,$r->pnotes('url_to_redirect'));
     }
     else {
         #Redirect to CAS
-        return cas_redirect($log,$r,$dbh,$intf,$app);
+        return Core::ResponseHandler::cas_redirect($log,$r,$dbh,$intf,$app);
     }
 }
 sub url_redirect{
@@ -186,7 +186,7 @@ sub url_redirect{
     $rewrite_uri->scheme('https') if $r->is_https;
     $rewrite_uri->port( $r->get_server_port() );
     $rewrite_uri->path($url);
-    return do_redirect($log,$r,$rewrite_uri->unparse);
+    return Core::ResponseHandler::do_redirect($log,$r,$rewrite_uri->unparse);
 }
 sub do_redirect{
     my ($log,$r,$url) = @_;
@@ -268,11 +268,11 @@ sub display_auth_form {
     #Get style
     my $form =
 "<div id=\"form_vulture\"><form method=\"POST\" name=\"auth_form\" action=\""
-      . encode_entities($uri)
+      . HTML::Entities::encode_entities($uri)
       . "\"><table>";
     $form .=
 "<tr class=\"row\"><td></td><td class=\"hidden\" name=\"service\" value=\""
-      . encode_entities($service)
+      . HTML::Entities::encode_entities($service)
       . "\"></td></tr>"
       if defined $service;
     $form .= <<FOO
