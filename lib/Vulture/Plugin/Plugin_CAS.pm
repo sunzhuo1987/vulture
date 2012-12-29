@@ -70,21 +70,18 @@ sub plugin{
         $log->debug("Auth in CAS is undefined");
         return Apache2::Const::FORBIDDEN;        
     }
-
     #If user want to login in CAS (redirected by service), set $url_to_redirect
     if($action eq 'login'){
         $log->debug("Login");
         #User not logged in SSO
         my $parsed_service = APR::URI->parse($r->pool, $service);
         my $host = $parsed_service->hostname ;
-
         #Get app
-        my $app = Core::VultureUtils::get_app($log, $host, $dbh, $intf->{id}) if defined $host;
-
+        my $app = Core::VultureUtils::get_app($log, $dbh,$mc_conf,
+            $intf->{id},$host) if defined $host;
         $app->{'auth'} = $auths;            
         #Send app if exists.
         $r->pnotes('app' => $app);
-
         #Getting SSO session if exists.
         my $SSO_cookie_name = Core::VultureUtils::get_cookie($r->headers_in->{Cookie}, $r->dir_config('VultureProxyCookieName').'=([^;]*)');
         my (%session_SSO);
