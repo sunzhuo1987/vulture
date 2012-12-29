@@ -70,14 +70,14 @@ sub handler {
     $r->pnotes( 'app' => $app ) if defined $app;
 
     #Plugin or Rewrite (according to URI)
-    my $ret = plugins_th ($log,$r,$dbh,$app,$intf,$unparsed_uri);
+    my $ret = Core::TransHandlerv2::plugins_th ($log,$r,$dbh,$app,$intf,$unparsed_uri);
     return $ret if defined $ret;
     
     #Call content rewrite plugins
-    rewrite_content($log,$r,$dbh,$app,$intf);
+    Core::TransHandlerv2::rewrite_content($log,$r,$dbh,$app,$intf);
 
     #Call header rewrite plugins
-    header_input($log,$r,$dbh,$app,$intf);
+    Core::TransHandlerv2::header_input($log,$r,$dbh,$app,$intf);
 
     #If application exists and is not down, check auth
     if (    $app
@@ -85,13 +85,13 @@ sub handler {
         and ( $app->{'intf'} eq $r->dir_config('VultureID') ) )
     {
         # get url to proxify
-        my $proxy_url = get_proxy_url($r,$app,$uri);
+        my $proxy_url = Core::TransHandlerv2::get_proxy_url($r,$app,$uri);
         $log->debug("proxy = $proxy_url");
 
         #No authentication is needed
         my $auths = $app->{'auth'};
         if ( not defined @$auths or not @$auths ) {
-            return anon_app($log,$r,$dbh,$app,$proxy_url);
+            return Core::TransHandlerv2::anon_app($log,$r,$dbh,$app,$proxy_url);
         }
         #Getting session app if exists. If not, creating one
         my ($id_app) = Core::VultureUtils::get_cookie( $r->headers_in->{Cookie},
@@ -103,7 +103,7 @@ sub handler {
 
         # We have authorization for this app so let's go with mod_proxy
         if ( defined $session_app{is_auth} and $session_app{is_auth} == 1 ) {
-            return authen_app($log,$r,$dbh,$app,\%session_app,$proxy_url);
+            return Core::TransHandlerv2::authen_app($log,$r,$dbh,$app,\%session_app,$proxy_url);
         }
         else {
             # Not authentified in this app. Setting cookie for app. 
@@ -126,12 +126,12 @@ sub handler {
             # Redirect to SSO Portal
             # if $r->pnotes('url_to_mod_proxy') wasn't set by Rewrite engine
             unless ( $r->pnotes('url_to_mod_proxy') ) {
-                return redirect_portal($log,$r,$app,$intf,
+                return Core::TransHandlerv2::redirect_portal($log,$r,$app,$intf,
                         \%session_app);
             }
             # A plugin has send a $r->pnotes('url_to_mod_proxy') => proxify
             else {
-                return plugin_proxify($log,$r,$app,\%session_app);
+                return Core::TransHandlerv2::plugin_proxify($log,$r,$app,\%session_app);
            }
         }
         # SSO Portal
@@ -147,7 +147,7 @@ sub handler {
         )
       )
     {
-        return portal_mode ($log,$r,$dbh,$app,$intf,$unparsed_uri);
+        return Core::TransHandlerv2::portal_mode ($log,$r,$dbh,$app,$intf,$unparsed_uri);
     }
     # CAS Portal
     elsif ( $r->hostname =~ $intf->{'cas_portal'} ) {
@@ -156,15 +156,17 @@ sub handler {
     }
     # Application is down or unusable
     elsif ( $app and defined $app->{'up'} and not $app->{'up'} ) {
-        return app_down($log,$r,$dbh,$app);
+        return Core::TransHandlerv2::app_down($log,$r,$dbh,$app);
     }
     # Fail
     else {
-        return app_not_found($log,$r);
+        return Core::TransHandlerv2::app_not_found($log,$r);
     }
 }
 sub plugins_th{
     my ($log,$r,$dbh,$app,$intf,$uuri)=@_;
+    my $mc_conf = $r->pnotes('mc_conf');
+    my $obj = 
     my $query =
 'SELECT uri_pattern, type, options FROM plugin WHERE app_id = ? OR app_id IS NULL';
     my $plugins = $dbh->selectall_arrayref( $query, undef, $app->{id} );
@@ -186,7 +188,7 @@ sub plugins_th{
             }
             $options ||= \@result if defined $1;
             #load plugin
-            load_module($module_name,'plugin');
+            Core::VultureUtils::load_module($module_name,'plugin');
             #execute plugin and get return
             my $ret =
               $module_name->plugin( $r, $log, $dbh, $intf, $app, $options );
@@ -217,7 +219,7 @@ sub rewrite_content{
         $log->debug("Load $module_name");
 
         #Calling associated plugin
-        load_module($module_name,'plugin');
+        Core::VultureUtils::load_module($module_name,'plugin');
         $module_name->plugin( $r, $log, $dbh, $intf, $app );
     }
 }
@@ -238,7 +240,7 @@ sub header_input{
 
         #Calling associated plugin
         #Get return
-        load_module($module_name,'plugin');
+        Core::VultureUtils::load_module($module_name,'plugin');
         $module_name->plugin(
             $r,      $log,  $dbh,     $intf, $app,
             $header, $type, $options, $options1
@@ -257,7 +259,7 @@ sub anon_app{
       unless $r->pnotes('url_to_mod_proxy');
 
     #Getting headers to forward
-    forward_headers($log,$r,$dbh,$app);
+    Core::TransHandlerv2::forward_headers($log,$r,$dbh,$app);
     return Apache2::Const::OK;
 }
 sub authen_app{
@@ -295,7 +297,7 @@ sub authen_app{
         $r->pnotes( 'url_to_mod_proxy' => $proxy_url )
           unless $r->pnotes('url_to_mod_proxy');
     }
-    forward_headers($log,$r,$dbh,$app);
+    Core::TransHandlerv2::forward_headers($log,$r,$dbh,$app);
     return Apache2::Const::OK;
 }
 sub forward_headers{

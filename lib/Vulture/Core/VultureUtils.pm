@@ -199,6 +199,7 @@ sub get_app {
     #Use memcached if possible
     my $obj = get_memcached( $ref->{name}.":app", $mc_conf );
     if ($obj) {
+        $log->debug("got memcached ".$ref->{name}.":app");
         # get corresponding intf for this app/server
         $query = ('SELECT intf.id FROM intf '
             .'JOIN app_intf ON intf.id = app_intf.intf_id '
@@ -253,6 +254,7 @@ sub get_app {
     $sth->finish();
 
     #Caching app if possible
+    $log->debug("set memcached : ".$ref->{name}.":app");
     set_memcached( $ref->{name}.":app", $ref, undef, $mc_conf );
     return $ref;
 }
@@ -669,7 +671,7 @@ sub get_LDAP_mobile{
         $log->error("LDAP: cannot get ldap mobile ..");
         return undef;
     }
-    return get_LDAP_field($log,$dbh,$ldap_id,$login,$ldap_user_mobile);
+    return Core::VultureUtils::get_LDAP_field($log,$dbh,$ldap_id,$login,$ldap_user_mobile);
 }
 sub load_module{
     my ($module_name,$func)= @_;

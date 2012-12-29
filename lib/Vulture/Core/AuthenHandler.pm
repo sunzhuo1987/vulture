@@ -106,7 +106,7 @@ sub handler : method {
 
     #Get user/password from URL or POST method
     elsif ( $r->method eq "POST" or $r->method eq "GET" ) {
-        ( $user, $password, $token) = getRequestData($r);
+        ( $user, $password, $token) = Core::AuthenHandler::getRequestData($r);
     }
     else {
         return Apache2::Const::HTTP_UNAUTHORIZED;
@@ -114,13 +114,13 @@ sub handler : method {
 
 #If user is not logged in SSO, skip this code
 #Check if credentials are good. If they are, give a vulture_proxy cookie and go to AuthzHandler for a vulture_app cookie
-    if ( $session_SSO{is_auth} and check_sso_auths($r,\%session_SSO)){
+    if ( $session_SSO{is_auth} and Core::AuthenHandler::check_sso_auths($r,\%session_SSO)){
         # Same auths
         $log->debug("User is already authorized to access this SSO");
         $session_SSO{$app->{name}}=$r->pnotes('id_session_app')
             if ( defined $app->{name} 
                 and defined $r->pnotes('id_session_app') );
-        validate_auth(
+        Core::AuthenHandler::validate_auth(
             $r, $session_SSO{username}, $session_SSO{password},
             $service,\%session_SSO,0);
         return Apache2::Const::OK;
@@ -141,14 +141,14 @@ sub handler : method {
     foreach my $row (@$auths) {
         $r->pnotes('last_auth_attempt'=>@$row[0]);
         if ( uc( @$row[1] ) eq "NTLM" ) {
-            $ret = multipleAuth( $r, $log, $dbh, $auths, $app, $user, $password,
+            $ret = Core::AuthenHandler::multipleAuth( $r, $log, $dbh, $auths, $app, $user, $password,
                 $class,\%session_SSO );
             $ntlm = 1;
             last;
         }
         elsif ( uc( @$row[1] ) eq "CAS" ) {
             $log->debug("CAS mode");
-            $ret = multipleAuth( $r, $log, $dbh, $auths, $app, $user, $password,
+            $ret = Core::AuthenHandler::multipleAuth( $r, $log, $dbh, $auths, $app, $user, $password,
                 $class,\%session_SSO );
             $cas = 1;
             last;
@@ -161,7 +161,7 @@ sub handler : method {
             }
         }
     }
-    $ret = multipleAuth( $r, $log, $dbh, $auths, $app, 
+    $ret = Core::AuthenHandler::multipleAuth( $r, $log, $dbh, $auths, $app, 
         $user, $password, 0,\%session_SSO)
     if (
         defined $user
@@ -180,7 +180,7 @@ sub handler : method {
       if defined $r->pnotes('auth_message');
 
     #Trigger action when change pass is needed / auth failed
-    auth_triggers ($r,$ret,$user,$password,$intf,$app);
+    Core::AuthenHandler::auth_triggers ($r,$ret,$user,$password,$intf,$app);
 
     if (defined $ret and $ret == scalar Apache2::Const::OK )
     {
@@ -201,7 +201,7 @@ sub handler : method {
         $session_SSO{username} = $user;
         $session_SSO{password} = $password;
 
-        validate_auth(
+        Core::AuthenHandler::validate_auth(
             $r,$user,$password,$service,\%session_SSO,1);
         return Apache2::Const::OK;
     }
@@ -277,7 +277,7 @@ sub multipleAuth {
         }
         my $module_name = "Auth::Auth_" . uc($type);
         $log->debug("Load $module_name");
-        load_module($module_name,'checkAuth');
+        Core::VultureUtils::load_module($module_name,'checkAuth');
         # Try to authenticate with method
         $ret = $module_name->checkAuth( $r, $log, $dbh, $app, 
             $user, $password,$id_method, $session, $class);
