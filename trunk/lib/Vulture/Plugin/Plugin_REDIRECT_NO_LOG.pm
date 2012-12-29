@@ -6,7 +6,7 @@ package Plugin::Plugin_REDIRECT_NO_LOG;
 use strict;
 use warnings;
 
-use Core::VultureUtils qw(&session);
+use Core::VultureUtils qw(&session &get_app);
 use Apache2::Const -compile => qw(OK);
 
 BEGIN {
@@ -38,9 +38,8 @@ sub plugin {
             #Get app
             Core::VultureUtils::session( \%session_app, $app->{timeout},
                 $app_cookie_name, $log, $mc_conf, $app->{update_access_time} );
-            my $app =
-              Core::VultureUtils::get_app( $log, $session_app{app_name}, $dbh,
-                $intf->{id} );
+            my $app = Core::VultureUtils::get_app( $log, $dbh, $mc_conf,
+                    $intf->{id}, $session_app{app_name});
             $log->debug( "app is " . $session_app{app_name} );
 
             #my @list_options = $options;
@@ -51,7 +50,7 @@ sub plugin {
                 #Redirect
                 if ( trim( $session_app{app_name} ) eq trim($k) ) {
                     $r->pnotes( 'response_content' =>
-"<html><head><meta http-equiv=\"Refresh\" content=\"0; url='"
+            "<html><head><meta http-equiv=\"Refresh\" content=\"0; url='"
                           . $v
                           . "'\"/></head></html>");
                     $r->pnotes( 'response_content_type' => 'text/html' );
@@ -64,7 +63,6 @@ sub plugin {
             }
         }
     }
-
     return undef;
 }
 

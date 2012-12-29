@@ -64,8 +64,9 @@ sub handler {
       Core::VultureUtils::get_intf( $log, $dbh, $r->dir_config('VultureID') );
     $r->pnotes( 'intf' => $intf ) if defined $intf;
     $log->debug( "url is " . $r->hostname . $unparsed_uri );
-    my $app = Core::VultureUtils::get_app( $log, $r->hostname . $unparsed_uri,
-        $dbh, $intf->{id} ) if ( $unparsed_uri !~ /$cookie_app_name=([^;]*)/ );
+    my $app = Core::VultureUtils::get_app( $log, $dbh,$mc_conf,
+        $intf->{id},$r->hostname . $unparsed_uri 
+        ) if ( $unparsed_uri !~ /$cookie_app_name=([^;]*)/ );
     $r->pnotes( 'app' => $app ) if defined $app;
 
     #Plugin or Rewrite (according to URI)
@@ -140,8 +141,8 @@ sub handler {
         or (
             $unparsed_uri =~ /$cookie_app_name=([^;]*)/
             and Core::VultureUtils::get_app(
-                $log, $r->hostname . $unparsed_uri,
-                $dbh, $intf->{id}
+                $log, $dbh, $mc_conf, 
+                $intf->{id},$r->hostname . $unparsed_uri
             )
         )
       )
@@ -385,9 +386,8 @@ sub portal_mode{
         #Get app
         Core::VultureUtils::session( \%session_app, $app->{timeout},
             $app_cookie_name, $log, $mc_conf, $app->{update_access_time} );
-        my $app =
-          Core::VultureUtils::get_app( $log, $session_app{app_name}, $dbh,
-            $intf->{id} );
+        my $app = Core::VultureUtils::get_app( $log, $dbh,$mc_conf,
+            $intf->{id},$session_app{app_name});
 
         #Send app if exists.
         $r->pnotes( 'app' => $app ) if $app;

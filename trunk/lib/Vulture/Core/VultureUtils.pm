@@ -91,15 +91,6 @@ sub session {
     $n                  ||= 0;
     die if ( $n and int $n > 2 );    # avoid deep recursion
 
-#	eval {
-#		tie %$session,'Apache::Session::Flex',$id,{
-#							   Store => 'MySQL',
-#							   Lock  => 'Null',
-#							   Generate => 'MD5',
-#							   Serialize => 'Base64',
-#							   DataSource => 'dbi:SQLite2:dbname=/var/www/vulture/sql/sessions',
-#							  }
-#	} or session($session, $timeout, undef, $log, undef,  $update_access_time, $n + 1);
     eval {
         tie %{$session}, 'Apache::Session::Flex', $id,
           {
@@ -137,7 +128,6 @@ sub session {
         session( $session, $timeout, undef, $log, $mc, $update_access_time,
             $n + 1 );
     }
-
     return $session;
 }
 
@@ -145,32 +135,24 @@ sub get_cookie {
     my $cookie     = shift;
     my $expression = shift;
     my $ret;
-
     return undef if !$cookie or !$expression;
-
     if ( UNIVERSAL::isa( $expression, "ARRAY" ) ) {
         foreach ($expression) {
-            if ( $ret = get_cookie( $cookie, $_ ) ) {
-                return $ret;
-            }
+            return $ret if ( $ret = get_cookie( $cookie, $_ ) );
         }
     }
     if ( UNIVERSAL::isa( $cookie, "ARRAY" ) ) {
         foreach ($cookie) {
-            if ( $ret = get_cookie( $_, $expression ) ) {
-                return $ret;
-            }
+            return $ret if ( $ret = get_cookie( $_, $expression ) );
         }
     }
-
     ($ret) = ( $cookie =~ /$expression/ );
     return $ret;
 }
 
 sub get_app {
-    my ( $log, $host, $dbh, $intf ) = @_;
+    my ( $log, $dbh,$mc_conf,$intf,$host ) = @_;
     my ( $query, $sth, $ref );
-
     return {} unless ( $host and $intf and $dbh );
 
 #Getting app and wildcards
@@ -182,7 +164,7 @@ sub get_app {
     my $apps = $sth->fetchall_hashref('name');
     $sth->finish();
 
-    #(Un)Exact matching (match the host with the deepest path)
+    # Match app with the deepest path
     my $max_fields = -1;
     my $fi;
     while ( my ( $name, $hashref ) = each(%$apps) ) {
@@ -195,11 +177,9 @@ sub get_app {
             }
         }
     }
-
-    #Wildcard
+    # Wildcard
     unless ( defined $ref ) {
         while ( my ( $name, $hashref ) = each(%$apps) ) {
-
             my $cpy = $hashref->{alias};
             $cpy =~ s|\*|\(\.\*\)\\|g;
             if ( $host =~ /$cpy/ ) {
@@ -213,14 +193,18 @@ sub get_app {
             }
         }
     }
-    $ref->{'intf'} = $intf;
+    # we still did'nt found the app
     return {} unless $ref->{id};
+    $ref->{'intf'} = $intf;
     #Use memcached if possible
-    my $obj = get_memcached( $ref->{name}.":app", get_memcached_conf($dbh) );
+    my $obj = get_memcached( $ref->{name}.":app", $mc_conf );
     if ($obj) {
-        $query =
-'SELECT intf.id FROM intf JOIN app_intf ON intf.id = app_intf.intf_id JOIN app ON app_intf.app_id = app.id WHERE ? LIKE app.name || "%" ORDER BY app.name DESC';
-#        $log->debug($query);
+        # get corresponding intf for this app/server
+        $query = ('SELECT intf.id FROM intf '
+            .'JOIN app_intf ON intf.id = app_intf.intf_id '
+            .'JOIN app ON app_intf.app_id = app.id '
+            .'WHERE ? LIKE app.name || "%" ORDER BY app.name DESC');
+        $log->debug($query);
         $sth = $dbh->prepare($query);
         $sth->execute($ref->{name});
         my $var;
@@ -230,9 +214,8 @@ sub get_app {
             }
         }
         $sth->finish();
+        return $obj;
     }
-    return $obj if $obj;
-
 
 #Getting auth
 #$query = "SELECT auth.name, auth.auth_type, auth.id_method FROM auth, auth_multiple WHERE auth_multiple.app_id = ? AND auth_multiple.auth_id = auth.id";
@@ -270,7 +253,7 @@ sub get_app {
     $sth->finish();
 
     #Caching app if possible
-    set_memcached( $ref->{name}.":app", $ref, undef, get_memcached_conf($dbh) );
+    set_memcached( $ref->{name}.":app", $ref, undef, $mc_conf );
     return $ref;
 }
 
