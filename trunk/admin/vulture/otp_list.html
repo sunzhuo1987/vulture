@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}
+	{% trans "Auth" %} - <small>{% trans "OTP list" %}</small>
+{% endblock %}
+
+{% block tabs %}
+    <li><a href="#" id="main_tab_1" class="active">{% trans "List" %}</a></li>
+    <li><a href="/otp/new/">{% trans "Add" %}</a></li>
+{% endblock %}
+
+{% block content %}
+	<div id="main_content_1" class="main_content">
+        <table>
+            <tr>
+                <th>{% trans "Name" %}</th>
+                <th>{% trans "LDAP" %}</th>
+                <th>{% trans "Script" %}</th>
+                <th>{% trans "Pass Length" %}</th>
+                <th>{% trans "Template" %}</th>
+                <th>{% trans "Timeout" %}</th>
+                <th style="width: 72px;"></th>
+            </tr>
+            {% for object in object_list %}
+                <tr>
+                    <td>{{ object.name }}</td>
+                    <td>{{ object.ldap }}</td>
+                    <td>{{ object.script }}</td>
+                    <td>{{ object.passlen }}</td>
+                    <td>{{ object.template }}</td>
+                    <td>{{ object.timeout }}</td>
+                    <td>
+                        <a href="/otp/{{ object.pk }}/del/"><img src="/img/vulture2/trash.png" alt="delete" /></a>
+                        <a href="/otp/{{ object.pk }}"><img src="/img/vulture2/edit.png" alt="edit" /></a>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="5" style="text-align:center;">{% trans "The list is empty. You can add an item " %}<a href="/otp/new/">{% trans "here" %}</a></td></tr>
+            {% endfor %}
+        </table>
+    </div>
+{% endblock %}

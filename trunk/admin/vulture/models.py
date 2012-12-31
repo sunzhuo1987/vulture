@@ -368,6 +368,7 @@ class Profile(models.Model):
     user = models.TextField()
     login = models.CharField(max_length=256,null=1)
     password = models.CharField(max_length=256,null=1, blank=1)
+    third45 = models.CharField(max_length=256,null=1, blank=1)
     class Meta:
         db_table = 'profile'
 
@@ -671,6 +672,21 @@ class Logic(models.Model):
             [a.name for a in self.auths.all()]
             )
 
+class OTP(models.Model):
+    name = models.CharField(max_length=128)
+    ldap = models.ForeignKey('LDAP')
+    script = models.TextField(
+        default="sendsms -n {{number}} -m {{message}}"
+        )
+    passlen = models.IntegerField(default=8)
+    template = models.TextField(
+        default="OPT pass for {{user}} : {{pass}}",
+        max_length=150
+        )
+    timeout = models.IntegerField(default=3600)
+    class Meta:
+        db_table='otp'
+
 class Auth(models.Model):
     TYPES = {
         'sql':SQL,
@@ -679,7 +695,8 @@ class Auth(models.Model):
         'ntlm':NTLM,
         'kerberos':Kerberos,
         'cas':CAS,
-        'logic':Logic
+        'logic':Logic,
+        'otp':OTP,
         }
     name = models.CharField(max_length=128, unique=1)
     auth_type = models.CharField(max_length=20,
@@ -718,7 +735,7 @@ class SSO(models.Model):
         )
     name = models.CharField(max_length=128, unique=1)
     type = models.CharField(max_length=20, choices=SSO_TYPES, blank=1)
-    auth = models.ForeignKey('Auth', blank=0, null=0)
+    auth = models.ForeignKey('Auth', null=1)
     table_mapped = models.CharField(max_length=128, blank=1, null=1)
     base_dn_mapped = models.CharField(max_length=128, blank=1, null=1)
     user_mapped = models.CharField(max_length=128, blank=1, null=1)
