@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}
+	{% trans "System" %} - <small>{% trans "One-Time-Password settings" %}</small>
+{% endblock %}
+
+{% block tabs %}
+    <li><a href="/otp/">{% trans "List" %}</a></li>
+    <li><a href="#" id="main_tab_1" class="active">{% trans "Main settings" %}</a></li>
+{% endblock %}
+
+{% block content %}
+    <form method="post" id="otp" action=".">
+        <div id="main_content_1" class="main_content">
+            <table>
+                 {{form}}
+            </table>
+        </div>
+        <br />
+        <input type="submit" value="{% trans "Save settings" %}"/>
+        <input type="button" onclick="document.location='/otp/'" value="{% trans "Cancel" %}"/>
+    </form>
+{% endblock %}

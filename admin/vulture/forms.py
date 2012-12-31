@@ -147,6 +147,10 @@ class ACLForm(forms.ModelForm):
     class Meta:
         model = ACL
 
+class OTPForm(forms.ModelForm):
+    class Meta:
+        model = OTP
+
 class SQLForm(forms.ModelForm):
     # def clean_database(self):
         # database = self.cleaned_data["database"]

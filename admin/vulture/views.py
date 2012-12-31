@@ -224,22 +224,23 @@ def stop_app(request,object_id):
 
 @permission_required('vulture.change_auth')
 def edit_auth(request, url, object_id=None):
-    if url == 'sql':
-        form = SQLForm(request.POST or None,instance=object_id and SQL.objects.get(id=object_id))
-    elif url == 'ldap':
-        form = LDAPForm(request.POST or None,instance=object_id and LDAP.objects.get(id=object_id))
-    elif url == 'ssl':
-        form = SSLForm(request.POST or None,instance=object_id and SSL.objects.get(id=object_id))
-    elif url == 'ntlm':
-        form = NTLMForm(request.POST or None,instance=object_id and NTLM.objects.get(id=object_id))
-    elif url == 'kerberos':
-        form = KerberosForm(request.POST or None,instance=object_id and Kerberos.objects.get(id=object_id))
-    elif url == 'radius':
-        form = RADIUSForm(request.POST or None,instance=object_id and RADIUS.objects.get(id=object_id))
-    elif url == 'cas':
-        form = CASForm(request.POST or None,instance=object_id and CAS.objects.get(id=object_id))
-    elif url == 'logic':
-        form = LogicForm(request.POST or None,instance=object_id and Logic.objects.get(id=object_id))
+    form_types = {
+            'sql':SQLForm,
+            'ldap':LDAPForm,
+            'ssl':SSLForm,
+            'ntlm':NTLMForm,
+            'kerberos':KerberosForm,
+            'radius':RADIUSForm,
+            'cas':CASForm,
+            'logic':LogicForm,
+            'otp':OTPForm
+        }
+    obj_cls = Auth.TYPES[url]
+    form_cls = form_types[url]
+    form = form_cls(
+            request.POST or None,
+            instance = object_id and obj_cls.objects.get(id=object_id)
+            )
     # Save new/edited auth
     if request.method == 'POST' and form.is_valid():
         instance = form.save()
