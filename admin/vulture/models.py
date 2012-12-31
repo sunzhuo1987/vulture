@@ -213,7 +213,7 @@ class Intf(models.Model):
          
     def tryConf(self):
         cfile="%s%s.conf"%(settings.CONF_PATH,self.id)
-        proc = subprocess.Popen(settings.HTTPD_PATH.split()+["-f",cfile,"-t"],0,"/usr/bin/sudo",None,subprocess.PIPE,subprocess.PIPE)
+        proc = subprocess.Popen(settings.HTTPD_PATH.split()+["-t","-f",cfile],0,"/usr/bin/sudo",None,subprocess.PIPE,subprocess.PIPE)
         if not proc:
             raise "Unable to execute apache!"
         if proc.wait():
@@ -267,7 +267,7 @@ class Intf(models.Model):
             
     def pid(self):
         regproc = re.compile("^(\d+)$")
-	regstat = re.compile("\d+\s+\(.*(httpd|apache)/*\)\s+\w\s+(\d+)\s+.*")
+        regstat = re.compile("\d+\s+\(.*(httpd|apache)/*\)\s+\w\s+(\d+)\s+.*")
         try:
                 f = open("%s%s.pid" % (settings.CONF_PATH, self.id), "r")
                 pid = f.read().strip()
@@ -371,45 +371,6 @@ class Profile(models.Model):
     class Meta:
         db_table = 'profile'
 
-class Auth(models.Model):
-    TYPES = (
-        ('sql','sql'),
-        ('ldap','ldap'),
-        ('ssl','ssl'),
-        ('ntlm','ntlm'),
-        ('kerberos','kerberos'),
-        ('cas','cas'),
-        ('logic','logic'),
-        )
-    name = models.CharField(max_length=128, unique=1)
-    auth_type = models.CharField(max_length=20,choices=TYPES)
-    id_method = models.IntegerField()
-    def getAuth(self):
-        if self.auth_type == 'sql':
-            return SQL.objects.get(id=self.id_method)
-        elif self.auth_type == 'ldap':
-            return LDAP.objects.get(id=self.id_method)
-        elif self.auth_type == 'ssl':
-            return SSL.objects.get(id=self.id_method)
-        elif self.auth_type == 'ntlm':
-            return NTLM.objects.get(id=self.id_method)
-        elif self.auth_type == 'kerberos':
-            return Kerberos.objects.get(id=self.id_method)
-        elif self.auth_type == 'cas':
-            return CAS.objects.get(id=self.id_method)
-        elif self.auth_type == 'logic':
-            return Logic.objects.get(id=self.id_method)
-        else:
-            return None
-    def is_ssl(self):
-        if self.auth_type == 'ssl':
-            return True
-        return False
-    def __str__(self):
-        return self.name
-    class Meta:
-        db_table = 'auth'
-
 class ACL(models.Model):
     name = models.CharField(max_length=128, unique=1)
     auth = models.ForeignKey('Auth')
@@ -458,7 +419,8 @@ class EventLogger(models.Model):
     info = models.CharField(max_length = 256, null=1, blank=1)
     class Meta:
         db_table = 'event_logger'
-    
+   
+# Authentification classes
 class SQL(models.Model):
     SQL_DRIVERS = (
         ('SQLite', 'SQLite'),
@@ -487,12 +449,9 @@ class SQL(models.Model):
         if self.driver == 'SQLite':
             con = sqlite3.connect(self.database)
             cur = con.cursor()
-            query = "SELECT %s from %s" % (self.user_column, self.table)
-            sep = " WHERE "
-            for user in user_ok:
-                query += sep + "%s != '%s'" % (self.user_column, user.user)
-                sep = " AND "
-            print query
+            query = "SELECT %s from %s WHERE %s NOT IN (%s)" % (
+                self.user_column, self.table,self.user_column,
+                ",".join(["'%s'"%user.user for user in user_ok]))
             cur.execute(query)
             for user in cur:
                 user_ko.append(('%s' % user, '%s' % user))
@@ -501,21 +460,6 @@ class SQL(models.Model):
         return self.name
     class Meta:
         db_table = 'sql'
-
-class Logic(models.Model):
-    OPERATORS = (
-        ('OR','OR'),
-        ('AND','AND'),
-        )
-    name = models.CharField(max_length=128, unique=1)
-    op = models.CharField(max_length=3,choices=OPERATORS)
-    auths = models.ManyToManyField(Auth)
-    class Meta:
-        db_table = 'logic'
-    def __unicode__(self):
-        return "( %s )"+(" %s "%self.op).join(
-            [a.name for a in self.auths.all()]
-            )
 
 class Kerberos(models.Model):
     name = models.CharField(max_length=128,unique=1)
@@ -534,6 +478,221 @@ class CAS(models.Model):
         return self.name
     class Meta:
         db_table = 'cas'
+
+class SSL(models.Model):
+    SSL_REQUIRE = (
+        ('optional', 'optional'),
+        ('require', 'require'),
+        )
+    name = models.CharField(max_length=128,unique=1)
+    require = models.CharField(max_length=20, choices=SSL_REQUIRE)
+    crt = models.TextField()
+    constraint = models.TextField()
+    def __str__(self):
+        return self.name
+    class Meta:
+        db_table = 'ssl'
+
+class NTLM(models.Model):
+    name = models.CharField(max_length=128,unique=1)
+    domain = models.CharField(max_length=128)
+    primary_dc = models.CharField(max_length=128)
+    secondary_dc = models.CharField(max_length=128, blank=1, null=1)
+    def __str__(self):
+        return self.name
+    class Meta:
+        db_table = 'ntlm'
+
+class RADIUS(models.Model):
+    name = models.CharField(max_length=128,unique=1)
+    host = models.CharField(max_length=128)
+    port = models.IntegerField()
+    secret = models.CharField(max_length=64)
+    timeout = models.IntegerField()
+    url_attr = models.CharField(max_length=32, blank=1)
+    def __str__(self):
+        return self.name
+    class Meta:
+        db_table = 'radius'
+
+class LDAP(models.Model):
+    LDAP_ENC_SCHEMES = (
+            ('none','none (usual port: 389)'),
+            ('ldaps','ldaps (usual port: 636)'),
+            ('start-tls','start-tls (usual port: 389)'),
+            )
+    LDAP_SCOPE = (
+            (ldap.SCOPE_SUBTREE,'subtree (all levels under suffix)'),
+            (ldap.SCOPE_ONELEVEL,'one (one level under suffix)'),
+            (ldap.SCOPE_BASE,'base (the suffix entry only)'),
+            )
+    LDAP_VERSIONS = (
+            ('2','LDAP v2'),
+            ('3','LDAP v3'),
+            )
+    name = models.CharField(max_length=128, unique=1)
+    host = models.CharField(max_length=128)
+    port = models.IntegerField()
+    protocol = models.CharField(max_length=1,choices=LDAP_VERSIONS, default="3")
+    scheme = models.CharField(max_length=128,choices=LDAP_ENC_SCHEMES, default="none")
+    cacert_path = models.CharField(max_length=64, blank=1, null=1)
+    base_dn = models.CharField(max_length=64)
+    dn = models.CharField(max_length=64)
+    password = models.CharField(max_length=64)
+    user_ou = models.CharField(max_length=128, blank=1, null=1)
+    user_attr = models.CharField(max_length=32)
+    user_scope = models.IntegerField(choices=LDAP_SCOPE)
+    user_filter = models.CharField(max_length=128, blank=1, null=1)
+    user_account_locked_attr = models.CharField(max_length=128, blank=1, null=1)
+    user_mobile = models.CharField(max_length=15,blank=1)
+    group_ou = models.CharField(max_length=128, blank=1, null=1)
+    group_attr = models.CharField(max_length=32)
+    group_scope = models.IntegerField(choices=LDAP_SCOPE)
+    group_filter = models.CharField(max_length=128, blank=1, null=1)
+    group_member = models.CharField(max_length=32, blank=1, null=1)
+    are_members_dn = models.BooleanField()
+    url_attr = models.CharField(max_length=32, blank=1)
+    chpass_attr = models.CharField(max_length=32, blank=1)
+    def search(self, base_dn, scope, filter, attr):
+        result_set = []
+        try:
+            l = ldap.open(self.host)
+            l.simple_bind_s(self.dn, self.password)
+            result_id = l.search(base_dn, scope, filter.encode('utf-8'), attr)
+            while 1:
+                result_type, result_data = l.result(result_id, 0)
+                if not result_data:
+                    break
+                if result_type == ldap.RES_SEARCH_ENTRY:
+                    result_set.append(result_data)
+        except ldap.LDAPError, error_message:
+            print error_message
+        if len(result_set) == 0:
+            return
+        result_set_cleaned = []
+        for i in range(len(result_set)):
+            for entry in result_set[i]:
+                    dic = (entry[1])
+                    search_attr = attr[0]
+                    try:
+                        result_set_cleaned.append( (dic[search_attr][0],dic[search_attr][0]) )
+                    except:
+                        pass
+        return sorted(result_set_cleaned, key=operator.itemgetter(1))
+
+    def user_ko(self, user_ok):
+        user_filter = "(&"
+        user_filter += self.user_filter or "(|(objectclass=posixAccount)(objectclass=inetOrgPerson)(objectclass=person))"
+        for user in user_ok:
+            name = user.user
+            user_filter += "(!("+self.user_attr+"="+name.decode('utf-8')+"))"
+        user_filter += ")"
+        ret = self.search(self.user_ou or self.base_dn, self.user_scope, user_filter, [ str(self.user_attr) ])
+        return ret
+
+    def all_groups(self):
+        ret = self.search(self.group_ou or self.base_dn, self.group_scope, self.group_filter, [ str(self.group_attr) ])
+        return ret
+
+    def group_ko(self, group_ok):
+        group_filter = "(&"
+        group_filter += self.group_filter or "(|(objectclass=posixGroup)(objectclass=group)(objectclass=groupofuniquenames))"
+        for group in group_ok:
+            name = group.group
+            group_filter += "(!("+self.group_attr+"="+name.decode('utf-8')+"))"
+        group_filter += ")"
+        ret = self.search(self.group_ou or self.base_dn, self.group_scope, group_filter, [ str(self.group_attr) ])
+        return ret
+
+    def modify(self, dn, attrs):
+        try:
+            l = ldap.open(self.host)
+            l.simple_bind_s(self.dn, self.password)
+            l.modify_s(dn.encode('utf-8'), attrs)
+        except ldap.LDAPError, error_message:
+            raise error_message
+
+    def add(self, dn, attrs):
+        try:
+            l = ldap.open(self.host)
+            l.simple_bind_s(self.dn, self.password)
+            l.add_s(dn.encode('latin-1'), attrs)
+            print "ADD %s" % dn
+            print attrs
+        except ldap.LDAPError, error_message:
+            print error_message
+
+    def member(self, mod_type, group_cn, user_dn):
+        try:
+            l = ldap.open(self.host)
+            l.simple_bind_s(self.dn, self.password)
+            dn = self.group_attr + "=" + group_cn + ",ou=" + self.group_ou + "," + self.base_dn
+            l.modify_s(dn.encode('utf-8'), [(mod_type, "member", user_dn.encode('utf-8'))])
+        except ldap.LDAPError, error_message:
+            print error_message
+
+    def delete_user(self, uid):
+        try:
+            l = ldap.open(self.host)
+            l.simple_bind_s(self.dn, self.password)
+            l.delete_s("uid="+uid+",ou="+self.user_ou+","+self.base_dn)
+        except ldap.LDAPError, error_message:
+            print error_message
+
+    def delete_group(self, cn):
+        try:
+            l = ldap.open(self.host)
+            l.simple_bind_s(self.dn, self.password)
+            l.delete_s("cn="+cn+",ou="+self.group_ou+","+self.base_dn)
+        except ldap.LDAPError, error_message:
+            print error_message
+
+    class Meta:
+        db_table = 'ldap'
+    
+    def __unicode__(self):
+        return self.host
+
+    def get_absolute_url(self):
+        return "/ldap/"
+
+class Logic(models.Model):
+    OPERATORS = (
+        ('OR','OR'),
+        ('AND','AND'),
+        )
+    name = models.CharField(max_length=128, unique=1)
+    op = models.CharField(max_length=3,choices=OPERATORS)
+    auths = models.ManyToManyField('Auth')
+    class Meta:
+        db_table = 'logic'
+    def __unicode__(self):
+        return "( %s )"+(" %s "%self.op).join(
+            [a.name for a in self.auths.all()]
+            )
+
+class Auth(models.Model):
+    TYPES = {
+        'sql':SQL,
+        'ldap':LDAP,
+        'ssl':SSL,
+        'ntlm':NTLM,
+        'kerberos':Kerberos,
+        'cas':CAS,
+        'logic':Logic
+        }
+    name = models.CharField(max_length=128, unique=1)
+    auth_type = models.CharField(max_length=20,
+        choices=[(k,k) for k in TYPES])
+    id_method = models.IntegerField()
+    def getAuth(self):
+        return TYPES[self.auth_type]
+    def is_ssl(self):
+        return self.auth_type == 'ssl'
+    def __str__(self):
+        return self.name
+    class Meta:
+        db_table = 'auth'
 
 class ModSecurity(models.Model):
     name = models.CharField(max_length=128,unique=1)
@@ -824,42 +983,6 @@ class BlackIP(models.Model):
     class Meta:
         db_table = 'blackip'
 
-class SSL(models.Model):
-    SSL_REQUIRE = (
-        ('optional', 'optional'),
-        ('require', 'require'),
-        )
-    name = models.CharField(max_length=128,unique=1)
-    require = models.CharField(max_length=20, choices=SSL_REQUIRE)
-    crt = models.TextField()
-    constraint = models.TextField()
-    def __str__(self):
-        return self.name
-    class Meta:
-        db_table = 'ssl'
-
-class NTLM(models.Model):
-    name = models.CharField(max_length=128,unique=1)
-    domain = models.CharField(max_length=128)
-    primary_dc = models.CharField(max_length=128)
-    secondary_dc = models.CharField(max_length=128, blank=1, null=1)
-    def __str__(self):
-        return self.name
-    class Meta:
-        db_table = 'ntlm'
-
-class RADIUS(models.Model):
-    name = models.CharField(max_length=128,unique=1)
-    host = models.CharField(max_length=128)
-    port = models.IntegerField()
-    secret = models.CharField(max_length=64)
-    timeout = models.IntegerField()
-    url_attr = models.CharField(max_length=32, blank=1)
-    def __str__(self):
-        return self.name
-    class Meta:
-        db_table = 'radius'
-
 class Header(models.Model):
     HEADER_TYPE = (
     ('CUSTOM', 'CUSTOM'),
@@ -892,192 +1015,6 @@ class Header(models.Model):
         return self.name
     class Meta:
         db_table = 'header'
-
-class LDAP(models.Model):
-    LDAP_ENC_SCHEMES = (
-            ('none','none (usual port: 389)'),
-            ('ldaps','ldaps (usual port: 636)'),
-            ('start-tls','start-tls (usual port: 389)'),
-            )
-    LDAP_SCOPE = (
-            (ldap.SCOPE_SUBTREE,'subtree (all levels under suffix)'),
-            (ldap.SCOPE_ONELEVEL,'one (one level under suffix)'),
-            (ldap.SCOPE_BASE,'base (the suffix entry only)'),
-            )
-    LDAP_VERSIONS = (
-            ('2','LDAP v2'),
-            ('3','LDAP v3'),
-            )
-    name = models.CharField(max_length=128, unique=1)
-    host = models.CharField(max_length=128)
-    port = models.IntegerField()
-    protocol = models.CharField(max_length=1,choices=LDAP_VERSIONS, default="3")
-    scheme = models.CharField(max_length=128,choices=LDAP_ENC_SCHEMES, default="none")
-    cacert_path = models.CharField(max_length=64, blank=1, null=1)
-    base_dn = models.CharField(max_length=64)
-    dn = models.CharField(max_length=64)
-    password = models.CharField(max_length=64)
-    user_ou = models.CharField(max_length=128, blank=1, null=1)
-    user_attr = models.CharField(max_length=32)
-    user_scope = models.IntegerField(choices=LDAP_SCOPE)
-    user_filter = models.CharField(max_length=128, blank=1, null=1)
-    user_account_locked_attr = models.CharField(max_length=128, blank=1, null=1)
-    user_mobile = models.CharField(max_length=15,blank=1)
-    group_ou = models.CharField(max_length=128, blank=1, null=1)
-    group_attr = models.CharField(max_length=32)
-    group_scope = models.IntegerField(choices=LDAP_SCOPE)
-    group_filter = models.CharField(max_length=128, blank=1, null=1)
-    group_member = models.CharField(max_length=32, blank=1, null=1)
-    are_members_dn = models.BooleanField()
-    url_attr = models.CharField(max_length=32, blank=1)
-    chpass_attr = models.CharField(max_length=32, blank=1)
-    def search(self, base_dn, scope, filter, attr):
-        result_set = []
-        try:
-            l = ldap.open(self.host)
-            l.simple_bind_s(self.dn, self.password)
-            result_id = l.search(base_dn, scope, filter.encode('utf-8'), attr)
-            while 1:
-                result_type, result_data = l.result(result_id, 0)
-                if not result_data:
-                    break
-                if result_type == ldap.RES_SEARCH_ENTRY:
-                    result_set.append(result_data)
-        except ldap.LDAPError, error_message:
-            print error_message
-        if len(result_set) == 0:
-            return
-        result_set_cleaned = []
-        for i in range(len(result_set)):
-            for entry in result_set[i]:
-                    dic = (entry[1])
-                    search_attr = attr[0]
-                    try:
-                        result_set_cleaned.append( (dic[search_attr][0],dic[search_attr][0]) )
-                    except:
-                        pass
-        return sorted(result_set_cleaned, key=operator.itemgetter(1))
-
-    def user_ko(self, user_ok):
-        user_filter = "(&"
-        user_filter += self.user_filter or "(|(objectclass=posixAccount)(objectclass=inetOrgPerson)(objectclass=person))"
-        for user in user_ok:
-            name = user.user
-            user_filter += "(!("+self.user_attr+"="+name.decode('utf-8')+"))"
-        user_filter += ")"
-        ret = self.search(self.user_ou or self.base_dn, self.user_scope, user_filter, [ str(self.user_attr) ])
-        return ret
-
-    def all_groups(self):
-        ret = self.search(self.group_ou or self.base_dn, self.group_scope, self.group_filter, [ str(self.group_attr) ])
-        return ret
-
-    def group_ko(self, group_ok):
-        group_filter = "(&"
-        group_filter += self.group_filter or "(|(objectclass=posixGroup)(objectclass=group)(objectclass=groupofuniquenames))"
-        for group in group_ok:
-            name = group.group
-            group_filter += "(!("+self.group_attr+"="+name.decode('utf-8')+"))"
-        group_filter += ")"
-        ret = self.search(self.group_ou or self.base_dn, self.group_scope, group_filter, [ str(self.group_attr) ])
-        return ret
-
-    def modify(self, dn, attrs):
-        try:
-            l = ldap.open(self.host)
-            l.simple_bind_s(self.dn, self.password)
-            l.modify_s(dn.encode('utf-8'), attrs)
-        except ldap.LDAPError, error_message:
-            raise error_message
-
-    def add(self, dn, attrs):
-        try:
-            l = ldap.open(self.host)
-            l.simple_bind_s(self.dn, self.password)
-            l.add_s(dn.encode('latin-1'), attrs)
-            print "ADD %s" % dn
-            print attrs
-        except ldap.LDAPError, error_message:
-            print error_message
-
-    def member(self, mod_type, group_cn, user_dn):
-        try:
-            l = ldap.open(self.host)
-            l.simple_bind_s(self.dn, self.password)
-            dn = self.group_attr + "=" + group_cn + ",ou=" + self.group_ou + "," + self.base_dn
-            l.modify_s(dn.encode('utf-8'), [(mod_type, "member", user_dn.encode('utf-8'))])
-        except ldap.LDAPError, error_message:
-            print error_message
-
-    def delete_user(self, uid):
-        try:
-            l = ldap.open(self.host)
-            l.simple_bind_s(self.dn, self.password)
-            l.delete_s("uid="+uid+",ou="+self.user_ou+","+self.base_dn)
-        except ldap.LDAPError, error_message:
-            print error_message
-
-    def delete_group(self, cn):
-        try:
-            l = ldap.open(self.host)
-            l.simple_bind_s(self.dn, self.password)
-            l.delete_s("cn="+cn+",ou="+self.group_ou+","+self.base_dn)
-        except ldap.LDAPError, error_message:
-            print error_message
-
-    class Meta:
-        db_table = 'ldap'
-    
-    def __unicode__(self):
-        return self.host
-
-    def get_absolute_url(self):
-        return "/ldap/"
-
-def add_member(con2, uid, groups):
-    dn = "uid="+uid+",ou="+l.user_ou+","+l.base_dn
-    for group in groups:
-        l.member(ldap.MOD_ADD, group, dn)
-        if group == 'Gestion projets':
-            cur = con.cursor()
-            query = "UPDATE utilisateur SET actif='Y' WHERE login='%s'" % uid
-            cur.execute(query.encode('latin-1'))
-            con.commit()
-        if group == 'Gestion Insertion' or group == u'Requ??te Insertion' or group == 'Administrateur Insertion':
-            cur = con2.cursor()
-            query = "UPDATE webmasters SET actif=1 WHERE web_user='%s'" % uid
-            cur.execute(query.encode('latin-1'))
-            con2.commit()    
-
-def del_member(con2, uid, groups):
-    dn = "uid="+uid+",ou="+l.user_ou+","+l.base_dn
-    for group in groups:
-        l.member(ldap.MOD_DELETE, group, dn)
-        if group == 'Gestion projets':
-            cur = con.cursor()
-            query = "UPDATE utilisateur SET actif='N' WHERE login='%s'" % uid
-            cur.execute(query.encode('latin-1'))
-            con.commit()
-        if group == 'Gestion Insertion' or group == u'Requ??te Insertion' or group == 'Administrateur Insertion':
-            cur = con2.cursor()
-            query = "UPDATE webmasters SET actif=0 WHERE web_user='%s'" % uid
-            cur.execute(query.encode('latin-1'))
-            con2.commit()
-
-
-def passphrase():
-    return DjangoUser.objects.make_random_password(length=10, allowed_chars='abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789')
-
-def personalTitles():
-    ret = (
-        ('Mademoiselle','Mademoiselle'),
-        ('Monsieur','Monsieur'),
-        ('Madame','Madame')
-        )
-    return ret
-    
-def getAllIntfs():
-    return Intf.objects.all()
 
 class CSS(models.Model):
     name = models.CharField(max_length=128, unique=1)

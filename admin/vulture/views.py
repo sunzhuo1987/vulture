@@ -55,81 +55,22 @@ def update_security(request):
 def manage_cluster(request):
     if request.method == 'POST': 
         version = str(int(request.POST['version'])) 
-    	cur = connection.cursor()
-	Conf.objects.filter(var='version_conf').update(value=version)
-	myname = Conf.objects.get(var='name').value
-	MC.set(myname+":version",version)
-    last = MC.get(MC.versionkey) or 0
-    next = str(int(last)+1)
-    return render_to_response('vulture/cluster_list.html', {'last_version':last, 'next_version':next, 'object_list':MC.all_elements()})
+        cur = connection.cursor()
+        Conf.objects.filter(var='version_conf').update(value=version)
+        myname = Conf.objects.get(var='name').value
+        MC.set(myname+":version",version)
+    last = MC.get(MC.VERSIONKEY) or 0
+    next_ = str(int(last)+1)
+    return render_to_response('vulture/cluster_list.html', {'last_version':last, 'next_version':next_, 'object_list':MC.list_servers()})
 
 @permission_required('vulture.change_intf')
 def edit_intf(request,object_id=None):
     form = IntfForm(request.POST or None,instance = object_id and Intf.objects.get(id=object_id))
-    if object_id:
-        intf = Intf.objects.get(id = object_id)
-        name = intf.name
-        ip = intf.ip
-        port = intf.port
-        ssl_engine = intf.ssl_engine
-        log = intf.log
-        sso_portal = intf.sso_portal
-        sso_timeout = intf.sso_timeout
-        sso_update_access_time = intf.sso_update_access_time
-        appearance = intf.appearance
-        cas_portal = intf.cas_portal
-        cas_auth = intf.cas_auth
-        cas_auth_basic = intf.cas_auth_basic
-        cas_st_timeout = intf.cas_st_timeout
-        cas_redirect = intf.cas_redirect
-        cas_display_portal = intf.cas_display_portal
-        auth_server_failure_action = intf.auth_server_failure_action
-        auth_server_failure_options = intf.auth_server_failure_options
-        account_locked_action = intf.account_locked_action
-        account_locked_options = intf.account_locked_options
-        login_failed_action = intf.login_failed_action
-        login_failed_options = intf.login_failed_options
-        need_change_pass_action = intf.need_change_pass_action
-        need_change_pass_options = intf.need_change_pass_options
-        cert = intf.cert
-        key = intf.key
-        ca = intf.ca
-        cacert = intf.cacert
-        virtualhost_directives = intf.virtualhost_directives
-    else:
-        name = None
-        ip = None
-        port = None
-        ssl_engine = None
-        log = None
-        sso_portal = None 
-        sso_timeout = None
-        sso_update_access_time = None
-        appearance = None
-        cas_portal = None
-        cas_auth = None
-        cas_auth_basic = None
-        cas_st_timeout = None
-        cas_redirect = None
-        cas_display_portal = None
-        auth_server_failure_action = None
-        auth_server_failure_options = None
-        account_locked_action = None
-        account_locked_options = None
-        login_failed_action = None
-        login_failed_options = None
-        need_change_pass_action = None
-        need_change_pass_options = None
-        cert = None
-        key = None
-        ca = None
-        cacert = None
-        virtualhost_directives = None
     if request.method == 'POST' and form.is_valid():
         intf = form.save()
         return HttpResponseRedirect("/intf")
     return render_to_response('vulture/intf_form.html',
-			{'form':form, 'user': request.user })
+            {'form':form, 'user': request.user })
 
 @permission_required('vulture.change_vintf')
 def edit_vintf(request,object_id=None):
@@ -137,14 +78,14 @@ def edit_vintf(request,object_id=None):
     if object_id:
         vintf = VINTF.objects.get(id=object_id)
         name = vintf.name
-	intf = vintf.intf
+        intf = vintf.intf
         ip = vintf.ip
         netmask = vintf.netmask
         broadcast = vintf.broadcast
     else:
         name = None
         ip = None
-	intf = None
+        intf = None
         netmask = None
         broadcast = None
     if request.method == 'POST' and form.is_valid():
@@ -208,7 +149,7 @@ def stop_intf(request, intf_id):
     apps = App.objects.filter(intf=intf).all()
     for app in apps:
         # Delete memcached records to update config
-       	MC.delete(app.name + ':app')
+        MC.delete(app.name + ':app')
     sleep(2)
     return render_to_response('vulture/intf_list.html',
                               {'object_list': Intf.objects.all(), 'k_output': k_output, 'user' : request.user})
@@ -237,19 +178,18 @@ def reload_all_intfs(request):
         if intf.need_restart:
             fail = intf.maybeWrite()
             if fail:
-                 k_output += intf.name+":"+fail
+                k_output += "%s:%s"%(intf.name,fail)
             else:
-                 k_output += intf.name+":"
-                 outp = intf.k('graceful')
-                 if outp:
-                     k_output += outp
-                 else: 
-                     k_output += "everything ok"
-		 k_output += "<br>"
-                 apps = App.objects.filter(intf=intf).all()
-                 for app in apps:
-                     # Delete memcached records to update config
-                     MC.delete(app.name + ':app')
+                k_output += intf.name+":"
+                outp = intf.k('graceful')
+                if outp:
+                    k_output += outp
+                else: 
+                    k_output += "everything ok"
+                k_output += "<br>"
+                # Delete memcached records to update config
+                for app in App.objects.filter(intf=intf).all():
+                    MC.delete(app.name + ':app')
     return render_to_response('vulture/intf_list.html', {'object_list': intfs, 'k_output': k_output, 'user' : request.user})
 
 @user_passes_test(lambda u: u.is_staff)
@@ -316,29 +256,14 @@ def edit_auth(request, url, object_id=None):
 
 @permission_required('vulture.delete_auth')
 def remove_auth(request, url, object_id=None):
-    if url == 'sql':
-        object = get_object_or_404(SQL, id=object_id)
-    elif url == 'ldap':
-        object = get_object_or_404(LDAP, id=object_id)
-    elif url == 'ssl':
-        object = get_object_or_404(SSL, id=object_id)
-    elif url == 'ntlm':
-        object = get_object_or_404(NTLM, id=object_id)
-    elif url == 'kerberos':
-        object = get_object_or_404(Kerberos, id=object_id)
-    elif url == 'radius':
-        object = get_object_or_404(RADIUS, id=object_id)
-    elif url == 'cas':
-        object = get_object_or_404(CAS, id=object_id)
-    elif url == 'logic':
-        object = get_object_or_404(Logic, id=object_id)
+    obj = get_object_or_404(Auth.TYPES[url],id=object_id)
     # Remove auth
     if request.method == 'POST' and object_id:       
-        auth = get_object_or_404(Auth, id_method=object.pk, auth_type=url)
+        auth = get_object_or_404(Auth, id_method=obj.pk, auth_type=url)
         auth.delete()
-        object.delete()
+        obj.delete()
         return HttpResponseRedirect('/'+ url +'/')
-    return render_to_response('vulture/generic_confirm_delete.html', {'object':object, 'category' : 'Authentication', 'name' : url.capitalize(),'url' : '/' + url, 'user' : request.user})
+    return render_to_response('vulture/generic_confirm_delete.html', {'object':obj, 'category' : 'Authentication', 'name' : url.capitalize(),'url' : '/' + url, 'user' : request.user})
 
 def link_path(src,dst,regex):
     files=os.listdir(src)
@@ -355,27 +280,22 @@ def edit_app(request,object_id=None):
     form.header = Header.objects.order_by("-id").filter(app=object_id)
     # Save new/edited app
     if request.method == 'POST' and form.is_valid():
-        
         appdirname = request.POST['name']
         if "/" in appdirname:
             listappname=appdirname.split("/")
             appdirname=listappname[0]+listappname[1]
-	regex = re.compile("[\w\-\.]+")
-	match = regex.match(appdirname)
-	if not match: 
-		raise ValueError(appdirname+" does not match a valid app name")
-	appdirname=match.group(0)
-
+        regex = re.compile("[\w\-\.]+")
+        match = regex.match(appdirname)
+        if not match: 
+            raise ValueError(appdirname+" does not match a valid app name")
+        appdirname=match.group(0)
         path = settings.CONF_PATH+"security-rules/"
-       
         dataPosted = request.POST
         #app = form.save(commit=False)
         app = form.save()
-        
         #Delete old headers
         headers = Header.objects.filter(app=object_id)
         headers.delete()
-
         modsecurityconf = ('version', 'action', 'motor', 'paranoid', 'UTF', 'XML', 'BodyAccess', 'max_num_args', 'arg_name_length', 'arg_length', 'total_arg_length', 'max_file_size', 'combined_file_size', 'allowed_http', 'BT_activated', 'DoS_activated', 'DoS_burst_time_slice', 'DoS_counter_threshold', 'DoS_block_timeout', 'Custom' )
         modsecurityfile = []
         if "MS_Activated" in dataPosted:
@@ -390,10 +310,10 @@ def edit_app(request,object_id=None):
             for row in modsecurityconf:
                 if row in dataPosted:
                     if row == 'version':
-			if not "/" in app.name:
-				f.write("# Specify CRS version in the audit logs.\n")
-				f.write("SecComponentSignature \"core ruleset/"+dataPosted['version']+"\""+"\n")
-				f.write("\n\n")
+                        if not "/" in app.name:
+                            f.write("# Specify CRS version in the audit logs.\n")
+                            f.write("SecComponentSignature \"core ruleset/"+dataPosted['version']+"\""+"\n")
+                            f.write("\n\n")
                     elif row == 'action':
                         if dataPosted['action'] == "Log_Only":
                             f.write("SecRuleEngine DetectionOnly"+"\n")
@@ -475,8 +395,6 @@ def edit_app(request,object_id=None):
                             "slr_rules/":'securityslr'
                        }
             
-            
-            
             #create directory for app conf if needed
             if not os.path.exists(path+'activated/'+appdirname):
                 os.mkdir(path+'activated/'+appdirname,0770)
@@ -506,11 +424,8 @@ def edit_app(request,object_id=None):
             if os.path.exists(path+"activated/"+appdirname+"/"):
                 for removefile in os.listdir(path+"activated/"+appdirname+"/"):
                     os.remove(path+"activated/"+appdirname+"/"+removefile)
-
-        
         #Writing new ones
         for data in dataPosted:
-
             m = re.match('header_id-(\d+)',data)
             if m != None:
                 id = m.group(1)
@@ -520,8 +435,7 @@ def edit_app(request,object_id=None):
                     instance = Header(app=app, name = desc, value = dataPosted['field_value-' + id], type=type)
                     instance.save()
         #form.save_m2m()
-
-
+        MC.delete('%s:app'%app.name)
         return HttpResponseRedirect('/app/')
     #if request.method == 'POST' and not form.is_valid():
      #   return HttpResponseRedirect('/intf/')
@@ -745,30 +659,31 @@ def view_event (request, object_id=None):
     else:
         records_nb = str(100);
     if 'type' in query and query['type'] in type_list:
-        type = query['type']
+        type_ = query['type']
     else:
-        type = 'error'
-    if 'filter' in query:
-        filter = query['filter'].replace("\\","\\\\")
-        filter = query['filter'].replace("'","\\'")
-    else:
-        filter = ''
-
+        type_ = 'error'
     for app in app_list:
         i = i + 1
         log = Log.objects.get (id=app.log_id)
         if object_id == str (i):
-	    location="%s/Vulture-%s-%s_log"%(log.dir,app.name,type)
-	    location=location.replace("\\","\\\\")
-	    location=location.replace("'","\\'")
-	    cmd = "/usr/bin/tail -n '%s' '%s' | grep -e '%s' | tac " % (records_nb,location, filter)
-            content = os.popen(cmd).read() or "Can't read files"
+            location="%s/Vulture-%s-%s_log"%(log.dir,app.name,type_)
+            f = open(location,'rb')
+            lines = f.readlines()
+            f.close()
+            if 'filter' in query:
+                reg = re.compile(query['filter'])
+                lines = [l for l in lines if reg.match(l)]
+            start = len(lines-records_nb)
+            if start < 0:
+                start = 0
+            content = "\n".join(lines[start:start+records_nb]) 
             length = len(content.split("\n"))
             selected = 'selected'
+            break;
         else:
             selected=''
-    file_list.append ((i,selected,app.name))
-    return render_to_response('vulture/event_list.html', {'file_list': file_list, 'log_content': content, 'type_list': type_list, 'type' : type, 'records' : records_nb, 'length' : length, 'filter' : filter, 'active_sessions' : active_sessions, 'user' : request.user, 'stats_month' : stats_month, 'stats_day' : stats_day, 'stats_hour' : stats_hour, 'stats_failed_month' : stats_failed_month, 'stats_failed_day' : stats_failed_day, 'stats_failed_hour' : stats_failed_hour, 'connections_failed' : connections_failed})
+        file_list.append ((i,selected,app.name))
+    return render_to_response('vulture/event_list.html', {'file_list': file_list, 'log_content': content, 'type_list': type_list, 'type' : type_, 'records' : records_nb, 'length' : length, 'filter' : filter, 'active_sessions' : active_sessions, 'user' : request.user, 'stats_month' : stats_month, 'stats_day' : stats_day, 'stats_hour' : stats_hour, 'stats_failed_month' : stats_failed_month, 'stats_failed_day' : stats_failed_day, 'stats_failed_hour' : stats_failed_hour, 'connections_failed' : connections_failed})
     
 @login_required
 def export_import_config (request, type):
@@ -777,33 +692,32 @@ def export_import_config (request, type):
     path = None
     if 'path' in query:
         path = query['path']
-	argsOK = True
+        argsOK = True
         if type == 'import':
-		nIN=path
-		nOUT=settings.DATABASE_PATH+"/db"
+            nIN=path
+            nOUT=settings.DATABASE_PATH+"/db"
         elif type == 'export':
-		nIN=settings.DATABASE_PATH+"/db"
-		nOUT=path
-		if os.path.exists(path):
-			argsOK = False
-	else:	
-        	content = 'You had not specify type'
-		argsOK = False
-	if argsOK:
-		try:
-			fIN=open(nIN,"r")
-			fOUT=open(nOUT,"w")
-			fOUT.write(fIN.read())
-			fOUT.close()
-			fIN.close()
-			content=type+" database: complete"
-		except:
-            		content = type+" database: failed"
+            nIN=settings.DATABASE_PATH+"/db"
+            nOUT=path
+        if os.path.exists(path):
+            argsOK = False
+    else:    
+        content = 'You had not specify type'
+        argsOK = False
+    if argsOK:
+        try:
+            fIN=open(nIN,"r")
+            fOUT=open(nOUT,"w")
+            fOUT.write(fIN.read())
+            fOUT.close()
+            fIN.close()
+            content=type+" database: complete"
+        except:
+            content = type+" database: failed"
     return render_to_response('vulture/exportimport_form.html', {'type': type, 'path': path, 'content': content})
     
 @login_required    
 def edit_security (request):
-
     if request.method == 'POST':
         return HttpResponseRedirect('/security')
     else:

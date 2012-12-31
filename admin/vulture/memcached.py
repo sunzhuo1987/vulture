@@ -1,15 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-try:
-    import sqlite3
-except:
-    from pysqlite2 import dbapi2 as sqlite3
-import socket as S
-from django.utils import simplejson
-import time
-import signal
-from django.conf import settings
 import sys,os
+# set django environment for standalone daemon
 try:
     sys.path.append("/opt/vulture")
     sys.path.append("/opt/vulture/admin")
@@ -20,19 +12,28 @@ except:
     sys.path.append("/var/www/vulture/admin")
     os.environ["DJANGO_SETTINGS_MODULE"] = "admin.settings"
     from vulture.models import Intf, App, Conf
+from django.conf import settings
+from django.db import connection
+# import sqlite driver
+try:
+    import sqlite3
+except:
+    from pysqlite2 import dbapi2 as sqlite3
+import time
+import signal
 
 class MC:
-    lockname = "vulture_lock"
-    lockfile = "%s/vulture-daemon.lock"%settings.CONF_PATH
-    versionkey = "vulture_version"
-    keystore = "vulture_inst"
-    tmpfile = "vulture_tmp"
-    itv = 30
+    LOCKNAME = "vulture_lock"
+    LOCKFILE = "%s/vulture-daemon.lock"%settings.CONF_PATH
+    VERSIONKEY = "vulture_version"
+    KEYSTORE = "vulture_instances"
+    TMPFILE = "vulture_tmp"
+    INTERVAL = 30
     mc_servers = [x.strip() for x in Conf.objects.get(var="memcached").value.split(",")]
     mc_client = None
     try:
         import memcache
-        mc_client = memcache.Client(mc_servers);
+        mc_client = memcache.Client(mc_servers)
     except:
         pass
     if not mc_client:
@@ -72,12 +73,12 @@ class MC:
     
     @staticmethod
     def lock():
-        while not MC.add(MC.lockname,1):
+        while not MC.add(MC.LOCKNAME,1):
             time.sleep(1)
 
     @staticmethod
     def unlock():
-        MC.delete(MC.lockname)
+        MC.delete(MC.LOCKNAME)
 
     @staticmethod
     def clusterActivated():
@@ -91,7 +92,7 @@ class MC:
     @staticmethod
     def daemonStarted():
         try:
-            f = open(MC.lockfile,"rb")
+            f = open(MC.LOCKFILE,"rb")
             pid = f.read()
             f.close()
             pid=int(pid)
@@ -113,13 +114,13 @@ class MC:
             return False
         print ("[+] Cluster sync daemon starting .. ")
         # creating lock file
-        f = open(MC.lockfile,"wb")
+        f = open(MC.LOCKFILE,"wb")
         f.write(str(os.getpid()))
         f.close()
         # set interrupt handler
         signal.signal(signal.SIGINT, MC.stopDaemon)
         try:
-            os.mkdir(settings.CONF_PATH+"security-rules")
+            os.mkdir("%s/security-rules"%settings.CONF_PATH)
         except:
             pass
         while True:
@@ -129,30 +130,30 @@ class MC:
             # check if conf is up to date, eventually update
             MC.refresh()
             # wait x seconds
-            time.sleep(MC.itv)
+            time.sleep(MC.INTERVAL)
 
     @staticmethod
     def stopDaemon(sig=2, v=0):
         name = MC.getConf("name")
         pid = MC.daemonStarted()
-        # daemon is already stopped
         if not pid:
+        # daemon is already stopped
             print ("[-] Daemon not started, exiting..")
             return False
-        # stopping external process
         if pid != os.getpid():
+        # stopping external process
             print ("[+] Stopping external daemon [%s]"%pid)
             os.kill(pid,2)
             return True
         # stopping this process
         print ("[+] Stopping daemon [%s]"%pid)
         # remove this cluster from memcache
-        old = MC.get(MC.keystore) or []
+        old = MC.get(MC.KEYSTORE) or []
         if old:
-            MC.set(MC.keystore,[f for f in old if f!=name])
+            MC.set(MC.KEYSTORE,[f for f in old if f!=name])
         MC.delete("%s:infos"%name)
-        # remove lockfile
-        os.remove(MC.lockfile)
+        # remove lock file
+        os.remove(MC.LOCKFILE)
         sys.exit(0)
     
     @staticmethod
@@ -171,7 +172,7 @@ class MC:
         myversion = int(MC.getConf("version_conf"))
         name = MC.getConf('name')
         # get memcache conf version
-        mcversion = MC.get(MC.versionkey)
+        mcversion = MC.get(MC.VERSIONKEY)
         mcversion = mcversion == None and -1 or int(mcversion)
         print ("[*] Refreshing conf, current: %s , last: %s"%(myversion,mcversion))
         if myversion == mcversion:
@@ -181,7 +182,7 @@ class MC:
         # push my conf in memcache 
             print ("[+] Pushing my conf into memcache...")
             MC.push_conf()
-            MC.set(MC.versionkey, myversion)
+            MC.set(MC.VERSIONKEY, myversion)
             print ("[+] Done")
         else:
         # new config available, update
@@ -195,18 +196,18 @@ class MC:
                 MC.reload_intfs()
             print ("[+] Done")
         # put this server name in memcache if not already there
-        all_srv = MC.get(MC.keystore) or []
+        all_srv = MC.get(MC.KEYSTORE) or []
         if not name in all_srv:
-            MC.set(MC.keystore,all_srv+[name])
+            MC.set(MC.KEYSTORE,all_srv+[name])
         # put infos of this server in memcache for monitoring purpose
         infos = {"version":myversion,"last":time.time()}
         MC.set("%s:infos",infos)
     
     # monitoring func, return list of servers and infos
     @staticmethod
-    def all_elements():
+    def list_servers():
         ret = []
-        all_srv = MC.get(MC.keystore)
+        all_srv = MC.get(MC.KEYSTORE)
         if not all_srv:
             return ret
         for name in all_srv:
@@ -234,69 +235,59 @@ class MC:
                         MC.delete('%s:app'%app.name)
 
     @staticmethod
-    def get_all_tables_name():
-        #Here we get all config tables name except django specific tables
-        sth = MC.db.execute("SELECT name FROM (SELECT * FROM sqlite_master UNION ALL SELECT * FROM sqlite_temp_master) WHERE type='table' AND name not like 'django%' and name NOT IN ('conf','vintf','event_logger') ORDER BY name;")
-        tables = sth.fetchall()
-        return [t[0] for t in tables]
-
-    @staticmethod
     def reset_mc():
         # delete sql conf
-        tables = MC.get_all_tables_name()
-        for t in tables:
+        for t in MC.list_tables():
             MC.delete("conf:%s"%t)
         # delete ms conf
         MC.delete("conf:mod_secu")
         # delete servers infos
-        srv = MC.get(MC.keystore) or []
+        srv = MC.get(MC.KEYSTORE) or []
         for s in srv:
             MC.delete("%s:infos"%s)
-        MC.delete(MC.keystore)
+        MC.delete(MC.KEYSTORE)
         # delete conf version
-        MC.delete(MC.versionkey)
-        # delete lock
+        MC.delete(MC.VERSIONKEY)
+        # eventually delete lock
         MC.unlock()
 
     # push conf of this server in memcache
     @staticmethod
     def push_conf():
-        tables = MC.get_all_tables_name()
-        # push sql conf
-        for table in tables:
-            MC.set('conf:%s'%table,MC.get_SQL_table(table))
+        MC.push_sql_conf()
+        MC.push_ms_conf()
+       
+    @staticmethod
+    def push_ms_conf():
         # push mod_secu conf
         cmd = "cd %s/security-rules ; tar hczf %s *"%(
-            settings.CONF_PATH,MC.tmpfile)
+            settings.CONF_PATH,MC.TMPFILE)
         os.popen(cmd).read()
-        tmp_path = "%s/security-rules/%s"%(settings.CONF_PATH,MC.tmpfile)
+        tmp_path = "%s/security-rules/%s"%(settings.CONF_PATH,MC.TMPFILE)
         fcont = open(tmp_path,"rb").read()
         MC.set("conf:mod_secu",fcont)
         os.remove(tmp_path)
-        
+ 
     @staticmethod
-    def convert_sqliteRow_to_dict(rows):
-        #for easy work, we convert sqliteRow object (return by the query) to table of dictionnary
-        tab=[]
-        for row in rows:
-            dico={}
-            for key in row.keys():
-                dico[key]=row[key]
-            tab += [dico]
-        return tab
+    def push_sql_conf():
+        for table in MC.list_tables():
+            MC.set('conf:%s'%table,MC.get_SQL_table(table))
 
-    #get data from database
     @staticmethod
-    def get_SQL_table(table):
-        sth = MC.db.execute("SELECT * from `%s`"%table)
-        rows = sth.fetchall();
-        di = MC.convert_sqliteRow_to_dict(rows)
-        return di
-    
+    def pop_conf():
+        pop_sql_conf()
+        pop_ms_conf()
+
     @staticmethod
-    def update_from_mc():
-        tables = MC.get_all_tables_name()
-        for table in tables:
+    def pop_ms_conf():
+        tmp_path = "%s/security-rules/%s"%(settings.CONF_PATH,MC.TMPFILE)
+        os.popen("rm -rf %s/security-rules/*"%settings.CONF_PATH)
+        open(tmp_path,"wb").write(MC.get("conf:mod_secu"))
+        os.popen("tar-C %s/security-rules -zxf %s"%settings.CONF_PATH)
+        os.remove(tmp_path)
+
+    def pop_sql_conf():
+        for table in MC.list_tables():
             print("checking  %s ..."%table)
             db_conf = MC.get_SQL_table(table)
             mc_conf = MC.get("conf:%s"%table)
@@ -319,8 +310,9 @@ class MC:
                             keys +=[k]
                             vals+=[mc_e[k]]
                     if vals:
-                        q="UPDATE `%s` SET %s WHERE id=?"%(
-                            table,",".join(["`%s`=?"%k for k in keys]))
+                        q = "UPDATE `%s` SET %s WHERE id=?"%(table,
+                            ",".join(["`%s`=?"%k for k in keys])
+                            )
                         print(q)
                         MC.db.execute(q,vals+[mc_k])
                 elif mc_e: 
@@ -339,13 +331,34 @@ class MC:
                 print (q)
                 MC.db.execute(q)
         MC.db.commit()
-        # pop mod secu conf
-        tmp_path = "%s/security-rules/%s"%(settings.CONF_PATH,MC.tmpfile)
-        os.popen("rm -rf %s/security-rules/*"%settings.CONF_PATH)
-        open(tmp_path,"wb").write(MC.get("conf:mod_secu"))
-        os.popen("tar-C %s/security-rules -zxf %s"%settings.CONF_PATH)
-        os.remove(tmp_path)
+   
+    @staticmethod
+    def convert_sqliteRow_to_dict(rows):
+        #for easy work, we convert sqliteRow object (return by the query) to table of dictionnary
+        tab=[]
+        for row in rows:
+            dico={}
+            for key in row.keys():
+                dico[key]=row[key]
+            tab += [dico]
+        return tab
+
+    #get data from database
+    @staticmethod
+    def get_SQL_table(table):
+        sth = MC.db.execute("SELECT * from `%s`"%table)
+        rows = sth.fetchall();
+        di = MC.convert_sqliteRow_to_dict(rows)
+        return di
     
+    @staticmethod
+    def list_tables():
+        return [table for table in connection.introspection.table_names()
+            # avoid server specific tables
+            if not ( table in ('conf','vintf','event_logger') 
+            # avoid django tables
+                    or table.startswith("django_")) ]
+
     @staticmethod
     def usage():
         sys.stderr.write("usage : vulture-daemon.py {start/stop/status}\n")

@@ -6,27 +6,25 @@ package Core::TransHandlerv2;
 use strict;
 use warnings;
 
-use Apache2::Reload;
-use Apache2::Response    ();
-use Apache2::RequestRec  ();
-use Apache2::RequestIO   ();
-use Apache2::RequestUtil ();
+use Apache2::Reload ;
+use Apache2::Response;
+use Apache2::RequestRec;
+use Apache2::RequestIO;
+use Apache2::RequestUtil;
 use Apache::SSLLookup;
-use Apache2::Const -compile =>
-  qw(OK FORBIDDEN REDIRECT DONE NOT_FOUND);
-
-use Core::VultureUtils
-  qw(&get_memcached_conf &get_app &get_intf &version_check &get_cookie 
-    &session &get_translations &get_style &load_module);
+use Apache2::Const -compile => qw(OK FORBIDDEN REDIRECT DONE NOT_FOUND);
+use Core::VultureUtils qw(&get_memcached_conf &get_app &get_intf &version_check &get_cookie 
+   &session &get_translations &get_style &load_module 
+   &get_memcached &set_memcached);
 use Core::Log qw(&new &debug &error);
 use Core::Config qw(&new &get_key);
-use MIME::Base64;
+use MIME::Base64 ;
 
 use APR::URI;
 use APR::Table;
 use APR::SockAddr;
 
-use DBI;
+use DBI ;
 
 sub handler {
 
@@ -37,7 +35,7 @@ sub handler {
     my $dbh          = DBI->connect( $r->dir_config('VultureDSNv3') );
     my $log = Core::Log->new($r);
     my $config = Core::Config->new($dbh);
-    my $mc_conf = get_memcached_conf($dbh);
+    my $mc_conf = Core::VultureUtils::get_memcached_conf($config);
     my $cookie_app_name=$r->dir_config('VultureAppCookieName');
 
     #Sending db handler to next Apache Handlers, always needed
@@ -61,7 +59,8 @@ sub handler {
 
     #If URI matches with app adress, get app and interface
     my $intf =
-      Core::VultureUtils::get_intf( $log, $dbh, $r->dir_config('VultureID') );
+      Core::VultureUtils::get_intf( $log, $dbh, $r->dir_config('VultureID'),
+       $config,$mc_conf );
     $r->pnotes( 'intf' => $intf ) if defined $intf;
     $log->debug( "url is " . $r->hostname . $unparsed_uri );
     my $app = Core::VultureUtils::get_app( $log, $dbh,$mc_conf,
@@ -166,7 +165,6 @@ sub handler {
 sub plugins_th{
     my ($log,$r,$dbh,$app,$intf,$uuri)=@_;
     my $mc_conf = $r->pnotes('mc_conf');
-    my $obj = 
     my $query =
 'SELECT uri_pattern, type, options FROM plugin WHERE app_id = ? OR app_id IS NULL';
     my $plugins = $dbh->selectall_arrayref( $query, undef, $app->{id} );
@@ -200,12 +198,21 @@ sub plugins_th{
 }
 sub rewrite_content{
     my ($log,$r,$dbh,$app,$intf)=@_;
-    my $query = ('SELECT pattern, type, options, options1 FROM plugincontent'
-        . ' WHERE (app_id = ?  OR app_id IS NULL) ORDER BY type');
-    $log->debug($query);
-    my $plugins = $dbh->selectall_arrayref( $query, undef, $app->{id} );
+    my $mc_conf = $r->pnotes('mc_conf');
+    my $key = "plugincontent:".$app->{id};
+    my $plugins = Core::VultureUtils::get_memcached($key,$mc_conf);
+    if (defined $plugins){
+        $log->debug("got $key from memcached");
+    }
+    else{
+        my $query = ('SELECT pattern, type, options, options1 FROM plugincontent'
+            . ' WHERE (app_id = ?  OR app_id IS NULL) ORDER BY type');
+        $log->debug($query);
+        $plugins = $dbh->selectall_arrayref( $query, undef, $app->{id} );
+        Core::VultureUtils::set_memcached( $key, $plugins, 60, $mc_conf);
+        $log->debug("set $key in memcached");
+    }
     my $i = 0;
-    $log->debug("COOKIEDEBUG sending rewrite content");
     foreach my $row (@$plugins) {
         $log->debug( "COOKIEDEBUG type" . @$row[1] );
         $r->pnotes( 'type' . $i      => @$row[1] );
@@ -214,7 +221,8 @@ sub rewrite_content{
         $r->pnotes( 'options1_' . $i => @$row[3] );
         $i++;
     }
-    if ( $r->pnotes('type0') ) {
+    if ( $i > 0) {
+        $log->debug("COOKIEDEBUG sending rewrite content");
         my $module_name = 'Plugin::Plugin_REWRITE_CONTENT';
         $log->debug("Load $module_name");
 
@@ -225,10 +233,20 @@ sub rewrite_content{
 }
 sub header_input{
     my ($log,$r,$dbh,$app,$intf)=@_;
-    my $query = ('SELECT pattern, type, options, options1 FROM pluginheader'
-        . ' WHERE app_id = ? OR app_id IS NULL ORDER BY type');
-    $log->debug($query);
-    my $plugins = $dbh->selectall_arrayref( $query, undef, $app->{id} );
+    my $mc_conf = $r->pnotes('mc_conf');
+    my $key = "header_input:".$intf->{id};
+    my $plugins = Core::VultureUtils::get_memcached($key, $mc_conf);
+    if (defined $plugins){
+        $log->debug("got $key from memcached");
+    }
+    else{
+        my $query = ('SELECT pattern, type, options, options1 FROM pluginheader'
+            . ' WHERE app_id = ? OR app_id IS NULL ORDER BY type');
+        $log->debug($query);
+        $plugins = $dbh->selectall_arrayref( $query, undef, $app->{id} );
+        Core::VultureUtils::set_memcached($key,$plugins,60,$mc_conf);
+        $log->debug("save $key in memcached");
+    }
     foreach my $row (@$plugins) {
         my $header   = @$row[0];
         my $type     = @$row[1];

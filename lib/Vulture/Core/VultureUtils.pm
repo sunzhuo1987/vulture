@@ -35,18 +35,13 @@ our ($memd);
 
 sub version_check {
     my ($config) = @_;
-
     #Get config and compare with VERSION defined in the head of this file
     return ( $config->get_key('version') eq $VERSION );
 }
 
 sub get_memcached_conf {
-    my ($dbh) = @_;
-    my $query = "SELECT value from conf where var='memcached';";
-    my $sth   = $dbh->prepare($query);
-    $sth->execute();
-    my $var = $sth->fetchrow;
-    $sth->finish();
+    my ($config) = @_;
+    my $var = $config->get_key('memcached');
     my @serv = ();
     for my $x ( split( ",", $var ) ) {
         $x =~ s/^\s+//;
@@ -154,15 +149,23 @@ sub get_app {
     my ( $log, $dbh,$mc_conf,$intf,$host ) = @_;
     my ( $query, $sth, $ref );
     return {} unless ( $host and $intf and $dbh );
-
-#Getting app and wildcards
-    $query =
-'SELECT app.id, app.name, app.alias, app.url, app.log_id, app.sso_forward_id AS sso_forward, app.logon_url, app.logout_url, intf.port, app.remote_proxy, app.up, app.auth_url,app.auth_basic, app.display_portal,app.check_csrf , app.canonicalise_url, app.timeout, app.update_access_time, app.sso_learning_ext, app.secondary_authentification_failure_options,app.Balancer_Node,app.Balancer_Stickyness FROM app JOIN app_intf ON app.id = app_intf.app_id JOIN intf ON app_intf.intf_id = intf.id WHERE intf.id = ? ORDER BY app.name ASC';
-#    $log->debug($query);
-    $sth = $dbh->prepare($query);
-    $sth->execute($intf);
-    my $apps = $sth->fetchall_hashref('name');
-    $sth->finish();
+    my $key = ":applist";
+    $key =~ s/\s/_/g;
+    my $apps = Core::VultureUtils::get_memcached($key,$mc_conf);
+    unless (defined $apps){
+#Getting app and wildcardsv
+        $query =
+    'SELECT app.id, app.name, app.alias, app.url, app.log_id, app.sso_forward_id AS sso_forward, app.logon_url, app.logout_url, intf.port, app.remote_proxy, app.up, app.auth_url,app.auth_basic, app.display_portal,app.check_csrf , app.canonicalise_url, app.timeout, app.update_access_time, app.sso_learning_ext, app.secondary_authentification_failure_options,app.Balancer_Node,app.Balancer_Stickyness FROM app JOIN app_intf ON app.id = app_intf.app_id JOIN intf ON app_intf.intf_id = intf.id WHERE intf.id = ? ORDER BY app.name ASC';
+        $log->debug($query);
+        $sth = $dbh->prepare($query);
+        $sth->execute($intf);
+        $apps = $sth->fetchall_hashref('name');
+        $sth->finish();
+        $log->debug("set $key in memcache");
+        Core::VultureUtils::set_memcached($key,$apps,60,$mc_conf);
+    }else{
+        $log->debug("got $key from memcache");
+    }
 
     # Match app with the deepest path
     my $max_fields = -1;
@@ -197,7 +200,7 @@ sub get_app {
     return {} unless $ref->{id};
     $ref->{'intf'} = $intf;
     #Use memcached if possible
-    my $obj = get_memcached( $ref->{name}.":app", $mc_conf );
+    my $obj = Core::VultureUtils::get_memcached( $ref->{name}.":app", $mc_conf );
     if ($obj) {
         $log->debug("got memcached ".$ref->{name}.":app");
         # get corresponding intf for this app/server
@@ -222,14 +225,14 @@ sub get_app {
 #$query = "SELECT auth.name, auth.auth_type, auth.id_method FROM auth, auth_multiple WHERE auth_multiple.app_id = ? AND auth_multiple.auth_id = auth.id";
     $query =
 ' SELECT auth.name, auth.auth_type, auth.id_method FROM auth JOIN auth_multiple ON auth.id = auth_multiple.auth_id WHERE auth_multiple.app_id = ?';
-#    $log->debug($query);
+    $log->debug($query);
     $ref->{'auth'} = $dbh->selectall_arrayref( $query, undef, $ref->{id} );
 
 #Getting ACL
 #$query = "SELECT acl.id, acl.name, auth.auth_type AS acl_type, auth.id_method FROM acl, auth, app WHERE app.id = ? AND acl.id = app.acl_id AND auth.id = acl.auth_id";
     $query =
 'SELECT acl.id, acl.name, auth.auth_type AS acl_type, auth.id_method FROM acl JOIN auth ON acl.auth_id = auth.id JOIN app ON acl.id = app.acl_id WHERE app.id = ?';
-#    $log->debug($query);
+    $log->debug($query);
     $sth = $dbh->prepare($query);
     $sth->execute( $ref->{id} );
     $ref->{'acl'} = $sth->fetchrow_hashref;
@@ -238,7 +241,7 @@ sub get_app {
     #Getting actions
     $query =
 "SELECT auth_server_failure_action, auth_server_failure_options, account_locked_action, account_locked_options, login_failed_action, login_failed_options, need_change_pass_action, need_change_pass_options, acl_failed_action, acl_failed_options FROM app WHERE app.id = ?";
-#    $log->debug($query);
+    $log->debug($query);
     $sth = $dbh->prepare($query);
     $sth->execute( $ref->{id} );
     $ref->{'actions'} = $sth->fetchrow_hashref;
@@ -247,7 +250,7 @@ sub get_app {
     #Getting SSO
     $query =
 "SELECT sso.type, sso.follow_get_redirect, sso.is_post FROM sso JOIN app ON sso.id = app.sso_forward_id WHERE app.id=?";
- #   $log->debug($query);
+    $log->debug($query);
     $sth = $dbh->prepare($query);
     $sth->execute( $ref->{id} );
     $ref->{'sso'} = $sth->fetchrow_hashref;
@@ -255,18 +258,25 @@ sub get_app {
 
     #Caching app if possible
     $log->debug("set memcached : ".$ref->{name}.":app");
-    set_memcached( $ref->{name}.":app", $ref, undef, $mc_conf );
+    Core::VultureUtils::set_memcached( $ref->{name}.":app", $ref, 60, $mc_conf );
     return $ref;
 }
 
 sub get_intf {
-    my ( $log, $dbh, $intf ) = @_;
+    my ( $log, $dbh, $intf, $config, $mc_conf ) = @_;
     my ( $query, $sth, $ref );
 
+    my $key = $config->get_key('name').":intf-$intf";
+    $key =~ s/\s/_/g;
+    my $obj = Core::VultureUtils::get_memcached($key,$mc_conf);
+    if (defined $obj){
+        $log->debug("got $key from memcached");
+        return $obj;
+    }
     #Getting intf
     $query =
 "SELECT id, ip, port, ssl_engine, log_id, sso_portal, sso_timeout, sso_update_access_time,check_csrf, cert, key, ca, cas_portal, cas_display_portal, cas_auth_basic AS auth_basic, cas_st_timeout, cas_redirect FROM intf WHERE id = ?";
-  #  $log->debug($query);
+    $log->debug($query);
     $sth = $dbh->prepare($query);
     $sth->execute($intf);
     $ref = $sth->fetchrow_hashref;
@@ -287,7 +297,8 @@ sub get_intf {
     $sth->execute( $ref->{id} );
     $ref->{'actions'} = $sth->fetchrow_hashref;
     $sth->finish();
-
+    Core::VultureUtils::set_memcached( $key, $ref, 60, $mc_conf );
+    $log->debug("save $key in memcached");
     return $ref;
 }
 
@@ -296,7 +307,7 @@ sub get_DB_object {
     my ( $log, $dbh, $id_method ) = @_;
     my $query = "SELECT * FROM sql WHERE id = ?";
     my $sth   = $dbh->prepare($query);
-   # $log->debug($query);
+    $log->debug($query);
     $sth->execute($id_method);
     my $ref = $sth->fetchrow_hashref;
     $sth->finish();
