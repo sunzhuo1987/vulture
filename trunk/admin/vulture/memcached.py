@@ -27,6 +27,7 @@ class MC:
     LOCKFILE = "%s/vulture-daemon.lock"%settings.CONF_PATH
     VERSIONKEY = "vulture_version"
     KEYSTORE = "vulture_instances"
+    MSCONFKEY = "conf:ms_files"
     TMPFILE = "vulture_tmp"
     INTERVAL = 30
     mc_servers = [x.strip() for x in Conf.objects.get(var="memcached").value.split(",")]
@@ -187,13 +188,10 @@ class MC:
         else:
         # new config available, update
             print ("[+] Updating conf...")
-            MC.update_from_mc()
+            MC.pop_conf()
             myversion = mcversion
             # update my version number in database
             Conf.objects.filter(var="version_conf").update(value=str(myversion))
-            # eventually reload interfaces with changes
-            if MC.getConf("auto_restart")=='1':
-                MC.reload_intfs()
             print ("[+] Done")
         # put this server name in memcache if not already there
         all_srv = MC.get(MC.KEYSTORE) or []
@@ -240,7 +238,7 @@ class MC:
         for t in MC.list_tables():
             MC.delete("conf:%s"%t)
         # delete ms conf
-        MC.delete("conf:mod_secu")
+        MC.delete(MC.MSCONFKEY)
         # delete servers infos
         srv = MC.get(MC.KEYSTORE) or []
         for s in srv:
@@ -259,14 +257,21 @@ class MC:
        
     @staticmethod
     def push_ms_conf():
-        # push mod_secu conf
-        cmd = "cd %s/security-rules ; tar hczf %s *"%(
-            settings.CONF_PATH,MC.TMPFILE)
-        os.popen(cmd).read()
-        tmp_path = "%s/security-rules/%s"%(settings.CONF_PATH,MC.TMPFILE)
-        fcont = open(tmp_path,"rb").read()
-        MC.set("conf:mod_secu",fcont)
-        os.remove(tmp_path)
+        sec_dir = "%s/security-rules"%(settings.CONF_PATH)
+        ms_files = {}
+        for type_ in ('activated','CUSTOM'):
+            dir_type = "%s/%s"%(sec_dir,type_)
+            if not os.path.exists(dir_type):
+                continue
+            for dir_app in os.listdir(dir_type):
+                subdir = "%s/%s"%(type_,dir_app)
+                for file_ in os.listdir("%s/%s"%(sec_dir,subdir)):
+                    f_path = "%s/%s"%(subdir,file_)
+                    f = open("%s/%s"%(sec_dir,f_path),'rb')
+                    fcont = f.read()
+                    f.close()
+                    ms_files[f_path] = fcont
+        MC.set(MC.MSCONFKEY,ms_files)
  
     @staticmethod
     def push_sql_conf():
@@ -275,17 +280,50 @@ class MC:
 
     @staticmethod
     def pop_conf():
-        pop_sql_conf()
-        pop_ms_conf()
+        MC.pop_sql_conf()
+        MC.pop_ms_conf()
+        # eventually reload interfaces with changes
+        if MC.getConf("auto_restart")=='1':
+            MC.reload_intfs()
 
     @staticmethod
     def pop_ms_conf():
-        tmp_path = "%s/security-rules/%s"%(settings.CONF_PATH,MC.TMPFILE)
-        os.popen("rm -rf %s/security-rules/*"%settings.CONF_PATH)
-        open(tmp_path,"wb").write(MC.get("conf:mod_secu"))
-        os.popen("tar-C %s/security-rules -zxf %s"%settings.CONF_PATH)
-        os.remove(tmp_path)
+        sec_dir = os.path.realpath(
+                "%s/security-rules"%(settings.CONF_PATH))
+        # remove old conf 
+        for type_ in ('activated','CUSTOM'):
+            sec_dir1 = "%s/%s"%(sec_dir,type_)
+            if not os.path.exists(sec_dir1):
+                continue
+            for app in os.listdir(sec_dir1):
+                sec_dir2 = "%s/%s"%(sec_dir1,app)
+                for file_ in os.listdir(sec_dir2):
+                    os.remove("%s/%s"%(sec_dir2,file_))
+                os.rmdir(sec_dir2)
+            os.rmdir(sec_dir1)
+        # get files from memcache
+        files = MC.get(MC.MSCONFKEY)
+        for relpath in files:
+            # check if file is in right folder
+            if not os.path.realpath("%s/%s"%(sec_dir,relpath)
+                    ).startswith(sec_dir):
+                continue
+            print "pop ms file : %s"%relpath
+            dirs = relpath.split("/")
+            filename = dirs[len(dirs)-1]
+            dirs = dirs[:len(dirs)-1]
+            d = sec_dir
+            # eventually create dir
+            for di in dirs:
+                d += "/%s"%di
+                if not os.path.exists(d):
+                    os.mkdir(d)
+            # write file in its right place
+            f = open("%s/%s"%(sec_dir,relpath),"wb")
+            f.write(files[relpath])
+            f.close()
 
+    @staticmethod
     def pop_sql_conf():
         for table in MC.list_tables():
             print("checking  %s ..."%table)
