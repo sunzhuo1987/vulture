@@ -442,12 +442,14 @@ sub get_style {
     #return {} unless defined $app->{'id'};
     #Querying database for style
     my $intf_id = $r->dir_config('VultureID');
-    my $query =
-"SELECT CASE WHEN app.appearance_id NOT NULL THEN app.appearance_id WHEN intf.appearance_id NOT NULL THEN intf.appearance_id ELSE '' END AS 'id_appearance', style_css.value AS css, style_image.image AS image, style_tpl.head as tpl_head, style_tpl.value AS tpl FROM app,intf, style_tpl LEFT JOIN style_style ON style_style.id = id_appearance LEFT JOIN style_css ON style_css.id = style_style.css_id LEFT JOIN style_image ON style_image.id = style_style.image_id WHERE ";
-
-    #App id if not null
-    $query .= "app.id= '" . $app->{id} . "' AND " if ( $app->{id} );
-    $query .= "intf.id = '" . $intf_id . "' AND style_tpl.id = style_style.";
+    my $query = " AS 'id_appearance', style_css.value AS css, style_image.image AS image, style_tpl.head as tpl_head, style_tpl.value AS tpl FROM app,intf, style_tpl LEFT JOIN style_style ON style_style.id = id_appearance LEFT JOIN style_css ON style_css.id = style_style.css_id LEFT JOIN style_image ON style_image.id = style_style.image_id ";
+    if ($app->{id}){
+        $query = "SELECT app.appearance_id $query WHERE app.id='". $app->{id} ."'";
+    }
+    else{
+        $query = "SELECT intf.appearance_id $query WHERE intf.id='$intf_id'";
+    }
+    $query .= " AND style_tpl.id=style_style.";
     if ( uc($type) eq 'APP_DOWN' ) {
         $query .= "app_down_tpl_id";
     }

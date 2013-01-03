@@ -11,7 +11,6 @@ try:
 except:
 	from pysqlite2 import dbapi2 as sqlite3
 from datetime import date
-import string
 import ldap
 import ldap.modlist as modlist
 import operator
@@ -152,11 +151,10 @@ class Intf(models.Model):
     cacert = models.TextField(blank=1,null=1)
     virtualhost_directives = models.TextField(blank=1,null=1)
 
-
     def conf(self):
         t = get_template("vulture_httpd.conf")
         dirapp = {}
-        allapp=App.objects.filter(intf=self.id).order_by('name', '-alias')
+        allapp = App.objects.filter(intf=self.id).order_by('name', '-alias')
         for app in allapp:
             split=app.name.split("/",1)
             host=split[0]
@@ -170,22 +168,46 @@ class Intf(models.Model):
             MS_path = MS_path[0];
         else:
             MS_path = ""
+        uname = os.uname()
         c = Context({"VultureConfPath" : settings.CONF_PATH,
                      "VultureStaticPath" : settings.MEDIA_ROOT,
                      "PerlSwitches" : settings.PERL_SWITCHES,
                      "dbname" : settings.DATABASES['default']['NAME'],
                      "serverroot" : settings.SERVERROOT,
                      "www_user" : settings.WWW_USER,
+                     "www_group" : settings.WWW_GROUP,
                      "httpd_custom" : settings.HTTPD_CUSTOM,
                      "app_list" : dirapp,
                      "intf" : self,
                      "MS_path" : MS_path,
+                     "arch64" : (uname[4] == 'x86_64')
                      })
-        return ("# This file was genered by Vulture, do not edit\n"
-                +"# Use application/virtualHost directives instead,\n"
-                +"# or edit vulture_httpd.conf in vulture/admin\n"
-                + t.render(c)
-                )
+        return t.render(c)
+
+
+    def has_deflate(self):
+        return App.objects.filter(intf=self.id,
+                deflate_activated=True).count()>0
+    
+    def has_mod_secu(self):
+        return App.objects.filter(intf=self.id,
+                MS_Activated=True).count()>0
+    
+    def has_balancer(self):
+        return App.objects.filter(intf=self.id,
+                Balancer_Activated=True).count()>0
+
+    def has_ftp(self):
+        return (
+                App.objects.filter(intf=self.id,
+                    Balancer_Activated=True,
+                    Balancer_Node__istartswith='ftp://').count()>0
+                or App.objects.filter(intf=self.id,
+                    Balancer_Activated=False,
+                url__istartswith='ftp://')>0)
+
+    def is_ssl(self):
+        return self.cert and True or False
 
     def backupConf(self):
         backpath="%s%s_backup/"%(settings.CONF_PATH,self.id)
@@ -228,36 +250,35 @@ class Intf(models.Model):
             return fail_msg
 
     def write(self):
-        f=open("%s%s.conf" % (settings.CONF_PATH, self.id), 'w')
+        f=open("%s%s.conf" % (settings.CONF_PATH, self.id), 'wb')
         f.write(str(self.conf()))
         f.close()
-        if self.cert:
-            f=open("%s%s.crt" % (settings.CONF_PATH, self.id), 'w')
-            f.write(str(self.cert))
-            f.close()
-        if self.key:
-            f=open("%s%s.key" % (settings.CONF_PATH, self.id), 'w')
-            f.write(str(self.key))
-            f.close()
-        if self.ca:
-            f=open("%s%s.chain" % (settings.CONF_PATH, self.id), 'w')
-            f.write(str(self.ca))
-            f.close()
-        if self.cacert:
-            f=open("%s%s.cacrt" % (settings.CONF_PATH, self.id), 'w')
-            f.write(str(self.cacert))
-            f.close()
+        todos = (
+                    ("crt",self.cert),
+                    ("key",self.key),
+                    ("chain",self.ca),
+                    ("cacrt",self.cacert),
+                )
+        for (ext,file_) in todos:
+            fname = "%s%s.%s" % (settings.CONF_PATH, self.id,ext)
+            if file_:
+                f=open(fname, 'wb')
+                f.write(str(file_))
+                f.close()
+            else:
+                if os.path.exists(fname):
+                    os.remove(fname)
         for app in App.objects.filter(intf=self.id).all():
             auth_list=app.auth.all()
             for auth in auth_list:
                 if auth.auth_type == 'ssl':
-                    f=open("%s%s.ca" % (settings.CONF_PATH, str(self.id)+'-'+app.name), 'w')
+                    f=open("%s%s.ca" % (settings.CONF_PATH, str(self.id)+'-'+app.name), 'wb')
                     f.write(str(auth.getAuth().crt))
                     f.close()
 
     def checkIfEqual(self):
         try:
-            f=open("%s%s.conf" % (settings.CONF_PATH, self.id), 'r')
+            f=open("%s%s.conf" % (settings.CONF_PATH, self.id), 'rb')
             content=f.read()
             content2 = self.conf()
             f.close()
@@ -269,7 +290,7 @@ class Intf(models.Model):
         regproc = re.compile("^(\d+)$")
         regstat = re.compile("\d+\s+\(.*(httpd|apache)/*\)\s+\w\s+(\d+)\s+.*")
         try:
-                f = open("%s%s.pid" % (settings.CONF_PATH, self.id), "r")
+                f = open("%s%s.pid" % (settings.CONF_PATH, self.id), "rb")
                 pid = f.read().strip()
                 f.close()
         except:
@@ -937,7 +958,11 @@ class App(models.Model):
         return self.alias.startswith('*')
 
     def isFtp (self):
-	return self.url.lower().startswith('ftp://')
+        if self.Balancer_Activated:
+            url_ = self.Balancer_Node
+        else:
+            url_ = self.url
+        return url_.lower().startswith('ftp://')
 
     def hasHeaderHost (self):
         return Header.objects.filter(app = self).filter(name__iexact="Host")

@@ -346,6 +346,6 @@ sub display_portal {
         'SSO portal', { APPS => $html_apps },
         $translations );
     $html ||= '';
-    return $html =~ /<body>.+<\/body>/ ? $html : $html_apps;
+    return $html =~ /<body>.+<\/body>/s ? $html : $html_apps;
 }
 1;

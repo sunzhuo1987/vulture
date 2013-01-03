@@ -13,12 +13,13 @@
 # many different applications by learning and forwarding their
 # different accounts.
 ### END INIT INFO
-#!/bin/sh
+#!/bin/bash
 #
 # Vulture
 #
 # chkconfig:   345 90 15
 # description: Vulture
+set -e
 
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 Vulture_HOME=/var/www
