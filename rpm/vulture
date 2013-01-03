@@ -9,6 +9,7 @@
 
 # Install this file in /etc/init.d and run "chkconfig vulture on" and
 # "chkconfig --add vulture".
+set -e
 
 # Source function library.
 if [ ! -r /etc/SuSE-release ]; then
@@ -19,35 +20,34 @@ else
 	}
 fi
 
-
-export VULTURE_HOME=/opt
-export NAME=vulture
-export TMPDIR=/tmp
+export VULTURE_HOME="/opt"
+export NAME="vulture"
+export TMPDIR="/tmp"
+export HTTPD_BIN="/usr/sbin/httpd"
 export MEMCACHED="/usr/bin/memcached"
-export MEMCACHED_IP=127.0.0.1
-export MEMCACHED_PORT=9091
-VULTURE_USER=apache
+export MEMCACHED_IP="127.0.0.1"
+export MEMCACHED_PORT="9091"
+VULTURE_USER="apache"
 
 # Source an auxiliary options file if we have one, and pick up OPTIONS,
 if [ -r /etc/sysconfig/${NAME} ] ; then
 	. /etc/sysconfig/${NAME}
 fi
 
-
 RETVAL=0
 
 function start() {
 	/opt/vulture/bin/test-perl.sh || exit 1;
 	echo -n $"Starting ${NAME}: "
-        daemon $MEMCACHED -d -m 512 -l $MEMCACHED_IP -p $MEMCACHED_PORT -u apache
-	sleep 2
+        daemon $MEMCACHED -d -m 512 -l $MEMCACHED_IP -p $MEMCACHED_PORT -u $VULTURE_USER
 	su -c "python ${VULTURE_HOME}/${NAME}/admin/vulture/memcached.py start >/dev/null 2>&1 &" $VULTURE_USER
 	python "${VULTURE_HOME}/${NAME}/conf/vintf_startup.py" up
-        daemon "/usr/sbin/httpd -f ${VULTURE_HOME}/${NAME}/conf/httpd.conf";
-        for i in `ls ${VULTURE_HOME}/${NAME}/conf/*.conf 2>/dev/null|grep -v 'httpd.conf$'`; do
-                daemon "/usr/sbin/httpd -f $i"
-        done
-        echo
+	sleep 2
+    daemon "$HTTPD_BIN -f ${VULTURE_HOME}/${NAME}/conf/httpd.conf";
+    for i in `ls ${VULTURE_HOME}/${NAME}/conf/*.conf 2>/dev/null|grep -v 'httpd.conf$'`; do
+            daemon "$HTTPD_BIN -f $i"
+    done
+    echo
 	[ $RETVAL -eq 0 ] && touch /var/lock/subsys/${NAME}
 	return $RETVAL
 }
@@ -71,7 +71,7 @@ function reload() {
 	echo -n "Reloading ${NAME}: "
 	python "${VULTURE_HOME}/${NAME}/conf/vintf_startup.py" up
 	for i in `ls ${VULTURE_HOME}/${NAME}/conf/*.conf 2> /dev/null`; do
-		daemon "/usr/sbin/httpd -f $i -k graceful"
+		daemon "$HTTPD_BIN -f $i -k graceful"
 	done
 	[ $RETVAL -eq 0 ] && success || failure
 	echo

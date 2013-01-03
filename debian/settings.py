@@ -51,6 +51,7 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 
 WWW_USER = 'www-data'
+WWW_GROUP = 'www-data'
 
 PERL_SWITCHES = '-I/opt/vulture/lib/i386-linux-thread-multi -I/opt/vulture/lib/i386-linux-thread-multi/Vulture -I/opt/vulture/lib/i486-linux-thread-multi -I/opt/vulture/lib/i486-linux-gnu-thread-multi'
 

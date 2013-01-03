@@ -17,7 +17,6 @@ Buildarch: noarch
 Source0: %{name}-%{version}.tar.bz2
 Patch0: database_path.patch
 Patch1: PreConnectionHandler.patch
-Patch2: vulture-rpm.patch
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildRequires: perl
@@ -28,7 +27,6 @@ Vulture Reverse Proxy
 %setup -c -a 0
 %patch0 -p0 -b .old
 %patch1 -p0 -b .old
-%patch2 -p0 -b .old
 
 %build
 	rm -rf $RPM_BUILD_ROOT

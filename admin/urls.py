@@ -140,5 +140,9 @@ urlpatterns = patterns('',
   (r'^(?P<url>logic)/new/$',                   'vulture.views.edit_auth'),
   (r'^(?P<url>logic)/(?P<object_id>\d+)/del/$','vulture.views.remove_auth'), 
   (r'^logic/$','vulture.views.vulture_object_list_adm', dict({'queryset': Logic.objects.all()}, template_name='vulture/generic_list.html', extra_context = dict(category='Authentication', name='Logic', url='/logic', ))),
+  (r'^otp/$','vulture.views.vulture_object_list_adm', dict({'queryset': OTP.objects.all()}, template_name='vulture/otp_list.html', extra_context = dict(category='Auth', name='One-Time-Password', url='/otp', fields=(('ldap','LDAP'),('script','Script'),('passlen','Password Length'),('template','SMS template'),('timeout','Timeout'))))),
+  (r'^(?P<url>otp)/(?P<object_id>\d+)/$',    'vulture.views.edit_auth'),
+  (r'^(?P<url>otp)/new/$',                   'vulture.views.edit_auth'),
+  (r'^(?P<url>)otp/(?P<object_id>\d+)/del/$','vulture.views.remove_auth'),
 )
 

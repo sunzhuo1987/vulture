@@ -28,10 +28,10 @@ BIN_PATH = '/opt/vulture/bin/'
 CONF_PATH = '/opt/vulture/conf/'
 DATABASE_PATH = '/opt/vulture/admin/'
 SERVERROOT = '/etc/httpd'
-HTTPD_CUSTOM = "\n\
-"
+HTTPD_CUSTOM = ""
 
 WWW_USER='apache'
+WWW_GROUP='apache'
 
 PERL_SWITCHES = '-I/opt/vulture/lib/i386-linux-thread-multi -I/opt/vulture/lib/i386-linux-thread-multi/Vulture -I/opt/vulture/lib/x86_64-linux-thread-multi -I/opt/vulture/lib/i486-linux-thread-multi -I/opt/vulture/lib/i586-linux-thread-multi -I/opt/vulture/lib/i486-linux-gnu-thread-multi -I/opt/vulture/lib -I/opt/vulture/usr/local/lib64/perl5 -I/opt/vulture/usr/lib/perl5 -I/opt/vulture/usr/lib64/perl5 -I/opt/vulture/usr/lib64/perl5/site_perl/5.8.8/x86_64-linux-thread-multi/Apache2'
 

@@ -17,8 +17,7 @@ Buildarch: noarch
 Source0: %{name}-%{version}.tar.bz2
 Patch0: database_path.patch
 Patch1: PreConnectionHandler.patch
-Patch2: vulture-rpm.patch
-Patch3: vulture-suse.patch
+Patch2: vulture-suse.patch
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildRequires: perl
@@ -30,7 +29,6 @@ Vulture Reverse Proxy
 %patch0 -p0 -b .old
 %patch1 -p0 -b .old
 %patch2 -p0 -b .old
-%patch3 -p0 -b .old
 
 cd ..
 %build
@@ -138,10 +136,6 @@ cd ..
     fi
     if ! ( grep '^Defaults:wwwrun.*!requiretty' /etc/sudoers > /dev/null ) ; then
          echo 'Defaults:wwwrun !requiretty' >> /etc/sudoers
-    fi
-    if ( uname -i | grep 'x86_64' > /dev/null ) ; then
-        sed s-"/usr/lib/libxml2.so.2"-"/usr/lib64/libxml2.so.2"-g %{serverroot}/%{name}/admin/vulture_httpd.conf > /tmp/vh.conf && \
-		mv /tmp/vh.conf %{serverroot}/%{name}/admin/vulture_httpd.conf;
     fi
 
 %preun
