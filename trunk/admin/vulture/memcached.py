@@ -175,9 +175,9 @@ class MC:
         # get memcache conf version
         mcversion = MC.get(MC.VERSIONKEY)
         mcversion = mcversion == None and -1 or int(mcversion)
-        print ("[*] Refreshing conf, current: %s , last: %s"%(myversion,mcversion))
+#        print ("[*] Refreshing conf, current: %s , last: %s"%(myversion,mcversion))
         if myversion == mcversion:
-            print "[*] Already to last version"
+#            print "[*] Already to last version"
             pass
         elif myversion > mcversion:
         # push my conf in memcache 
