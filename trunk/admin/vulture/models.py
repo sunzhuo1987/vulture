@@ -204,7 +204,7 @@ class Intf(models.Model):
                     Balancer_Node__istartswith='ftp://').count()>0
                 or App.objects.filter(intf=self.id,
                     Balancer_Activated=False,
-                url__istartswith='ftp://')>0)
+                url__istartswith='ftp://').count()>0)
 
     def is_ssl(self):
         return self.cert and True or False

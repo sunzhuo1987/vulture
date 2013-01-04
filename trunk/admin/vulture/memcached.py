@@ -112,7 +112,7 @@ class MC:
                 return False
         if not MC.clusterActivated():
             print ("[-] Cluster not activated in conf")
-            return False
+            return True
         print ("[+] Cluster sync daemon starting .. ")
         # creating lock file
         f = open(MC.LOCKFILE,"wb")
@@ -139,8 +139,8 @@ class MC:
         pid = MC.daemonStarted()
         if not pid:
         # daemon is already stopped
-            print ("[-] Daemon not started, exiting..")
-            return False
+            print ("[-] Daemon not started...")
+            return True
         if pid != os.getpid():
         # stopping external process
             print ("[+] Stopping external daemon [%s]"%pid)
@@ -212,10 +212,15 @@ class MC:
             info = MC.get("%s:infos")
             # if we failed to get infos, return err value
             if not info:
-                info = {"name":name,"version":-1,"last":0}
+                info = {"name":name,"version":-1,"last":0,"up":False}
             else:
             # else return memcache value with this server's name
                 info.update({"name":name})
+                # check if server is up, give it 3 seconds to update its conf
+                if (info['last'] + MC.INTERVAL+3) >= time.time() :
+                    info['up'] = True
+                else:
+                    info['up'] = False
             ret += [info]
         return ret
         
@@ -412,4 +417,4 @@ if __name__ == '__main__':
         f = func[sys.argv[1]]
     except:
         MC.usage()
-    sys.exit(f() and 0 or 1)
+    sys.exit(not f() and 1 or 0)

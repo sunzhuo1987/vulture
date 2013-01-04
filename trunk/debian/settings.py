@@ -28,22 +28,7 @@ BIN_PATH = '/var/www/vulture/bin/'
 CONF_PATH = '/var/www/vulture/conf/'
 DATABASE_PATH = '/var/www/vulture/admin/'
 SERVERROOT = '/usr/lib/apache2'
-HTTPD_CUSTOM = "\n\
-LoadModule ssl_module		/usr/lib/apache2/modules/mod_ssl.so\n\
-LoadModule proxy_module		/usr/lib/apache2/modules/mod_proxy.so\n\
-LoadModule proxy_http_module	/usr/lib/apache2/modules/mod_proxy_http.so\n\
-LoadModule proxy_ftp_module	/usr/lib/apache2/modules/mod_proxy_ftp.so\n\
-LoadModule proxy_connect_module	/usr/lib/apache2/modules/mod_proxy_connect.so\n\
-LoadModule setenvif_module	/usr/lib/apache2/modules/mod_setenvif.so\n\
-LoadModule authz_host_module	/usr/lib/apache2/modules/mod_authz_host.so\n\
-LoadModule unique_id_module	/usr/lib/apache2/modules/mod_unique_id.so\n\
-LoadModule security2_module     /usr/lib/apache2/modules/mod_security2.so\n\
-LoadModule auth_kerb_module	/usr/lib/apache2/modules/mod_auth_kerb.so\n\
-\n\
-<IfModule mod_mime.c>\n\
-        TypesConfig mime.types\n\
-</IfModule>\n\
-"
+HTTPD_CUSTOM = ""
 
 SESSION_COOKIE_SECURE = True
 SESSION_COOKIE_HTTPONLY = True
@@ -82,7 +67,7 @@ MEDIA_URL = '/static/'
 ADMIN_MEDIA_PREFIX = '/media/'
 
 # Make this unique, and don't share it with anybody.
-SECRET_KEY = '(fk$)9xg!#3y@!j)y9u!nn)zm(u-zqbdbb6_s!urdb%8v^cv9m'
+SECRET_KEY = ''
 
 # List of callables that know how to import templates from various sources.
 TEMPLATE_LOADERS = (
