@@ -4,6 +4,8 @@
 # this script must be updated each time we add/remove perl deps to vulture
 
 perl_deps="
+YAML
+namespace::clean
 Apache2::Access
 Apache2::Connection
 Apache2::Const
