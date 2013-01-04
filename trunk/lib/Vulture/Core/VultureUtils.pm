@@ -450,7 +450,7 @@ sub get_style {
         $query = "SELECT intf.appearance_id $query WHERE intf.id='$intf_id'";
     }
     $query .= " AND style_tpl.id=style_style.";
-    if ( uc($type) eq 'APP_DOWN' ) {
+    if ( uc($type) eq 'DOWN' ) {
         $query .= "app_down_tpl_id";
     }
     elsif ( uc($type) eq 'LOGIN' ) {
