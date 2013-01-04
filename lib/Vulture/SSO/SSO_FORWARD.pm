@@ -307,7 +307,7 @@ sub forward {
             $base_url = $row[0];
             foreach $r (@row) {
                 if ( $r =~ /route=(.*)/ ) {
-                    $route = $1;
+                    $route = ".$1";
                 }
             }
         }
