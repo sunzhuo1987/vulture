@@ -26,6 +26,8 @@ Vulture_HOME=/var/www
 NAME=vulture
 RETVAL=0
 APACHE=/usr/sbin/apache2
+APACHE_USER=www-data
+DAEMON_LOG=/var/log/Vulture-daemon
 MEMCACHED=/usr/bin/memcached
 MEMCACHED_IP=127.0.0.1
 MEMCACHED_PORT=9091
@@ -34,9 +36,10 @@ case "$1" in
   start)
 	${Vulture_HOME}/${NAME}/bin/test-perl.sh || exit 1;
 	echo -n "Starting $NAME: ";
-	$MEMCACHED -d -m 512 -l $MEMCACHED_IP -p $MEMCACHED_PORT -u www-data
+	$MEMCACHED -d -m 512 -l $MEMCACHED_IP -p $MEMCACHED_PORT -u "$APACHE_USER"
 	sleep 2
-	su -c "python ${Vulture_HOME}/${NAME}/admin/vulture/memcached.py start 2>&1 &"  www-data
+    touch $DAEMON_LOG && chown "${APACHE_USER}." $DAEMON_LOG
+	su -c "python ${Vulture_HOME}/${NAME}/admin/vulture/memcached.py start 2>&1 >> $DAEMON_LOG &"  "$APACHE_USER"
 	python "${Vulture_HOME}/${NAME}/conf/vintf_startup.py" up
 	$APACHE -f $Vulture_HOME/$NAME/conf/httpd.conf;
 	for i in `ls $Vulture_HOME/$NAME/conf/*.conf 2> /dev/null | grep -v 'httpd.conf$'`; do 
