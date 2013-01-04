@@ -389,7 +389,6 @@ class Profile(models.Model):
     user = models.TextField()
     login = models.CharField(max_length=256,null=1)
     password = models.CharField(max_length=256,null=1, blank=1)
-    third45 = models.CharField(max_length=256,null=1, blank=1)
     class Meta:
         db_table = 'profile'
 
