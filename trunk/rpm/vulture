@@ -9,7 +9,6 @@
 
 # Install this file in /etc/init.d and run "chkconfig vulture on" and
 # "chkconfig --add vulture".
-set -e
 
 # Source function library.
 if [ ! -r /etc/SuSE-release ]; then
