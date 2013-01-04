@@ -39,15 +39,13 @@ def update_security(request):
 
 @permission_required('vulture.manage_cluster')
 def manage_cluster(request):
+    version_conf = Conf.objects.get(var='version_conf')
+    curversion=int(version_conf.value or 0)
     if request.method == 'POST': 
-        version = str(int(request.POST['version'])) 
-        cur = connection.cursor()
-        Conf.objects.filter(var='version_conf').update(value=version)
-        myname = Conf.objects.get(var='name').value
-        MC.set(myname+":version",version)
-    last = MC.get(MC.VERSIONKEY) or 0
-    next_ = str(int(last)+1)
-    return render_to_response('vulture/cluster_list.html', {'last_version':last, 'next_version':next_, 'object_list':MC.list_servers()})
+        curversion += 1
+        version_conf.value = str(curversion)
+        version_conf.save()
+    return render_to_response('vulture/cluster_list.html', {'last_version':curversion, 'object_list':MC.list_servers()})
 
 @permission_required('vulture.change_intf')
 def edit_intf(request,object_id=None):

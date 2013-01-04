@@ -6,8 +6,7 @@
 {% endblock %}
 
 {% block tabs %}
-    <li><a href="javascript:swapTab(1, 2, 'main_tab_', 'main_content_');" id="main_tab_1" class="active">{% trans "List" %}</a></li>
-    <li><a href="javascript:swapTab(2, 2, 'main_tab_', 'main_content_');" id="main_tab_2" class="">{% trans "Manage" %}</a></li>
+    <li><a href="javascript:swapTab(1, 1, 'main_tab_', 'main_content_');" id="main_tab_1" class="active">{% trans "List" %}</a></li>
 {% endblock %}
 
 {% block content %}
@@ -16,25 +15,21 @@
             <tr>
                 <th>{% trans "Name" %}</th>
                 <th>{% trans "Config version" %}</th>
+                <th>{% trans "up" %}</th>
             </tr>
             {% for object in object_list %}
                 <tr>
                     <td>{{ object.name }}</td>
                     <td>{{ object.version }}</td>
+                    <td>{{ object.up }}</td>
                 </tr>
             {% endfor %}
-        </table>
-        </div>
-	<div id="main_content_2" class="main_content">
-	<table>
             <tr>
-	        <th>{% trans "Last configuration : "%}[{{ last_version}}]</th>
-                <td>
+	        <th>{% trans "Local conf version : "%}[{{ last_version}}]</th>
 			<form method="POST" action="">
-				<input type="submit" value="{% trans "Update" %}"/>
-				<input name="version" type="hidden" value="{{ next_version }}"/>
+                <td><input type="submit" value="{% trans "Push conf" %}"/></td>
+                <td><input type="button" value="{% trans "Refresh" %}" onclick="javascript:document.location.reload()"/></td>
 			</form>
-		</td>
 	    <tr>
 	</table>
 	</div>	
