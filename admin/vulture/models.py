@@ -120,21 +120,21 @@ class Intf(models.Model):
     name = models.CharField(max_length=128, unique=1)
     ip = models.IPAddressField()
     port = models.IntegerField()
-    ssl_engine = models.CharField(max_length=10,blank=1,choices=SSL_ENGINES)
     log = models.ForeignKey('Log')
+    appearance = models.ForeignKey('Appearance', blank=1, null=1)
+    # sso portal
     sso_portal = models.CharField(max_length=256,blank=1,null=1)
     sso_timeout = models.IntegerField(blank=1,null=1)
     sso_update_access_time = models.BooleanField(default=0)
     check_csrf = models.BooleanField(default=True);
-    appearance = models.ForeignKey('Appearance', blank=1, null=1)
+    # cas portal
     cas_portal = models.CharField(max_length=256,blank=1,null=1)
     cas_auth = models.ManyToManyField('Auth',null=1,blank=1,db_table='intf_auth_multiple')
     cas_auth_basic = models.BooleanField(default=0)
     cas_st_timeout = models.IntegerField(blank=1,null=1)
     cas_redirect = models.CharField(max_length=256,blank=1,null=1)
     cas_display_portal = models.BooleanField(default=0);
-
-    #handle login problem like in a app
+    # login triggers
     auth_server_failure_action = models.CharField(max_length=128, blank=1, null=1, choices=ACTIONS, default='nothing')
     auth_server_failure_options = models.CharField(max_length=128, blank=1, null=1)
     account_locked_action = models.CharField(max_length=128, blank=1, null=1, choices=ACTIONS, default='nothing')
@@ -143,12 +143,22 @@ class Intf(models.Model):
     login_failed_options = models.CharField(max_length=128, blank=1, null=1)
     need_change_pass_action = models.CharField(max_length=128, blank=1, null=1, choices=ACTIONS, default='nothing')
     need_change_pass_options = models.CharField(max_length=128, blank=1, null=1)
-
-	
+    # ssl fields	
     cert = models.TextField(blank=1,null=1)
     key = models.TextField(blank=1,null=1)
     ca = models.TextField(blank=1,null=1)
     cacert = models.TextField(blank=1,null=1)
+    ssl_engine = models.CharField(max_length=10,blank=1,choices=SSL_ENGINES)
+    # apache server setting
+    srv_timeout = models.IntegerField(blank=0,default=300)
+    srv_startsrv = models.IntegerField(blank=0,default=5)
+    srv_min_spare_srv = models.IntegerField(blank=0,default=5)
+    srv_max_spare_srv = models.IntegerField(blank=0,default=10)
+    srv_max_clients = models.IntegerField(blank=0,default=150)
+    srv_max_req_per_child = models.IntegerField(blank=0,default=0)
+    srv_ka = models.BooleanField(default=True)
+    srv_ka_max_req = models.IntegerField(blank=1,null=1,default=100)
+    srv_ka_timeout = models.IntegerField(blank=1,null=1,default=15)
     virtualhost_directives = models.TextField(blank=1,null=1)
 
     def conf(self):

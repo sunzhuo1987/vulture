@@ -11,42 +11,57 @@ import ifconfig
 class IntfForm(forms.ModelForm):
     def __init__(self,*args,**kwargs):
         super(forms.ModelForm,self).__init__(*args,**kwargs)
-	intf = kwargs["instance"]
-	runnin_itf = [z.intf for z in VINTF.objects.all()]
-	CHOICES = []
-	li = []
-	for x in [ (f["intf"],f["ip"]) for f in VINTF.objects.values('intf','ip')] + [z for z in ifconfig.getIntfs().items()]:
-		if not x in li:	
-			li += [x]
-	for itf in li:
-		CHOICES += [(itf[1],"%s -> %s"%itf)]
-	CHOICES += [("0.0.0.0","any -> 0.0.0.0")]
-	CHOICES.sort()
+        intf = kwargs["instance"]
+        runnin_itf = [z.intf for z in VINTF.objects.all()]
+        CHOICES = []
+        li = []
+        for x in [ (f["intf"],f["ip"]) for f in VINTF.objects.values('intf','ip')] + [z for z in ifconfig.getIntfs().items()]:
+            if not x in li:    
+                li += [x]
+        for itf in li:
+            CHOICES += [(itf[1],"%s -> %s"%itf)]
+        CHOICES += [("0.0.0.0","any -> 0.0.0.0")]
+        CHOICES.sort()
         self.fields["ip"] = forms.ChoiceField(choices = CHOICES)
+        self.fields['srv_ka'] = forms.BooleanField(initial=intf.srv_ka,required=False)
+        self.fields['srv_ka'].widget.attrs["onchange"]="srv_ka_changed()"
+    def clean_srv_ka_max_req(self):
+        ka = self.cleaned_data["srv_ka"]
+        max_req = self.cleaned_data["srv_ka_max_req"]
+        if ka and not max_req:
+            raise forms.ValidationError("MaxKeepAliveRequests must be filled when KeepAlive is in use")
+        return max_req
+    def clean_srv_ka_timeout(self):
+        ka = self.cleaned_data["srv_ka"]
+        ka_timeout = self.cleaned_data["srv_ka_timeout"]
+        if ka and not ka_timeout:
+            raise forms.ValidationError("KeepAliveTimeout must be filled when KeepAlive is in use")
+        return ka_timeout
     class Meta:
         model = Intf
+#        exclude=('srv_ka')
 
 class VintfForm(forms.ModelForm):
     def __init__(self,*args, **kwargs):
         super(forms.ModelForm,self).__init__(*args, **kwargs)
-	vintf = kwargs["instance"]
-	if vintf:
-		CHOICES = [[vintf.intf]*2]
-	else:
-		runnin_itf = [z.intf for z in VINTF.objects.all()]
-		CHOICES = []
-	#retrieve the next available virtual interface name for a given real interface ( ie. eth0 -> eth0:3 )
-		for itf in filter(None,[not ':' in x and x or None for x in ifconfig.getIntfs()]):
-			id_next = 1
-			name_next = "%s:%s"%(itf,id_next)
-			while name_next in runnin_itf : 
-				id_next +=1 
-				name_next = "%s:%s"%(itf,id_next)
-			CHOICES += [[name_next]*2]
-					
-	self.fields["intf"] = forms.ChoiceField(choices = CHOICES)
+        vintf = kwargs["instance"]
+        if vintf:
+            CHOICES = [[vintf.intf]*2]
+        else:
+            runnin_itf = [z.intf for z in VINTF.objects.all()]
+            CHOICES = []
+        #retrieve the next available virtual interface name for a given real interface ( ie. eth0 -> eth0:3 )
+            for itf in filter(None,[not ':' in x and x or None for x in ifconfig.getIntfs()]):
+                id_next = 1
+                name_next = "%s:%s"%(itf,id_next)
+                while name_next in runnin_itf : 
+                    id_next +=1 
+                    name_next = "%s:%s"%(itf,id_next)
+                CHOICES += [[name_next]*2]
+                        
+        self.fields["intf"] = forms.ChoiceField(choices = CHOICES)
     class Meta:
-	model = VINTF
+        model = VINTF
 
 class UserProfileForm(UserCreationForm):
     is_staff = forms.BooleanField(required=False)
@@ -94,28 +109,28 @@ class AppForm(forms.ModelForm):
         super(forms.ModelForm, self).__init__(*args, **kwargs)
         path = settings.CONF_PATH+"security-rules/"
         directory = {'base_rules/': "securitybase", 'experimental_rules/': "securityexp", 'optional_rules/': "securityopt", 'slr_rules/': "securityslr"}
-    	
-	if not os.path.exists(path):
-	    os.mkdir(path,0770)
+        
+        if not os.path.exists(path):
+            os.mkdir(path,0770)
 
-        if not os.path.exists(path+'activated/'):
-            os.mkdir(path+'activated/',0770)
-        
-        
-        for (key, fieldname) in directory.items():
-            CHOICES=[]
-            INITIAL={}
-            if os.path.exists(path+key):
-                for fileName in os.listdir(path+key):
-                    if 'data' not in fileName and 'example' not in fileName:
-                        CHOICES.append((fileName,fileName))
-                        if os.path.exists(path+'activated/'+str(self.instance)):
-                            if fileName in os.listdir(path+'activated/'+str(self.instance)):  # Bouh str
-                                INITIAL[fileName] = True
+            if not os.path.exists(path+'activated/'):
+                os.mkdir(path+'activated/',0770)
             
-            self.fields[fieldname].choices = CHOICES
-            self.fields[fieldname].initial = INITIAL
             
+            for (key, fieldname) in directory.items():
+                CHOICES=[]
+                INITIAL={}
+                if os.path.exists(path+key):
+                    for fileName in os.listdir(path+key):
+                        if 'data' not in fileName and 'example' not in fileName:
+                            CHOICES.append((fileName,fileName))
+                            if os.path.exists(path+'activated/'+str(self.instance)):
+                                if fileName in os.listdir(path+'activated/'+str(self.instance)):  # Bouh str
+                                    INITIAL[fileName] = True
+                
+                self.fields[fieldname].choices = CHOICES
+                self.fields[fieldname].initial = INITIAL
+                
     auth = forms.ModelMultipleChoiceField(required=False, queryset=Auth.objects.all())
     securitybase = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple,required=False)
     securityexp = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple,required=False)

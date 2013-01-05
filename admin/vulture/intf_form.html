@@ -10,10 +10,10 @@
 {% block tabs %}
     <li><a href="/intf/">{% trans "List" %}</a></li>
     <li><a href="javascript:swapTab(1, 5, 'main_tab_', 'main_content_');" id="main_tab_1" class="active">{% trans "Main settings" %}</a></li>
-    <li><a href="javascript:swapTab(2, 5, 'main_tab_', 'main_content_');" id="main_tab_2">{% trans "SSO Portal" %}</a></li>
-    <li><a href="javascript:swapTab(3, 5, 'main_tab_', 'main_content_');" id="main_tab_3">{% trans "CAS Portal" %}</a></li>
-    <li><a href="javascript:swapTab(4, 5, 'main_tab_', 'main_content_');" id="main_tab_4">{% trans "SSL" %}</a></li>
-    <li><a href="javascript:swapTab(5, 5, 'main_tab_', 'main_content_');" id="main_tab_5">{% trans "Advanced settings" %}</a></li>
+    <li><a href="javascript:swapTab(2, 5, 'main_tab_', 'main_content_');" id="main_tab_2">{% trans "Apache server settings" %}</a></li>
+    <li><a href="javascript:swapTab(3, 5, 'main_tab_', 'main_content_');" id="main_tab_3">{% trans "SSO Portal" %}</a></li>
+    <li><a href="javascript:swapTab(4, 5, 'main_tab_', 'main_content_');" id="main_tab_4">{% trans "CAS Portal" %}</a></li>
+    <li><a href="javascript:swapTab(5, 5, 'main_tab_', 'main_content_');" id="main_tab_5">{% trans "SSL" %}</a></li>
 {% endblock %}
 
 {% block content %}
@@ -104,6 +104,30 @@
 
         <div id="main_content_2" class="main_content">
             <table>
+                <tr><th>{% trans "Timeout" %}</th><td class="input">{{ form.srv_timeout }}{% if form.srv_timeout.errors %}<div class="error">{{ form.srv_timeout.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+                <tr><th>{% trans "StartServers" %}</th><td class="input">{{ form.srv_startsrv }}{% if form.srv_startsrv.errors %}<div class="error">{{ form.srv_startsrv.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+
+                <tr><th>{% trans "MinSpareServers" %}</th><td class="input">{{ form.srv_min_spare_srv }}{% if form.srv_min_spare_srv.errors %}<div class="error">{{ form.srv_min_spare_srv.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+                <tr><th>{% trans "MaxSpareServers" %}</th><td class="input">{{ form.srv_max_spare_srv }}{% if form.srv_max_spare_srv.errors %}<div class="error">{{ form.srv_max_spare_srv.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+                <tr><th>{% trans "MaxClients" %}</th><td class="input">{{ form.srv_max_clients }}{% if form.srv_max_clients.errors %}<div class="error">{{ form.srv_max_clients.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+                <tr><th>{% trans "MaxClients" %}</th><td class="input">{{ form.srv_max_clients }}{% if form.srv_max_clients.errors %}<div class="error">{{ form.srv_max_clients.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+
+                <tr><th>{% trans "MaxRequestsPerChild" %}</th><td class="input">{{ form.srv_max_req_per_child }}{% if form.srv_max_req_per_child.errors %}<div class="error">{{ form.srv_max_req_per_child.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+                <tr><th>{% trans "KeepAlive" %}</th><td class="input">{{ form.srv_ka }}{% if form.srv_ka.errors %}<div class="error">{{ form.srv_ka.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+        
+                <tr><th>{% trans "MaxKeepAliveRequests" %}</th><td class="input">{{ form.srv_ka_max_req }}{% if form.srv_ka_max_req.errors %}<div class="error">{{ form.srv_ka_max_req.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+                <tr><th>{% trans "KeepAliveTimeout" %}</th><td class="input">{{ form.srv_ka_timeout }}{% if form.srv_ka_timeout.errors %}<div class="error">{{ form.srv_ka_timeout.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+                <tr><th>{% trans "Add VirtualHost directives" %}</th><td class="input">{{ form.virtualhost_directives }}{% if form.virtualhost_directives.errors %}<div class="error">{{ form.virtualhost_directives.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+            </table>
+        </div>
+        <script type="text/javascript">
+            function srv_ka_changed(){
+                id_srv_ka_timeout.disabled = id_srv_ka_max_req.disabled = !id_srv_ka.value;
+            }
+            srv_ka_changed();
+        </script>
+        <div id="main_content_3" class="main_content">
+            <table>
                 <tr><th>{% trans "SSO Portal" %}</th><td class="input">{{ form.sso_portal }}{% if form.sso_portal %}<div class="error">{{ form.sso_portal.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
                 <tr><th>{% trans "Timeout for user session" %}</th><td class="input">{{ form.sso_timeout }}{% if form.sso_timeout.errors %}<div class="error">{{ form.sso_timeout.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
                 <tr><th>{% trans "Update user session timeout" %}</th><td class="input">{{ form.sso_update_access_time }}{% if form.sso_update_access_time.errors %}<div class="error">{{ form.sso_update_access_time.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
@@ -111,7 +135,7 @@
             </table>
         </div>
 
-        <div id="main_content_3" class="main_content">
+        <div id="main_content_4" class="main_content">
             <table>
                 <tr><th>{% trans "CAS Portal" %}</th><td class="input">{{ form.cas_portal }}{% if form.cas_portal %}<div class="error">{{ form.cas_portal.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
                 <tr><th>{% trans "CAS auth" %}</th><td class="input">{{ form.cas_auth }}{% if form.cas_auth %}<div class="error">{{ form.cas_auth.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
@@ -129,7 +153,7 @@
             </table>
         </div>
 
-        <div id="main_content_4" class="main_content">
+        <div id="main_content_5" class="main_content">
             <table>
                 <tr><th>{% trans "SSL engine" %}</th><td class="input">{{ form.ssl_engine }}{% if form.ssl_engine.errors %}<div class="error">{{ form.ssl_engine.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
                 <tr><th>{% trans "PEM certificat" %}</th><td class="input">{{ form.cert }}{% if form.cert.errors %}<div class="error">{{ form.cert.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
@@ -139,9 +163,8 @@
             </table>
         </div>
         
-        <div id="main_content_5" class="main_content">
+        <div id="main_content_6" class="main_content">
             <table>
-                <tr><th>{% trans "Add VirtualHost directives" %}</th><td class="input">{{ form.virtualhost_directives }}{% if form.virtualhost_directives.errors %}<div class="error">{{ form.virtualhost_directives.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
             </table>
         </div>
         <br />
