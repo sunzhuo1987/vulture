@@ -47,10 +47,12 @@ MIME::Base64
 Net::IP::Match::Regexp
 Net::LDAP
 Net::LDAP::Util
+String::ShellQuote
 Sys::Hostname
 List::Util
 URI
 URI::Escape
+XML::LibXML
 WWW::Mechanize
 WWW::Mechanize::GZip
 "
