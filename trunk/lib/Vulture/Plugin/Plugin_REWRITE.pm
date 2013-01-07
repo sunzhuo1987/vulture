@@ -55,6 +55,7 @@ sub plugin {
         $r->err_headers_out->set( 'Location' => $rewrite );
         return Apache2::Const::REDIRECT;
     }
+    return undef;
 }
 
 1;

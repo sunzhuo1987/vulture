@@ -15,21 +15,15 @@
         <table>
             <tr>
                 <th>{% trans "Name" %}</th>
-                <th>{% trans "LDAP" %}</th>
+                <th>{% trans "Auth" %}</th>
                 <th>{% trans "Script" %}</th>
-                <th>{% trans "Pass Length" %}</th>
-                <th>{% trans "Template" %}</th>
-                <th>{% trans "Timeout" %}</th>
                 <th style="width: 72px;"></th>
             </tr>
             {% for object in object_list %}
                 <tr>
                     <td>{{ object.name }}</td>
-                    <td>{{ object.ldap }}</td>
+                    <td>{{ object.auth }}</td>
                     <td>{{ object.script }}</td>
-                    <td>{{ object.passlen }}</td>
-                    <td>{{ object.template }}</td>
-                    <td>{{ object.timeout }}</td>
                     <td>
                         <a href="/otp/{{ object.pk }}/del/"><img src="/img/vulture2/trash.png" alt="delete" /></a>
                         <a href="/otp/{{ object.pk }}"><img src="/img/vulture2/edit.png" alt="edit" /></a>

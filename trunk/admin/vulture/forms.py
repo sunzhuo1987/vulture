@@ -143,8 +143,6 @@ class AppForm(forms.ModelForm):
         auth = self.cleaned_data["auth"]
         if len(auth) > 1:
             for a in auth:
-                if a.auth_type == "kerberos":
-                    raise forms.ValidationError("Kerberos must be the only auth")
                 if a.auth_type == "ntlm":
                     raise forms.ValidationError("NTLM must be the only auth")
                 if a.auth_type == "radius":
@@ -163,6 +161,7 @@ class ACLForm(forms.ModelForm):
         model = ACL
 
 class OTPForm(forms.ModelForm):
+    auth = forms.ModelChoiceField(required=False, queryset=Auth.objects.filter(auth_type__in=['sql','ldap']))
     class Meta:
         model = OTP
 

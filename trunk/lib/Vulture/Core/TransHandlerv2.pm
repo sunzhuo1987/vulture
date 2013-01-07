@@ -62,7 +62,6 @@ sub handler {
       Core::VultureUtils::get_intf( $log, $dbh, $r->dir_config('VultureID'),
        $config,$mc_conf );
     $r->pnotes( 'intf' => $intf ) if defined $intf;
-    $log->debug( "url is " . $r->hostname . $unparsed_uri );
     my $app = Core::VultureUtils::get_app( $log, $dbh,$mc_conf,
         $intf->{id},$r->hostname . $unparsed_uri 
         ) if ( $unparsed_uri !~ /$cookie_app_name=([^;]*)/ );
@@ -104,38 +103,36 @@ sub handler {
         if ( defined $session_app{is_auth} and $session_app{is_auth} == 1 ) {
             return Core::TransHandlerv2::authen_app($log,$r,$dbh,$app,\%session_app,$proxy_url);
         }
-        else {
-            # Not authentified in this app. Setting cookie for app. 
-            # Redirecting to SSO Portal.
-            $log->debug( "App "
-                  . $r->hostname
-                  . " is secured and user is not authentified in app. Let's"
-                  . " have fun with AuthenHandler / redirect to SSO Portal."
-                  . $intf->{'sso_portal'} );
-            $r->status(200);
+        # Not authentified in this app. Setting cookie for app. 
+        # Redirecting to SSO Portal.
+        $log->debug( "App "
+              . $r->hostname
+              . " is secured and user is not authentified in app. Let's"
+              . " have fun with AuthenHandler / redirect to SSO Portal."
+              . $intf->{'sso_portal'} );
+        $r->status(200);
 
-            # Fill session for SSO Portal
-            $session_app{app_name} = $app->{name};
-            if ( $r->pnotes('url_to_redirect') ) {
-                $session_app{url_to_redirect} = $r->pnotes('url_to_redirect');
-            }
-            else {
-                $session_app{url_to_redirect} = $unparsed_uri;
-            }
-            # Redirect to SSO Portal
-            # if $r->pnotes('url_to_mod_proxy') wasn't set by Rewrite engine
-            unless ( $r->pnotes('url_to_mod_proxy') ) {
-                return Core::TransHandlerv2::redirect_portal($log,$r,$app,$intf,
-                        \%session_app);
-            }
-            # A plugin has send a $r->pnotes('url_to_mod_proxy') => proxify
-            else {
-                return Core::TransHandlerv2::plugin_proxify($log,$r,$app,\%session_app);
-           }
+        # Fill session for SSO Portal
+        $session_app{app_name} = $app->{name};
+        if ( $r->pnotes('url_to_redirect') ) {
+            $session_app{url_to_redirect} = $r->pnotes('url_to_redirect');
         }
-        # SSO Portal
+        else {
+            $session_app{url_to_redirect} = $unparsed_uri;
+        }
+        # Redirect to SSO Portal
+        # if $r->pnotes('url_to_mod_proxy') wasn't set by Rewrite engine
+        unless ( $r->pnotes('url_to_mod_proxy') ) {
+            return Core::TransHandlerv2::redirect_portal($log,$r,$app,$intf,
+                    \%session_app);
+        }
+        # A plugin has send a $r->pnotes('url_to_mod_proxy') => proxify
+        else {
+            return Core::TransHandlerv2::plugin_proxify($log,$r,$app,\%session_app);
+        }
     }
     elsif (
+        # SSO Portal
         $r->hostname =~ $intf->{'sso_portal'}
         or (
             $unparsed_uri =~ /$cookie_app_name=([^;]*)/
@@ -150,6 +147,7 @@ sub handler {
     }
     # CAS Portal
     elsif ( $r->hostname =~ $intf->{'cas_portal'} ) {
+        $log->debug('cas portal');
         return Apache2::Const::OK;
 
     }
@@ -198,6 +196,8 @@ sub plugins_th{
 }
 sub rewrite_content{
     my ($log,$r,$dbh,$app,$intf)=@_;
+    # portal content should not be rewritten
+    return undef unless $app->{id};
     my $mc_conf = $r->pnotes('mc_conf');
     my $key = "plugincontent:".$app->{id};
     my $plugins = Core::VultureUtils::get_memcached($key,$mc_conf);
