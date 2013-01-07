@@ -26,14 +26,15 @@ sub handler {
     my $r = Apache::SSLLookup->new(shift);
 
     my $log = $r->pnotes('log');
+    $log->debug("########## ResponseHandlerv2 ##########");
 
     #Getting data from pnotes
     my $app     = $r->pnotes('app');
     my $dbh     = $r->pnotes('dbh');
     my $intf    = $r->pnotes('intf');
     my $mc_conf = $r->pnotes('mc_conf');
-#
-  #$user may not be set if Authentication is done via Apache (ex: mod_auth_kerb)
+
+    #$user may not be set if Authentication is done via Apache (ex: mod_auth_kerb)
     my $user = $r->pnotes('username') || $r->user;
     my $password = $r->pnotes('password');
 
@@ -45,13 +46,11 @@ sub handler {
     Core::VultureUtils::session( \%session_SSO, $intf->{timeout},
         $r->pnotes('id_session_SSO'),
         $log, $mc_conf, $app->{update_access_time} );
-
 #Query counter
 #my $query = "UPDATE stats SET value=value+1 WHERE var='responsehandler_counter'";
 #$log->debug($query);
 #$dbh->do($query) or $log->error($dbh->errstr);
 
-    $log->debug("########## ResponseHandlerv2 ##########");
 
     #Bypass everything to display custom message (ex : custom auth)
     if (   $r->pnotes('response_content')
@@ -79,7 +78,6 @@ sub handler {
     if (not $user){
         #Display Vulture auth
         if ( $app and !$app->{'auth_basic'} and not $r->pnotes('static') ) {
-            $log->debug("Display auth form");
             $r->content_type('text/html');
             $r->print(
                 Core::ResponseHandlerv2::display_auth_form(
@@ -135,6 +133,7 @@ sub handler {
             if ( ( $sso_learning_ext ne '' ) ) {
                 $log->debug( "REDIRECTING SSO LEARNING TO EXTERNAL APP"
                       . $sso_learning_ext );
+                #TODO : do_redirect
                 my $html;
                 $html =
                   '<html><head><meta http-equiv="Refresh" content="0; url='
@@ -202,6 +201,7 @@ sub cas_redirect{
         $html = Core::ResponseHandlerv2::display_portal( $r, $log, $dbh,
             $app );
     }
+    # TODO: do_redirect
     elsif ( $intf->{'cas_redirect'} ) {
         $html =
             '<html><head><meta http-equiv="Refresh" content="0; url='
@@ -246,25 +246,23 @@ sub display_auth_form {
     my ( $r, $log, $dbh, $app, $intf, $session_SSO ) = @_;
     my $req     = Apache2::Request->new($r);
     my $mc_conf = $r->pnotes('mc_conf');
+    $log->debug("display auth form");
+
+    my $uri     = $r->unparsed_uri;
+    my $message = $r->pnotes("auth_message")||'';
+    my $auth_name = $r->pnotes("auth_name");
 
     #CAS
     my $service = $req->param('service');
-
-    #END CAS
-
-    my $uri     = $r->unparsed_uri;
-    my $message = $r->pnotes("auth_message");
-    $message ||= '';
-    my $translated_message;
 
     #Get translations
     my $translations =
       Core::VultureUtils::get_translations( $r, $log, $dbh, $message );
 
-    #Avoid bot request (token)
+    # token
     my $token = Core::VultureUtils::generate_random_string(32);
     $session_SSO->{random_token} = $token;
-
+    
     #Get style
     my $form =
 "<div id=\"form_vulture\"><form method=\"POST\" name=\"auth_form\" action=\""
@@ -274,32 +272,50 @@ sub display_auth_form {
 "<tr class=\"row\"><td></td><td class=\"hidden\" name=\"service\" value=\""
       . HTML::Entities::encode_entities($service)
       . "\"></td></tr>"
-      if defined $service;
-    $form .= <<FOO
-<tr class="row"><td class="input">$translations->{'USER'}{'translation'}</td><td><input type="text" name="vulture_login"></td></tr>
-<tr class="row"><td class="input">$translations->{'PASSWORD'}{'translation'}</td><td><input type="password" autocomplete="off" name="vulture_password"></td></tr>
-<tr class="row"><td></td><td align="right"><input type="hidden" name="vulture_token" value="$token"></td></tr>
-<tr class="row"><td></td><td align="right"><input type="submit"></td></tr>
+        if defined $service;
+    if ($session_SSO->{otp_step1}){
+        $form .= <<FOO
+        <input type="hidden" name="vulture_login" value="$session_SSO->{otp_user}"/>
+FOO
+        ;
+    }
+    else{
+        $form .= <<FOO
+<tr class="row">
+    <td class="input">$translations->{'USER'}{'translation'}</td>
+    <td><input type="text" name="vulture_login"></td>
+</tr>
+FOO
+        ;
+    }
+    $form .=<<FOO
+<tr class="row">
+    <td class="input">$translations->{'PASSWORD'}{'translation'}</td>
+    <td><input type="password" autocomplete="off" name="vulture_password"></td>
+</tr>
+<tr class="row"><td></td>
+    <td align="right">
+        <input type="hidden" name="vulture_token" value="$token">
+    </td>
+</tr>
+<tr class="row">
+    <td></td><td align="right"><input type="submit" value="submit"></td></tr>
 </table>
 </form>
 </div>
 FOO
-      ;
+    ;
+    my $style_arg = { FORM => $form };
     if ( defined $translations->{$message} ) {
-        return Core::VultureUtils::get_style(
-            $r, $log, $dbh, $app, 'LOGIN',
-            'Please authenticate',
-            {
-                FORM   => $form,
-                ERRORS => $translations->{$message}{'translation'}
-            },
-            $translations
-        );
+        $style_arg->{ERRORS} = $translations->{$message}{'translation'};
+    }
+    if ( defined $auth_name){
+        $style_arg->{AUTH_NAME} = $auth_name;
     }
     return Core::VultureUtils::get_style(
         $r, $log, $dbh, $app, 'LOGIN',
         'Please authenticate',
-        { FORM => $form },
+        $style_arg,
         $translations
     );
 }

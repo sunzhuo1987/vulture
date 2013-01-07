@@ -15,7 +15,7 @@ BEGIN {
       qw(&get_memcached_conf &version_check &get_app &get_intf &session 
       &get_cookie &get_memcached &set_memcached &get_DB_object
       &get_LDAP_object &get_style &get_translations &generate_random_string 
-      &notify &get_LDAP_field &get_LDAP_mobile &load_module);
+      &notify &get_LDAP_field &get_SQL_field &load_module);
 }
 
 use Apache::Session::Generate::MD5;
@@ -149,8 +149,7 @@ sub get_app {
     my ( $log, $dbh,$mc_conf,$intf,$host ) = @_;
     my ( $query, $sth, $ref );
     return {} unless ( $host and $intf and $dbh );
-    my $key = ":applist";
-    $key =~ s/\s/_/g;
+    my $key = "applist:$intf";
     my $apps = Core::VultureUtils::get_memcached($key,$mc_conf);
     unless (defined $apps){
 #Getting app and wildcardsv
@@ -436,9 +435,6 @@ sub get_style {
     my ( $r, $log, $dbh, $app, $type, $title, $fields, $translations ) = @_;
     my ( $ref, $html );
 
-    #
-    # ONLY FOR SQLITE3
-    #
     #return {} unless defined $app->{'id'};
     #Querying database for style
     my $intf_id = $r->dir_config('VultureID');
@@ -450,28 +446,20 @@ sub get_style {
         $query = "SELECT intf.appearance_id $query WHERE intf.id='$intf_id'";
     }
     $query .= " AND style_tpl.id=style_style.";
-    if ( uc($type) eq 'DOWN' ) {
-        $query .= "app_down_tpl_id";
-    }
-    elsif ( uc($type) eq 'LOGIN' ) {
-        $query .= "login_tpl_id";
-    }
-    elsif ( uc($type) eq 'ACL_FAILED' ) {
-        $query .= "acl_tpl_id";
-    }
-    elsif ( uc($type) eq 'DISPLAY_PORTAL' ) {
-        $query .= "sso_portal_tpl_id";
-    }
-    elsif ( uc($type) eq 'LEARNING' ) {
-        $query .= "sso_learning_tpl_id";
-    }
-    elsif ( uc($type) eq 'LOGOUT' ) {
-        $query .= "logout_tpl_id";
-    }
-    else {
+    my $tpl_types = {
+        APP_DOWN=>"app_down_tpl_id",
+        LOGIN=>"login_tpl_id",
+        ACL_FAILED=>"acl_tpl_id",
+        DISPLAY_PORTAL=>"sso_portal_tpl_id",
+        LEARNING=>"sso_learning_tpl_id",
+        LOGOUT=>"logout_tpl_id"
+        };
+    my $tpl_type = $tpl_types->{uc($type)}||'';
+    unless ($tpl_type) {
         $log->debug( "get_style: unknown type (" . uc($type) . ")" );
         return;
     }
+    $query .= $tpl_type; 
     $log->debug($query);
     my $sth = $dbh->prepare($query);
     $sth->execute;
@@ -486,8 +474,9 @@ sub get_style {
     $html .= '<meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>';
     $html .="<title>$title</title>";
     $html .= "<style type=\"text/css\">" . $ref->{css} . "</style>"
-    if ( defined $ref->{css} );
-    $html .= $ref->{tpl_head};
+        if ( defined $ref->{css} );
+    $html .= $ref->{tpl_head} 
+        if ( defined $ref->{tpl_head} );
     $html .= "</head><body>"; 
 
     #Parse template
@@ -633,6 +622,26 @@ sub notify {
     $sth->execute( $app_id, $user, 'active_sessions', $e_ts, $info );
     $sth->finish();
 }
+sub get_SQL_field {
+    my ($log,$dbh,$sql_id,$login,$field) = @_;
+    my ( $new_dbh, $ref ) = get_DB_object( $log, $dbh, $sql_id );
+    if (not $new_dbh or not $ref){
+        $log->error("SQL: Unable to use sql method $sql_id");
+        return undef;
+    }
+    my $qsql = ("SELECT $field FROM $ref->{'table'} "
+     . "WHERE $ref->{'user_column'}=?");
+    $log->debug($qsql);
+    my $ssth = $new_dbh->prepare($qsql);
+    $ssth->execute($login);
+    my $result = $ssth->fetchrow;
+    $ssth->finish();
+    $new_dbh->disconnect();
+    return ($result) if ($result);
+    $log->error("unable to retreive $field of user $login in SQL");
+    return undef;
+ }
+
 sub get_LDAP_field {
     my ($log, $dbh,$ldap_id,$login,$field) = @_;
     my (
@@ -646,7 +655,7 @@ sub get_LDAP_field {
         $ldap_account_locked_attr
     ) = Core::VultureUtils::get_LDAP_object( $log, $dbh, $ldap_id );
     unless ($ldap) {
-        $log->error("LDAP: cannot get ldap object ..");
+        $log->error("LDAP: cannot get ldap object $ldap_id");
         return undef;
     }
     my $user = Net::LDAP::Util::escape_filter_value($login);
@@ -667,24 +676,6 @@ sub get_LDAP_field {
         return undef;
     }
     return $result->entry->get_value($field);
-}
-sub get_LDAP_mobile{
-    my ($log, $dbh,$ldap_id,$login) = @_;
-    my (
-        $ldap,              $ldap_url_attr,
-        $ldap_uid_attr,     $ldap_user_ou,
-        $ldap_group_ou,     $ldap_user_filter,
-        $ldap_group_filter, $ldap_user_scope,
-        $ldap_group_scope,  $ldap_base_dn,
-        $ldap_group_member, $ldap_group_is_dn,
-        $ldap_group_attr,   $ldap_chpass_attr,
-        $ldap_account_locked_attr, $ldap_user_mobile
-    ) = Core::VultureUtils::get_LDAP_object( $log, $dbh, $ldap_id );
-    unless ($ldap) {
-        $log->error("LDAP: cannot get ldap mobile ..");
-        return undef;
-    }
-    return Core::VultureUtils::get_LDAP_field($log,$dbh,$ldap_id,$login,$ldap_user_mobile);
 }
 sub load_module{
     my ($module_name,$func)= @_;

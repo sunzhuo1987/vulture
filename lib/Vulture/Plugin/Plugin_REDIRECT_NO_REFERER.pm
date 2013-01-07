@@ -23,14 +23,12 @@ sub plugin {
     $log->debug("########## Plugin_GS_REFERER ##########");
     my $mc_conf         = $r->pnotes('mc_conf');
     my $SSO_cookie_name = get_cookie( $r->headers_in->{Cookie},
-        $r->dir_config('VultureProxyCookieName') . '=([^;]*)' )
-      or '';
+        $r->dir_config('VultureProxyCookieName') . '=([^;]*)' )|| '';
     my (%session_SSO);
     session( \%session_SSO, $intf->{sso_timeout}, $SSO_cookie_name, $log,
         $mc_conf, $intf->{sso_update_access_time} );
     my $SSO_cookie_app_name = get_cookie( $r->headers_in->{Cookie},
-        $r->dir_config('VultureAppCookieName') . '=([^;]*)' )
-      or '';
+        $r->dir_config('VultureAppCookieName') . '=([^;]*)' )|| '';
 
     $log->debug($SSO_cookie_app_name);
     if (   ( $r->hostname eq $intf->{'cas_portal'} )
@@ -42,7 +40,7 @@ sub plugin {
         return undef;
     }
 
-    $options ||= '/';
+    $options ||= '/';
     $log->debug("Bad referer. Redirecting to $options");
 
     #Display result in ResponseHandler

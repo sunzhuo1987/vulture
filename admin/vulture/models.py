@@ -704,16 +704,16 @@ class Logic(models.Model):
 
 class OTP(models.Model):
     name = models.CharField(max_length=128)
-    ldap = models.ForeignKey('LDAP')
+    auth = models.ForeignKey('Auth')
+    contact_field = models.CharField(max_length=128)
     script = models.TextField(
-        default="sendsms -n {{number}} -m {{message}}"
+        default="echo __MESSAGE__ | /usr/bin/mail -s 'otp' __CONTACT__"
         )
     passlen = models.IntegerField(default=8)
     template = models.TextField(
-        default="OPT pass for {{user}} : {{pass}}",
-        max_length=150
+        default="OTP pass for __USER__ : __PASS__",
         )
-    timeout = models.IntegerField(default=3600)
+    timeout = models.IntegerField(default=300)
     class Meta:
         db_table='otp'
 

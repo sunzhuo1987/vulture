@@ -105,15 +105,15 @@ class MC:
     @staticmethod
     def startDaemon():
         if MC.daemonStarted():
-            print ("[-] Already started")
+            print ("[-] %s: Already started"%time.ctime())
             MC.stopDaemon()
             if MC.daemonStarted():
-                print ("[-] Unable to stop daemon")
+                print ("[-] %s: Unable to stop daemon"%time.ctime())
                 return False
         if not MC.clusterActivated():
-            print ("[-] Cluster not activated in conf")
+            print ("[-] %s: Cluster not activated in conf"%time.ctime())
             return True
-        print ("[+] Cluster sync daemon starting .. ")
+        print ("[+] %s: Cluster sync daemon starting .. "%time.ctime())
         # creating lock file
         f = open(MC.LOCKFILE,"wb")
         f.write(str(os.getpid()))
@@ -139,15 +139,15 @@ class MC:
         pid = MC.daemonStarted()
         if not pid:
         # daemon is already stopped
-            print ("[-] Daemon not started...")
+            print ("[-] %s: Daemon not started..."%time.ctime())
             return True
         if pid != os.getpid():
         # stopping external process
-            print ("[+] Stopping external daemon [%s]"%pid)
+            print ("[+] %s: Stopping external daemon [%s]"%(time.ctime(),pid))
             os.kill(pid,2)
             return True
         # stopping this process
-        print ("[+] Stopping daemon [%s]"%pid)
+        print ("[+] %s: Stopping daemon [%s]"%(time.ctime(),pid))
         # remove this cluster from memcache
         old = MC.get(MC.KEYSTORE) or []
         if old:
@@ -175,24 +175,22 @@ class MC:
         # get memcache conf version
         mcversion = MC.get(MC.VERSIONKEY)
         mcversion = mcversion == None and -1 or int(mcversion)
-#        print ("[*] Refreshing conf, current: %s , last: %s"%(myversion,mcversion))
         if myversion == mcversion:
-#            print "[*] Already to last version"
             pass
         elif myversion > mcversion:
         # push my conf in memcache 
-            print ("[+] Pushing my conf into memcache...")
+            print ("[+] %s: Pushing my conf into memcache..."%time.ctime())
             MC.push_conf()
             MC.set(MC.VERSIONKEY, myversion)
-            print ("[+] Done")
+            print ("[+] %s: Push done"%time.ctime())
         else:
         # new config available, update
-            print ("[+] Updating conf...")
+            print ("[+] %s: Updating conf..."%time.ctime())
             MC.pop_conf()
             myversion = mcversion
             # update my version number in database
             Conf.objects.filter(var="version_conf").update(value=str(myversion))
-            print ("[+] Done")
+            print ("[+] %s: Update done"%time.ctime())
         # put this server name in memcache if not already there
         all_srv = MC.get(MC.KEYSTORE) or []
         if not name in all_srv:
@@ -313,7 +311,7 @@ class MC:
             if not os.path.realpath("%s/%s"%(sec_dir,relpath)
                     ).startswith(sec_dir):
                 continue
-            print "pop ms file : %s"%relpath
+            print "[?] %s: pop ms file : %s"%(time.ctime(),relpath)
             dirs = relpath.split("/")
             filename = dirs[len(dirs)-1]
             dirs = dirs[:len(dirs)-1]
@@ -331,7 +329,7 @@ class MC:
     @staticmethod
     def pop_sql_conf():
         for table in MC.list_tables():
-            print("checking  %s ..."%table)
+            print("[?] %s: checking  %s ..."%(time.ctime(),table))
             db_conf = MC.get_SQL_table(table)
             mc_conf = MC.get("conf:%s"%table)
             db_ids,mc_ids = {},{}
@@ -356,7 +354,7 @@ class MC:
                         q = "UPDATE `%s` SET %s WHERE id=?"%(table,
                             ",".join(["`%s`=?"%k for k in keys])
                             )
-                        print(q)
+                        print("%s: UPDATE TABLE %s"%(time.ctime(),table))
                         MC.db.execute(q,vals+[mc_k])
                 elif mc_e: 
                     vals = [mc_e[k] for k in mc_e]
@@ -364,14 +362,14 @@ class MC:
                         ",".join(["`%s`"%k for k in mc_e]),
                         ",".join(['?']*len(vals))
                         )
-                    print(q)
+                    print("%s: INSERT INTO %s"%(time.ctime(),table))
                     MC.db.execute(q,vals)
             # Eventually delete some lines
             dels=[str(f) for f in db_ids if not f in mc_ids]
             if dels:
                 q = "DELETE FROM `%s` WHERE id IN (%s)"%(
                     table,",".join(dels))
-                print (q)
+                print("%s: %s"%(time.ctime(),q))
                 MC.db.execute(q)
         MC.db.commit()
    

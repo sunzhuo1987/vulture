@@ -41,7 +41,7 @@ sub checkAuth {
             $r->pnotes( 'response_content' => 'Redirecting you' );
 
             $r->err_headers_out->set( 'Location' => $url );
-            $r->status(Apache2::Const::REDIRECT);
+            $r->status(Apache2::Const::REDIRECT());
         }
         else {
             return Apache2::Const::FORBIDDEN;
