@@ -23,7 +23,7 @@ class IntfForm(forms.ModelForm):
         CHOICES += [("0.0.0.0","any -> 0.0.0.0")]
         CHOICES.sort()
         self.fields["ip"] = forms.ChoiceField(choices = CHOICES)
-        self.fields['srv_ka'] = forms.BooleanField(initial=intf.srv_ka,required=False)
+        self.fields['srv_ka'] = forms.BooleanField(initial=intf and intf.srv_ka or None,required=False)
         self.fields['srv_ka'].widget.attrs["onchange"]="srv_ka_changed()"
     def clean_srv_ka_max_req(self):
         ka = self.cleaned_data["srv_ka"]
@@ -173,7 +173,7 @@ class SQLForm(forms.ModelForm):
         # except:
             # raise forms.ValidationError("Database path is incorrect or cannot be read by Apache")           
         # return database
-    password = forms.CharField(widget=forms.PasswordInput)
+    password = forms.CharField(widget=forms.PasswordInput,required=False)
     class Meta:
         model = SQL
 
