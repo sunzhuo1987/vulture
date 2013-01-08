@@ -733,7 +733,7 @@ class Auth(models.Model):
         choices=[(k,k) for k in TYPES])
     id_method = models.IntegerField()
     def getAuth(self):
-        return TYPES[self.auth_type]
+        return Auth.TYPES[self.auth_type].objects.get(pk=self.id_method)
     def is_ssl(self):
         return self.auth_type == 'ssl'
     def __str__(self):
