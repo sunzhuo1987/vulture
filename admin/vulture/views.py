@@ -251,6 +251,8 @@ def remove_auth(request, url, object_id=None):
     return render_to_response('vulture/generic_confirm_delete.html', {'object':obj, 'category' : 'Authentication', 'name' : url.capitalize(),'url' : '/' + url, 'user' : request.user})
 
 def link_path(src,dst,regex):
+    if not os.path.exists(src):
+	return
     files=os.listdir(src)
     for f in files:
         if not regex or re.match(regex,f):
@@ -486,6 +488,8 @@ def edit_app(request,object_id=None):
             # remove deleted rules, add new ones
             for dir_, file_list in directory.iteritems():
                 new_files = request.POST.getlist(file_list)
+		if not form.fields[file_list].initial:
+			break
                 for old_file in form.fields[file_list].initial:
                     if not old_file in new_files:
                         os.remove("%s/%s"%(app_acti_p,old_file))
