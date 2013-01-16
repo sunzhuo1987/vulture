@@ -453,7 +453,7 @@ sub get_style {
     }
     $query .= " AND style_tpl.id=style_style.";
     my $tpl_types = {
-        APP_DOWN=>"app_down_tpl_id",
+        DOWN=>"app_down_tpl_id",
         LOGIN=>"login_tpl_id",
         ACL_FAILED=>"acl_tpl_id",
         DISPLAY_PORTAL=>"sso_portal_tpl_id",
