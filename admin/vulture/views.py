@@ -690,10 +690,10 @@ def edit_localization(request,object_id=None):
     
 @login_required
 def view_event (request, object_id=None):
-
-    app_list = App.objects.all()
-    file_list = []
+    filter_ = ''
     type_list = ('access', 'error', 'authentication', 'security')
+    type_ = 'error'
+    records_nb = 100;
     content = None
     length = None
     active_sessions = None
@@ -742,35 +742,28 @@ def view_event (request, object_id=None):
         stats_failed_hour = (cur.fetchone())[0]
         cur.close()
     if 'records' in query:
-        records_nb = str(int(query['records']))
-    else:
-        records_nb = str(100);
-    if 'type' in query and query['type'] in type_list:
+        records_nb = int(query['records'])
+
+    app = None
+    if object_id and 'type' in query and query['type'] in type_list:
+        app = get_object_or_404(App, id=object_id)
         type_ = query['type']
-    else:
-        type_ = 'error'
-    for app in app_list:
-        i = i + 1
         log = Log.objects.get (id=app.log_id)
-        if object_id == str (i):
-            location="%s/Vulture-%s-%s_log"%(log.dir,app.name,type_)
-            f = open(location,'rb')
-            lines = f.readlines()
-            f.close()
-            if 'filter' in query:
-                reg = re.compile(query['filter'])
-                lines = [l for l in lines if reg.match(l)]
-            start = len(lines-records_nb)
-            if start < 0:
-                start = 0
-            content = "\n".join(lines[start:start+records_nb]) 
-            length = len(content.split("\n"))
-            selected = 'selected'
-            break;
-        else:
-            selected=''
-        file_list.append ((i,selected,app.name))
-    return render_to_response('vulture/event_list.html', {'file_list': file_list, 'log_content': content, 'type_list': type_list, 'type' : type_, 'records' : records_nb, 'length' : length, 'filter' : filter, 'active_sessions' : active_sessions, 'user' : request.user, 'stats_month' : stats_month, 'stats_day' : stats_day, 'stats_hour' : stats_hour, 'stats_failed_month' : stats_failed_month, 'stats_failed_day' : stats_failed_day, 'stats_failed_hour' : stats_failed_hour, 'connections_failed' : connections_failed})
+        location="%s/Vulture-%s-%s_log"%(log.dir,app.name,type_)
+        f = open(location,'rb')
+        lines = f.readlines()
+        f.close()
+        if 'filter' in query:
+            filter_ = query['filter']
+            reg = re.compile(filter_)
+            lines = [l for l in lines if reg.match(l)]
+        start = len(lines)-records_nb
+        if start < 0:
+            start = 0
+        content = "\n".join(lines[start:start+records_nb]) 
+        length = len(content.split("\n"))
+    file_list = [(a.pk,(app and app.pk==a.pk and 'selected' or ''),a.name) for a in App.objects.all()]
+    return render_to_response('vulture/event_list.html', {'file_list': file_list, 'log_content': content, 'type_list': type_list, 'type' : type_, 'records' : str(records_nb), 'length' : length, 'filter' : filter_, 'active_sessions' : active_sessions, 'user' : request.user, 'stats_month' : stats_month, 'stats_day' : stats_day, 'stats_hour' : stats_hour, 'stats_failed_month' : stats_failed_month, 'stats_failed_day' : stats_failed_day, 'stats_failed_hour' : stats_failed_hour, 'connections_failed' : connections_failed})
     
 @login_required
 def export_import_config (request, type):
