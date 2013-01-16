@@ -177,8 +177,8 @@ sub get_msg3 {
 
 sub checkAuth {
     my (
-        $package_name, $r,    $class,    $log, $dbh,
-        $app,          $user, $password, $id_method
+        $package_name, $r,    $log, $dbh,
+        $app,          $user, $password, $id_method, $session,$class
     ) = @_;
 
     $log->debug("########## Auth_NTLM ##########");
@@ -214,7 +214,7 @@ sub checkAuth {
     my $protocol = $ref->{'protocol'};
     my $t;
 
-    my $auth_line = $r->headers_in->{'Authorization'} or {};
+    my $auth_line = $r->headers_in->{'Authorization'} or '';
     my $data = undef;
     if ( $auth_line =~ /^NTLM\s+(.*?)$/i ) {
         $data = MIME::Base64::decode($1);
@@ -313,7 +313,7 @@ sub lock {
     my $class = shift;
     my $key   = shift;
     my $debug = shift;
-    my $log   = @_[1];
+    my $log   = $_[1];
 
     my $self = bless { debug => $debug }, $class;
     $self->{sem} = new IPC::Semaphore( $key, 1, IPC_CREAT | S_IRWXU )
@@ -327,10 +327,8 @@ sub lock {
 
 sub DESTROY {
     my $self = shift;
-    my $log  = @_[1];
 
     $self->{sem}->op( 0, -1, SEM_UNDO );
-    $log->debug("[$$] AuthenNTLM: leave lock\n");
 }
 
 1;
