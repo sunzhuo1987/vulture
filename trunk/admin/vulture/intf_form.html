@@ -116,6 +116,8 @@
         
                 <tr><th>{% trans "MaxKeepAliveRequests" %}</th><td class="input">{{ form.srv_ka_max_req }}{% if form.srv_ka_max_req.errors %}<div class="error">{{ form.srv_ka_max_req.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
                 <tr><th>{% trans "KeepAliveTimeout" %}</th><td class="input">{{ form.srv_ka_timeout }}{% if form.srv_ka_timeout.errors %}<div class="error">{{ form.srv_ka_timeout.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+		<tr><th>{% trans "Apache User" %} </th><td class="input"> {{ form.srv_apache_user }} {% if form.srv_apache_user.errors %} <div class="error">{{ form.srv_apache_user.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+		<tr><th>{% trans "Apache Group" %} </th><td class="input"> {{ form.srv_apache_group }} {% if form.srv_apache_group.errors %} <div class="error">{{ form.srv_apache_group.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
                 <tr><th>{% trans "Add VirtualHost directives" %}</th><td class="input">{{ form.virtualhost_directives }}{% if form.virtualhost_directives.errors %}<div class="error">{{ form.virtualhost_directives.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
             </table>
         </div>

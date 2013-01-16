@@ -159,6 +159,8 @@ class Intf(models.Model):
     srv_ka = models.BooleanField(default=True)
     srv_ka_max_req = models.IntegerField(blank=1,null=1,default=100)
     srv_ka_timeout = models.IntegerField(blank=1,null=1,default=15)
+    srv_apache_user = models.CharField(blank=1,null=1,max_length=50)
+    srv_apache_group = models.CharField(blank=1,null=1,max_length=50)
     virtualhost_directives = models.TextField(blank=1,null=1)
 
     def conf(self):

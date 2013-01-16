@@ -182,6 +182,7 @@ sub get_app {
     # Wildcard
     unless ( defined $ref ) {
         while ( my ( $name, $hashref ) = each(%$apps) ) {
+		$log->debug("alias is ".$hashref->{alias}."and host is $host");
             my $cpy = $hashref->{alias};
             $cpy =~ s|\*|\(\.\*\)\\|g;
             if ( $host =~ /$cpy/ ) {
@@ -189,9 +190,14 @@ sub get_app {
                 $ref->{name} = $host;
                 last;
             }
-            elsif ( $hashref->{alias} =~ m|$host|i ) {
-                $ref = $apps->{$name};
-                last;
+            else {
+		foreach my $alias ( split( /\s*/, $hashref->{alias} ) ) {
+			$log->debug("alias is $alias an host is $host");
+			if (  $host =~ /$alias/ ) {
+		                $ref = $apps->{$name};
+                		last;
+			}
+		}
             }
         }
     }
