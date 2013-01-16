@@ -29,8 +29,8 @@ use Core::VultureUtils qw(&session);
 
 sub checkAuth {
     my (
-        $package_name, $r,    $class,    $log, $dbh,
-        $app,          $user, $password, $id_method
+        $package_name, $r,   $log, $dbh,
+        $app,   $user, $password, $id_method, $session, $class
     ) = @_;
 
     $log->debug("########## Auth_CAS ##########");
