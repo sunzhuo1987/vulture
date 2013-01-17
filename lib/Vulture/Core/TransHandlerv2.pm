@@ -349,10 +349,13 @@ sub redirect_portal{
 
     my $incoming_uri = $app->{name};
     my $ssl          = 0;
-    foreach my $row ($app->{'auth'}) {
-        if ( uc( @$row[1] ) eq "SSL" ) {
-            $log->debug("SSL mode");
-            $ssl = 1;
+    my $auths = $app->{'auth'};
+    if (defined $auths and $auths) {
+        foreach my $row (@$auths) {
+            if ( uc( @$row[1] ) eq "SSL" ) {
+                $log->debug("SSL mode");
+                $ssl = 1;
+            }
         }
     }
     $incoming_uri = $intf->{'sso_portal'}
