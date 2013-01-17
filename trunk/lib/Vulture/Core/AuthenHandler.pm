@@ -277,7 +277,7 @@ sub csrf_ok {
         # bypass csrf check when intf don't use it and we don't have an app
         or (not defined $app and not $intf->{'check_csrf'})
         # check csrf token
-        or ($token eq $session_SSO->{random_token})
+        or (defined $session_SSO->{random_token} and $token eq $session_SSO->{random_token})
     );
 }
 
@@ -416,20 +416,27 @@ sub auth_triggers{
     my ($r,$ret,$user,$password,$intf,$app) = @_;
     my $log = $r->pnotes('log');
     my $dbh = $r->pnotes('dbh');
+    my $auth_msg = $r->pnotes('auth_message') || '';
+    if ( $auth_msg eq ''){
+        if ( (not defined $ret or $ret != scalar Apache2::Const::OK)
+              and ($user or $password)){
+            Core::ActionManager::handle_action( $r, $log, $dbh, $intf, $app,
+                'LOGIN_FAILED', 'Login failed' );
+        }
+        else {
+            return;
+        }
+    }
+    $auth_msg = uc($auth_msg);
     #Trigger action when change pass is needed / auth failed
     Core::ActionManager::handle_action( $r, $log, $dbh, $intf, $app,
         'NEED_CHANGE_PASS', 'You need to change your password' )
-      if ( uc( $r->pnotes('auth_message') ) eq 'NEED_CHANGE_PASS' );
+      if ( $auth_msg eq 'NEED_CHANGE_PASS' );
     Core::ActionManager::handle_action( $r, $log, $dbh, $intf, $app,
         'ACCOUNT_LOCKED', 'You need to unlock your password' )
-      if ( uc( $r->pnotes('auth_message') ) eq 'ACCOUNT_LOCKED' );
+      if ( $auth_msg eq 'ACCOUNT_LOCKED' );
     Core::ActionManager::handle_action( $r, $log, $dbh, $intf, $app,
         'AUTH_SERVER_FAILURE', 'Vulture can\'t contact authentication server' )
-      if ( uc( $r->pnotes('auth_message') ) eq 'AUTH_SERVER_FAILURE' );
-    Core::ActionManager::handle_action( $r, $log, $dbh, $intf, $app,
-        'LOGIN_FAILED', 'Login failed' )
-      if ( !$r->pnotes('auth_message')
-        and (not defined $ret or $ret != scalar Apache2::Const::OK)
-        and ( $user or $password ) );
+      if ( $auth_msg eq 'AUTH_SERVER_FAILURE' );
 }
 1;
