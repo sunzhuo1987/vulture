@@ -11,6 +11,7 @@ from django.template.loader import get_template
 from django.views.generic.list_detail import object_list
 from django.views.generic.create_update import update_object, create_object, delete_object
 from time import sleep
+from django.core.exceptions import FieldError
 import ldap
 import re
 from memcached import MC
@@ -46,6 +47,67 @@ def manage_cluster(request):
         version_conf.value = str(curversion)
         version_conf.save()
     return render_to_response('vulture/cluster_list.html', {'last_version':curversion, 'object_list':MC.list_servers()})
+
+@permission_required('vulture.delete_appearance')
+def remove_appearance(request,object_id=None):
+    appearance = get_object_or_404(Appearance, id=object_id)
+    if request.method == 'POST' and object_id:
+        number = Intf.objects.filter(appearance=object_id).count()
+        if number == 0:
+            appearance.delete()
+            return HttpResponseRedirect("/appearance")
+        else:
+            raise FieldError("You can t delete Appearance linked with interface")
+    return render_to_response("vulture/generic_confirm_delete.html",{"object":appearance,"category":"Application","name" : "Appearance", "url":"/appearance","user":request.user}) 
+
+@permission_required('vulture.delete_template')
+def remove_template(request,object_id=None):
+    template = get_object_or_404(Template, id=object_id)
+    if request.method == 'POST' and object_id:
+        number = Appearance.objects.filter(Q(app_down_tpl=object_id) | Q(login_tpl=object_id) | Q(acl_tpl=object_id) | Q(sso_portal_tpl=object_id) | Q(sso_learning_tpl=object_id) | Q(logout_tpl=object_id)).count()
+        if number == 0:
+            template.delete()
+            return HttpResponseRedirect("/template")
+        else:
+            raise FieldError("You can t delete html model linked with appearance")
+    return render_to_response("vulture/generic_confirm_delete.html",{"object":template,"category":"Application","name" : "template", "url":"/template","user":request.user}) 
+
+@permission_required('vulture.delete_template_css')
+def remove_template_css(request,object_id=None):
+    template_css = get_object_or_404(CSS, id=object_id)
+    if request.method == 'POST' and object_id:
+        number = Appearance.objects.filter(css=object_id).count()
+        if number == 0:
+            template_css.delete()
+            return HttpResponseRedirect("/template_css")
+        else:
+            raise FieldError("You can t delete css linked with appearance")
+    return render_to_response("vulture/generic_confirm_delete.html",{"object":template_css,"category":"Application","name" : "css", "url":"/template_css","user":request.user}) 
+
+@permission_required('vulture.delete_image')
+def remove_image(request,object_id=None):
+    image = get_object_or_404(Image, id=object_id)
+    if request.method == 'POST' and object_id:
+        number = Appearance.objects.filter(image=object_id).count()
+        if number == 0:
+            image.delete()
+            return HttpResponseRedirect("/image")
+        else:
+            raise FieldError("You can t delete image linked with appearance")
+    return render_to_response("vulture/generic_confirm_delete.html",{"object":image,"category":"Application","name" : "log", "url":"/image","user":request.user}) 
+
+@permission_required('vulture.delete_log')
+def remove_log(request,object_id=None):
+    log = get_object_or_404(Log, id=object_id)
+    if request.method == 'POST' and object_id:
+        number = App.objects.filter(log=object_id).count()
+        number += Intf.objects.filter(log=object_id).count()
+        if number == 0:
+            log.delete()
+            return HttpResponseRedirect("/log")
+        else:
+            raise FieldError("You can t delete log linked with app or interface")
+    return render_to_response("vulture/generic_confirm_delete.html",{"object":log,"category":"System","name" : "log", "url":"/log","user":request.user}) 
 
 @permission_required('vulture.change_intf')
 def edit_intf(request,object_id=None):
