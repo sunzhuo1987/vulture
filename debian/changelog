@@ -1,3 +1,13 @@
+vulture (2.0.5) stable; urgency=low
+
+  * add opt authentication
+  * add apache config
+  * code improvement
+  * fix bugs
+
+ -- Etienne Helluy-Lafont <etienne.helluy-lafont@advens.fr>  Wed, 25 Jul 2012 14:42:00 +0200
+
+
 vulture (2.0.4) stable; urgency=low
 
   * add clustering support
