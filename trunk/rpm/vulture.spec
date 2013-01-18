@@ -3,7 +3,7 @@ Requires: sudo make gcc httpd httpd-devel krb5-devel libapreq2 perl-DBD-MySQL li
 Vendor: Advens
 %define release 0
 %define name vulture
-%define version 2.0.4
+%define version 2.0.5
 AutoReqProv: no
 
 Summary: Vulture Reverse Proxy
@@ -172,6 +172,9 @@ o.write(B.b64encode(f.read(128))[:32])' > %{serverroot}/%{name}/conf/aes-encrypt
 
 
 %changelog
+* Fri Jan 18 2018 Etienne Helluy <etienne.helluy-lafont@advens.fr> 2.0.5-0
+- 2.0.5 
+
 * Wed Jul 25 2012 Etienne Helluy <etienne.helluy-lafont@advens.fr> 2.0.4-0
 - 2.0.4
 - add clustering support
