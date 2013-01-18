@@ -3,7 +3,7 @@ Requires: sudo gcc make httpd krb5-devel libapreq2-3 libidn libmcrypt libmcrypt-
 Vendor: Advens
 %define release 0
 %define name vulture
-%define version 2.0.4
+%define version 2.0.5
 AutoReqProv: no
 
 Summary: Vulture Reverse Proxy
@@ -156,6 +156,9 @@ cd ..
 
 
 %changelog
+* Fri Jan 18 2013 Etienne Helluy <etienne.helluy-lafont@advens.fr> 2.0.5-0
+- 2.0.5 
+
 * Wed Jul 25 2012 Etienne Helluy <etienne.helluy-lafont@advens.fr> 2.0.4-0
 - 2.0.4
 - add clustering support
