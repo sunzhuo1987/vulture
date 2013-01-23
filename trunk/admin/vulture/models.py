@@ -1116,12 +1116,14 @@ class Localization(models.Model):
         ('de','Deutch'),
         ('es','Espanol'),
         ('it','Italiano'),
+        ('pt','Portuguese'),
+        ('nl','Dutch'),
         )
     ERRORS_CHOICES = (
         ('USER', 'User'),
         ('PASSWORD', 'Password'),
         ('LOGIN_FAILED','Login failed'),
-        ('MISSING_LOGIN','Missing login'),
+        ('MISSING_USER','Missing login'),
         ('MISSING_PASSWORD','Missing password'),
         ('NEED_CHANGE_PASS','Need change pass'),
         ('AUTH_SERVER_FAILURE', 'Authentication server failure'),
