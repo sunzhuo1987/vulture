@@ -530,44 +530,33 @@ sub get_translations {
         $log->debug("get_translation: no Accept-Language header");
         return;
     }
-
     #Splitting Accept-Language headers
     # Prepare the list of client-acceptable languages
-    my @languages = ();
-    foreach my $tag ( split( /,/, $r->headers_in->{'Accept-Language'} ) ) {
-        my ( $language, $quality ) = split( /\;/, $tag );
-        $quality =~ s/^q=//i if $quality;
-        $quality = 1 unless $quality;
-        next if $quality <= 0;
-
-        # We want to force the wildcard to be last
-        $quality = 0 if ( $language eq '*' );
-
-        # Pushing lowercase language here saves processing later
-        push(
-            @languages,
-            {
-                quality    => $quality,
-                language   => $language,
-                lclanguage => lc($language)
-            }
-        );
-    }
-    @languages = sort { $b->{quality} <=> $a->{quality} } @languages;
-
     my @arg_tab        = ();
     my $language_query = "country IN ( ";
     my $c              = 0;
-    foreach my $tag (@languages) {
+    my %lang_qual;
+    foreach my $tag ( split( /,/, $r->headers_in->{'Accept-Language'} ) ) {
+        my ( $language, $quality ) = split( /\;/, $tag );
+        $quality =~ s/^q=//i if $quality;
+        $quality = 1 if $quality eq '';
+        next if $quality <=0 ;
 
-        #Querying data for language accepted by the server
-        push( @arg_tab, $tag->{lclanguage} );
+        $quality = 0 if $language eq '*';
+        my $lclang = lc($language);
+        push( @arg_tab, $lclang);
         $language_query .= "," if $c > 0;
         $language_query .= " ? ";
-        if ( $tag->{lclanguage} =~ /^([^-]+)-([^-]+)$/ ) {
+        $lang_qual{$lclang}=$quality 
+            if (!exists $lang_qual{$lclang} or $lang_qual{$lclang}<$quality);
+        if ( $lclang =~ /^([^-]+)-([^-]+)$/ ) {
             $language_query .= ", ? , ? ";
             push( @arg_tab, $1 );
             push( @arg_tab, $2 );
+            $lang_qual{$1}=$quality 
+                if (!exists $lang_qual{$1} or $lang_qual{$1}<$quality);
+            $lang_qual{$2}=$quality 
+                if (!exists $lang_qual{$2} or $lang_qual{$2}<$quality);
         }
         $c++;
     }
@@ -581,7 +570,7 @@ sub get_translations {
     }
     $message_query .= ")";
     my $query =
-        "SELECT message, translation FROM localization WHERE "
+        "SELECT country, message, translation FROM localization WHERE "
       . $language_query . " AND "
       . $message_query;
     my $sth = $dbh->prepare($query);
@@ -591,7 +580,23 @@ sub get_translations {
         $c += 1;
     }
     $sth->execute();
-    return $sth->fetchall_hashref('message');
+    my $arref = $sth->fetchall_arrayref();
+    my $href = {};
+    my @msgs = ("USER","PASSWORD","APPLICATION");
+    push(@msgs,$message)
+        if (defined $message and $message != '');
+    foreach my $row (@{$arref}){
+        my ($country_r, $msg_r, $trans_r) = @$row;
+        my $qual = $lang_qual{$country_r};
+        if (!exists $href->{$msg_r} or $href->{$msg_r}->{quality}<$qual){
+            $href->{$msg_r} = {
+                message => $msg_r,
+                translation => $trans_r,
+                quality => $qual
+            };
+        }
+    }
+    return $href;
 }
 
 sub generate_random_string {
