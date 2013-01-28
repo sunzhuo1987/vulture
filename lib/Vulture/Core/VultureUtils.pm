@@ -172,7 +172,7 @@ sub get_app {
     while ( my ( $name, $hashref ) = each(%$apps) ) {
         $fi = 0;
         $fi++ while ( $name =~ m/\//g );
-        if ( $host =~ /$name/ ) {
+        if ( $host =~ /^$name/ ) {
             if ( $fi > $max_fields ) {
                 $max_fields = $fi;
                 $ref        = $apps->{$name};
