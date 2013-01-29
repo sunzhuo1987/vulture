@@ -284,7 +284,11 @@ class Intf(models.Model):
             auth_list=app.auth.all()
             for auth in auth_list:
                 if auth.auth_type == 'ssl':
-                    f=open("%s%s.ca" % (settings.CONF_PATH, str(self.id)+'-'+app.name), 'wb')
+                    if "/" not in app.name :
+                       f=open("%s%s.ca" % (settings.CONF_PATH, str(self.id)+'-'+app.name), 'wb')
+                    else:
+                       f=open("%s%s.ca" % (settings.CONF_PATH, str(self.id)+'-'+app.name.split("/")[0]), 'wb')
+
                     f.write(str(auth.getAuth().crt))
                     f.close()
 
