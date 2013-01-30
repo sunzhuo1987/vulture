@@ -24,6 +24,8 @@ if [ -f /var/www/vulture/admin/db ] ; then
     mv /var/www/vulture/admin/db /var/www/vulture/admin/db_old
 fi
 
+easy_install -U django_evolution
+
 #Set up database ( call django )
 cd /var/www/vulture/admin && ./manage.py syncdb --noinput
 chown www-data. /var/www/vulture/admin/db
