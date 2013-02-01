@@ -36,29 +36,33 @@ sub plugin {
     $log->debug("########## Plugin_LOGOUT_ALL ##########");
 
     #Taking user identity
-    my ($id_app) = get_cookie( $r->headers_in->{Cookie},
-        $r->dir_config('VultureAppCookieName') . '=([^;]*)' )
-      || return Apache2::Const::FORBIDDEN;
 
-    #eval{
-    my (%session_app);
-    session( \%session_app, undef, $id_app, undef, $mc_conf );
-
-    my (%session_SSO);
-    session( \%session_SSO, undef, $session_app{SSO}, undef, $mc_conf );
+    my ($id_app,$id_sso);
+    my (%session_app,%session_SSO);
+    
+    $id_app = get_cookie( $r->headers_in->{Cookie},
+        $r->dir_config('VultureAppCookieName') . '=([^;]*)' );
+    if (defined $id_app){
+        session( \%session_app, undef, $id_app, undef, $mc_conf );
+        $id_sso = $session_app{SSO};
+    }
+    else{
+        $id_sso = get_cookie($r->headers_in->{Cookie},
+           $r->dir_config('VultureProxyCookieName').'=([^;]*)'); 
+    }
+        
+    session( \%session_SSO, undef, $id_sso, undef, $mc_conf );
 
     #Logout from Memcached vulture_users_in
     my (%users);
 
     %users = %{ get_memcached( 'vulture_users_in', $mc_conf ) || {} };
-    return Apache2::Const::FORBIDDEN unless ($session_SSO{is_auth});
 
     delete $users{ $session_SSO{username} };
     set_memcached( 'vulture_users_in', \%users, undef, $mc_conf );
 
     notify( $dbh, undef, $session_SSO{username}, 'deconnection',
         scalar( keys %users ) );
-    $session_app{'is_auth'} = undef;
 
     #Foreach app where user is currently logged in
     foreach my $key ( keys %session_SSO ) {
@@ -147,7 +151,7 @@ sub plugin {
                     $log->debug( "PROPAG " . $k . "=" . $cookies_app{$k} );
                 }
 
-                if ( $response->code =~ /^30(.*)/ )
+                if ( $response->code =~ /^30[0-9]/ )
                 {                    #On gère les redirections de type 30x
                     $r->err_headers_out->set(
                         'Location' => $response->headers->header('Location') );
