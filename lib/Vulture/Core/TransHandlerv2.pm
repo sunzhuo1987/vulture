@@ -296,12 +296,10 @@ sub authen_app{
     if (    $app->{'sso'}->{'type'}
         and $app->{'sso'}->{'type'} eq "sso_forward_htaccess" )
     {
+        my $authorization = encode_base64($session_app->{username}.':'.$session_app->{password});
+        $authorization =~ s/\n//;
         $r->headers_in->set(
-            'Authorization' => "Basic "
-              . encode_base64(
-                $session_app->{username} . ':' . $session_app->{password}
-              )
-        );
+            'Authorization' => "Basic $authorization");
     }
     #Destroy useless handlers
     $r->set_handlers( PerlAuthenHandler => undef );
