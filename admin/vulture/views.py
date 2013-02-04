@@ -314,7 +314,7 @@ def remove_auth(request, url, object_id=None):
 
 def link_path(src,dst,regex):
     if not os.path.exists(src):
-	return
+    	return
     files=os.listdir(src)
     for f in files:
         if not regex or re.match(regex,f):
@@ -544,14 +544,15 @@ def edit_app(request,object_id=None):
                             "base_rules":"securitybase",
                             "experimental_rules":'securityexp',
                             "optional_rules":'securityopt',
-                            "slr_rules":'securityslr'
+                            "slr_rules":'securityslr',
+                            "CUSTOM":'CUSTOM'
                        }
             # create directory for app conf if needed
             # remove deleted rules, add new ones
             for dir_, file_list in directory.iteritems():
                 new_files = request.POST.getlist(file_list)
-		if not form.fields[file_list].initial:
-			break
+                if not form.fields[file_list].initial:
+                    pass
                 for old_file in form.fields[file_list].initial:
                     if not old_file in new_files:
                         os.remove("%s/%s"%(app_acti_p,old_file))
@@ -560,7 +561,7 @@ def edit_app(request,object_id=None):
                         os.symlink("%s/%s/%s"%(path,dir_,file_),"%s/%s"%(app_acti_p,file_))
                     except:
                         pass
-            # link all data files in app directory
+                # link all data files in app directory
             for src in directory:
                 link_path("%s/%s"%(path,src),app_acti_p,".*\.data$")
             try:
@@ -859,10 +860,42 @@ def export_import_config (request, type):
     return render_to_response('vulture/exportimport_form.html', {'type': type, 'path': path, 'content': content})
     
 @login_required    
-def edit_security (request):
+def edit_security (request, object_id=None):
+    form = ModSecurityForm(request.POST or None,instance=object_id and ModSecurity.objects.get(id=object_id))
+    print("request is %s"%request.method)
     if request.method == 'POST':
+        print("entering POST part")
+        path = "%s/security-rules"%(settings.CONF_PATH)
+        custom_p = "%s/CUSTOM"%path
+        if not os.path.exists(custom_p):
+            raise ValueError("path does not exist")
+        name = "modsec-custom-%s.conf"%request.POST["name"]
+        filename = "%s/%s"%(custom_p,name)
+        f = open(filename,"wb")
+        f.write(request.POST["rules"])
+        print("writting to file %s"%request.POST["rules"])
+        f.close()
+        form.save()
         return HttpResponseRedirect('/security')
     else:
-        form = ModSecurityForm()
         return render_to_response('vulture/modsecurity_form.html', {'form' : form, })
 
+@login_required
+def generator (request):
+    return render_to_response('vulture/modsecurity_generator.html')
+
+@login_required
+def remove_security(request,object_id=None):
+    security = get_object_or_404(ModSecurity, id=object_id)
+    if request.method == 'POST':
+        path = "%s/security-rules"%(settings.CONF_PATH)
+        custom_p = "%s/CUSTOM"%path
+        if not os.path.exists(custom_p):
+            raise ValueError("path does not exist")
+        name = security.name+".conf"
+    #    print "deleting %s/%s"%(custom_p,name)
+        os.remove(custom_p+"/"+name)
+        security.delete()
+
+        return HttpResponseRedirect('/security')
+    return render_to_response("vulture/generic_confirm_delete.html",{"object":security,"category":"Web Firewall","name" : "ModSecurity", "url":"/security","user":request.user})

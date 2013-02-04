@@ -108,34 +108,35 @@ class AppForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(forms.ModelForm, self).__init__(*args, **kwargs)
         path = settings.CONF_PATH+"security-rules/"
-        directory = {'base_rules/': "securitybase", 'experimental_rules/': "securityexp", 'optional_rules/': "securityopt", 'slr_rules/': "securityslr"}
+        directory = {'base_rules/': "securitybase", 'experimental_rules/': "securityexp", 'optional_rules/': "securityopt", 'slr_rules/': "securityslr", 'CUSTOM/':"CUSTOM"}
         
         if not os.path.exists(path):
             os.mkdir(path,0770)
 
-            if not os.path.exists(path+'activated/'):
-                os.mkdir(path+'activated/',0770)
+        if not os.path.exists(path+'activated/'):
+            os.mkdir(path+'activated/',0770)
+        
+        
+        for (key, fieldname) in directory.items():
+            CHOICES=[]
+            INITIAL={}
+            if os.path.exists(path+key):
+                for fileName in os.listdir(path+key):
+                    if 'data' not in fileName and 'example' not in fileName  and os.path.isfile(path+key+fileName):
+                        CHOICES.append((fileName,fileName))
+                        if os.path.exists(path+'activated/'+str(self.instance)):
+                            if fileName in os.listdir(path+'activated/'+str(self.instance)):  # Bouh str
+                                INITIAL[fileName] = True
             
-            
-            for (key, fieldname) in directory.items():
-                CHOICES=[]
-                INITIAL={}
-                if os.path.exists(path+key):
-                    for fileName in os.listdir(path+key):
-                        if 'data' not in fileName and 'example' not in fileName:
-                            CHOICES.append((fileName,fileName))
-                            if os.path.exists(path+'activated/'+str(self.instance)):
-                                if fileName in os.listdir(path+'activated/'+str(self.instance)):  # Bouh str
-                                    INITIAL[fileName] = True
-                
-                self.fields[fieldname].choices = CHOICES
-                self.fields[fieldname].initial = INITIAL
+            self.fields[fieldname].choices = CHOICES
+            self.fields[fieldname].initial = INITIAL
                 
     auth = forms.ModelMultipleChoiceField(required=False, queryset=Auth.objects.all())
     securitybase = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple,required=False)
     securityexp = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple,required=False)
     securityopt = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple,required=False)
     securityslr = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple,required=False)
+    CUSTOM = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple,required=False)
     
     
 
@@ -219,8 +220,9 @@ class SSOForm(forms.ModelForm):
     class Meta:
         model= SSO
         
-class ModSecurityForm(forms.Form):
-    postresult = forms.CharField(required=False, widget=forms.HiddenInput)
+class ModSecurityForm(forms.ModelForm):
+    class Meta:
+        model = ModSecurity
 
 class LocalizationForm(forms.ModelForm):
     class Meta:
