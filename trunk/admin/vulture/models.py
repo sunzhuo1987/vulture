@@ -733,6 +733,7 @@ class Auth(models.Model):
         'cas':CAS,
         'logic':Logic,
         'otp':OTP,
+        'radius':RADIUS,
         }
     name = models.CharField(max_length=128, unique=1)
     auth_type = models.CharField(max_length=20,
