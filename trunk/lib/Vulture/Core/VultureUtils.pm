@@ -500,6 +500,9 @@ sub get_style {
                 elsif ( $directive eq "APPNAME" ) {
                     $_ = $app->{name};
                 }
+                elsif ($directive eq "LOGIN_NAME"){
+                    $_ = $r->pnotes("username");
+                }
                 elsif ( defined $fields->{$directive} ) {
                     $_ = $fields->{$directive};
                     #Custom translated string
@@ -538,11 +541,16 @@ sub get_translations {
     my %lang_qual;
     foreach my $tag ( split( /,/, $r->headers_in->{'Accept-Language'} ) ) {
         my ( $language, $quality ) = split( /\;/, $tag );
-        $quality =~ s/^q=//i if $quality;
-        $quality = 1 if $quality eq '';
-        next if $quality <=0 ;
+        if ($language eq '*' or not defined $quality){
+            $quality = 1;
+        }
+        else{
+            $quality =~ s/^q=//i;
+            $quality = 1 if $quality eq '';
+        }
+        next if $quality <= 0 ;
+        $log->debug("LANG : $language => $quality");
 
-        $quality = 0 if $language eq '*';
         my $lclang = lc($language);
         push( @arg_tab, $lclang);
         $language_query .= "," if $c > 0;
@@ -584,7 +592,7 @@ sub get_translations {
     my $href = {};
     my @msgs = ("USER","PASSWORD","APPLICATION");
     push(@msgs,$message)
-        if (defined $message and $message != '');
+        if (defined $message and $message ne '');
     foreach my $row (@{$arref}){
         my ($country_r, $msg_r, $trans_r) = @$row;
         my $qual = $lang_qual{$country_r};

@@ -47,7 +47,7 @@ sub handler {
     $log->debug("########## TransHandler ($protocol|"
             . $r->hostname.$r->unparsed_uri.")");
     #protocol check
-    if ( $protocol !~ /HTTP/ and $protocol !~ /HTTPS/ ) {
+    if ( $protocol !~ /^HTTP\/[0-9]\.[0-9]$/ ) {
         $log->error("Rejecting bad protocol $protocol");
         return Apache2::Const::FORBIDDEN;
     }
@@ -133,7 +133,7 @@ sub handler {
     }
     elsif (
         # SSO Portal
-        $r->hostname =~ $intf->{'sso_portal'}
+        $r->hostname . $r->uri . '/' =~ $intf->{'sso_portal'} . '/'
         or (
             $unparsed_uri =~ /$cookie_app_name=([^;]*)/
             and Core::VultureUtils::get_app(
@@ -299,7 +299,8 @@ sub authen_app{
         my $authorization = encode_base64($session_app->{username}.':'.$session_app->{password});
         $authorization =~ s/\n//;
         $r->headers_in->set(
-            'Authorization' => "Basic $authorization");
+            'Authorization' => "Basic $authorization"
+        );
     }
     #Destroy useless handlers
     $r->set_handlers( PerlAuthenHandler => undef );

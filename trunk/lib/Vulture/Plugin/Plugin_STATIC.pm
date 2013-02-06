@@ -32,8 +32,9 @@ sub plugin {
     Core::VultureUtils::session( \%session_app, $app->{timeout}, $id_app, $log,
         $mc_conf, $app->{update_access_time} );
 
+    my $reg = "^".$r->hostname.'/';
     if (
-           $r->hostname =~ $intf->{'sso_portal'}
+        $intf->{'sso_portal'} =~ /$reg/
         or $r->hostname =~ $intf->{'cas_portal'}
         or ( $r->headers_in->{'Referer'} =~ /$cookie_app_name=([^;]*)/ )
         or ( exists $session_app{SSO_Forwarding}
