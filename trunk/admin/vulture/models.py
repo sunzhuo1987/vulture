@@ -117,6 +117,10 @@ class Intf(models.Model):
         ('redirect', 'redirect'),
         ('script', 'script'),
         )
+    REMOVAL_ALGORITHM = (
+        ('LRU','LRU'),
+        ('GDSF','GDSF'),
+        )
     name = models.CharField(max_length=128, unique=1)
     ip = models.IPAddressField()
     port = models.IntegerField()
@@ -161,6 +165,17 @@ class Intf(models.Model):
     srv_ka_timeout = models.IntegerField(blank=1,null=1,default=15)
     srv_apache_user = models.CharField(blank=1,null=1,max_length=50)
     srv_apache_group = models.CharField(blank=1,null=1,max_length=50)
+    cache_root = models.CharField(blank=1,null=1,max_length=128)
+    cache_dir_level = models.IntegerField(default=3)
+    cache_dir_length = models.IntegerField(default=2)
+    cache_max_file_size = models.IntegerField(default=1000000)
+    cache_min_file_size = models.IntegerField(default=1)
+    mcache_max_object_count = models.IntegerField(default=1009)
+    mcache_max_object_size = models.IntegerField(default=10000)
+    mcache_max_streaming_buffer = models.IntegerField(blank=1,null=1)
+    mcache_min_object_size = models.IntegerField(default=1)
+    mcache_removal_algorithm = models.CharField(choices=REMOVAL_ALGORITHM, default='GDSF',max_length=128)
+    mcache_size = models.IntegerField(default=100)
     virtualhost_directives = models.TextField(blank=1,null=1)
 
     def conf(self):
@@ -217,6 +232,15 @@ class Intf(models.Model):
                 or App.objects.filter(intf=self.id,
                     Balancer_Activated=False,
                 url__istartswith='ftp://').count()>0)
+
+    def has_cache(self):
+        return (App.objects.filter(intf=self.id, cache_activated=True).count()>0)
+
+    def has_disk_cache(self):
+        return (App.objects.filter(intf=self.id, cache_activated=True, cache_type="disk").count()>0)
+
+    def has_mem_cache(self):
+        return (App.objects.filter(intf=self.id, cache_activated=True, cache_type="mem").count()>0)
 
     def is_ssl(self):
         return self.cert and True or False
@@ -875,6 +899,10 @@ class App(models.Model):
         (10,'10'),(11,'11'),(12,'12'),(13,'13'),
         (14,'14'),(15,'max')
         )
+    CACHE_TYPE = (
+        ('disk','disk'),
+        ('mem','mem'),
+        )
     name = models.CharField(max_length=128,unique=1)
     alias = models.CharField(max_length=128, blank=1, null=1)
     url = models.CharField(max_length=256)
@@ -969,7 +997,23 @@ class App(models.Model):
             choices = DEFLATE_LEVEL)
     deflate_win_size = models.IntegerField(default=15,
             choices =DEFLATE_WIN_SIZE)
-
+    cache_activated = models.BooleanField(default=False)
+    cache_type = models.CharField(max_length=128, choices=CACHE_TYPE, default='disk')
+    cache_disable = models.CharField(max_length=512,blank=1,null=1,default="NULL")
+    cache_default_exptime = models.IntegerField(default=3600)
+    cache_ignore_cache_control = models.BooleanField(default=False)
+    cache_ignore_headers = models.CharField(max_length=128, blank=1, default='')
+    cache_ignore_nolastmod = models.BooleanField(default=False)
+    cache_ignore_querystring = models.BooleanField(default=False)
+    cache_ignore_URLSessionIdentifiers = models.CharField(max_length=512,null=1,blank=1,default='none')
+    cache_last_modified_factor = models.FloatField(default=0.1)
+    cache_lock = models.BooleanField(default=False)
+    cache_lock_maxage = models.IntegerField(default=5)
+    cache_lock_path = models.CharField(max_length=128, blank=1,null=1)
+    cache_max_expire = models.IntegerField(default=86400)
+    cache_store_no_store = models.BooleanField(default=False)
+    cache_store_private = models.BooleanField(default=False)
+    
     def isWildCard (self):
         return self.alias.startswith('*')
 
@@ -989,11 +1033,11 @@ class App(models.Model):
     def getCookieDomain (self):
         p = re.compile ('https?://(.*)/?')
         match=p.match(self.url)
-	if not match:
-		return " "
+    	if not match:
+	        return " "
         domain = match.group(1)
-	newdomain = self.name
-	if "/" in newdomain:
+        newdomain = self.name
+    	if "/" in newdomain:
             newdomain=newdomain.split("/",1)[0]
         if domain:
             return "ProxyPassReverseCookieDomain "+domain+" "+newdomain

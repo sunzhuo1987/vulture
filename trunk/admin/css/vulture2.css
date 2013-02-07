@@ -268,5 +268,9 @@ ul.tabs li a.active {
 	width: auto;
 }
 
+#apache_title {
+    background-color:white;
+    color:black;
+}
         
-#main_content_2,#main_content_3, #main_content_4, #main_content_5, #main_content_6, #main_content_7, #main_content_8, #main_content_9, #main_content_10, #main_content_11 { display:none; }
+#main_content_2,#main_content_3, #main_content_4, #main_content_5, #main_content_6, #main_content_7, #main_content_8, #main_content_9, #main_content_10, #main_content_11, #main_content_12 { display:none; }
