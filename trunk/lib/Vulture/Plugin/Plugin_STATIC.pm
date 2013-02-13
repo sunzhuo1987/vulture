@@ -34,7 +34,7 @@ sub plugin {
 
     my $reg = "^".$r->hostname.'/';
     if (
-        $intf->{'sso_portal'} =~ /$reg/
+        ($intf->{'sso_portal'} . '/') =~ /$reg/
         or $r->hostname =~ $intf->{'cas_portal'}
         or ( $r->headers_in->{'Referer'} =~ /$cookie_app_name=([^;]*)/ )
         or ( exists $session_app{SSO_Forwarding}
