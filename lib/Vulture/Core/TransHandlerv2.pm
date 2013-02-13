@@ -133,7 +133,7 @@ sub handler {
     }
     elsif (
         # SSO Portal
-        $r->hostname . $r->uri . '/' =~ $intf->{'sso_portal'} . '/'
+	($r->hostname . $r->uri . '/') =~ ($intf->{'sso_portal'} . '/')
         or (
             $unparsed_uri =~ /$cookie_app_name=([^;]*)/
             and Core::VultureUtils::get_app(

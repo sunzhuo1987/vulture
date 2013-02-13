@@ -260,9 +260,14 @@ sub display_auth_form {
       Core::VultureUtils::get_translations( $r, $log, $dbh, $message );
 
     # token
-    my $token = Core::VultureUtils::generate_random_string(32);
-    $session_SSO->{random_token} = $token;
-    
+    my $token;
+    if (defined $session_SSO->{random_token}){
+	$token = $session_SSO->{random_token};
+    }
+    else{
+	$token = Core::VultureUtils::generate_random_string(32);
+	$session_SSO->{random_token} = $token;
+    }
     #Get style
     my $form =
 "<div id=\"form_vulture\"><form method=\"POST\" name=\"auth_form\" action=\""
