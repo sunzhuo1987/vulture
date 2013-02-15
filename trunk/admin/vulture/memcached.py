@@ -51,7 +51,7 @@ class MC:
     @staticmethod
     def get(key):
         return MC.mc_client.get(str(key))
-            
+
     @staticmethod
     def set(key,value):
         return MC.mc_client.set(str(key),value)
@@ -261,7 +261,7 @@ class MC:
     @staticmethod
     def push_ms_conf():
         sec_dir = "%s/security-rules"%(settings.CONF_PATH)
-        ms_files = {}
+        ms_files = []
         for type_ in ('activated','CUSTOM'):
             dir_type = "%s/%s"%(sec_dir,type_)
             if not os.path.exists(dir_type):
@@ -273,7 +273,8 @@ class MC:
                     f = open("%s/%s"%(sec_dir,f_path),'rb')
                     fcont = f.read()
                     f.close()
-                    ms_files[f_path] = fcont
+                    ms_files.append(f_path)
+                    MC.set("%s:%s"%(MC.MSCONFKEY,f_path),fcont)
         MC.set(MC.MSCONFKEY,ms_files)
  
     @staticmethod
@@ -305,26 +306,29 @@ class MC:
                 os.rmdir(sec_dir2)
             os.rmdir(sec_dir1)
         # get files from memcache
-        files = MC.get(MC.MSCONFKEY)
-        for relpath in files:
-            # check if file is in right folder
-            if not os.path.realpath("%s/%s"%(sec_dir,relpath)
-                    ).startswith(sec_dir):
-                continue
-            print "[?] %s: pop ms file : %s"%(time.ctime(),relpath)
-            dirs = relpath.split("/")
-            filename = dirs[len(dirs)-1]
-            dirs = dirs[:len(dirs)-1]
-            d = sec_dir
-            # eventually create dir
-            for di in dirs:
-                d += "/%s"%di
-                if not os.path.exists(d):
-                    os.mkdir(d)
-            # write file in its right place
-            f = open("%s/%s"%(sec_dir,relpath),"wb")
-            f.write(files[relpath])
-            f.close()
+        list_files = MC.get(MC.MSCONFKEY)
+	
+        if list_files:
+            for relpath in list_files:
+                # check if file is in right folder
+                if not os.path.realpath("%s/%s"%(sec_dir,relpath)
+                        ).startswith(sec_dir):
+                    continue
+                print "[?] %s: pop ms file : %s"%(time.ctime(),relpath)
+                dirs = relpath.split("/")
+                filename = dirs[len(dirs)-1]
+                dirs = dirs[:len(dirs)-1]
+                d = sec_dir
+                # eventually create dir
+                for di in dirs:
+                    d += "/%s"%di
+                    if not os.path.exists(d):
+                        os.mkdir(d)
+                # write file in its right place
+                f = open("%s/%s"%(sec_dir,relpath),"wb")
+                file=MC.get("%s:%s"%(MC.MSCONFKEY,relpath))
+                f.write(file)
+                f.close()
 
     @staticmethod
     def pop_sql_conf():
@@ -333,10 +337,19 @@ class MC:
             db_conf = MC.get_SQL_table(table)
             mc_conf = MC.get("conf:%s"%table)
             db_ids,mc_ids = {},{}
-            for row in db_conf:
-                db_ids[row['id']]=row
-            for row in mc_conf:
-                mc_ids[row['id']]=row
+            if db_conf:
+                for row in db_conf:
+                    db_ids[row['id']]=row
+            if mc_conf:
+                for row in mc_conf:
+                    mc_ids[row['id']]=row
+            # Eventually delete some lines
+            dels=[str(f) for f in db_ids if not f in mc_ids]
+            if dels:
+                q = "DELETE FROM `%s` WHERE id IN (%s)"%(
+                    table,",".join(dels))
+                print("%s: %s"%(time.ctime(),q))
+                MC.db.execute(q)
             # for all keys in memcache conf, 
             # check if it's present in the db
             for mc_k in mc_ids:
@@ -364,13 +377,6 @@ class MC:
                         )
                     print("%s: INSERT INTO %s"%(time.ctime(),table))
                     MC.db.execute(q,vals)
-            # Eventually delete some lines
-            dels=[str(f) for f in db_ids if not f in mc_ids]
-            if dels:
-                q = "DELETE FROM `%s` WHERE id IN (%s)"%(
-                    table,",".join(dels))
-                print("%s: %s"%(time.ctime(),q))
-                MC.db.execute(q)
         MC.db.commit()
    
     @staticmethod
@@ -416,3 +422,4 @@ if __name__ == '__main__':
     except:
         MC.usage()
     sys.exit(not f() and 1 or 0)
+
