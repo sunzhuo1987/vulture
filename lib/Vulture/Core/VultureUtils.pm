@@ -187,7 +187,7 @@ sub get_app {
             $cpy =~ s|\*|\(\.\*\)\\|g;
             if ( $host =~ /$cpy/ ) {
                 $ref = $apps->{$name};
-                $ref->{name} = $host;
+                $ref->{name} = $cpy;
                 last;
             }
             else {
@@ -571,7 +571,7 @@ sub get_translations {
     $language_query .= " ) ";
 
     #Message translation
-    my $message_query = "message  IN ( 'USER', 'PASSWORD', 'APPLICATION'";
+    my $message_query = "message  IN ( 'USER', 'PASSWORD', 'APPLICATION','SUBMIT'";
     if ( defined $message and $message ne '' ) {
         $message_query .= ", ? ";
         push( @arg_tab, $message );
