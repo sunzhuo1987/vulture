@@ -304,7 +304,7 @@ FOO
     </td>
 </tr>
 <tr class="row">
-    <td></td><td align="right"><input type="submit" value="submit"></td></tr>
+    <td></td><td align="right"><input type="submit" value=$translations->{'SUBMIT'}{'translation'}></td></tr>
 </table>
 </form>
 </div>
