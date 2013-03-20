@@ -1182,6 +1182,7 @@ class Localization(models.Model):
         ('APP_DOWN', 'App down'),
         ('SSO_LEARNING', 'SSO Learning'),
         ('DISCONNECTED', 'Disconnected'),
+        ('SUBMIT', 'Submit'),
         )
     country = models.CharField(max_length=2, choices=COUNTRY_CHOICES)
     message = models.CharField(max_length=50, choices=ERRORS_CHOICES)
