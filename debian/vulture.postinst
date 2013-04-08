@@ -28,11 +28,16 @@ easy_install -U django_evolution
 
 #Set up database ( call django )
 cd /var/www/vulture/admin && ./manage.py syncdb --noinput
-chown www-data. /var/www/vulture/admin/db
-chmod 600 /var/www/vulture/admin/db
+chown vulture-admin. /var/www/vulture/
+chown -R vulture-admin. /var/www/vulture/bin/
+chown -R vulture-admin. /var/www/vulture/admin/*
+chown vulture-admin:www-data /var/www/vulture/admin/db
+chmod 660 /var/www/vulture/admin/db
 chown root. /var/www/vulture/conf/httpd.conf
-chown -R www-data. /var/www/vulture/admin/
-chmod -R 700 /var/www/vulture/conf/
+chown vulture-admin:www-data /var/www/vulture/admin/
+chmod g+w /var/www/vulture/admin/
+chown -R vulture-admin:www-data /var/www/vulture/conf/
+chmod -R 750 /var/www/vulture/conf/
 chmod +x /var/www/vulture/bin/test-perl.sh
 
 #insert data into database
@@ -48,10 +53,10 @@ if [ -f /var/www/vulture/admin/vulture/sql/modsecurity.sql ] ; then
         sqlite3 /var/www/vulture/admin/db < /var/www/vulture/admin/vulture/sql/modsecurity.sql
     fi
 fi
-if grep -E "^www-data ALL=NOPASSWD:.*/usr/sbin/apache2.*/sbin/ifconfig" /etc/sudoers > /dev/null ; then
+if grep -E "^vulture-admin ALL=NOPASSWD:.*/usr/sbin/apache2.*/sbin/ifconfig" /etc/sudoers > /dev/null ; then
 	echo "sudo active"
 else
-	echo "www-data ALL=NOPASSWD:/usr/sbin/apache2, /sbin/ifconfig" >> /etc/sudoers
+	echo "vulture-admin ALL=NOPASSWD:/usr/sbin/apache2, /sbin/ifconfig" >> /etc/sudoers
 fi
 update-rc.d -f vulture start 90 2 3 4 5 . stop 90 0 1 6 .
 echo "Vulture is now up and running on port 9090!"

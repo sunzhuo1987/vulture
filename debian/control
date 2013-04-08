@@ -2,7 +2,7 @@ Source: vulture
 Section: main/net
 Priority: optional
 Maintainer: Arnaud Desmons <arnaud.desmons@advens.fr>
-Build-Depends: debhelper (>= 4.0.0), dpkg-dev, file, libxml2-dev, gcc, g++, libc6-dev, make, patch, perl, autoconf, automake, dh-make, debhelper, devscripts, fakeroot, gnupg, xutils, pbuilder, libperl-dev, sqlite, libapache2-mod-perl2, libapache2-mod-perl2-dev, libdbi-perl, apache2-prefork-dev, libcache-memcached-perl, libdb4.8 python-setuptools
+Build-Depends: debhelper (>= 4.0.0), dpkg-dev, file, libxml2-dev, gcc, g++, libc6-dev, make, patch, perl, autoconf, automake, dh-make, debhelper, devscripts, fakeroot, gnupg, xutils, pbuilder, libperl-dev, sqlite, libapache2-mod-perl2, libapache2-mod-perl2-dev, libdbi-perl, apache2-prefork-dev, libcache-memcached-perl, libdb4.8, python-setuptools
 Standards-Version: 3.6.1
 
 Package: vulture
