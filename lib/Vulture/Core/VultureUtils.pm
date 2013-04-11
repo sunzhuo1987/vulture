@@ -709,4 +709,28 @@ sub load_module{
         return $error;
     };
 }
+sub parse_set_cookie($) {
+        my $sc = shift;
+        my $i=0;
+        my $tab = {};
+        foreach my $v (split (';',$sc)) {
+                if ($i eq 0) {
+                        $i++;
+                        ($tab->{"name"},$tab->{"value"}) = split ('=',$v);
+                } else {
+                        my ($t,$u) = split ('=',$v);
+                        $tab->{trim($t)} = $u;
+                }
+        }
+        print $tab->{"name"};
+        return $tab;
+}
+sub trim($) {
+    my $string = shift;
+    $string =~ s/^\s+//;
+    $string =~ s/\s+$//;
+    return $string;
+}
+
+
 1;
