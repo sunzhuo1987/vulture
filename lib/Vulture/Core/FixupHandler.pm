@@ -14,6 +14,8 @@ use Apache2::Log;
 use Apache2::Const -compile => qw(OK);
 use Apache::SSLLookup;
 
+use Core::VultureUtils qw(&session );
+
 sub handler {
     my $r   = Apache::SSLLookup->new(shift);
     my $log = $r->pnotes('log');
@@ -31,7 +33,11 @@ sub proxy_redirect {
     my ( $r, $log, $url ) = @_;
 
     my $app = $r->pnotes('app');
-
+    my $mc_conf = $r->pnotes('mc_conf');
+    my (%session_app);
+    Core::VultureUtils::session( \%session_app, $app->{timeout},
+        $r->pnotes('id_session_app'),
+        $log, $mc_conf, $app->{update_access_time} );
     $log->debug( "Mod_proxy is working. Redirecting to " . $url );
 
     #Cleaning up cookies
@@ -53,7 +59,7 @@ sub proxy_redirect {
     else{
         $r->headers_in->unset( "Cookie");
     }
-
+    $session_app{cookie} = $cleaned_cookies;
     #Not canonicalising url (i.e : not escaping chars)
     if ( not $app->{'canonicalise_url'} ) {
         $log->debug("Skipping url canonicalising");
