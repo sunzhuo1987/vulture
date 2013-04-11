@@ -125,11 +125,9 @@ sub plugin {
 
                     # Adding new couples (name, value) thanks to POST response
                     foreach ( $response->headers->header('Set-Cookie') ) {
-                        if (/([^,; ]+)=([^,; ]+)/) {
-                            $cookies_app{$1} = $2;    # adding/replace
-                            $log->debug( "ADD/REPLACE " . $1 . "=" . $2 );
-
-                        }
+                        my $tc = Core::VultureUtils::parse_set_cookie($c);
+                        $cookies_app{$tc->{"name"}} = $tc;
+                        $log->debug("ADD/REPLACE" . $tc->{"name"} . "=" . $tc->{"value"});
                     }
 
                     #Fill session with cookies returned by app (for logout)
@@ -147,6 +145,8 @@ sub plugin {
                           . $r->hostname()
                           . "; path="
                           . $path
+                          . "; expires="
+                          . $cookies_app{$k}->{"expires"}
                           . "" );    # Send cookies to browser's client
                     $log->debug( "PROPAG " . $k . "=" . $cookies_app{$k} );
                 }
