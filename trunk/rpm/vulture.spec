@@ -59,6 +59,13 @@ Vulture Reverse Proxy
 %clean
      rm -rf $RPM_BUILD_ROOT
 
+%pre
+    if (grep -E "^vulture-admin:" /etc/passwd > /dev/null) ; then
+       	echo "L'utilisateur admin existe."
+    else
+       	useradd vulture-admin -G apache
+    fi
+
 
 %post
      chmod +x %{serverroot}/%{name}/bin/test-perl.sh
@@ -93,14 +100,10 @@ Vulture Reverse Proxy
             /usr/bin/sqlite3 %{serverroot}/%{name}/admin/db < %{serverroot}/%{name}/admin/vulture/sql/log.sql
         fi
     fi
-    if [ -f %{serverroot}/%{name}/admin/vulture/sql/modsecurity.sql ] ; then
-        BASE_RULE=`/usr/bin/sqlite3 %{serverroot}/%{name}/admin/db "SELECT count(*) from modsecurity"`
-        if [ $BASE_RULE = 0 ]; then
-            /usr/bin/sqlite3 %{serverroot}/%{name}/admin/db < %{serverroot}/%{name}/admin/vulture/sql/modsecurity.sql
-        fi
-    fi
-    chown apache. %{serverroot}/%{name}/admin/db
-    chmod 600 %{serverroot}/%{name}/admin/db
+    chown vulture-admin:apache %{serverroot}/%{name}/admin/db
+    chown vulture-admin:apache %{serverroot}/%{name}/admin
+    chmod 660 %{serverroot}/%{name}/admin/db
+    chmod 770 %{serverroot}/%{name}/admin/
     chmod 550  %{serverroot}/%{name}/bin/test-perl.sh
     if [ ! -f %{serverroot}/%{name}/conf/cacert.pem ]; then
         openssl req -x509 -days 3650 -newkey rsa:1024 -batch\
@@ -127,13 +130,11 @@ Vulture Reverse Proxy
 		-cert %{serverroot}/%{name}/conf/cacert.pem\
 		-outdir %{serverroot}/%{name}/conf/ -batch
     fi
-    chown -R apache. %{serverroot}/%{name}/conf
-    chmod -R 700 %{serverroot}/%{name}/conf
-    if ! (grep "^apache.*NOPASSWD:.*/usr/sbin/httpd.*/sbin/ifconfig" /etc/sudoers > /dev/null  ) ; then 
-	    echo "apache ALL=NOPASSWD: /bin/cat, /usr/sbin/httpd, /sbin/ifconfig" >> /etc/sudoers
+    if ! (grep "^vulture-admin.*NOPASSWD:.*/usr/sbin/httpd.*/sbin/ifconfig" /etc/sudoers > /dev/null  ) ; then 
+	    echo "vulture-admin ALL=NOPASSWD: /bin/cat, /usr/sbin/httpd, /sbin/ifconfig" >> /etc/sudoers
     fi
-    if ! ( grep '^Defaults:apache.*!requiretty' /etc/sudoers > /dev/null ) ; then
-         echo 'Defaults:apache !requiretty' >> /etc/sudoers
+    if ! ( grep '^Defaults:vulture-admin.*!requiretty' /etc/sudoers > /dev/null ) ; then
+         echo 'Defaults:vulture-admin !requiretty' >> /etc/sudoers
     fi
     if ( uname -i | grep 'x86_64' > /dev/null ) ; then
         sed s-"/usr/lib/libxml2.so.2"-"/usr/lib64/libxml2.so.2"-g %{serverroot}/%{name}/admin/vulture_httpd.conf > /tmp/vh.conf && \
@@ -161,12 +162,14 @@ o.write(B.b64encode(f.read(128))[:32])' > %{serverroot}/%{name}/conf/aes-encrypt
 
 %files
 %defattr(-,apache,apache,-)
-%config(noreplace) %{serverroot}/%{name}/conf
 %config(noreplace) %{serverroot}/%{name}/sql
-%{serverroot}/%{name}/admin
-%{serverroot}/%{name}/bin
 %{serverroot}/%{name}/static
 %{serverroot}/%{name}/rpm
+%defattr(-,vulture-admin,apache,-)
+%config(noreplace) %{serverroot}/%{name}/conf
+%defattr(-,vulture-admin,vulture-admin,-)
+%{serverroot}/%{name}/bin
+%{serverroot}/%{name}/admin
 %defattr(-,root,root)
 %{serverroot}/%{name}/lib
 /etc/init.d/%{name}
