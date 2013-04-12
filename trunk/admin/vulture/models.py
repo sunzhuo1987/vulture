@@ -1050,7 +1050,7 @@ class App(models.Model):
         return " "
  
     def __str__(self):
-        return self.name
+        return self.name + " : " + ", ".join([i.name for i in self.intf.all()])
     class Meta:
         db_table = 'app'
         permissions = (
