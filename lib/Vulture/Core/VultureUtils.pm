@@ -205,24 +205,10 @@ sub get_app {
     return {} unless $ref->{id};
     $ref->{'intf'} = $intf;
     #Use memcached if possible
-    my $obj = Core::VultureUtils::get_memcached( $ref->{name}.":app", $mc_conf );
+    my $obj = Core::VultureUtils::get_memcached( $ref->{'inttf'}.$ref->{name}.":app", $mc_conf );
     if ($obj) {
-        $log->debug("got memcached ".$ref->{name}.":app");
-        # get corresponding intf for this app/server
-        $query = ('SELECT intf.id FROM intf '
-            .'JOIN app_intf ON intf.id = app_intf.intf_id '
-            .'JOIN app ON app_intf.app_id = app.id '
-            .'WHERE ? LIKE app.name || "%" ORDER BY app.name DESC');
-        $log->debug($query);
-        $sth = $dbh->prepare($query);
-        $sth->execute($ref->{name});
-        my $var;
-        while ( $var = $sth->fetchrow ) {
-            if ( $var eq $intf ) {
-                $obj->{'intf'} = $intf;
-            }
-        }
-        $sth->finish();
+        $log->debug("got memcached ".$ref->{'intf'}.$ref->{name}.":app");
+        $obj->{'intf'} = $intf;
         return $obj;
     }
 
@@ -262,8 +248,8 @@ sub get_app {
     $sth->finish();
 
     #Caching app if possible
-    $log->debug("set memcached : ".$ref->{name}.":app");
-    Core::VultureUtils::set_memcached( $ref->{name}.":app", $ref, 60, $mc_conf );
+    $log->debug("set memcached : ".$ref->{id}.$ref->{name}.":app");
+    Core::VultureUtils::set_memcached( $ref->{id}.$ref->{name}.":app", $ref, 60, $mc_conf );
     return $ref;
 }
 
