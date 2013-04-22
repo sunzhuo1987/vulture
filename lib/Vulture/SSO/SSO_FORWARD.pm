@@ -274,6 +274,7 @@ sub forward {
             }
             elsif ( $1 eq $app->{Balancer_Stickyness} ) {
                 $route = $2;
+                $route =~ s/.//;
             }
         }
     }
