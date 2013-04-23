@@ -199,7 +199,11 @@ sub handler : method {
 
         $log->debug('Validate SSO session');
         $session_SSO{is_auth}  = 1;
-
+        if ( $cas ) {
+            # we store the relationship between cas ticket and sso session id
+            Core::VultureUtils::set_memcached(  $r->pnotes('ticket'), $session_SSO{'_session_id'}, undef, $mc_conf);
+	    $log->debug("set memcached ticket is ".$r->pnotes('ticket')." and session is ".$session_SSO{'_session_id'});
+        }
         # set credentials for this session
         $session_SSO{username} = $user;
         $session_SSO{password} = $password;
