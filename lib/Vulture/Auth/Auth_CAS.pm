@@ -102,6 +102,7 @@ sub checkAuth {
 
             #Get user from CAS
             $r->pnotes( 'username' => $1 );
+            $r->pnotes( 'ticket' => $ticket);
             $r->user($1);
             return Apache2::Const::OK;
         }
