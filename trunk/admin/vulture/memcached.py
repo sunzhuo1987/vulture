@@ -50,7 +50,10 @@ class MC:
 
     @staticmethod
     def get(key):
-        return MC.mc_client.get(str(key))
+        try:
+            return MC.mc_client.get(str(key))
+        except:
+            pass
 
     @staticmethod
     def set(key,value):
