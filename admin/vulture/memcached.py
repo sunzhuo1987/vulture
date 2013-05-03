@@ -200,7 +200,7 @@ class MC:
             MC.set(MC.KEYSTORE,all_srv+[name])
         # put infos of this server in memcache for monitoring purpose
         infos = {"version":myversion,"last":time.time()}
-        MC.set("%s:infos",infos)
+        MC.set("%s:infos"%name,infos)
     
     # monitoring func, return list of servers and infos
     @staticmethod
@@ -210,7 +210,7 @@ class MC:
         if not all_srv:
             return ret
         for name in all_srv:
-            info = MC.get("%s:infos")
+            info = MC.get("%s:infos"%name)
             # if we failed to get infos, return err value
             if not info:
                 info = {"name":name,"version":-1,"last":0,"up":False}
@@ -287,7 +287,15 @@ class MC:
 
     @staticmethod
     def pop_conf():
-        MC.pop_sql_conf()
+        try:
+            MC.pop_sql_conf()
+        except sqlite3.IntegrityError, e:
+            if (len(e.args)==1 and 
+                e.args[0]=='columns app_id, intf_id are not unique'):
+                print "Warning: integrity error, cleaning.."
+                MC.db.execute("DELETE from app_intf");
+                return MC.pop_conf()
+            raise
         MC.pop_ms_conf()
         # eventually reload interfaces with changes
         if MC.getConf("auto_restart")=='1':
