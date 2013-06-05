@@ -8,6 +8,18 @@ import os
 import hashlib
 import ifconfig
 
+
+def update_logic_auths():
+    to_create = [ u for u in Auth.objects.exclude(auth_type='logic')
+                    if not [l for l in Logic.objects.filter(login_auth=u.pk) if l.auths.count()==1]]
+    for u in to_create:
+        l = Logic(name=u.name, op='AND', login_auth=u)
+        l.save()
+        l.auths = [u]
+        l.save()
+        a = Auth(name=u.name,auth_type='logic',id_method=l.pk)
+        a.save()
+
 class IntfForm(forms.ModelForm):
     def __init__(self,*args,**kwargs):
         super(forms.ModelForm,self).__init__(*args,**kwargs)
@@ -25,6 +37,8 @@ class IntfForm(forms.ModelForm):
         self.fields["ip"] = forms.ChoiceField(choices = CHOICES)
         self.fields['srv_ka'] = forms.BooleanField(initial=intf and intf.srv_ka or True,required=False)
         self.fields['srv_ka'].widget.attrs["onchange"]="srv_ka_changed()"
+        update_logic_auths()
+        self.fields['cas_auth'].queryset = Auth.objects.filter(auth_type='logic')
     def clean_srv_ka_max_req(self):
         ka = self.cleaned_data["srv_ka"]
         max_req = self.cleaned_data["srv_ka_max_req"]
@@ -116,7 +130,6 @@ class AppForm(forms.ModelForm):
         if not os.path.exists(path+'activated/'):
             os.mkdir(path+'activated/',0770)
         
-        
         for (key, fieldname) in directory.items():
             CHOICES=[]
             INITIAL={}
@@ -124,14 +137,15 @@ class AppForm(forms.ModelForm):
                 for fileName in os.listdir(path+key):
                     if 'data' not in fileName and 'example' not in fileName  and os.path.isfile(path+key+fileName):
                         CHOICES.append((fileName,fileName))
-                        if os.path.exists(path+'activated/'+str(self.instance)):
-                            if fileName in os.listdir(path+'activated/'+str(self.instance)):  # Bouh str
+                        if os.path.exists(path+'activated/'+str(self.instance).replace("/","")):
+                            if fileName in os.listdir(path+'activated/'+str(self.instance).replace("/","")):
                                 INITIAL[fileName] = True
             
             self.fields[fieldname].choices = CHOICES
             self.fields[fieldname].initial = INITIAL
+        update_logic_auths()
+        self.fields['auth'].queryset = Auth.objects.filter(auth_type='logic')
                 
-    auth = forms.ModelMultipleChoiceField(required=False, queryset=Auth.objects.all())
     securitybase = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple,required=False)
     securityexp = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple,required=False)
     securityopt = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple,required=False)
@@ -139,16 +153,6 @@ class AppForm(forms.ModelForm):
     CUSTOM = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple,required=False)
     
     
-
-    def clean_auth(self):
-        auth = self.cleaned_data["auth"]
-        if len(auth) > 1:
-            for a in auth:
-                if a.auth_type == "ntlm":
-                    raise forms.ValidationError("NTLM must be the only auth")
-                if a.auth_type == "radius":
-                    raise forms.ValidationError("RADIUS must be the only auth")
-        return auth
     class Meta:
         model = App
 
@@ -246,4 +250,8 @@ class AppearanceForm(forms.ModelForm):
     class Meta:
         model = Appearance
 
-
+class JKWorkerForm(forms.ModelForm):
+    reference = forms.ModelChoiceField(
+            queryset=JKWorker.objects.filter(is_template=True),required=False)
+    class Meta:
+        model = JKWorker

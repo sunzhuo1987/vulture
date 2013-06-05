@@ -59,6 +59,7 @@
         <li><a class="menu_entry" href='/cas/'>{% trans "CAS" %}</a></li>
         <li><a class="menu_entry" href="/sso/">{% trans "Web SSO" %}</a></li>
         <li><a class="menu_entry" href="/otp/">{% trans "One-Time-Password" %}</a></li>
+        <li><a class="menu_entry" href="/logic/">{% trans "Authentication Workflow" %}</a></li>
     </ul>
     <img src='/img/vulture2/web.png' alt="web firewall"/>
     <b>{% trans "Web Firewall" %}</b>
@@ -86,6 +87,7 @@
                 <li><a class="menu_entry" href="/pluginheader/"><small>{% trans "Header Input" %}</small></a></li>
                 <li><a class="menu_entry" href="/plugincas/"><small>{% trans "CAS Server Configuration" %}</small></a></li>
             </ul>
+            <li><a class="menu_entry" href="/jk/"><small>{% trans "Tomcat workers" %}</small></a></li>
     </ul>
 {% endblock %}
 {% block copyright %}<b>{% trans "Vulture 2 is released under GNU Public Licence Version 3" %}</b>{% endblock %}

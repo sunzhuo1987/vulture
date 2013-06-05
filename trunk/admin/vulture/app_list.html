@@ -28,7 +28,7 @@
                     <td>{{ object.name }}</td>
                     <td>{{ object.alias }}</td>
                     <td>{{ object.url }}</td>
-                    <td>{{ object.auth.all|join:", " }}</td>
+                    <td>{{ object.auth}}</td>
                     <td>{{ object.intf.all|join:", " }}</td>
                     <td>
                         {% if object.up %}<img src="/img/vulture2/ok.png" alt="ok" />{% else %}<img src="/img/vulture2/stop.png" alt="stop" />{% endif %}

@@ -133,7 +133,7 @@ class Intf(models.Model):
     check_csrf = models.BooleanField(default=True);
     # cas portal
     cas_portal = models.CharField(max_length=256,blank=1,null=1)
-    cas_auth = models.ManyToManyField('Auth',null=1,blank=1,db_table='intf_auth_multiple')
+    cas_auth = models.ForeignKey('Auth',null=1,blank=1)
     cas_auth_basic = models.BooleanField(default=0)
     cas_st_timeout = models.IntegerField(blank=1,null=1)
     cas_redirect = models.CharField(max_length=256,blank=1,null=1)
@@ -198,6 +198,7 @@ class Intf(models.Model):
         uname = os.uname()
         c = Context({"VultureConfPath" : settings.CONF_PATH,
                      "VultureStaticPath" : settings.MEDIA_ROOT,
+                     "VultureBinPath" : settings.BIN_PATH,
                      "PerlSwitches" : settings.PERL_SWITCHES,
                      "dbname" : settings.DATABASES['default']['NAME'],
                      "serverroot" : settings.SERVERROOT,
@@ -242,6 +243,12 @@ class Intf(models.Model):
     def has_mem_cache(self):
         return (App.objects.filter(intf=self.id, cache_activated=True, cache_type="mem").count()>0)
 
+    def hasJK(self):
+        for a in App.objects.filter(intf=self.id):
+            if a.getJKDirective():
+                return True
+        return False
+
     def is_ssl(self):
         return self.cert and True or False
 
@@ -285,6 +292,14 @@ class Intf(models.Model):
             self.restoreConf(bpath)
             return fail_msg
 
+    def delete(self,*args,**kwargs):
+        for ext in ("conf","crt","key","chain","cacrt"):
+            fname = "%s%s.%s"%(settings.CONF_PATH,self.pk,ext)
+            if os.path.exists(fname):
+                os.remove(fname)
+        super(Intf,self).delete(*args,**kwargs)
+        
+            
     def write(self):
         f=open("%s%s.conf" % (settings.CONF_PATH, self.id), 'wb')
         f.write(str(self.conf()))
@@ -305,16 +320,11 @@ class Intf(models.Model):
                 if os.path.exists(fname):
                     os.remove(fname)
         for app in App.objects.filter(intf=self.id).all():
-            auth_list=app.auth.all()
-            for auth in auth_list:
-                if auth.auth_type == 'ssl':
-                    if "/" not in app.name :
-                       f=open("%s%s.ca" % (settings.CONF_PATH, str(self.id)+'-'+app.name), 'wb')
-                    else:
-                       f=open("%s%s.ca" % (settings.CONF_PATH, str(self.id)+'-'+app.name.split("/")[0]), 'wb')
-
-                    f.write(str(auth.getAuth().crt))
-                    f.close()
+            auth = app.auth
+            if auth and auth.is_ssl():
+                f=open("%s%s.ca" % (settings.CONF_PATH, str(self.id)+'-'+app.name.split("/")[0]), 'wb')
+                f.write(str(auth.get_crt()))
+                f.close()
 
     def checkIfEqual(self):
         try:
@@ -346,7 +356,7 @@ class Intf(models.Model):
             f=open("%s%s.conf" % (settings.CONF_PATH, self.id), 'r')
             content = f.read()
             f.close()
-            if content != self.conf() :
+            if content != self.conf(): 
                 return True
         except:
             return True
@@ -392,17 +402,16 @@ class Intf(models.Model):
                 return True
 
         for app in App.objects.filter(intf=self.id).all():
-            auth_list=app.auth.all()
-            for auth in auth_list:
-                if auth.auth_type == 'ssl':
-                    try:
-                        f=open("%s%s.ca" % (settings.CONF_PATH, str(self.id)+'-'+app.name), 'r')
-                        content = f.read()
-                        f.close()
-                        if content != auth.getAuth().crt :
-                            return True
-                    except:
+            auth = app.auth
+            if auth and auth.is_ssl():
+                try:
+                    f=open("%s%s.ca" % (settings.CONF_PATH, str(self.id)+'-'+app.name.split("/")[0]), 'r')
+                    content = f.read()
+                    f.close()
+                    if content != auth.get_crt() :
                         return True
+                except:
+                    return True
           
 # send command "cmd" to apache (using httpd.conf of interface 
     def k(self, cmd):
@@ -518,7 +527,7 @@ class SQL(models.Model):
                 user_ko.append(('%s' % user, '%s' % user))
         return user_ko
     def __str__(self):
-        return self.name
+        return "%s [SQL]"%(self.name)
     class Meta:
         db_table = 'sql'
 
@@ -526,7 +535,7 @@ class Kerberos(models.Model):
     name = models.CharField(max_length=128,unique=1)
     realm = models.CharField(max_length=256)
     def __str__(self):
-        return self.name
+        return "%s [KERBEROS]"%self.name
     class Meta:
         db_table = 'kerberos'
         
@@ -536,7 +545,7 @@ class CAS(models.Model):
     url_validate = models.CharField(max_length=256)
     cas_attribute = models.CharField(max_length=256)
     def __str__(self):
-        return self.name
+        return "%s [CAS]"%self.name
     class Meta:
         db_table = 'cas'
 
@@ -549,8 +558,18 @@ class SSL(models.Model):
     require = models.CharField(max_length=20, choices=SSL_REQUIRE)
     crt = models.TextField()
     constraint = models.TextField()
+
+    def get_require(self):
+        return self.require
+
+    def get_crt(self):
+        return self.crt
+
+    def get_constraint(self):
+        return self.constraint
+
     def __str__(self):
-        return self.name
+        return "%s [SSL]"%self.name
     class Meta:
         db_table = 'ssl'
 
@@ -560,7 +579,7 @@ class NTLM(models.Model):
     primary_dc = models.CharField(max_length=128)
     secondary_dc = models.CharField(max_length=128, blank=1, null=1)
     def __str__(self):
-        return self.name
+        return "%s [NTLM]"%self.name
     class Meta:
         db_table = 'ntlm'
 
@@ -572,7 +591,7 @@ class RADIUS(models.Model):
     timeout = models.IntegerField()
     url_attr = models.CharField(max_length=32, blank=1)
     def __str__(self):
-        return self.name
+        return "%s [RADIUS]"%self.name
     class Meta:
         db_table = 'radius'
 
@@ -591,29 +610,29 @@ class LDAP(models.Model):
             ('2','LDAP v2'),
             ('3','LDAP v3'),
             )
-    name = models.CharField(max_length=128, unique=1)
-    host = models.CharField(max_length=128)
+    name = models.CharField(max_length=255, unique=1)
+    host = models.CharField(max_length=255)
     port = models.IntegerField()
     protocol = models.CharField(max_length=1,choices=LDAP_VERSIONS, default="3")
-    scheme = models.CharField(max_length=128,choices=LDAP_ENC_SCHEMES, default="none")
-    cacert_path = models.CharField(max_length=64, blank=1, null=1)
-    base_dn = models.CharField(max_length=64)
-    dn = models.CharField(max_length=64)
-    password = models.CharField(max_length=64)
-    user_ou = models.CharField(max_length=128, blank=1, null=1)
-    user_attr = models.CharField(max_length=32)
+    scheme = models.CharField(max_length=255,choices=LDAP_ENC_SCHEMES, default="none")
+    cacert_path = models.CharField(max_length=1024, blank=1, null=1)
+    base_dn = models.CharField(max_length=255)
+    dn = models.CharField(max_length=255)
+    password = models.CharField(max_length=255)
+    user_ou = models.CharField(max_length=255, blank=1, null=1)
+    user_attr = models.CharField(max_length=255)
     user_scope = models.IntegerField(choices=LDAP_SCOPE)
-    user_filter = models.CharField(max_length=128, blank=1, null=1)
-    user_account_locked_attr = models.CharField(max_length=128, blank=1, null=1)
+    user_filter = models.CharField(max_length=255, blank=1, null=1)
+    user_account_locked_attr = models.CharField(max_length=255, blank=1, null=1)
     user_mobile = models.CharField(max_length=15,blank=1)
-    group_ou = models.CharField(max_length=128, blank=1, null=1)
-    group_attr = models.CharField(max_length=32)
+    group_ou = models.CharField(max_length=255, blank=1, null=1)
+    group_attr = models.CharField(max_length=255)
     group_scope = models.IntegerField(choices=LDAP_SCOPE)
-    group_filter = models.CharField(max_length=128, blank=1, null=1)
-    group_member = models.CharField(max_length=32, blank=1, null=1)
+    group_filter = models.CharField(max_length=255, blank=1, null=1)
+    group_member = models.CharField(max_length=255, blank=1, null=1)
     are_members_dn = models.BooleanField()
-    url_attr = models.CharField(max_length=32, blank=1)
-    chpass_attr = models.CharField(max_length=32, blank=1)
+    url_attr = models.CharField(max_length=255, blank=1)
+    chpass_attr = models.CharField(max_length=255, blank=1)
     def search(self, base_dn, scope, filter, attr):
         result_set = []
         try:
@@ -711,8 +730,11 @@ class LDAP(models.Model):
     class Meta:
         db_table = 'ldap'
     
+    def __str__(self):
+        return "%s [LDAP]"%self.host
+
     def __unicode__(self):
-        return self.host
+        return str(self)
 
     def get_absolute_url(self):
         return "/ldap/"
@@ -724,26 +746,43 @@ class Logic(models.Model):
         )
     name = models.CharField(max_length=128, unique=1)
     op = models.CharField(max_length=3,choices=OPERATORS)
-    auths = models.ManyToManyField('Auth')
+    auths = models.ManyToManyField('Auth',null=False)
+    login_auth = models.ForeignKey('Auth',null=False, related_name="login_logic_auth")
+
     class Meta:
         db_table = 'logic'
-    def __unicode__(self):
-        return "( %s )"+(" %s "%self.op).join(
-            [a.name for a in self.auths.all()]
-            )
+
+    def __str__(self):
+        return ("( %s )"%(" %s "%self.op).join(
+            [str(a) for a in self.auths.all()]
+            ))
+
+    def ssl_auth(self):
+        for a in self.auths.all():
+            sa = a.ssl_auth()
+            if sa:
+                return sa
+    def get_constraint(self):
+        return self.ssl_auth().get_constraint()
+    def get_require(self):
+        return self.ssl_auth().get_require()
+    def get_crt(self):
+        return self.ssl_auth().get_crt()
 
 class OTP(models.Model):
     name = models.CharField(max_length=128)
     auth = models.ForeignKey('Auth')
     contact_field = models.CharField(max_length=128)
     script = models.TextField(
-        default="echo __MESSAGE__ | /usr/bin/mail -s 'otp' __CONTACT__"
+            default="/bin/echo __MESSAGE__ | /usr/bin/mail -s 'otp' __CONTACT__"
         )
     passlen = models.IntegerField(default=8)
     template = models.TextField(
         default="OTP pass for __USER__ : __PASS__",
         )
     timeout = models.IntegerField(default=300)
+    def __str__(self):
+        return "%s [OTP]"%self.name
     class Meta:
         db_table='otp'
 
@@ -759,16 +798,34 @@ class Auth(models.Model):
         'otp':OTP,
         'radius':RADIUS,
         }
-    name = models.CharField(max_length=128, unique=1)
+    name = models.CharField(max_length=128)
     auth_type = models.CharField(max_length=20,
         choices=[(k,k) for k in TYPES])
     id_method = models.IntegerField()
     def getAuth(self):
         return Auth.TYPES[self.auth_type].objects.get(pk=self.id_method)
+
+    def ssl_auth(self):
+        if self.auth_type == 'ssl':
+            return self.getAuth()
+        elif self.auth_type =='logic':
+            return self.getAuth().ssl_auth()
+
     def is_ssl(self):
-        return self.auth_type == 'ssl'
+        return self.ssl_auth() and True
+
+    def get_constraint(self):
+        return self.ssl_auth().get_constraint()
+
+    def get_require(self):
+        return self.ssl_auth().get_require()
+
+    def get_crt(self):
+        return self.ssl_auth().get_crt()
+
     def __str__(self):
-        return self.name
+        return str(self.getAuth())
+   #     return "%s [%s]"%(self.name,self.auth_type.upper())
     class Meta:
         db_table = 'auth'
 
@@ -903,7 +960,7 @@ class App(models.Model):
         ('disk','disk'),
         ('mem','mem'),
         )
-    name = models.CharField(max_length=128,unique=1)
+    name = models.CharField(max_length=128)
     alias = models.CharField(max_length=128, blank=1, null=1)
     url = models.CharField(max_length=256)
     intf = models.ManyToManyField('Intf',db_table='app_intf')
@@ -919,7 +976,7 @@ class App(models.Model):
     remote_proxy_SSLProxyCARevocationFile = models.CharField(max_length=512, blank=1, null=1)
     remote_proxy_SSLProxyVerify = models.CharField(max_length=10,blank=1,choices=SSL_PROXY_VERIFY)
     timeout = models.IntegerField(null=1,blank=1)
-    auth= models.ManyToManyField('Auth',null=1,blank=1,db_table='auth_multiple')
+    auth= models.ForeignKey('Auth',null=1,blank=1)
     auth_url = models.CharField(max_length=256,blank=1)
     auth_basic = models.BooleanField(default=0)
     display_portal = models.BooleanField()
@@ -1030,6 +1087,9 @@ class App(models.Model):
     def hasBlackIp (self):
         return BlackIP.objects.filter(app = self)
 
+    def getJKDirective (self):
+        return JKDirective.objects.filter(app=self)
+
     def getCookieDomain (self):
         p = re.compile ('https?://(.*)/?')
         match=p.match(self.url)
@@ -1050,7 +1110,7 @@ class App(models.Model):
         return " "
  
     def __str__(self):
-        return self.name + " : " + ", ".join([i.name for i in self.intf.all()])
+        return self.name# + " : " + ", ".join([i.name for i in self.intf.all()])
     class Meta:
         db_table = 'app'
         permissions = (
@@ -1064,6 +1124,8 @@ class Plugin(models.Model):
     ('Block', 'Block'),
     ('Logout', 'Logout'),
     ('Logout_ALL', 'Logout_ALL'),
+    ('Logout_ALL2', 'Logout_ALL2'),
+    ('Logout_BROWSER', 'Logout_BROWSER'),
     ('CAS','CAS'),
 	('REDIRECT_NO_LOG','REDIRECT_NO_LOG'),
     ('REDIRECT_NO_REFERER','REDIRECT_NO_REFERER'),
@@ -1136,6 +1198,7 @@ class Template(models.Model):
         ('PORTAL','Portal'),
         ('LEARNING', 'Learning'),
         ('LOGOUT', 'Logout'),
+        ('SSO_LOGIN', 'SSO Login'),
         )
     name = models.CharField(max_length=128,unique=1)    
     type = models.CharField(max_length=50, choices=TEMPLATE_TYPES)
@@ -1181,8 +1244,10 @@ class Localization(models.Model):
         ('APPLICATION', 'Application'),
         ('APP_DOWN', 'App down'),
         ('SSO_LEARNING', 'SSO Learning'),
+        ('SSO_LOGIN', 'SSO Login'),
         ('DISCONNECTED', 'Disconnected'),
         ('SUBMIT', 'Submit'),
+        ('PENDING_LOGIN','Unfinished login'),
         )
     country = models.CharField(max_length=2, choices=COUNTRY_CHOICES)
     message = models.CharField(max_length=50, choices=ERRORS_CHOICES)
@@ -1202,6 +1267,7 @@ class Appearance(models.Model):
     sso_portal_tpl = models.ForeignKey('Template', related_name='sso_portal_tpl', blank=1, null=1, limit_choices_to = {'type__exact' : 'PORTAL'})
     sso_learning_tpl = models.ForeignKey('Template', related_name='sso_learning_tpl', blank=1, null=1, limit_choices_to = {'type__exact' : 'LEARNING'})
     logout_tpl = models.ForeignKey('Template', related_name='logout_tpl', blank=1, null=1, limit_choices_to = {'type__exact' : 'LOGOUT'})
+    sso_login_tpl = models.ForeignKey('Template', related_name='sso_login_tpl', blank=1, null=1, limit_choices_to = {'type__exact' : 'SSO_LOGIN'})
     image = models.ForeignKey('Image',blank=1,null=1)
     
     def __str__(self):
@@ -1248,3 +1314,105 @@ class Pluginheader(models.Model):
         return self.type + ' - ' + self.pattern
     class Meta:
         db_table = 'pluginheader'
+
+class JKWorkerProp(models.Model):
+    WORKER_PROPS = (
+        ('type', 'type'),
+        ('host', 'host'),
+        ('port', 'port'),
+        ('socket_timeout','socket_timeout'),
+        ('socket_connect_timeout','socket_connect_timeout'),
+        ('socket_keepalive','socket_keepalive'),
+        ('ping_mode','ping_mode'),
+        ('ping_timeout','ping_timeout'),
+        ('connection_ping_interval','connection_ping_interval'),
+        ('connection_pool_size','connection_pool_size'),
+        ('connection_pool_minsize','connection_pool_minsize'),
+        ('connection_pool_timeout','connection_pool_timeout'),
+        ('connection_acquire_timeout','connection_acquire_timeout'),
+        ('lbfactor','lbfactor'),
+        ('balance_workers','balance_workers'),
+        ('sticky_session','sticky_session'),
+        ('sticky_session_force','sticky_session_force'),
+        ('method','method'),
+        ('lock','lock'),
+        ('retries','retries'),
+        ('css','css'),
+        ('read_only','read_only'),
+        ('user','user'),
+        ('user_case_insensitive','use_case_insensitive'),
+        ('good','good'),
+        ('bad','bad'),
+        ('prefix','prefix'),
+        ('ns','ns'),
+        ('xmlns','xmlns'),
+        ('doctype','doctype'),
+        ('connect_timeout','connect_timeout'),
+        ('prepost_timeout','prepost_timeout'),
+        ('reply_timeout','reply_timeout'),
+        ('retries','retries'),
+        ('retry_interval','retry_interval'),
+        ('recover_options','recover_options'),
+        ('fail_on_status','fail_on_status'),
+        ('max_packet_size','max_packet_size'),
+        ('mount','mount'),
+        ('secret','secret'),
+        ('max_reply_timeout','max_reply_timeout'),
+        ('recover_time','recover_time'),
+        ('error_escalation_time','error_escalation_time'),
+        ('activation','activation'),
+        ('route','route'),
+        ('distance','distance'),
+        ('domain','domain'),
+        ('redirect','redirect'),
+        ('session_cookie','session_cookie'),
+        ('session_path','session_path'),
+    )
+    prop = models.CharField(max_length=128, choices=WORKER_PROPS)
+    value = models.CharField(max_length=128)
+    worker = models.ForeignKey('JKWorker')
+    def __str__(self):
+        return "%s.%s=%s"%(str(self.worker),self.prop,self.value)
+    class Meta:
+        db_table="jk_worker_prop"
+
+class JKWorker(models.Model):
+    name = models.CharField(max_length=128,blank=0,null=0,unique=1)
+    reference = models.ForeignKey('JKWorker',blank=1,null=1)
+    is_template = models.BooleanField(default=False)
+    @staticmethod
+    def genConf():
+        sconf = "worker.list=%s\n\n"%", ".join(
+            [j.name for j in JKWorker.objects.filter(is_template=False)]
+        )
+        return sconf + "\n\n".join(
+            [w.getConf() for w in JKWorker.objects.all()]
+        )
+    def getConf(self):
+        mconf = ''
+        if self.reference :
+            mconf = "%s.reference=%s\n"%(str(self),str(self.reference))
+        return mconf + "\n".join(
+            [str(p) for p in JKWorkerProp.objects.filter(worker=self)]
+        )
+    def __str__(self):
+        return "worker.%s"%self.name
+    class Meta:
+        db_table = 'jk_worker'
+
+class JKDirective(models.Model):
+    JK_DIRECTIVES = (
+        ('JkMount','JkMount'),
+        ('JkUnMount','JkUnmount')
+    )
+    directive = models.CharField(max_length=128,null=0,choices=JK_DIRECTIVES)
+    worker = models.ForeignKey('JKWorker',null=0)
+    url = models.CharField(max_length=128,null=0,blank=0)
+    app = models.ForeignKey('App',null=0)
+    def __str__(self):
+        if self.directive == 'JkUnMount':
+            return "#unmount jk server and setting env variable no-jk to explicitly remove this url when calling jakarta-servlet handler\n%s %s %s\nSetEnvIf REQUEST_URI %s no-jk"%(self.directive,self.url,self.worker.name,self.url)
+        else:
+            return "%s %s %s"%(self.directive,self.url,self.worker.name)
+    class Meta:
+        db_table='jk_worker_directives'

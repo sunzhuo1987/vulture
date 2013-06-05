@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 from django.db import connection
+from django.db.models import Q
+from django.forms.models import inlineformset_factory
 from django.conf import settings
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required, user_passes_test, permission_required
 from django.contrib.auth.forms import SetPasswordForm
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render_to_response, get_object_or_404
 from django.template.loader import get_template
 from django.views.generic.list_detail import object_list
@@ -323,177 +325,19 @@ def link_path(src,dst,regex):
             except:
                 pass
 
-#@permission_required('vulture.change_app')
-#def edit_app2(request,object_id=None):
-#   form = AppForm(request.POST or None,instance=object_id and App.objects.get(id=object_id))
-#   form.header = Header.objects.order_by("-id").filter(app=object_id)
-#   # Save new/edited app
-#   if request.method == 'POST' and form.is_valid():
-#       appdirname = request.POST['name']
-#       appdirname = appdirname.replace("/","_")
-#       regex = re.compile("[\w\-\.]+")
-#       if not regex.match(appdirname): 
-#           raise ValueError(appdirname+"%s does not match a valid app name")
-#       path = settings.CONF_PATH+"security-rules/"
-#       dataPosted = request.POST
-#       #app = form.save(commit=False)
-#       app = form.save()
-#       #Delete old headers
-#       headers = Header.objects.filter(app=object_id)
-#       headers.delete()
-#       modsecurityconf = ('version', 'action', 'motor', 'paranoid', 'UTF', 'XML', 'BodyAccess', 'max_num_args', 'arg_name_length', 'arg_length', 'total_arg_length', 'max_file_size', 'combined_file_size', 'allowed_http', 'BT_activated', 'DoS_activated', 'DoS_burst_time_slice', 'DoS_counter_threshold', 'DoS_block_timeout', 'Custom' )
-#       modsecurityfile = []
-#       if "MS_Activated" in dataPosted:
-#           if not os.path.exists(path):
-#               os.mkdir(path,0770)
-#           if not os.path.exists(path+"CUSTOM/"):
-#               os.mkdir(path+"CUSTOM/",0770)
-#           if not os.path.exists(path+"CUSTOM/"+appdirname):
-#               os.mkdir(path+"CUSTOM/"+appdirname,0770)
-#           f = open(path+"CUSTOM/"+appdirname+"/vulture-"+appdirname+".conf",'w')            
-#           #deal with data for modsecurity
-#           for row in modsecurityconf:
-#               if row in dataPosted:
-#                   if row == 'version':
-#                       if not "/" in app.name:
-#                           f.write("# Specify CRS version in the audit logs.\n")
-#                           f.write("SecComponentSignature \"core ruleset/"+dataPosted['version']+"\""+"\n")
-#                           f.write("\n\n")
-#                   elif row == 'action':
-#                       if dataPosted['action'] == "Log_Only":
-#                           f.write("SecRuleEngine DetectionOnly"+"\n")
-#                           f.write("SecDefaultAction \"phase:2,pass,nolog,auditlog\""+"\n")
-#                           f.write("\n\n")
-#                       elif dataPosted['action'] == "Log_Block":
-#                           f.write("SecRuleEngine On"+"\n")
-#                           f.write("SecAuditEngine RelevantOnly"+"\n")
-#                           f.write("SecDefaultAction \"phase:2,deny,nolog,auditlog\""+"\n")
-#                           f.write("\n\n")
-#                   elif row == 'motor':
-#                       if dataPosted['motor'] == "Anomaly":
-#                           f.write("SecAction \"phase:1,id:'981206',t:none,nolog,pass,setvar:tx.anomaly_score_blocking=on\""+"\n")
-#                           f.write("SecAction \"phase:1,id:'981207',t:none,nolog,pass,setvar:tx.critical_anomaly_score="+dataPosted['critical_score']+",setvar:tx.error_anomaly_score="+dataPosted['error_score']+",setvar:tx.warning_anomaly_score="+dataPosted['warning_score']+",setvar:tx.notice_anomaly_score="+dataPosted['notice_score']+"\""+"\n")
-#                           f.write("SecAction \"phase:1,id:'981208',t:none,nolog,pass,setvar:tx.inbound_anomaly_score_level="+dataPosted['inbound_score']+"\""+"\n")
-#                           f.write("SecAction \"phase:1,id:'981209',t:none,nolog,pass,setvar:tx.outbound_anomaly_score_level="+dataPosted['outbound_score']+"\""+"\n")
-#                           f.write("\n\n")
-#                   elif row == 'paranoid':
-#                       f.write("SecAction \"phase:1,id:'981210',t:none,nolog,pass,setvar:tx.paranoid_mode=1\""+"\n")
-#                       f.write("\n\n")                    
-#                   elif row == 'UTF':
-#                       f.write("SecAction \"phase:1,id:'981216',t:none,nolog,pass,setvar:tx.crs_validate_utf8_encoding=1\""+"\n")
-#                       f.write("\n\n")                    
-#                   elif row == 'XML':
-#                       f.write("SecRule REQUEST_HEADERS:Content-Type \"text/xml\" \"chain,phase:1,id:'981053',t:none,t:lowercase,pass,nolog\""+"\n")
-#                       f.write("SecRule REQBODY_PROCESSOR \"!@streq XML\" \"ctl:requestBodyProcessor=XML\""+"\n")
-#                       f.write("\n\n")                    
-#                   elif row == 'BodyAccess':
-#                       f.write("SecRequestBodyAccess On"+"\n")        
-#                       f.write("\n\n")
-#                   elif row == 'max_num_args':
-#                       if dataPosted[row] == '':
-#                           f.write("#SecAction \"phase:1,id:'981211',t:none,nolog,pass,setvar:tx.max_num_args=\""+"\n")
-#                       else:
-#                           f.write("SecAction \"phase:1,id:'981211',t:none,nolog,pass,setvar:tx.max_num_args="+dataPosted[row]+"\""+"\n")
-#                   elif row == 'arg_name_length':
-#                       if dataPosted[row] == '':
-#                           f.write("#SecAction \"phase:1,t:none,nolog,pass,setvar:tx.arg_name_length=100\""+"\n")
-#                       else:
-#                           f.write("SecAction \"phase:1,t:none,nolog,pass,setvar:tx.arg_name_length="+dataPosted[row]+"\""+"\n")
-#                   elif row == 'arg_length':
-#                       if dataPosted[row] == '':
-#                           f.write("#SecAction \"phase:1,t:none,nolog,pass,setvar:tx.arg_length=400\""+"\n")
-#                       else:
-#                           f.write("SecAction \"phase:1,t:none,nolog,pass,setvar:tx.arg_length="+dataPosted[row]+"\""+"\n")
-#                   elif row == 'total_arg_length':
-#                       if dataPosted[row] == '':
-#                           f.write("#SecAction \"phase:1,t:none,nolog,pass,setvar:tx.total_arg_length=64000\""+"\n")
-#                       else:
-#                           f.write("SecAction \"phase:1,t:none,nolog,pass,setvar:tx.total_arg_length="+dataPosted[row]+"\""+"\n")
-#                   elif row == 'max_file_size':
-#                       if dataPosted[row] == '':
-#                           f.write("#SecAction \"phase:1,t:none,nolog,pass,setvar:tx.max_file_size=1048576\""+"\n")
-#                       else:
-#                           f.write("SecAction \"phase:1,t:none,nolog,pass,setvar:tx.max_file_size="+dataPosted[row]+"\""+"\n")
-#                   elif row == 'combined_file_size':
-#                       if dataPosted[row] == '':
-#                           f.write("#SecAction \"phase:1,t:none,nolog,pass,setvar:tx.combined_file_sizes=1048576\""+"\n")
-#                       else:
-#                           f.write("SecAction \"phase:1,t:none,nolog,pass,setvar:tx.combined_file_sizes="+dataPosted[row]+"\""+"\n")
-#                   elif row == 'allowed_http':
-#                       f.write("SecAction \"phase:1,id:'981212',t:none,nolog,pass, setvar:'tx.allowed_methods="+dataPosted['allowed_http']+"', setvar:'tx.allowed_request_content_type="+dataPosted['allowed_content_type']+"', setvar:'tx.allowed_http_versions="+dataPosted['allowed_http_version']+"', setvar:'tx.restricted_extensions="+dataPosted['restricted_extensions']+"', setvar:'tx.restricted_headers="+dataPosted['restricted_headers']+"'\""+"\n")
-#                       f.write("\n\n")             
-#                   elif row == 'BT_activated':
-#                       f.write("SecAction \"phase:1,id:'981214',t:none,nolog,pass, setvar:'tx.brute_force_protected_urls="+dataPosted['protected_urls']+"', setvar:'tx.brute_force_burst_time_slice="+dataPosted['BT_burst_time_slice']+"', setvar:'tx.brute_force_counter_threshold="+dataPosted['BT_counter_threshold']+"', setvar:'tx.brute_force_block_timeout="+dataPosted['BT_block_timeout']+"'\""+"\n")
-#                   elif row == 'DoS_activated':
-#                       f.write("SecAction \"phase:1,id:'981215',t:none,nolog,pass, setvar:'tx.dos_burst_time_slice="+dataPosted['DoS_burst_time_slice']+"', setvar:'tx.dos_counter_threshold="+dataPosted['DoS_counter_threshold']+"', setvar:'tx.dos_block_timeout="+dataPosted['DoS_block_timeout']+"'\""+"\n")
-#                   elif row == 'Custom':
-#                       f.write(dataPosted[row]+"\n")
-#           f.write("SecRule REQUEST_HEADERS:User-Agent \"^(.*)$\" \"phase:1,id:'981217',t:none,pass,nolog,t:sha1,t:hexEncode,setvar:tx.ua_hash=%{matched_var}\""+"\n")
-#           f.write("SecRule REQUEST_HEADERS:x-forwarded-for \"^\\b(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3})\\b\" \"phase:1,id:'981225',t:none,pass,nolog,capture,setvar:tx.real_ip=%{tx.1}\""+"\n")
-#           f.write("SecRule &TX:REAL_IP \"!@eq 0\" \"phase:1,id:'981226',t:none,pass,nolog,initcol:global=global,initcol:ip=%{tx.real_ip}_%{tx.ua_hash}\""+"\n")
-#           f.write("SecRule &TX:REAL_IP \"@eq 0\"  \"phase:1,id:'981218',t:none,pass,nolog,initcol:global=global,initcol:ip=%{remote_addr}_%{tx.ua_hash}\""+"\n")
-#           f.close()
-#           #deal with directories
-#           directory = {
-#                           "base_rules/":"securitybase",
-#                           "experimental_rules/":'securityexp',
-#                           "optional_rules/":'securityopt',
-#                           "slr_rules/":'securityslr'
-#                      }
-#           
-#           #create directory for app conf if needed
-#           if not os.path.exists(path+'activated/'+appdirname):
-#               os.mkdir(path+'activated/'+appdirname,0770)
-#               
-#           for key, v in directory.iteritems():
-#               value = request.POST.getlist(v)
-#               for init in form.fields[v].initial:
-#                   found = 0
-#                   for val in value:
-#                       if init == val:
-#                           found = 1
-#                           break
-#                   if found == 0:
-#                       os.remove(path+"activated/"+appdirname+"/"+init)
-#               for val in value:
-#                   try:
-#                       os.symlink(path+key+val,path+"activated/"+appdirname+"/"+val)
-#                   except:
-#                       pass
-#           try:
-#               os.symlink(path+"CUSTOM/"+appdirname+"/vulture-"+appdirname+".conf",path+"activated/"+appdirname+"/vulture-"+appdirname+".conf")
-#           except:
-#               pass
-#           for src in ("base_rules","optional_rules","experimental_rules","slr_rules"):
-#               link_path(path+src,path+"activated/"+appdirname,".*\.data$")
-#       else:
-#           if os.path.exists(path+"activated/"+appdirname+"/"):
-#               for removefile in os.listdir(path+"activated/"+appdirname+"/"):
-#                   os.remove(path+"activated/"+appdirname+"/"+removefile)
-#       for data in dataPosted:
-#           m = re.match('header_id-(\d+)',data)
-#           if m != None:
-#               id = m.group(1)
-#               desc = dataPosted['field_desc-' + id]
-#               type = dataPosted['field_type-' + id]
-#               if desc and type:
-#                   instance = Header(app=app, name = desc, value = dataPosted['field_value-' + id], type=type)
-#                   instance.save()
-#       #form.save_m2m()
-#       MC.delete('%s:app'%app.name)
-#       return HttpResponseRedirect('/app/')
-#   #if request.method == 'POST' and not form.is_valid():
-#    #   return HttpResponseRedirect('/intf/')
-#   return render_to_response('vulture/app_form.html', {'form': form, 'user' : request.user})
+def wrap_logic():
+    auths = Auth.objects.get()
 
 @permission_required('vulture.change_app')
 def edit_app(request,object_id=None):
-    form = AppForm(request.POST or None,instance=object_id and App.objects.get(id=object_id))
+    inst = object_id and App.objects.get(pk=object_id)
+    form = AppForm(request.POST or None,instance=inst)
     form.header = Header.objects.order_by("-id").filter(app=object_id)
+    FJKD = inlineformset_factory(App, JKDirective, extra=4)
     # Save new/edited app
     if request.method == 'POST' and form.is_valid():
         appdirname = request.POST['name']
-        appdirname = appdirname.replace("/","_")
+        appdirname = appdirname.replace("/","")
         regex = re.compile("[\w\-\.]+")
         if not regex.match(appdirname): 
             raise ValueError(appdirname+" does not match a valid app name")
@@ -508,6 +352,11 @@ def edit_app(request,object_id=None):
         #Delete old headers
         headers = Header.objects.filter(app=object_id)
         headers.delete()
+        fjkd = FJKD(request.POST,instance=inst)
+        if fjkd.is_valid():
+            fjkd.save()
+        else:
+            raise ValueError("bad inline formset !!!!")
         if "MS_Activated" in dataPosted:
             # create needed directories for this app
             for rep in (path,custom_p,custom_app_p,app_acti_p):
@@ -551,8 +400,8 @@ def edit_app(request,object_id=None):
             # remove deleted rules, add new ones
             for dir_, file_list in directory.iteritems():
                 new_files = request.POST.getlist(file_list)
-                if not form.fields[file_list].initial:
-                    pass
+#                if not form.fields[file_list].initial:
+#                    break;
                 for old_file in form.fields[file_list].initial:
                     if not old_file in new_files:
                         os.remove("%s/%s"%(app_acti_p,old_file))
@@ -588,7 +437,8 @@ def edit_app(request,object_id=None):
         # delete cached version of this app in memcache
         MC.delete('%s:app'%app.name)
         return HttpResponseRedirect('/app/')
-    return render_to_response('vulture/app_form.html', {'form': form, 'user' : request.user})
+    fjkd = FJKD(instance=inst)
+    return render_to_response('vulture/app_form.html', {'form': form, 'user' : request.user, 'fjkd':fjkd})
 ########################################################################
 
 @permission_required('vulture.add_app')
@@ -893,9 +743,46 @@ def remove_security(request,object_id=None):
         if not os.path.exists(custom_p):
             raise ValueError("path does not exist")
         name = security.name+".conf"
-    #    print "deleting %s/%s"%(custom_p,name)
+    #   print "deleting %s/%s"%(custom_p,name)
         os.remove(custom_p+"/"+name)
         security.delete()
 
         return HttpResponseRedirect('/security')
     return render_to_response("vulture/generic_confirm_delete.html",{"object":security,"category":"Web Firewall","name" : "ModSecurity", "url":"/security","user":request.user})
+
+@login_required
+def edit_jkworker(request, object_id=None):
+    if object_id != None:
+        jkw = JKWorker.objects.get(pk=object_id)
+    else:
+        jkw = None
+    form = JKWorkerForm(request.POST or None,instance=jkw)
+    JIL = inlineformset_factory(JKWorker, JKWorkerProp, extra=3)
+    if request.method == 'POST':
+        if form.is_valid():
+            jkw = form.save()
+        else :
+            raise ValueError("bad form!!!! %s"%form.errors);
+        jkpf = JIL(request.POST,instance=jkw)
+        if jkpf.is_valid():
+            jkpf.save()
+            fpath = "%sworker.properties"%settings.CONF_PATH
+            f = open(fpath,'w+')
+            f.write(jkw.genConf())
+        else:
+            raise ValueError("bad inline formset !!!!");
+        return HttpResponseRedirect('/jk/')
+    jkpf = JIL(instance=jkw)
+    return render_to_response('vulture/jk_form.html', {'form': form, 'formset':jkpf}) 
+
+@login_required
+def delete_jkworker(request, object_id=None):
+    #obj = get_object_or_404(JKWorker,pk=object_id)
+    jkw = JKWorker.objects.get(pk=object_id)
+    if request.method == 'POST':
+        jkw.delete()
+        fpath = "%sworker.properties"%settings.CONF_PATH
+        f = open(fpath,'w+')
+        f.write(jkw.genConf())
+        return HttpResponseRedirect("/jk")
+    return render_to_response("vulture/generic_confirm_delete.html",{"object":jkw,"category":"Web Applications","name":"Mod_JK","url":"/jk","user":request.user})
