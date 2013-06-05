@@ -29,6 +29,7 @@ sub handler {
     my $dbh      = $r->pnotes('dbh');
     my $app      = $r->pnotes('app');
     my $mc_conf  = $r->pnotes('mc_conf');
+ 
     $log->error("App is missing in AuthzHandler") unless $app;
     my $intf = $r->pnotes('intf');
 
@@ -36,18 +37,29 @@ sub handler {
     my (%session_app);
     Core::VultureUtils::session( \%session_app, $app->{timeout},
         $r->pnotes('id_session_app'),
-        $log, $mc_conf, $app->{update_access_time} );
+        $log, $mc_conf, $app->{update_access_time} ) if $app;
     my (%session_SSO);
     Core::VultureUtils::session( \%session_SSO, $intf->{sso_timeout},
         $r->pnotes('id_session_SSO'),
         $log, $mc_conf, $intf->{sso_update_access_time} );
+
+    #Get users list to notify
+    my (%users);
+    %users = %{
+        Core::VultureUtils::get_memcached( 'vulture_users_in', $mc_conf )
+          or {}
+      };
     #Bypass for Vulture Auth
-    if ( not $session_SSO{is_auth} and not $r->user ) {
+    if ( not $r->user ) {
         $log->debug("Bypass AuthzHandler because SSO session is not valid");
+        Core::AuthzHandler::invalidate_auth(
+                $r,$dbh,$app,$user,
+                \%users,\%session_app,\%session_SSO);
+        #undef $session_app{url_to_redirect};
         return Apache2::Const::OK;
     }
     #If user has valid app cookie
-    if ( $session_app{is_auth} ) {
+    if ( %session_app and $session_app{is_auth} ) {
         $log->debug("User is already authorized to access this app");
         return Apache2::Const::OK;
     }
@@ -57,14 +69,8 @@ sub handler {
         $log->debug("App is undef in AuthzHandler => CAS Mode");
         return Apache2::Const::OK;
     }
-    #Get users list to notify
-    my (%users);
-    %users = %{
-        Core::VultureUtils::get_memcached( 'vulture_users_in', $mc_conf )
-          or {}
-      };
     #Check if ACL is on. If not, let user go.
-    unless ( $app->{'acl'} ) {
+    unless ( $app and $app->{'acl'} ) {
         $log->debug(
 "No ACL in this app. Validate app session for user $user");
         Core::AuthzHandler::validate_auth($r,$dbh,$app,$user,$password,
@@ -100,13 +106,22 @@ sub handler {
         $log->warn(
 "Regarding to ACL, user $user is not authorized to access to this app."
         );
-        Core::VultureUtils::notify( $dbh, $app->{id}, $user,
-            'connection_failed', scalar( keys %users ) );
-        $session_app{is_auth} = 0;
-        $r->pnotes( 'username' => undef );
-        $r->pnotes( 'password' => undef );
+        Core::AuthzHandler::invalidate_auth(
+                $r,$dbh,$app,$user,
+                \%users,\%session_app,\%session_SSO
+        );
         return Apache2::Const::HTTP_UNAUTHORIZED;
     }
+}
+sub invalidate_auth{
+    my ($r, $dbh, $app, $user, $users, $session_app, $session_sso) = @_;
+    Core::VultureUtils::notify( $dbh, $app ? $app->{id} : -1, $user,
+        'connection_failed', scalar( keys %$users ) );
+    $session_app->{is_auth}=0 if $session_app;
+    undef $session_sso->{ $app->{name} } if $app;
+    $r->pnotes('username' => undef);
+    $r->pnotes('password'=> undef);
+    $r->user('');
 }
 sub validate_auth{
     my ($r,$dbh,$app,$user,$password,$users,  
@@ -117,6 +132,11 @@ sub validate_auth{
     $session_app->{is_auth}  = 1;
     $session_app->{username} = $user;
     $session_app->{password} = $password;
+    $session_app->{app_name} = $app->{name};
+
+    #TODO: remov this
+    my $log = $r->pnotes('log');
+    $log->debug("letitbe! validating app : ". $app->{name} . " for $user:$password");
     #Backward logout
     $session_app->{SSO} = $r->pnotes('id_session_SSO');
     #SSO must be warned that user is logged in this app (ex : SAML)

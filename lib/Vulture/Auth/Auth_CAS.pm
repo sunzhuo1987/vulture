@@ -25,15 +25,20 @@ use LWP::UserAgent;
 
 use URI::Escape;
 
-use Core::VultureUtils qw(&session);
+use Core::VultureUtils qw(&session &set_memcached);
 
 sub checkAuth {
     my (
         $package_name, $r,   $log, $dbh,
-        $app,   $user, $password, $id_method, $session, $class
+        $app,   $user, $password, $id_method, $session, $class, $csrf_ok
     ) = @_;
 
     $log->debug("########## Auth_CAS ##########");
+    # Nothing good will happen unless we've got an app..
+    unless ($app){
+        $log->error("No app in auth_cas");
+        return Apache2::Const::FORBIDDEN;
+    }
     my $mc_conf = $r->pnotes('mc_conf');
 
     #Get CAS infos
@@ -102,8 +107,9 @@ sub checkAuth {
 
             #Get user from CAS
             $r->pnotes( 'username' => $1 );
-            $r->pnotes( 'ticket' => $ticket);
             $r->user($1);
+            Core::VultureUtils::set_memcached($ticket, $session->{'_session_id'}, undef, $mc_conf);
+            $log->debug("set memcached ticket is ".$r->pnotes('ticket')." and session is ".$session->{'_session_id'});
             return Apache2::Const::OK;
         }
     }

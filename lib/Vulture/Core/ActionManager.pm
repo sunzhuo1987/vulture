@@ -28,11 +28,11 @@ sub handle_action {
 
     if ( grep $_ eq uc($type), @messages ) {
         $action =
-          defined $app->{'actions'}
+          ($app and defined $app->{'actions'})
           ? $app->{'actions'}->{ lc($type) . '_action' }
           : $intf->{'actions'}->{ lc($type) . '_action' };
         $options =
-          defined $app->{'actions'}
+          ($app and defined $app->{'actions'})
           ? $app->{'actions'}->{ lc($type) . '_options' }
           : $intf->{'actions'}->{ lc($type) . '_options' };
     }

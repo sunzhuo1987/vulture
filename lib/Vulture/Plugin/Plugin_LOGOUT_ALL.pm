@@ -26,11 +26,8 @@ use DBI;
 
 use LWP::UserAgent;
 
-use Apache::SSLLookup;
-
 sub plugin {
     my ( $package_name, $r, $log, $dbh, $intf, $app, $options ) = @_;
-    $r = Apache::SSLLookup->new($r);
     my $mc_conf = $r->pnotes('mc_conf');
 
     $log->debug("########## Plugin_LOGOUT_ALL ##########");
@@ -124,7 +121,7 @@ sub plugin {
                 if ( $response->headers->header('Set-Cookie') ) {
 
                     # Adding new couples (name, value) thanks to POST response
-                    foreach ( $response->headers->header('Set-Cookie') ) {
+                    foreach my $c ( $response->headers->header('Set-Cookie') ) {
                         my $tc = Core::VultureUtils::parse_set_cookie($c);
                         $cookies_app{$tc->{"name"}} = $tc;
                         $log->debug("ADD/REPLACE" . $tc->{"name"} . "=" . $tc->{"value"});

@@ -16,7 +16,7 @@ use Apache2::Log;
 use Apache2::Reload;
 
 use Core::VultureUtils
-  qw(&get_cookie &session &get_memcached &set_memcached &notify &get_translations &get_style);
+  qw(&get_cookie &session &get_memcached &set_memcached &notify &get_translations &get_style &parse_set_cookie);
 
 use Apache2::Const -compile => qw(OK FORBIDDEN REDIRECT);
 
@@ -40,6 +40,7 @@ sub plugin {
     my ($id_app) = get_cookie( $r->headers_in->{Cookie},
         $r->dir_config('VultureAppCookieName') . '=([^;]*)' )
       || return Apache2::Const::FORBIDDEN;
+    $log->debug("cookie is : ". $r->headers_in->{Cookie});
     session( \%session_app, undef, $id_app, undef, $mc_conf );
     $log->debug($id_app);
     return Apache2::Const::FORBIDDEN unless $session_app{'is_auth'};

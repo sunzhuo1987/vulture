@@ -35,17 +35,17 @@ sub handler {
     my $mc_conf = $r->pnotes('mc_conf');
 
     #$user may not be set if Authentication is done via Apache (ex: mod_auth_kerb)
-    my $user = $r->pnotes('username') || $r->user;
+    my $user = $r->pnotes('username') || $r->user || '' ;
     my $password = $r->pnotes('password');
 
     my (%session_app);
     Core::VultureUtils::session( \%session_app, $app->{timeout},
         $r->pnotes('id_session_app'),
-        $log, $mc_conf, $app->{update_access_time} );
+        $log, $mc_conf, $app->{update_access_time} ) if $app;
     my (%session_SSO);
     Core::VultureUtils::session( \%session_SSO, $intf->{timeout},
         $r->pnotes('id_session_SSO'),
-        $log, $mc_conf, $app->{update_access_time} );
+        $log, $mc_conf, $intf->{sso_update_access_time});
 #Query counter
 #my $query = "UPDATE stats SET value=value+1 WHERE var='responsehandler_counter'";
 #$log->debug($query);
@@ -61,7 +61,7 @@ sub handler {
     }
 
     #SSO Forwarding
-    if ( exists $session_app{SSO_Forwarding} ) {
+    if ( %session_app and exists $session_app{SSO_Forwarding} ) {
         if ( defined $session_app{SSO_Forwarding} ) {
             my $module_name = "SSO::SSO_" . uc( $session_app{SSO_Forwarding} );
             Core::VultureUtils::load_module( $module_name, 'forward' );
@@ -74,10 +74,11 @@ sub handler {
 
         return Apache2::Const::OK;
     }
+    $log->debug("RESP : user is '$user'");
     #No user set before. Need to display Vulture auth
     if (not $user){
         #Display Vulture auth
-        if ( $app and !$app->{'auth_basic'} and not $r->pnotes('static') ) {
+        if ( not ( $app and $app->{'auth_basic'}) and not $r->pnotes('static') ) {
             $r->content_type('text/html');
             $r->print(
                 Core::ResponseHandlerv2::display_auth_form(
@@ -91,7 +92,7 @@ sub handler {
     }
     #If user is logged
     #SSO Forwarding once
-    if ( not defined $session_app{SSO_Forwarding} and $app->{sso_forward} )
+    if ( $app and not defined $session_app{SSO_Forwarding} and $app->{sso_forward} )
     {
         my $query =
 "SELECT count(*) FROM field, sso, app WHERE field.sso_id = sso.id AND sso.id = app.sso_forward_id AND app.id=?";
@@ -149,8 +150,9 @@ sub handler {
             }
         }
     }
+
     #Display portal instead of redirect user
-    if ( $app->{'display_portal'} ) {
+    if ( $app and $app->{'display_portal'} ) {
         $log->debug("Display portal with all applications");
         #Getting all app info
         my $portal =
@@ -159,10 +161,12 @@ sub handler {
         $r->print($portal);
         return Apache2::Const::OK;
     }
-    elsif ( defined( $session_app{url_to_redirect} ) ) {
+    elsif ( $app and  defined( $session_app{url_to_redirect} ) ) {
+        $log->debug("RESP : redirecting to sap(url_to_redirect)");
         return Core::ResponseHandlerv2::url_redirect($log,$r,$app,$session_app{url_to_redirect});
     }
     elsif ( defined $r->pnotes('url_to_redirect') ) {
+        $log->debug("RESP : redirecting to pnotes(url_to_redirect)");
         return Core::ResponseHandlerv2::do_redirect($log,$r,$r->pnotes('url_to_redirect'));
     }
     else {
@@ -197,6 +201,7 @@ sub do_redirect{
 sub cas_redirect{
     my ($log,$r,$dbh,$intf,$app)=@_;
     my $html;
+
     if ( $intf->{'cas_display_portal'} ) {
         $html = Core::ResponseHandlerv2::display_portal( $r, $log, $dbh,
             $app );
@@ -209,8 +214,8 @@ sub cas_redirect{
           . '"/></head></html>';
     }
     else {
-        $html =
-"<html><head><title>Successful login</title></head><body>You are successfull loged on SSO</body></html>";
+        my $translations = Core::VultureUtils::get_translations( $r, $log, $dbh, 'SSO_LOGIN' );
+        $html = Core::VultureUtils::get_style( $r, $log, $dbh, $app, "SSO_LOGIN", "Sucessful login", {}, $translations );
     }
     $r->print($html);
     $r->content_type('text/html');
@@ -221,6 +226,7 @@ sub display_custom_response {
     my ( $log, $r ) = @_;
     $log->debug("Bypass ResponseHandler because we have a response to display");
     if ( $r->pnotes('response_headers') ) {
+        $log->debug("RESP | headers = ". $r->pnotes('response_headers'));
         my @headers = split /\n/, $r->pnotes('response_headers');
 
         foreach my $header (@headers) {
@@ -232,8 +238,10 @@ sub display_custom_response {
         }
         $r->status(Apache2::Const::REDIRECT);
     }
+    $log->debug("RESP | content = ".$r->pnotes('response_content'));
     $r->print( $r->pnotes('response_content') )
       if defined $r->pnotes('response_content');
+    $log->debug("RESP | content_type = ".$r->pnotes('response_content_type'));
     $r->content_type( $r->pnotes('response_content_type') )
       if defined $r->pnotes('response_content_type');
 
@@ -250,7 +258,6 @@ sub display_auth_form {
 
     my $uri     = $r->unparsed_uri;
     my $message = $r->pnotes("auth_message")||'';
-    my $auth_name = $r->pnotes("auth_name");
 
     #CAS
     my $service = $req->param('service');
@@ -262,11 +269,11 @@ sub display_auth_form {
     # token
     my $token;
     if (defined $session_SSO->{random_token}){
-	$token = $session_SSO->{random_token};
+        $token = $session_SSO->{random_token};
     }
     else{
-	$token = Core::VultureUtils::generate_random_string(32);
-	$session_SSO->{random_token} = $token;
+        $token = Core::VultureUtils::generate_random_string(32);
+        $session_SSO->{random_token} = $token;
     }
     #Get style
     my $form =
@@ -279,16 +286,15 @@ sub display_auth_form {
       . "\"></td></tr>"
         if defined $service;
     if ($session_SSO->{otp_step1}){
-        $form .= <<FOO
-        <input type="hidden" name="vulture_login" value="$session_SSO->{otp_user}"/>
-FOO
-        ;
+        $form .= ('<input type="hidden" name="vulture_login" value="'
+                  . HTML::Entities::encode_entities($session_SSO->{otp_user})
+                . '">');
     }
     else{
         $form .= <<FOO
 <tr class="row">
     <td class="input">$translations->{'USER'}{'translation'}</td>
-    <td><input type="text" name="vulture_login"></td>
+    <td><input id="login_input" type="text" name="vulture_login"></td>
 </tr>
 FOO
         ;
@@ -298,24 +304,18 @@ FOO
     <td class="input">$translations->{'PASSWORD'}{'translation'}</td>
     <td><input type="password" autocomplete="off" name="vulture_password"></td>
 </tr>
-<tr class="row"><td></td>
-    <td align="right">
-        <input type="hidden" name="vulture_token" value="$token">
-    </td>
-</tr>
 <tr class="row">
-    <td></td><td align="right"><input type="submit" value=$translations->{'SUBMIT'}{'translation'}></td></tr>
+    <td colspan="2" style="align:right"><input type="submit" value=$translations->{'SUBMIT'}{'translation'}></td></tr>
 </table>
+<input type="hidden" name="vulture_token" value="$token">
 </form>
+<script>document.getElementById('login_input').focus()</script>
 </div>
 FOO
     ;
     my $style_arg = { FORM => $form };
     if ( defined $translations->{$message} ) {
         $style_arg->{ERRORS} = $translations->{$message}{'translation'};
-    }
-    if ( defined $auth_name){
-        $style_arg->{AUTH_NAME} = $auth_name;
     }
     return Core::VultureUtils::get_style(
         $r, $log, $dbh, $app, 'LOGIN',
