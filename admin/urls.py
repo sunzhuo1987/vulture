@@ -145,5 +145,9 @@ urlpatterns = patterns('',
   (r'^(?P<url>otp)/(?P<object_id>\d+)/$',    'vulture.views.edit_auth'),
   (r'^(?P<url>otp)/new/$',                   'vulture.views.edit_auth'),
   (r'^(?P<url>)otp/(?P<object_id>\d+)/del/$','vulture.views.remove_auth'),
+  (r'^jk/$','vulture.views.vulture_object_list_adm', dict({'queryset': JKWorker.objects.all()}, template_name='vulture/jk_list.html', extra_context = dict(category='Web Applications', name='mod_jk workers list', url='/jk', fields=(('name','Name'))))),
+  (r'^jk/(?P<object_id>\d+)/?$',    'vulture.views.edit_jkworker'),
+  (r'^jk/(?P<object_id>\d+)/del/?$', 'vulture.views.delete_jkworker'),
+  (r'^jk/new/$',    'vulture.views.edit_jkworker'),
 )
 
