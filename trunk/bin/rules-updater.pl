@@ -48,7 +48,7 @@ else {
 
 my @fetched = ();
 my %opt = ();
-getopts('c:r:p:s:v:t:e:f:EuS:D:R:U:F:ldh:x:', \%opt);
+getopts('c:r:p:s:v:t:e:f:EuS:D:R:U:F:ldh', \%opt);
 
 usage(1) if(defined $opt{h});
 usage(1) if(@ARGV > 1);
@@ -111,7 +111,6 @@ my $ua = LWP::UserAgent->new(
 	requests_redirectable => [qw(GET HEAD)],
 	timeout => ($opt{t} || 600),
 );
-$ua->proxy(['http', 'ftp', 'https'], $opt{x}) if($opt{x});
 
 sub usage {
 	my $rc = defined($$_[0]) ? $_[0] : 0;

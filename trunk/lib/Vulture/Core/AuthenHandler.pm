@@ -13,8 +13,6 @@ use Apache2::Log;
 use Apache2::Reload;
 use Apache2::Request;
 use Apache2::Access;
-use Apache::SSLLookup;
-
 use Authen::Smb;
 
 use Apache2::Const -compile => qw(OK HTTP_UNAUTHORIZED FORBIDDEN);
@@ -22,6 +20,9 @@ use Apache2::Const -compile => qw(OK HTTP_UNAUTHORIZED FORBIDDEN);
 use Core::VultureUtils
   qw(&session &get_memcached &set_memcached &generate_random_string &notify &load_module);
 use Core::ActionManager qw(&handle_action);
+
+# TODO : remove this
+use Data::Dumper;
 
 #USED FOR NTLM
 sub get_nonce {
@@ -42,7 +43,7 @@ sub get_nonce {
 
             alarm $self->{semtimeout};
             $self->{lock} =
-              Auth::Auth_NTLM::Lock->lock( $self->{semkey}, $log );
+              Lock->lock( $self->{semkey}, $log );
             alarm 0;
         };
     }
@@ -71,16 +72,14 @@ if ( $self->{nonce} ) {
 
 sub handler : method {
 
-    #my ($class, $r) = @_ ;
     my $class   = shift;
-    my $r       = Apache::SSLLookup->new(shift);
+    my $r       = shift;
     my $log     = $r->pnotes('log');
     my $dbh     = $r->pnotes('dbh');
     my $app     = $r->pnotes('app');
     my $mc_conf = $r->pnotes('mc_conf');
     my $req     = Apache2::Request->new($r);
 
-    $log->error("App is missing in AuthenHandler") unless $app;
     my $intf = $r->pnotes('intf');
     
     my (%session_SSO);
@@ -90,7 +89,7 @@ sub handler : method {
 
     my ( $status, $password );
     my $user;
-    my $token;
+    my $token = '';
     my $service = $req->param('service');
 
     $log->debug("########## AuthenHandler ##########");
@@ -106,136 +105,83 @@ sub handler : method {
 
     #Get user/password from URL or POST method
     elsif ( $r->method eq "POST" or $r->method eq "GET" ) {
-        ( $user, $password, $token) = Core::AuthenHandler::getRequestData($r);
+        ( $user, $password, $token) = Core::AuthenHandler::getRequestData($req);
     }
     else {
         return Apache2::Const::HTTP_UNAUTHORIZED;
     }
 
-    # If user is logged in SSO, check if the sso contains all auths of the app
-    # If it does, give a vulture_proxy cookie and go to AuthzHandler for a vulture_app cookie
-    if ( $session_SSO{is_auth} and Core::AuthenHandler::check_sso_auths($r,\%session_SSO)){
-        # Same auths
-        $log->debug("User is already authorized to access this SSO");
-        $session_SSO{$app->{name}}=$r->pnotes('id_session_app')
-            if ( defined $app->{name} 
-                and defined $r->pnotes('id_session_app') );
+    my $auth = ($app and defined $app->{'auth'} ) ? $app->{'auth'} : $intf->{'auth'};
+    if (not $auth){
+        # No auth required
         Core::AuthenHandler::validate_auth(
-            $r, $session_SSO{username}, $session_SSO{password},
-            $service,\%session_SSO,0);
+            $r, "Anonymous", "", $service,\%session_SSO,0);
         return Apache2::Const::OK;
     }
 
-    # Not authentified
-    my $auths = defined( $app->{'auth'} ) ? $app->{'auth'} : $intf->{'auth'};
-    # set AUTH_NAME value (can be modified by auth plugins also (ie. OTP,LOGIC..)
-    my @auth_names = ();
-    foreach my $row (@$auths){push(@auth_names,@$row[0]);}
-    my $auth_name = join(", ",@auth_names);
-    $r->pnotes("auth_name"=>$auth_name);
-
-    $log->debug("Try to authenticate user to '$auth_name'");
-
-    # Check type and use good auth module
     my $ret = Apache2::Const::FORBIDDEN;
-    my $ntlm = undef;
-    my $cas  = undef;
-    my $ssl  = undef;
 
-    # check single auths first
-    foreach my $row (@$auths) {
-        if ( @$row[1] eq "ntlm" ) {
-            $ret = Core::AuthenHandler::multipleAuth( $r, $log, $dbh, $auths, $app, $user, $password,
-                $class,\%session_SSO );
-            $ntlm = 1;
-            last;
-        }
-        elsif ( @$row[1] eq "cas" ) {
-            $log->debug("CAS mode");
-            $ret = Core::AuthenHandler::multipleAuth( $r, $log, $dbh, $auths, $app, $user, $password,
-                $class,\%session_SSO );
-            $cas = 1;
-            last;
-        }
-        elsif ( @$row[1] eq "ssl" ) {
-            if (defined $r->ssl_lookup('SSL_CLIENT_S_DN_CN')){
-                my $ssl_user = $r->ssl_lookup('SSL_CLIENT_S_DN_CN');
-                unless ($ssl_user){
-                    $log->error("no client dn cn in ssl auth");
-                }
-                else{
-                    $log->debug("SSL mode '$ssl_user'");
-                    $r->pnotes(username=>$ssl_user);
-                    $ret = Apache2::Const::OK;
-                    $ssl=1;
-                }
-            }
-        }
+    # log authentication plugin
+    my $module_name = "Auth::Auth_" . uc($auth->{auth_type});
+    $log->debug("Load $module_name");
+    Core::VultureUtils::load_module($module_name,'checkAuth');
+
+    # try to authenticate user
+    $ret = $module_name->checkAuth( $r, $log, $dbh, $app, 
+        $user, $password,$auth->{id_method}, \%session_SSO, $class,
+        Core::AuthenHandler::csrf_ok($token, \%session_SSO, $app, $intf));
+    $log->debug(" Auth gave : " . ($ret==Apache2::Const::OK ? "OK" : "NOK"));
+
+    # Auth module: The authentication is successful"
+    # -- User has been authentified
+    if ($ret == Apache2::Const::OK){
+        $session_SSO{'auth_user_' . $auth->{id}} =  $r->pnotes('username');
     }
-    # general case : check auths will multipleauth
-    $ret = Core::AuthenHandler::multipleAuth( 
-        $r, $log, $dbh, $auths, $app, 
-        $user, $password, 0,\%session_SSO
-    ) if (
-        # dont redo auth when we authentified in cas, ntlm or ssl
-        not ( $cas or $ntlm or $ssl)
-        and ( defined $user and $user ne '')
-        and csrf_ok($token,\%session_SSO,$app,$intf)
-    );
-    $log->debug( "Return from auth => " . $r->pnotes('auth_message') )
-        if defined $r->pnotes('auth_message');
-    $log->debug(" AUth gave : " . ($ret==Apache2::Const::OK ? "OK" : "NOK"));
 
     #Trigger action when change pass is needed / auth failed
     Core::AuthenHandler::auth_triggers ($r,$ret,$user,$password,$intf,$app);
 
     if (defined $ret and $ret == scalar Apache2::Const::OK )
     {
-        $log->debug("Good user/password");
-
-        #Get new username and password ... ex : CAS
-        $user = $r->pnotes('username') || $r->user() || $user ; 
-        $password = $r->pnotes('password') || $password;
+        #Get new username and password
+        $user = $r->pnotes('username'); 
+        if (exists $session_SSO{tmp_pwd}){
+            $password = $session_SSO{tmp_pwd};
+            delete $session_SSO{tmp_pwd};
+        }
+        else{
+            $password = $r->pnotes('password') || $password;
+        }
+        $log->debug("Good user/password for $user");
 
         $log->debug('Validate SSO session');
-        $session_SSO{is_auth}  = 1;
-        if ( $cas ) {
-            # we store the relationship between cas ticket and sso session id
-            Core::VultureUtils::set_memcached(  $r->pnotes('ticket'), $session_SSO{'_session_id'}, undef, $mc_conf);
-	    $log->debug("set memcached ticket is ".$r->pnotes('ticket')." and session is ".$session_SSO{'_session_id'});
-        }
-        # set credentials for this session
-        $session_SSO{username} = $user;
-        $session_SSO{password} = $password;
-
         Core::AuthenHandler::validate_auth(
             $r,$user,$password,$service,\%session_SSO,1);
         return Apache2::Const::OK;
     }
     else {
         #Authentication failed for some reasons
-        unless ($ntlm) {
-            my (%users);
-            %users = %{
-                Core::VultureUtils::get_memcached( 'vulture_users_in',
-                    $mc_conf )
-                  or {}
-              };
+        my (%users);
+        %users = %{
+            Core::VultureUtils::get_memcached( 'vulture_users_in',
+                $mc_conf )
+              or {}
+          };
 
-            Core::VultureUtils::notify( $dbh, undef, $user, 'connection_failed',
-                scalar( keys %users ) );
+        Core::VultureUtils::notify( $dbh, undef, $user, 'connection_failed',
+            scalar( keys %users ) );
 
-            $r->user('');
-            $log->warn("Login failed in AuthenHandler for user $user")
+        $r->user('');
+        $r->pnotes('username'=>undef);
+        $log->warn("Login failed in AuthenHandler for user $user")
+          if ( $password and $user );
+
+        #Create error message if no auth_message
+        unless ( $r->pnotes('auth_message') ) {
+            $r->pnotes( 'auth_message' => "MISSING_USER" )     if $password;
+            $r->pnotes( 'auth_message' => "MISSING_PASSWORD" ) if $user;
+            $r->pnotes( 'auth_message' => "LOGIN_FAILED" )
               if ( $password and $user );
-
-            #Create error message if no auth_message
-            unless ( $r->pnotes('auth_message') ) {
-                $r->pnotes( 'auth_message' => "MISSING_USER" )     if $password;
-                $r->pnotes( 'auth_message' => "MISSING_PASSWORD" ) if $user;
-                $r->pnotes( 'auth_message' => "LOGIN_FAILED" )
-                  if ( $password and $user );
-            }
         }
 
         #Unfinite loop for basic auth
@@ -249,8 +195,6 @@ sub handler : method {
             return Apache2::Const::HTTP_UNAUTHORIZED;
         }
         else {
-           #IF NTLM is used, we immediatly return the results of MultipleAuth();
-            return $ret if ($ntlm);
             $log->debug(
 "No user / password ... ask response handler to display the logon form"
             );
@@ -261,12 +205,10 @@ sub handler : method {
 
 #get the Data from Vulture login page
 sub getRequestData {
-    my ($r)      = @_;
-    my $req      = Apache2::Request->new($r);
+    my ($req)      = @_;
     my $login    = $req->param('vulture_login')||'';
     my $password = $req->param('vulture_password')||'';
     my $token    = $req->param('vulture_token')||'';
-
     return ( $login, $password, $token );
 }
 
@@ -274,103 +216,15 @@ sub csrf_ok {
     my ($token,$session_SSO,$app,$intf) = @_;
     return ( 
         # bypass csrf check when app don't use it
-        (defined $app and ( 
+        ($app and ( 
                 not $app->{'check_csrf'} or $app->{'auth_basic'}
             )
         )
         # bypass csrf check when intf don't use it and we don't have an app
-        or (not defined $app and not $intf->{'check_csrf'})
+        or (not $app and not $intf->{'check_csrf'})
         # check csrf token
         or (defined $session_SSO->{random_token} and $token eq $session_SSO->{random_token})
     );
-}
-
-sub multipleAuth {
-    my (
-        $r,    $log,      $dbh,   $auths, $app,
-        $user, $password, $class, $session
-    ) = @_;
-    my $ret = Apache2::Const::FORBIDDEN;
-    $log->debug("good old multiAuth");
-    # row : name,type,id_method
-    foreach my $row (@$auths) {
-        my ($name,$type,$id_method)=@$row;
-        if ($type eq 'ssl') {
-            next;
-        }
-        my $module_name = "Auth::Auth_" . uc($type);
-        $log->debug("Load $module_name");
-        Core::VultureUtils::load_module($module_name,'checkAuth');
-        # Try to authenticate with method
-        $ret = $module_name->checkAuth( $r, $log, $dbh, $app, 
-            $user, $password,$id_method, $session, $class);
-        # Auth module: The authentication is successful"
-        # -- User has been authentified
-        return $ret if $ret == Apache2::Const::OK;
-        # Auth module:The authentication is not authorized for the moment
-        # -- It may be authorized after... ex: NTLM PROCESS
-        return $ret if $ret == Apache2::Const::HTTP_UNAUTHORIZED;
-    }
-    #Auth module said "Authentication failed"  -- User is not authentified
-    return Apache2::Const::FORBIDDEN;
-}
-sub check_sso_auths{
-    my ($r,$session_SSO) = @_;
-    my $log     = $r->pnotes('log');
-    my $dbh     = $r->pnotes('dbh');
-    my $app     = $r->pnotes('app');
-    my $intf    = $r->pnotes('intf');
-    my $mc_conf = $r->pnotes('mc_conf');
-
-    $log->debug("User is logged in SSO. Check if auths are the same");
-    my $diff_count = 0;
-    #Foreach app where user is currently logged in
-    foreach my $key ( keys %$session_SSO ) {
-        $log->debug($key);
-        #Reject bad app key
-        my @wrong_keys =
-          qw/is_auth username password last_access_time last_access_time _session_id random_token/;
-        unless ( grep $_ eq $key, @wrong_keys ) {
-            my $id_app = $session_SSO->{$key};
-            my (%current_app);
-            Core::VultureUtils::session( \%current_app, undef, $id_app,
-                undef, $mc_conf );
-
-            if ( $current_app{app_name} eq '' ) {
-                Core::VultureUtils::session( \%current_app, undef,
-                    $r->pnotes("id_session_app"),
-                    undef, $mc_conf );
-            }
-
-#Getting all auths methods used previously to compare with current app auths
-            my $query =
-"SELECT auth.name, auth.auth_type, auth.id_method FROM app, auth_multiple, auth WHERE app.name = ? AND auth_multiple.app_id = app.id AND auth_multiple.auth_id = auth.id";
-            $log->debug($query);
-            my @auths = @{
-                $dbh->selectall_arrayref( $query, undef,
-                    $current_app{app_name})
-              };
-            my @current_auths =
-              @{ defined( $app->{'auth'} )
-                ? $app->{'auth'}
-                : $intf->{'auth'} };
-            my @difference = ();
-            my %count      = ();
-            my $element;
-            foreach $element ( @auths, @current_auths ) {
-                $count{ @$element[0] }++;
-            }
-            foreach $element ( keys %count ) {
-                if ( int( $count{$element} ) <= 1 ) {
-                    push( @{ \@difference }, $element );
-                }
-            }
-            $log->debug("Before $diff_count");
-            $diff_count += scalar @difference;
-            $log->debug("Auth not in common $diff_count");
-        }
-        return  ( ($diff_count == 0) ? 1 : 0 );
-    }
 }
 sub cas_set_ticket{
     my ($r,$service,$session_SSO,$users) = @_;
@@ -394,6 +248,10 @@ sub validate_auth{
     $r->pnotes( 'username' => $user );
     $r->pnotes( 'password' => $password );
 
+    # set credentials for this session
+    $session_SSO->{username} = $user;
+    $r->user($user);
+    
     #Setting Memcached table
     my (%users);
     %users = %{

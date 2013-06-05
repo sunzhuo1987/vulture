@@ -178,7 +178,7 @@ sub get_msg3 {
 sub checkAuth {
     my (
         $package_name, $r,    $log, $dbh,
-        $app,          $user, $password, $id_method, $session,$class
+        $app,          $user, $password, $id_method, $session,$class, $csrf_ok
     ) = @_;
 
     $log->debug("########## Auth_NTLM ##########");
@@ -301,6 +301,7 @@ sub checkAuth {
 
     $self->{lock} = undef;
     $r->user($username);
+    $r->pnotes( 'username' => $user );
     return Apache2::Const::OK;
 }
 

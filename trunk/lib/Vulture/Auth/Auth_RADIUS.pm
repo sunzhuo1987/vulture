@@ -22,10 +22,12 @@ use Authen::Radius;
 use Apache2::Const -compile => qw(OK FORBIDDEN);
 
 sub checkAuth {
-    my ( $package_name, $r, $log, $dbh, $app, $user, $password, $id_method ) =
+    my ( $package_name, $r, $log, $dbh, $app, $user, $password, $id_method, 
+        $session, $class, $csrf_ok ) =
       @_;
 
     $log->debug("########## Auth_RADIUS ##########");
+    return Apache2::Const::FORBIDDEN unless $csrf_ok;
 
     #get Radius info
     my $query =
@@ -39,6 +41,7 @@ sub checkAuth {
         TimeOut => $timeout
     );
     return Apache2::Const::FORBIDDEN if ( !defined $radius );
+    $log->debug("checking RADIUS creds...");
     if ( $radius->check_pwd( $user, $password ) ) {
 
         if ( defined $url_attr ) {
@@ -55,6 +58,7 @@ sub checkAuth {
             }
 
         }
+        $r->pnotes( 'username' => $user );
         return Apache2::Const::OK;
     }
     return Apache2::Const::FORBIDDEN;

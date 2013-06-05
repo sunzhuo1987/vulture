@@ -6,7 +6,7 @@ package Core::VultureUtils;
 use strict;
 use warnings;
 
-our $VERSION = '2.0.5';
+our $VERSION = '2.0.6';
 
 BEGIN {
     use Exporter ();
@@ -15,7 +15,7 @@ BEGIN {
       qw(&get_memcached_conf &version_check &get_app &get_intf &session 
       &get_cookie &get_memcached &set_memcached &get_DB_object
       &get_LDAP_object &get_style &get_translations &generate_random_string 
-      &notify &get_LDAP_field &get_SQL_field &load_module);
+      &notify &get_LDAP_field &get_SQL_field &load_module &is_JK &parse_set_cookie);
 }
 
 use Apache::Session::Generate::MD5;
@@ -30,6 +30,9 @@ use DBI;
 use Cache::Memcached;
 use APR::Table;
 use Math::Random::Secure qw(irand);
+
+#TODO: remove this
+use Data::Dumper;
 
 our ($memd);
 
@@ -148,7 +151,7 @@ sub get_cookie {
 sub get_app {
     my ( $log, $dbh,$mc_conf,$intf,$host ) = @_;
     my ( $query, $sth, $ref );
-    return {} unless ( $host and $intf and $dbh );
+    return undef unless ( $host and $intf and $dbh );
     my $key = "applist:$intf";
     my $apps = Core::VultureUtils::get_memcached($key,$mc_conf);
     unless (defined $apps){
@@ -182,30 +185,32 @@ sub get_app {
     # Wildcard
     unless ( defined $ref ) {
         while ( my ( $name, $hashref ) = each(%$apps) ) {
-		$log->debug("alias is ".$hashref->{alias}."and host is $host");
+            next if $hashref->{alias} eq '';
+            $log->debug("alias is ".$hashref->{alias}."and host is $host");
             my $cpy = $hashref->{alias};
             $cpy =~ s|\*|\(\.\*\)\\|g;
             if ( $host =~ /$cpy/ ) {
                 $ref = $apps->{$name};
-                $ref->{name} = $cpy;
+                $ref->{name} = $host;
                 last;
             }
             else {
-		foreach my $alias ( split( /\s*/, $hashref->{alias} ) ) {
-			$log->debug("alias is $alias an host is $host");
-			if (  $host =~ /$alias/ ) {
-		                $ref = $apps->{$name};
-                		last;
-			}
-		}
+                foreach my $alias ( split( /\s*/, $hashref->{alias} ) ) {
+                    next if $hashref->{alias} eq '';
+                    $log->debug("$name : alias is $alias an host is $host");
+                    if ( $host =~ /$alias/ ) {
+                            $ref = $apps->{$name};
+                            last;
+                    }
+                }
             }
         }
     }
     # we still did'nt found the app
-    return {} unless $ref->{id};
+    return undef unless $ref->{id};
     $ref->{'intf'} = $intf;
     #Use memcached if possible
-    my $obj = Core::VultureUtils::get_memcached( $ref->{'inttf'}.$ref->{name}.":app", $mc_conf );
+    my $obj = Core::VultureUtils::get_memcached( $ref->{'intf'}.$ref->{name}.":app", $mc_conf );
     if ($obj) {
         $log->debug("got memcached ".$ref->{'intf'}.$ref->{name}.":app");
         $obj->{'intf'} = $intf;
@@ -213,14 +218,16 @@ sub get_app {
     }
 
 #Getting auth
-#$query = "SELECT auth.name, auth.auth_type, auth.id_method FROM auth, auth_multiple WHERE auth_multiple.app_id = ? AND auth_multiple.auth_id = auth.id";
     $query =
-' SELECT auth.name, auth.auth_type, auth.id_method FROM auth JOIN auth_multiple ON auth.id = auth_multiple.auth_id WHERE auth_multiple.app_id = ?';
+#' SELECT auth.name, auth.auth_type, auth.id_method,auth.id FROM auth JOIN auth_multiple ON auth.id = auth_multiple.auth_id WHERE auth_multiple.app_id = ?';
+' SELECT auth.name, auth.auth_type, auth.id_method,auth.id FROM auth JOIN app ON auth.id=app.auth_id WHERE app.id = ?';
     $log->debug($query);
-    $ref->{'auth'} = $dbh->selectall_arrayref( $query, undef, $ref->{id} );
+    $sth = $dbh->prepare($query);
+    $sth->execute($ref->{id});
+    $ref->{'auth'} = $sth->fetchrow_hashref;
+    $sth->finish();
 
 #Getting ACL
-#$query = "SELECT acl.id, acl.name, auth.auth_type AS acl_type, auth.id_method FROM acl, auth, app WHERE app.id = ? AND acl.id = app.acl_id AND auth.id = acl.auth_id";
     $query =
 'SELECT acl.id, acl.name, auth.auth_type AS acl_type, auth.id_method FROM acl JOIN auth ON acl.auth_id = auth.id JOIN app ON acl.id = app.acl_id WHERE app.id = ?';
     $log->debug($query);
@@ -246,6 +253,8 @@ sub get_app {
     $sth->execute( $ref->{id} );
     $ref->{'sso'} = $sth->fetchrow_hashref;
     $sth->finish();
+
+    $ref->{'is_jk'} = is_JK($log,$dbh,$ref->{id} );
 
     #Caching app if possible
     $log->debug("set memcached : ".$ref->{id}.$ref->{name}.":app");
@@ -274,11 +283,15 @@ sub get_intf {
     $sth->finish();
 
 #Getting auth (CAS)
-#$query = "SELECT auth.name, auth.auth_type, auth.id_method FROM auth, intf_auth_multiple WHERE intf_auth_multiple.intf_id = ? AND intf_auth_multiple.auth_id = auth.id";
     $query =
-'SELECT auth.name, auth.auth_type, auth.id_method FROM auth JOIN intf_auth_multiple ON auth.id = intf_auth_multiple.auth_id WHERE intf_auth_multiple.intf_id = ?';
+#'SELECT auth.name, auth.auth_type, auth.id_method, auth.id FROM auth JOIN intf_auth_multiple ON auth.id = intf_auth_multiple.auth_id WHERE intf_auth_multiple.intf_id = ?';
+'SELECT auth.name, auth.auth_type, auth.id_method, auth.id FROM auth JOIN intf ON auth.id = intf.cas_auth_id WHERE intf.id = ?';
     $log->debug($query);
-    $ref->{'auth'} = $dbh->selectall_arrayref( $query, undef, $ref->{id} );
+    $sth = $dbh->prepare($query);
+    $sth->execute($ref->{id});
+    $ref->{auth} = $sth->fetchrow_hashref;
+    $sth->finish();
+#    $ref->{'auth'} = $dbh->selectall_arrayref( $query, undef, $ref->{id} );
 
     #Getting actions
     $query =
@@ -431,7 +444,7 @@ sub get_style {
     #Querying database for style
     my $intf_id = $r->dir_config('VultureID');
     my $query = " AS 'id_appearance', style_css.value AS css, style_image.image AS image, style_tpl.head as tpl_head, style_tpl.value AS tpl FROM app,intf, style_tpl LEFT JOIN style_style ON style_style.id = id_appearance LEFT JOIN style_css ON style_css.id = style_style.css_id LEFT JOIN style_image ON style_image.id = style_style.image_id ";
-    if ($app->{id}){
+    if ($app and $app->{id}){
         $query = "SELECT app.appearance_id $query WHERE app.id='". $app->{id} ."'";
     }
     else{
@@ -444,7 +457,8 @@ sub get_style {
         ACL_FAILED=>"acl_tpl_id",
         DISPLAY_PORTAL=>"sso_portal_tpl_id",
         LEARNING=>"sso_learning_tpl_id",
-        LOGOUT=>"logout_tpl_id"
+        LOGOUT=>"logout_tpl_id",
+        SSO_LOGIN=>"sso_login_tpl_id"
         };
     my $tpl_type = $tpl_types->{uc($type)}||'';
     unless ($tpl_type) {
@@ -460,7 +474,7 @@ sub get_style {
 
     #Headers
     ###################################
-    $html = '<html><head>';
+    $html = '<!DOCTYPE html><html><head>';
     $html .= ('<meta http-equiv="Content-Type" ' 
              .'content="text/html;charset=utf-8"/>');
     $html .= '<meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>';
@@ -484,10 +498,31 @@ sub get_style {
                       if $ref->{image};
                 }
                 elsif ( $directive eq "APPNAME" ) {
-                    $_ = $app->{name};
+                    $_ = $app?$app->{name}:'';
                 }
                 elsif ($directive eq "LOGIN_NAME"){
                     $_ = $r->pnotes("username");
+                }
+                elsif ($directive eq "LOGGED_AUTH"){
+                    my $intf = $r->pnotes('intf');
+                    my (%session_SSO);
+                    Core::VultureUtils::session( \%session_SSO, $intf->{sso_timeout},
+                        $r->pnotes('id_session_SSO'),
+                        $log, $r->pnotes('mc_conf'), $intf->{sso_update_access_time} );
+                    
+                    my $ok_auth = "{" . (join ",", map{  
+                                "$1:\"" . js_escape($session_SSO{"auth_user_$1"}) .'"' if ($_ =~ /auth_user_(\d+)/)
+                                } grep {$_ =~ /^auth_user_(\d+)$/}(keys %session_SSO)) . "}";
+
+                    my $auth = ($app and defined $app->{'auth'} ) ? $app->{'auth'} : $intf->{'auth'};
+                    if ( not $auth) {
+                        $log->error("incorrect usage of LOGGED_AUTH");
+                        $_ = $ok_auth;
+                    }else{
+                        $log->debug("getting string repr of auth : ". Data::Dumper::Dumper($auth));
+                        my $todo_auth = Core::VultureUtils::auth_to_string($dbh, $auth->{id});
+                        $_ = "var ok_auth = $ok_auth; var todo_auth=$todo_auth;";
+                    }
                 }
                 elsif ( defined $fields->{$directive} ) {
                     $_ = $fields->{$directive};
@@ -647,6 +682,18 @@ sub get_SQL_field {
     return undef;
  }
 
+sub is_JK {
+    my ($log,$dbh,$id)=@_;
+    my $query = 'select count(*) from jk_worker_directives LEFT JOIN app ON app.id=jk_worker_directives.app_id where app.id=?';
+    my $sth = $dbh->prepare($query);
+    $sth->execute($id);
+    my $result = $sth->fetchrow;
+    $sth->finish();
+    $log->debug("result is jk is $result");
+    return "True" if $result;
+    return undef;
+}
+
 sub get_LDAP_field {
     my ($log, $dbh,$ldap_id,$login,$field) = @_;
     my (
@@ -695,28 +742,54 @@ sub load_module{
         return $error;
     };
 }
-sub parse_set_cookie($) {
+sub parse_set_cookie{
         my $sc = shift;
-        my $i=0;
         my $tab = {};
         foreach my $v (split (';',$sc)) {
-                if ($i eq 0) {
-                        $i++;
-                        ($tab->{"name"},$tab->{"value"}) = split ('=',$v);
-                } else {
-                        my ($t,$u) = split ('=',$v);
-                        $tab->{trim($t)} = $u;
-                }
+            my ($t,$u) = split ('=',$v);
+            $tab->{trim($t)} = $u;
         }
-        print $tab->{"name"};
         return $tab;
 }
-sub trim($) {
+sub trim{
     my $string = shift;
     $string =~ s/^\s+//;
     $string =~ s/\s+$//;
     return $string;
 }
-
-
+sub js_escape {
+    my $arg = shift;
+    $arg =~ s/\\/\\\\/g;
+    $arg =~ s/\n/\\n/g;
+    $arg =~ s/"/\\"/g;
+    return $arg;
+}
+sub auth_to_string{
+    my ($dbh, $auth_id) = @_;
+    my $sth = $dbh->prepare("SELECT name, auth_type, id_method FROM auth WHERE id=?");
+    $sth->execute($auth_id);
+    my ($name, $type, $id_m) = $sth->fetchrow_array();
+    $sth->finish();
+    my ($op, $childs) = ('',''); 
+    if ($type eq 'logic'){
+        $sth = $dbh->prepare("SELECT op FROM logic WHERE id = ?");
+        $sth->execute($id_m);
+        ($op) = $sth->fetchrow_array;
+        $sth->finish;
+        $sth = $dbh->prepare("SELECT auth_id FROM logic_auths WHERE logic_id=?");
+        $sth->execute($id_m);
+        my @row = $sth->fetchrow_array;
+        while (@row){
+            $childs.= auth_to_string($dbh, $row[0]). ",";
+            @row = $sth->fetchrow_array;
+        }    
+        $sth->finish();
+    }
+    $name = js_escape($name);
+    my $json = "data: {title:\"$name\"}, metadata: { id: $auth_id, type: \"$type\"";
+    $json .= ", op: \"$op\"" if $op;
+    $json .= "}";
+    $json .= " , children: [$childs]" if $childs;
+    return "{$json}";
+}
 1;

@@ -25,10 +25,12 @@ use Apache2::Const -compile => qw(OK FORBIDDEN);
 use Core::VultureUtils qw(&get_LDAP_object);
 
 sub checkAuth {
-    my ( $package_name, $r, $log, $dbh, $app, $user, $password, $id_method ) =
+    my ( $package_name, $r, $log, $dbh, $app, $user, $password, $id_method, 
+        $session, $class, $csrf_ok ) =
       @_;
 
     $log->debug("########## Auth_LDAP ##########");
+    return Apache2::Const::FORBIDDEN unless $csrf_ok;
 
     my (
         $ldap,              $ldap_url_attr,
@@ -127,6 +129,7 @@ sub checkAuth {
         $log->debug("User $user need to change password");
     }
     $ldap->unbind;
+    $r->pnotes( 'username' => $user );
     return Apache2::Const::OK;
 }
 1;

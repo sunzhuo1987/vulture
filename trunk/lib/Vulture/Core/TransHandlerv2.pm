@@ -26,6 +26,8 @@ use APR::SockAddr;
 
 use DBI ;
 
+use Data::Dumper;
+
 sub handler {
 
     my $r            = Apache::SSLLookup->new(shift);
@@ -45,7 +47,7 @@ sub handler {
     $r->pnotes( 'mc_conf' => $mc_conf );
     
     $log->debug("########## TransHandler ($protocol|"
-            . $r->hostname.$r->unparsed_uri.")");
+            . $r->hostname.$r->unparsed_uri."|".$r->dir_config('VultureID').")");
     #protocol check
     if ( $protocol !~ /^HTTP\/[0-9]\.[0-9]$/ ) {
         $log->error("Rejecting bad protocol $protocol");
@@ -61,11 +63,18 @@ sub handler {
     my $intf =
       Core::VultureUtils::get_intf( $log, $dbh, $r->dir_config('VultureID'),
        $config,$mc_conf );
-    $r->pnotes( 'intf' => $intf ) if defined $intf;
+    $r->pnotes( 'intf' => $intf );
+    
     my $app = Core::VultureUtils::get_app( $log, $dbh,$mc_conf,
-        $intf->{id},$r->hostname . $unparsed_uri 
-        ) if ( $unparsed_uri !~ /$cookie_app_name=([^;]*)/ );
-    $r->pnotes( 'app' => $app ) if defined $app;
+        $intf->{id},$r->hostname . $unparsed_uri);
+    my $id_sap = undef;
+    if ( $unparsed_uri =~ /$cookie_app_name=([a-zA-Z0-9]+)/ ){
+        $id_sap = $1;
+    }
+    else{
+        # Setting pnotes
+        $r->pnotes( 'app' => $app );
+    }
 
     #Plugin or Rewrite (according to URI)
     my $ret = Core::TransHandlerv2::plugins_th ($log,$r,$dbh,$app,$intf,$unparsed_uri);
@@ -77,30 +86,37 @@ sub handler {
     #Call header rewrite plugins
     Core::TransHandlerv2::header_input($log,$r,$dbh,$app,$intf);
 
+#    $log->debug("APP: ".$app->{name}.", SAP: $id_sap");
+    #Get sso url for this query:
+    my $sso_url = ((defined $intf->{sso_portal} and $intf->{sso_portal}) 
+            ? $intf->{sso_portal}
+            : $app ? $app->{name} . '/' : '');
+
+    $log->debug("SSO_URL : $sso_url");
     #If application exists and is not down, check auth
-    if (    $app
-        and $app->{'up'}
-        and ( $app->{'intf'} eq $r->dir_config('VultureID') ) )
-    {
+    if ( $app and not $id_sap and $app->{'up'}
+    ){
         # get url to proxify
         my $proxy_url = Core::TransHandlerv2::get_proxy_url($r,$app,$uri);
         $log->debug("proxy = $proxy_url");
 
         #No authentication is needed
         my $auths = $app->{'auth'};
-        if ( not defined @$auths or not @$auths ) {
+        if ( not defined $auths or not $auths ) {
             return Core::TransHandlerv2::anon_app($log,$r,$dbh,$app,$proxy_url);
         }
+
         #Getting session app if exists. If not, creating one
-        my ($id_app) = Core::VultureUtils::get_cookie( $r->headers_in->{Cookie},
-            $r->dir_config('VultureAppCookieName') . '=([^;]*)' );
+        my $id_app = Core::VultureUtils::get_cookie( $r->headers_in->{Cookie},
+            $r->dir_config('VultureAppCookieName') . '=([^;]*)' ) || '' ;
+        
         my (%session_app);
         Core::VultureUtils::session( \%session_app, $app->{timeout}, $id_app,
             $log, $mc_conf, $app->{update_access_time} );
         $r->pnotes( 'id_session_app' => $id_app );
 
         # We have authorization for this app so let's go with mod_proxy
-        if ( defined $session_app{is_auth} and $session_app{is_auth} == 1 ) {
+        if ( defined $session_app{is_auth} and $session_app{is_auth} == 1 and $session_app{app_name} eq $app->{name} ) {
             return Core::TransHandlerv2::authen_app($log,$r,$dbh,$app,\%session_app,$proxy_url);
         }
         # Not authentified in this app. Setting cookie for app. 
@@ -113,11 +129,20 @@ sub handler {
         $r->status(200);
 
         # Fill session for SSO Portal
-        $session_app{app_name} = $app->{name};
+        
+        #$log->debug("APP_NAME : " . $app->{name}); 
+        if (not defined $session_app{app_name}){
+            $session_app{app_name} = $app->{name};
+        }
+        elsif( $session_app{app_name} ne $app->{name} ){
+            return Apache2::Const::FORBIDDEN;
+        }
         if ( $r->pnotes('url_to_redirect') ) {
+            $log->debut("TRANS1 : will redirect to '".$r->pnotes('url_to_redirect')."'");
             $session_app{url_to_redirect} = $r->pnotes('url_to_redirect');
         }
         else {
+            $log->debug("TRANS2 : will redirect to '$unparsed_uri'");
             $session_app{url_to_redirect} = $unparsed_uri;
         }
         # Redirect to SSO Portal
@@ -133,17 +158,11 @@ sub handler {
     }
     elsif (
         # SSO Portal
-	($r->hostname . $r->uri . '/') =~ ($intf->{'sso_portal'} . '/')
-        or (
-            $unparsed_uri =~ /$cookie_app_name=([^;]*)/
-            and Core::VultureUtils::get_app(
-                $log, $dbh, $mc_conf, 
-                $intf->{id},$r->hostname . $unparsed_uri
-            )
-        )
+	    (($r->hostname . $r->uri . '/') =~ /$sso_url/)
+        or(defined $app and defined $id_sap)
       )
     {
-        return Core::TransHandlerv2::portal_mode ($log,$r,$dbh,$app,$intf,$unparsed_uri);
+        return Core::TransHandlerv2::portal_mode ($log,$r,$dbh,$app,$intf,$id_sap);
     }
     # CAS Portal
     elsif ( $r->hostname =~ $intf->{'cas_portal'} ) {
@@ -349,16 +368,11 @@ sub redirect_portal{
     my $incoming_uri = $app->{name};
     my $ssl          = 0;
     my $auths = $app->{'auth'};
-    if (defined $auths and $auths) {
-        foreach my $row (@$auths) {
-            if ( uc( @$row[1] ) eq "SSL" ) {
-                $log->debug("SSL mode");
-                $ssl = 1;
-            }
-        }
+    $log->debug("Auth : " . Data::Dumper::Dumper($auths));
+    if (defined $auths and $auths and $auths->{auth_type} eq 'SSL'){
+        $ssl = 1;
     }
-    $incoming_uri = $intf->{'sso_portal'}
-      if $intf->{'sso_portal'} and not $ssl;
+    $incoming_uri = $intf->{'sso_portal'} if $intf->{'sso_portal'} and not $ssl;
     if ( $incoming_uri !~ /^(http|https):\/\/(.*)/ ) {
         #Fake scheme for making APR::URI parse
         $incoming_uri = 'http://' . $incoming_uri;
@@ -396,56 +410,60 @@ sub redirect_portal{
     return Apache2::Const::OK;
 }
 sub portal_mode{
-    my ($log,$r,$dbh,$app,$intf, $uuri) = @_;
+    my ($log,$r,$dbh,$app,$intf, $id_sap) = @_;
     $log->debug('Entering SSO Portal mode.');
     my $mc_conf = $r->pnotes( 'mc_conf');
     my $cname=$r->dir_config('VultureAppCookieName');
 #App coming from vulture itself
-    if ( $uuri =~ /$cname=([^;]*)/ ) {
+    if ( defined $id_sap ) {
         $log->debug("PORTAL MODE: app from vulture");
         my $app_cookie_name = $1;
         my (%session_app);
         #Get app
         Core::VultureUtils::session( \%session_app, $app->{timeout},
-            $app_cookie_name, $log, $mc_conf, $app->{update_access_time} );
+            $id_sap, $log, $mc_conf, $app->{update_access_time} );
         my $app = Core::VultureUtils::get_app( $log, $dbh,$mc_conf,
             $intf->{id},$session_app{app_name});
 
         #Send app if exists.
         $r->pnotes( 'app' => $app ) if $app;
-        $r->pnotes( 'id_session_app' => $app_cookie_name );
+        $r->pnotes( 'id_session_app' => $id_sap );
+    }
+    else{
+        $r->pnotes('app'=>0);
     }
 
 #Getting SSO session if exists.
-    my $SSO_cookie_name = '';
-    $SSO_cookie_name =
+    my $sso_sid = '';
+    $sso_sid =
       Core::VultureUtils::get_cookie( $r->headers_in->{'Cookie'},
         $r->dir_config('VultureProxyCookieName') . '=([^;]*)' );
-    $SSO_cookie_name ||= '';
+    $sso_sid||= '';
     my (%session_SSO);
 
     Core::VultureUtils::session( \%session_SSO, $intf->{sso_timeout},
-        $SSO_cookie_name, $log, $mc_conf, $intf->{sso_update_access_time} );
+        $sso_sid, $log, $mc_conf, $intf->{sso_update_access_time} );
 
 #Get session id if not exists
-    if ( $SSO_cookie_name ne $session_SSO{_session_id} ) {
-        $log->debug("Replacing SSO id");
-        $SSO_cookie_name = $session_SSO{_session_id};
+    if ( $sso_sid ne $session_SSO{_session_id} ) {
+        $log->debug("SID : Replacing SSO id");
+        $sso_sid = $session_SSO{_session_id};
     }
     my $dir = "";
-    if ( defined $app->{name} and $app->{name} =~ /\/(.*)/ ) {
+    if ( defined $app and exists $app->{name} and $app->{name} =~ /\/([^?]*)/ ) {
+        $log->debug("BOOO ! app_name is " . $app->{name});
         $dir = $1;
     }
 #Set cookie for SSO portal
     $r->err_headers_out->add(
             'Set-Cookie' => $r->dir_config('VultureProxyCookieName') . "="
-          . $session_SSO{_session_id}
+          . $sso_sid
           . "; path=/"
           . $dir
           . "; domain=."
           . $r->hostname );
 
-    $r->pnotes( 'id_session_SSO' => $SSO_cookie_name );
+    $r->pnotes( 'id_session_SSO' => $sso_sid );
 
 #Destroy useless handlers
     $r->set_handlers( PerlFixupHandler => undef );
@@ -507,7 +525,7 @@ sub get_proxy_url{
         return $uri;
     }
     else {
-        my $dir;
+        my $dir = '';
         my $hostname = $r->hostname;
         if ( $app->{name} =~ /$hostname\/?(.*)(\/*)$/ ) {
             $dir = $1;

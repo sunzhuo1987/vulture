@@ -38,6 +38,7 @@ sub proxy_redirect {
     Core::VultureUtils::session( \%session_app, $app->{timeout},
         $r->pnotes('id_session_app'),
         $log, $mc_conf, $app->{update_access_time} );
+
     $log->debug( "Mod_proxy is working. Redirecting to " . $url );
 
     #Cleaning up cookies
@@ -66,10 +67,14 @@ sub proxy_redirect {
         my $n = $r->notes();
         $n->add( "proxy-nocanon" => "1" );
     }
-    $r->filename( "proxy:" . $url );
-    $r->proxyreq(2);
-    $r->handler('proxy-server');
+    if ($app->{'is_jk'}) {
+        $r->proxyreq(0);
+        $r->handler('jakarta-servlet');
+    } else {
+        $r->filename( "proxy:" . $url );
+        $r->proxyreq(2);
+        $r->handler('proxy-server');
+    }
     return Apache2::Const::OK;
 }
-
 1;

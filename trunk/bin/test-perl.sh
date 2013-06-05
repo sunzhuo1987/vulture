@@ -44,6 +44,7 @@ LWP::Debug
 LWP::UserAgent
 Math::Random::Secure
 MIME::Base64
+MIME::Types
 Net::IP::Match::Regexp
 Net::LDAP
 Net::LDAP::Util

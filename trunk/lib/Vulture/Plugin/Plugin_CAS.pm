@@ -25,7 +25,7 @@ use Core::VultureUtils
 
 use Apache2::Const -compile => qw(OK FORBIDDEN);
 use Net::LDAP::Util;
-use URI::URL; 
+use URI::URL;
 
 sub trim {
     my $arg = shift;
@@ -72,7 +72,7 @@ sub plugin {
 
     #Get memcached data
     my (%users);
-    %users = %{ Core::VultureUtils::get_memcached('vulture_users_in',$mc_conf) || {} };
+    %users = %{ Core::VultureUtils::get_memcached('vulture_users_in', $mc_conf) || {} };
 
     #CAS Portal doesn't have auth
     my $auths = $intf->{'auth'};
@@ -90,14 +90,13 @@ sub plugin {
         my $host = $parsed_service->hostname;
 
         #Get app
-        my $app =
-          Core::VultureUtils::get_app( $log, $dbh, $mc_conf, $intf->{id},
-            $host )
-          if defined $host;
-        $app->{'auth'} = $auths;
-
-        #Send app if exists.
-        $r->pnotes( 'app' => $app );
+        if (defined $host){
+            my $app = Core::VultureUtils::get_app( $log, $dbh, $mc_conf, $intf->{id},
+                $host );
+            $app->{'auth'} = $auths;
+            #Send app if exists.
+            $r->pnotes( 'app' => $app );
+        }
 
         #Getting SSO session if exists.
         my $SSO_cookie_name =
@@ -252,7 +251,7 @@ sub plugin {
         unless ($user_found) {
             $xml .=
 "<cas:authenticationFailure code=\"$errorCode\"></cas:authenticationFailure>";
-      $log->debug("no user found");
+            $log->debug("no user found");
         }
         $xml .= "</cas:serviceResponse>";
 
@@ -305,7 +304,6 @@ sub plugin {
 ####################################################################
                     while ( my ( $login, $hashref ) = each %users ) {
                         my %user_hash = %$hashref;
-          
                         if (
                             $intf->{cas_st_timeout} > 0
                             and (
@@ -321,22 +319,22 @@ sub plugin {
                         if ( exists $user_hash{ticket}
                             and $user_hash{ticket} eq $ticket )
                         {
-               my $testL1 = new URI::URL $service;
+                            my $testL1 = new URI::URL $service;
                             $log->debug($testL1->host);
-                            if (exists $user_hash{ticket_service}){
-                                my $testL2 = new URI::URL $user_hash{ticket_service};
-                                if ($testL2->host ne $testL1->host)
+                            if (exists $user_hash{ticket_service})
                             {
-                                $status   = "Requester";
-                                $badquery = 1;
+                                my $testL2 = new URI::URL $user_hash{ticket_service};
+                                if ($testL2->host ne $testL1->host){
+                                    $status   = "Requester";
+                                    $badquery = 1;
+                                }
+                                else{
+                                    $user_found = 1;
+                                    $username   = $login;
+                                }
                             }
-                            else {
-                                $user_found = 1;
-                                $username   = $login;
-                            }
-              }
                             #Unvalidate ticket
-                            $log->debug("delete ticjets");
+                            $log->debug("delete tickets");
                             delete $hashref->{ticket};
                             delete $hashref->{ticket_service};
                             delete $hashref->{ticket_created};
@@ -383,7 +381,8 @@ sub plugin {
             $xml .= "<Status>\n";
             $xml .= "<StatusCode Value=\"samlp:Success\"></StatusCode>\n";
             $xml .= "</Status>\n";
-            $xml .= "<Assertion xmlns=\"urn:oasis:names:tc:SAML:1.0:assertion\" AssertionID=\"$aid\" \n";
+            $xml .=
+"<Assertion xmlns=\"urn:oasis:names:tc:SAML:1.0:assertion\" AssertionID=\"$aid\" \n";
             $xml .= "IssueInstant=\"$instant\" Issuer=\"$issuer\" \n";
             $xml .= " MajorVersion=\"1\" MinorVersion=\"1\">\n";
             my $before = time() - 15 * 60;

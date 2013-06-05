@@ -27,8 +27,11 @@ use Auth::Auth_SQL;
 sub checkAuth {
     my (
         $package_name, $r,        $log,       $dbh, $app,
-        $user,         $password, $id_method, $session
+        $user,         $password, $id_method, $session, $class, $csrf_ok
     ) = @_;
+
+    $log->debug("########## Auth_OTP ##########");
+    return Apache2::Const::FORBIDDEN unless $csrf_ok;
     my $query =
       (     'SELECT auth_type, id_method, otp.name, '
           . ' script, template, passlen, timeout, contact_field'
@@ -53,7 +56,6 @@ sub checkAuth {
     my $timeout       = $var->{'timeout'};
     my $ret;
     my ( $auth_func, $field_func );
-    $log->debug("########## Auth_OTP ##########");
 
     if ( !$session->{'otp_step1'} ) {
 
@@ -125,9 +127,6 @@ sub checkAuth {
         $session->{otp_user}  = $user;
         $session->{otp_pass}  = Digest::SHA1::sha1_hex($otp_pass);
 
-        # this will show only otp name on the auth form
-        $r->pnotes( "auth_name" => $var->{'name'} );
-
         # always return forbidden in step1
         # step2 only can return OK
         return Apache2::Const::FORBIDDEN;
@@ -142,7 +141,6 @@ sub checkAuth {
             delete $session->{'otp_step1'};
             return Apache2::Const::FORBIDDEN;
         }
-        $log->debug("check OTP pass now..");
 
         # Check OTP
         if ( Digest::SHA1::sha1_hex($password) eq $session->{'otp_pass'} ) {
@@ -152,13 +150,11 @@ sub checkAuth {
             delete $session->{otp_user};
             delete $session->{otp_pass};
             delete $session->{otp_step1};
+            $r->pnotes( 'username' => $user );
             return Apache2::Const::OK;
         }
         else {
             $log->debug("BAD OTP pass, user $user can try again");
-
-            # show otp auth name
-            $r->pnotes( "auth_name" => $var->{'name'} );
             return Apache2::Const::FORBIDDEN;
         }
     }

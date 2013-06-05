@@ -36,7 +36,6 @@ $log->debug("session is auth is ".$session_SSO{'is_auth'}." cookie is $SSO_cooki
         if ( $r->unparsed_uri =~ /$cookie_app_name=([^;]*)/ ) {
             my $app_cookie_name = $1;
             my (%session_app);
-		$log->debug('toto');
             #Get app
             Core::VultureUtils::session( \%session_app, $app->{timeout},
                 $app_cookie_name, $log, $mc_conf, $app->{update_access_time} );
