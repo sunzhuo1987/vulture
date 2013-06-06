@@ -1,3 +1,17 @@
+vulture (2.0.6) stable; urgency=low
+
+  * add authentication combination support
+  * add mod_deflate configuration interface
+  * add mod_cache configuration interface
+  * add mod_jk support
+  * add client side logout plugin to flush cookies
+  * add SSO_LOGIN template
+  * fix bug in mod_security configuration
+  * fix bug when config files are left when an interface is deleted
+  * fix crash in cluster synchro
+
+ -- Etienne Helluy-Lafont <etienne.helluy-lafont@advens.fr>  Thu, 06 Jun 2013 14:51:00 +0200
+
 vulture (2.0.5) stable; urgency=low
 
   * add opt authentication
