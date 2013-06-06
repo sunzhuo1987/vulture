@@ -134,9 +134,6 @@ sub validate_auth{
     $session_app->{password} = $password;
     $session_app->{app_name} = $app->{name};
 
-    #TODO: remov this
-    my $log = $r->pnotes('log');
-    $log->debug("letitbe! validating app : ". $app->{name} . " for $user:$password");
     #Backward logout
     $session_app->{SSO} = $r->pnotes('id_session_SSO');
     #SSO must be warned that user is logged in this app (ex : SAML)

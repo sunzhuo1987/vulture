@@ -21,9 +21,6 @@ use Core::VultureUtils
   qw(&session &get_memcached &set_memcached &generate_random_string &notify &load_module);
 use Core::ActionManager qw(&handle_action);
 
-# TODO : remove this
-use Data::Dumper;
-
 #USED FOR NTLM
 sub get_nonce {
     my ( $self, $r, $log, $pdc, $bdc, $domain ) = @_;
