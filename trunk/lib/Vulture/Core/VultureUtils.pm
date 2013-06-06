@@ -31,9 +31,6 @@ use Cache::Memcached;
 use APR::Table;
 use Math::Random::Secure qw(irand);
 
-#TODO: remove this
-use Data::Dumper;
-
 our ($memd);
 
 sub version_check {
@@ -519,7 +516,6 @@ sub get_style {
                         $log->error("incorrect usage of LOGGED_AUTH");
                         $_ = $ok_auth;
                     }else{
-                        $log->debug("getting string repr of auth : ". Data::Dumper::Dumper($auth));
                         my $todo_auth = Core::VultureUtils::auth_to_string($dbh, $auth->{id});
                         $_ = "var ok_auth = $ok_auth; var todo_auth=$todo_auth;";
                     }

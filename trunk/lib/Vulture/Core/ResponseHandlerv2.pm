@@ -215,7 +215,7 @@ sub cas_redirect{
     }
     else {
         my $translations = Core::VultureUtils::get_translations( $r, $log, $dbh, 'SSO_LOGIN' );
-        $html = Core::VultureUtils::get_style( $r, $log, $dbh, $app, "SSO_LOGIN", "Sucessful login", {}, $translations );
+        $html = Core::VultureUtils::get_style( $r, $log, $dbh, $app, "SSO_LOGIN", "Successful login", {}, $translations );
     }
     $r->print($html);
     $r->content_type('text/html');

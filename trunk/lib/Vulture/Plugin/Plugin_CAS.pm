@@ -75,9 +75,9 @@ sub plugin {
     %users = %{ Core::VultureUtils::get_memcached('vulture_users_in', $mc_conf) || {} };
 
     #CAS Portal doesn't have auth
-    my $auths = $intf->{'auth'};
-    if ( not defined @$auths or not @$auths ) {
-        $log->debug("Auth in CAS is undefined");
+    my $auth = $intf->{'auth'};
+    if ( not defined $auth or not $auth or not defined $service or not $service) {
+        $log->debug("CAS: missing service or auth");
         return Apache2::Const::FORBIDDEN;
     }
 
@@ -93,7 +93,7 @@ sub plugin {
         if (defined $host){
             my $app = Core::VultureUtils::get_app( $log, $dbh, $mc_conf, $intf->{id},
                 $host );
-            $app->{'auth'} = $auths;
+            $app->{'auth'} = $auth;
             #Send app if exists.
             $r->pnotes( 'app' => $app );
         }
