@@ -75,7 +75,7 @@ sub checkAuth {
         if ( $new_dbh->selectrow_array( $query, undef, $user, $password ) ) {
             $log->debug("User is ok for Auth_SQL;");
             $new_dbh->disconnect();
-            $r->pnotes( 'username' => $user );
+            $r->pnotes( 'username' => "$user" );
             return Apache2::Const::OK;
         }
         else {

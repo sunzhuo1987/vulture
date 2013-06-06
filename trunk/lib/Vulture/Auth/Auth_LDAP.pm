@@ -129,7 +129,7 @@ sub checkAuth {
         $log->debug("User $user need to change password");
     }
     $ldap->unbind;
-    $r->pnotes( 'username' => $user );
+    $r->pnotes( 'username' => "$user" );
     return Apache2::Const::OK;
 }
 1;

@@ -150,7 +150,7 @@ sub checkAuth {
             delete $session->{otp_user};
             delete $session->{otp_pass};
             delete $session->{otp_step1};
-            $r->pnotes( 'username' => $user );
+            $r->pnotes( 'username' => "$user" );
             return Apache2::Const::OK;
         }
         else {

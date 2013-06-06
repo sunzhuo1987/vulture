@@ -58,7 +58,7 @@ sub checkAuth {
             }
 
         }
-        $r->pnotes( 'username' => $user );
+        $r->pnotes( 'username' => "$user" );
         return Apache2::Const::OK;
     }
     return Apache2::Const::FORBIDDEN;

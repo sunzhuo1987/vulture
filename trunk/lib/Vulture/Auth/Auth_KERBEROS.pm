@@ -40,7 +40,7 @@ sub checkAuth {
 
     my $kerberos = Authen::Simple::Kerberos->new( realm => $realm );
     if ( $kerberos->authenticate( $user, $password ) ) {
-        $r->pnotes( 'username' => $user );
+        $r->pnotes( 'username' => "$user" );
         return Apache2::Const::OK;
     }
     else {

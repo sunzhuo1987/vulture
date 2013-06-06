@@ -93,9 +93,11 @@ sub plugin {
         if (defined $host){
             my $app = Core::VultureUtils::get_app( $log, $dbh, $mc_conf, $intf->{id},
                 $host );
-            $app->{'auth'} = $auth;
-            #Send app if exists.
-            $r->pnotes( 'app' => $app );
+            if ($app){
+                $app->{'auth'} = $auth;
+                #Send app if exists.
+                $r->pnotes( 'app' => $app );
+            }
         }
 
         #Getting SSO session if exists.
@@ -159,8 +161,7 @@ sub plugin {
                 and $user_hash{ticket_service} eq $service
                 and exists $user_hash{ticket_created} )
             {
-                my $login;
-                $res = "yes\n$login\n";
+                $res = "yes\n$key\n";
 
                 #Unvalidate ticket
                 delete $hashref->{ticket};

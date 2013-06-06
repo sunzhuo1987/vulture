@@ -18,6 +18,7 @@ use Apache2::Connection ();
 use Apache2::Log;
 use Apache2::Reload;
 use Apache2::Request;
+use Apache::SSLLookup;
 
 use Apache2::Const -compile => qw(OK FORBIDDEN REDIRECT);
 
@@ -60,7 +61,6 @@ sub checkAuth {
     }
 
     #Build service
-    $r = Apache::SSLLookup->new($r);
     my $incoming_uri = $app->{name};
     if ( $incoming_uri !~ /^(http|https):\/\/(.*)/ ) {
 
@@ -68,8 +68,9 @@ sub checkAuth {
         $incoming_uri = 'http://' . $incoming_uri;
     }
     my $service = APR::URI->parse( $r->pool, $incoming_uri );
+    my $r_ssl = Apache::SSLLookup->new($r);
     $service->scheme('http');
-    $service->scheme('https') if $r->is_https;
+    $service->scheme('https') if $r_ssl->is_https;
     $service->port( $r->get_server_port() );
 
     #Check required params (i.e. host and port)
@@ -96,20 +97,18 @@ sub checkAuth {
 
         $log->debug( $response->decoded_content );
 
-	my $find_user = "<cas:user>(.+)<\/cas:user>";
-	if (defined $ref->{cas_attribute} and $ref->{cas_attribute} ) {
-		$find_user = "<cas:".$ref->{cas_attribute}.">(.+)<\/cas:".$ref->{cas_attribute}.">";
-		$log->debug("changing cas attribute with".$find_user);
-	}
+        my $find_user = "<cas:user>(.+)<\\/cas:user>";
+        if (defined $ref->{cas_attribute} and $ref->{cas_attribute} ) {
+            $find_user = "<cas:".$ref->{cas_attribute}.">(.+)<\\/cas:".$ref->{cas_attribute}.">";
+            $log->debug("changing cas attribute with".$find_user);
+        }
 
         #Check answer
-        if ( $response->decoded_content =~ /$find_user/ ) {
-
-            #Get user from CAS
-            $r->pnotes( 'username' => $1 );
-            $r->user($1);
+        if ( $response->decoded_content =~ /$find_user/s ) {
+            $log->debug("user $1 logged in, set memcached ticket is $ticket and session is ".$session->{'_session_id'});
+            #Get username from cas
+            $r->pnotes( 'username' => "$1" );
             Core::VultureUtils::set_memcached($ticket, $session->{'_session_id'}, undef, $mc_conf);
-            $log->debug("set memcached ticket is ".$r->pnotes('ticket')." and session is ".$session->{'_session_id'});
             return Apache2::Const::OK;
         }
     }
