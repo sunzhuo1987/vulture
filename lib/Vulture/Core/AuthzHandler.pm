@@ -118,7 +118,8 @@ sub invalidate_auth{
     Core::VultureUtils::notify( $dbh, $app ? $app->{id} : -1, $user,
         'connection_failed', scalar( keys %$users ) );
     $session_app->{is_auth}=0 if $session_app;
-    undef $session_sso->{ $app->{name} } if $app;
+    
+    undef $session_sso->{ $app->{name} } if ($app and exists $session_sso->{$app->{name}});
     $r->pnotes('username' => undef);
     $r->pnotes('password'=> undef);
     $r->user('');

@@ -81,7 +81,7 @@ sub checkAuth {
             # OR 
             if ($operator eq 'OR'){
                 # Alright, that's enought for a 'OR' 
-                $r->pnotes('username' => $lusr);
+                $r->pnotes('username' => "$lusr");
                 return Apache2::Const::OK;
             }
             # AND
@@ -108,7 +108,7 @@ sub checkAuth {
         return Apache2::Const::FORBIDDEN;
     }
     $log->debug("LOGIC : AND succeeded");
-    $r->pnotes('username' => $and_login);
+    $r->pnotes('username' => "$and_login");
     return Apache2::Const::OK;
 }
 1;

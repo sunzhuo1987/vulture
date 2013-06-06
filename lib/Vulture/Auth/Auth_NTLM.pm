@@ -301,7 +301,7 @@ sub checkAuth {
 
     $self->{lock} = undef;
     $r->user($username);
-    $r->pnotes( 'username' => $user );
+    $r->pnotes( 'username' => "$user" );
     return Apache2::Const::OK;
 }
 

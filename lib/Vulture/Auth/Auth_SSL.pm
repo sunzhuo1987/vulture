@@ -32,7 +32,7 @@ sub checkAuth {
         }
         else{
             $log->debug("SSL mode '$ssl_user'");
-            $r->pnotes(username=>$ssl_user);
+            $r->pnotes(username=>"$ssl_user");
             return Apache2::Const::OK;
         }
     }

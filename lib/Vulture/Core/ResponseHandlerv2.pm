@@ -238,10 +238,8 @@ sub display_custom_response {
         }
         $r->status(Apache2::Const::REDIRECT);
     }
-    $log->debug("RESP | content = ".$r->pnotes('response_content'));
     $r->print( $r->pnotes('response_content') )
       if defined $r->pnotes('response_content');
-    $log->debug("RESP | content_type = ".$r->pnotes('response_content_type'));
     $r->content_type( $r->pnotes('response_content_type') )
       if defined $r->pnotes('response_content_type');
 
