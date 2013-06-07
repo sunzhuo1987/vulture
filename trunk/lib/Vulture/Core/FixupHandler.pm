@@ -12,12 +12,11 @@ use Apache2::RequestUtil ();
 use Apache2::Log;
 
 use Apache2::Const -compile => qw(OK);
-use Apache::SSLLookup;
 
 use Core::VultureUtils qw(&session );
 
 sub handler {
-    my $r   = Apache::SSLLookup->new(shift);
+    my $r   = shift;
     my $log = $r->pnotes('log');
 
     $log->debug("########## FixupHandler ##########");
@@ -45,12 +44,14 @@ sub proxy_redirect {
     #Don't send VultureApp && VultureProxy cookies
     my $cookies         = $r->headers_in->{Cookie};
     my $cleaned_cookies = '';
-    foreach ( split( ';', $cookies ) ) {
-        if (/([^,; ]+)=([^,;]*)/) {
-            if (    $1 ne $r->dir_config('VultureAppCookieName')
-                and $1 ne $r->dir_config('VultureProxyCookieName') )
-            {
-                $cleaned_cookies .= $1 . "=" . $2 . ";";
+    if ($cookies){
+        foreach ( split( ';', $cookies ) ) {
+            if (/([^,; ]+)=([^,;]*)/) {
+                if (    $1 ne $r->dir_config('VultureAppCookieName')
+                    and $1 ne $r->dir_config('VultureProxyCookieName') )
+                {
+                    $cleaned_cookies .= $1 . "=" . $2 . ";";
+                }
             }
         }
     }
@@ -60,7 +61,6 @@ sub proxy_redirect {
     else{
         $r->headers_in->unset( "Cookie");
     }
-    $session_app{cookie} = $cleaned_cookies;
     #Not canonicalising url (i.e : not escaping chars)
     if ( not $app->{'canonicalise_url'} ) {
         $log->debug("Skipping url canonicalising");
