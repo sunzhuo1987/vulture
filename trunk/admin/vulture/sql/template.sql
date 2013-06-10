@@ -61,10 +61,10 @@ a{
 <script src="/static/script/jquery-1.8.3.min.js"></script>
 <script type="text/javascript">
 $(document).ready(function() {
-        if ($(''#inweboAuth'').length) {
+        if ($("#inweboAuth").length) {
                 start_helium("inweboAuth",
-                        function(iw,data){ if (data.result == ''ok'') { iw.insertFields(data); }
-                                if (data.result == ''nok'' && data.error == ''no_profile'')
+                        function(iw,data){ if (data.result == "ok") { iw.insertFields(data); }
+                                if (data.result == "nok" && data.error == "no_profile")
                                 { start_helium("inweboActivate"); }})
         }})
 </script>','<center>
@@ -73,13 +73,13 @@ $(document).ready(function() {
 <h3>Vulture by InWebo</h3>
 <h2><font color="red">__ERRORS__</font></h2>
 __FORM__
-<a href="javascript:start_helium(''inweboActivate'')">Enrôler mon navigateur dans Helium</a>
+<a href="javascript:start_helium(\"inweboActivate\")">Enrôler mon navigateur dans Helium</a>
 <br>
-<a href="javascript:start_helium(''inweboAuth'')">Se connecter avec Helium</a>
+<a href="javascript:start_helium(\"inweboAuth\")">Se connecter avec Helium</a>
 </div>
 </div>
 <div id="inweboAuth" action="authenticate" lang="fr"
-alias="20bf7dd5b2223034be0c35454cc3f4d1" style="display:none"></div> <div id="inweboActivate" action="activate" lang="fr"
-alias="20bf7dd5b2223034be0c35454cc3f4d1" style="display:none"></div>
+alias="1234" style="display:none"></div> <div id="inweboActivate" action="activate" lang="fr"
+alias="1234" style="display:none"></div>
 </center>');
 
