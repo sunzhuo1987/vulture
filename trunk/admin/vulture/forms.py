@@ -8,18 +8,6 @@ import os
 import hashlib
 import ifconfig
 
-
-def update_logic_auths():
-    to_create = [ u for u in Auth.objects.exclude(auth_type='logic')
-                    if not [l for l in Logic.objects.filter(login_auth=u.pk) if l.auths.count()==1]]
-    for u in to_create:
-        l = Logic(name=u.name, op='AND', login_auth=u)
-        l.save()
-        l.auths = [u]
-        l.save()
-        a = Auth(name=u.name,auth_type='logic',id_method=l.pk)
-        a.save()
-
 class IntfForm(forms.ModelForm):
     def __init__(self,*args,**kwargs):
         super(forms.ModelForm,self).__init__(*args,**kwargs)
@@ -37,8 +25,6 @@ class IntfForm(forms.ModelForm):
         self.fields["ip"] = forms.ChoiceField(choices = CHOICES)
         self.fields['srv_ka'] = forms.BooleanField(initial=intf and intf.srv_ka or True,required=False)
         self.fields['srv_ka'].widget.attrs["onchange"]="srv_ka_changed()"
-        update_logic_auths()
-        self.fields['cas_auth'].queryset = Auth.objects.filter(auth_type='logic')
     def clean_srv_ka_max_req(self):
         ka = self.cleaned_data["srv_ka"]
         max_req = self.cleaned_data["srv_ka_max_req"]
@@ -143,8 +129,6 @@ class AppForm(forms.ModelForm):
             
             self.fields[fieldname].choices = CHOICES
             self.fields[fieldname].initial = INITIAL
-        update_logic_auths()
-        self.fields['auth'].queryset = Auth.objects.filter(auth_type='logic')
                 
     securitybase = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple,required=False)
     securityexp = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple,required=False)

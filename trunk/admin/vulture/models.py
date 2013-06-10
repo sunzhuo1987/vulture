@@ -526,6 +526,12 @@ class SQL(models.Model):
             for user in cur:
                 user_ko.append(('%s' % user, '%s' % user))
         return user_ko
+
+    def delete(self,*args,**kwargs):
+        auth = Auth.objects.get(id_method=self.pk,auth_type='sql')
+        auth.delete()
+        super(SQL,self).delete(*args,**kwargs)
+
     def __str__(self):
         return "%s [SQL]"%(self.name)
     class Meta:
@@ -534,6 +540,12 @@ class SQL(models.Model):
 class Kerberos(models.Model):
     name = models.CharField(max_length=128,unique=1)
     realm = models.CharField(max_length=256)
+
+    def delete(self,*args,**kwargs):
+        auth = Auth.objects.get(id_method=self.pk,auth_type='kerberos')
+        auth.delete()
+        super(Kerberos,self).delete(*args,**kwargs)
+
     def __str__(self):
         return "%s [KERBEROS]"%self.name
     class Meta:
@@ -544,6 +556,12 @@ class CAS(models.Model):
     url_login = models.CharField(max_length=256)
     url_validate = models.CharField(max_length=256)
     cas_attribute = models.CharField(max_length=256)
+
+    def delete(self,*args,**kwargs):
+        auth = Auth.objects.get(id_method=self.pk,auth_type='cas')
+        auth.delete()
+        super(CAS,self).delete(*args,**kwargs)
+
     def __str__(self):
         return "%s [CAS]"%self.name
     class Meta:
@@ -568,6 +586,11 @@ class SSL(models.Model):
     def get_constraint(self):
         return self.constraint
 
+    def delete(self,*args,**kwargs):
+        auth = Auth.objects.get(id_method=self.pk,auth_type='ssl')
+        auth.delete()
+        super(SSL,self).delete(*args,**kwargs)
+
     def __str__(self):
         return "%s [SSL]"%self.name
     class Meta:
@@ -578,6 +601,12 @@ class NTLM(models.Model):
     domain = models.CharField(max_length=128)
     primary_dc = models.CharField(max_length=128)
     secondary_dc = models.CharField(max_length=128, blank=1, null=1)
+
+    def delete(self,*args,**kwargs):
+        auth = Auth.objects.get(id_method=self.pk,auth_type='ntlm')
+        auth.delete()
+        super(NTLM,self).delete(*args,**kwargs)
+
     def __str__(self):
         return "%s [NTLM]"%self.name
     class Meta:
@@ -590,6 +619,12 @@ class RADIUS(models.Model):
     secret = models.CharField(max_length=64)
     timeout = models.IntegerField()
     url_attr = models.CharField(max_length=32, blank=1)
+
+    def delete(self,*args,**kwargs):
+        auth = Auth.objects.get(id_method=self.pk,auth_type='radius')
+        auth.delete()
+        super(RADIUS,self).delete(*args,**kwargs)
+
     def __str__(self):
         return "%s [RADIUS]"%self.name
     class Meta:
@@ -633,6 +668,12 @@ class LDAP(models.Model):
     are_members_dn = models.BooleanField()
     url_attr = models.CharField(max_length=255, blank=1)
     chpass_attr = models.CharField(max_length=255, blank=1)
+
+    def delete(self,*args,**kwargs):
+        auth = Auth.objects.get(id_method=self.pk,auth_type='ldap')
+        auth.delete()
+        super(LDAP,self).delete(*args,**kwargs)
+
     def search(self, base_dn, scope, filter, attr):
         result_set = []
         try:
@@ -749,6 +790,11 @@ class Logic(models.Model):
     auths = models.ManyToManyField('Auth',null=False)
     login_auth = models.ForeignKey('Auth',null=False, related_name="login_logic_auth")
 
+    def delete(self,*args,**kwargs):
+        auth = Auth.objects.get(id_method=self.pk,auth_type='logic')
+        auth.delete()
+        super(Logic,self).delete(*args,**kwargs)
+
     class Meta:
         db_table = 'logic'
 
@@ -781,6 +827,12 @@ class OTP(models.Model):
         default="OTP pass for __USER__ : __PASS__",
         )
     timeout = models.IntegerField(default=300)
+
+    def delete(self,*args,**kwargs):
+        auth = Auth.objects.get(id_method=self.pk,auth_type='otp')
+        auth.delete()
+        super(OTP,self).delete(*args,**kwargs)
+
     def __str__(self):
         return "%s [OTP]"%self.name
     class Meta:
@@ -825,7 +877,19 @@ class Auth(models.Model):
 
     def __str__(self):
         return str(self.getAuth())
-   #     return "%s [%s]"%(self.name,self.auth_type.upper())
+
+    def delete(self,*args,**kwargs):
+        for l in Logic.objects.all():
+            if l.login_auth.pk==self.pk:
+                l.delete()
+            else:
+                if self in l.auths.all():
+                    l.auths.remove(self)
+                l.save()
+        App.objects.filter(auth=self.pk).update(auth=None)
+        Intf.objects.filter(cas_auth=self.pk).update(cas_auth=None)
+        super(Auth,self).delete(*args,**kwargs)
+
     class Meta:
         db_table = 'auth'
 

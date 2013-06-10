@@ -116,6 +116,8 @@ def edit_intf(request,object_id=None):
     form = IntfForm(request.POST or None,instance = object_id and Intf.objects.get(id=object_id))
     if request.method == 'POST' and form.is_valid():
         intf = form.save()
+        intf.cas_auth = get_logic_auth_for(intf.cas_auth)
+        intf.save()
         return HttpResponseRedirect("/intf")
     return render_to_response('vulture/intf_form.html',
             {'form':form, 'user': request.user })
@@ -308,9 +310,9 @@ def remove_auth(request, url, object_id=None):
     obj = get_object_or_404(Auth.TYPES[url],id=object_id)
     # Remove auth
     if request.method == 'POST' and object_id:       
-        auth = get_object_or_404(Auth, id_method=obj.pk, auth_type=url)
-        auth.delete()
+       # auth = get_object_or_404(Auth, id_method=obj.pk, auth_type=url)
         obj.delete()
+       # auth.delete()
         return HttpResponseRedirect('/'+ url +'/')
     return render_to_response('vulture/generic_confirm_delete.html', {'object':obj, 'category' : 'Authentication', 'name' : url.capitalize(),'url' : '/' + url, 'user' : request.user})
 
@@ -325,8 +327,19 @@ def link_path(src,dst,regex):
             except:
                 pass
 
-def wrap_logic():
-    auths = Auth.objects.get()
+def get_logic_auth_for(auth):
+    if auth and auth.auth_type != 'logic':
+        right_auth = [l for l in Logic.objects.filter(login_auth=auth.pk) if l.auths.count()==1]
+        if right_auth:
+            return Auth.objects.get(auth_type='logic',id_method=right_auth[0].pk)
+        else:
+            l = Logic(name=auth.name, op='AND', login_auth=auth)
+            l.save()
+            l.auths = [auth]
+            l.save()
+            auth = Auth(name=auth.name,auth_type='logic',id_method=l.pk)
+            auth.save()
+    return auth
 
 @permission_required('vulture.change_app')
 def edit_app(request,object_id=None):
@@ -436,6 +449,9 @@ def edit_app(request,object_id=None):
                     instance.save()
         # delete cached version of this app in memcache
         MC.delete('%s:app'%app.name)
+        # Make sure we're using logic auth there
+        app.auth = get_logic_auth_for(app.auth)
+        app.save()
         return HttpResponseRedirect('/app/')
     fjkd = FJKD(instance=inst)
     return render_to_response('vulture/app_form.html', {'form': form, 'user' : request.user, 'fjkd':fjkd})
