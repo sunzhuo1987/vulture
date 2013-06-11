@@ -6,7 +6,7 @@ Build-Depends: debhelper (>= 4.0.0), dpkg-dev, file, libxml2-dev, gcc, g++, libc
 Standards-Version: 3.6.1
 
 Package: vulture
-Architecture: i386
+Architecture: amd64
 Depends: python-pip, libapache2-request-perl, libdbd-sqlite3-perl, libapache2-mod-apreq2, openssl, apache2-mpm-prefork, libwww-perl, libwww-mechanize-perl, libwww-mechanize-gzip-perl, libnet-ldap-perl, libdbi-perl, libdbd-pg-perl, libdbd-mysql-perl, libapache-session-perl, libconvert-asn1-perl, liburi-perl, libcrypt-cbc-perl, libmcrypt4, libauthen-radius-perl, libcrypt-blowfish-perl, libcrypt-ssleay-perl, sqlite, libperl5.10 | libperl5.14, sudo, libapache2-mod-perl2, libxml2, libipc-run-perl, memcached, libcache-memcached-perl, libstring-crc32-perl, libapache2-mod-wsgi, libapache2-authenntlm-perl, libauthen-simple-kerberos-perl,  libio-compress-perl,  libdata-hexdumper-perl, libapache-mod-security, sqlite3, python-django (>= 1.2.0),python-memcache, python-imaging,python-sqlite, python-pysqlite2, python-ldap, python-openssl
 Description: Vulture is an HTTP reverse proxy
  Vulture is an HTTP reverse proxy. It does many security checks
