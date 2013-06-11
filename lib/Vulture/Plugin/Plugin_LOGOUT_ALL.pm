@@ -27,6 +27,30 @@ use DBI;
 use Apache::SSLLookup;
 use LWP::UserAgent;
 
+sub trim{
+    my $string = shift;
+    $string =~ s/^\s+//;
+    $string =~ s/\s+$//;
+    return $string;
+}
+sub parse_setcookie($) {
+        my $sc = shift;
+        my $i=0;
+        my $tab = {};
+        foreach my $v (split (';',$sc)) {
+                if ($i eq 0) {
+                        $i++;
+                        ($tab->{"name"},$tab->{"value"}) = split ('=',$v);
+                } else {
+                        my ($t,$u) = split ('=',$v);
+                        $tab->{trim($t)} = $u;
+                }
+        }
+        print $tab->{"name"};
+        return $tab;
+}
+
+
 sub plugin {
     my ( $package_name, $r, $log, $dbh, $intf, $app, $options ) = @_;
     $r = Apache::SSLLookup->new($r);
@@ -167,17 +191,12 @@ sub plugin {
                 #Render cookie
                 my %cookies_app;
                 if ( $response->headers->header('Set-Cookie') ) {
-
                     # Adding new couples (name, value) thanks to POST response
                     foreach my $c ( $response->headers->header('Set-Cookie') ) {
-                        my $tc = Core::VultureUtils::parse_set_cookie($c);
+                        my $tc = parse_setcookie($c);
                         $cookies_app{$tc->{"name"}} = $tc;
                         $log->debug("ADD/REPLACE" . $tc->{"name"} . "=" . $tc->{"value"});
                     }
-
-                    #Fill session with cookies returned by app (for logout)
-                    $session_app{cookie} =
-                      $response->headers->header('Set-Cookie');
                 }
                 my $path = "/";
                 if ( $current_app{app_name} =~ /(.*)\/(.*)/ ) {
@@ -185,14 +204,13 @@ sub plugin {
                 }
                 foreach my $k ( keys %cookies_app ) {
                     $r->err_headers_out->add( 'Set-Cookie' => $k . "="
-                          . $cookies_app{$k}
+                          . $cookies_app{$k}->{value}
                           . "; domain="
                           . $r->hostname()
                           . "; path="
                           . $path
-                          . "; expires="
-                          . $cookies_app{$k}->{"expires"}
-                          . "" );    # Send cookies to browser's client
+                          . (( exists $cookies_app{$k}->{"expires"}) ? "; expires=". $cookies_app{$k}->{"expires"}:"")
+                         );    # Send cookies to browser's client
                     $log->debug( "PROPAG " . $k . "=" . $cookies_app{$k} );
                 }
 
