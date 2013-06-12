@@ -1,6 +1,5 @@
-diff -ruN vulture-2.0.4.ori/admin/vulture/sql/sql.sql vulture-2.0.4/admin/vulture/sql/sql.sql
---- vulture-2.0.4.ori/admin/vulture/sql/sql.sql	2011-12-06 18:42:24.000000000 +0100
-+++ vulture-2.0.4/admin/vulture/sql/sql.sql	2011-12-06 18:34:14.000000000 +0100
+--- vulture.ori/admin/vulture/sql/sql.sql	2011-12-06 18:42:24.000000000 +0100
++++ vulture-2.0.6/admin/vulture/sql/sql.sql	2011-12-06 18:34:14.000000000 +0100
 @@ -1 +1 @@
 -INSERT INTO "sql" VALUES(1,'vulture','SQLite','/var/www/vulture/admin/db','','','',NULL,'auth_user','username','password','sha1');
 +INSERT INTO "sql" VALUES(1,'vulture','SQLite','/opt/vulture/admin/db','','','',NULL,'auth_user','username','password','sha1');
