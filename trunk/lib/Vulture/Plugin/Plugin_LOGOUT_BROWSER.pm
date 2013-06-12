@@ -17,7 +17,7 @@ BEGIN {
 use Apache2::Log;
 use Apache2::Reload;
 use Core::VultureUtils
-  qw(&get_cookie &session &get_memcached &set_memcached &notify &get_translations &get_style);
+  qw(&get_cookie &session &get_memcached &set_memcached &notify &get_translations &get_style &parse_cookies);
 use Apache2::Const -compile => qw(OK FORBIDDEN REDIRECT);
 use Apache::SSLLookup;
 use LWP::UserAgent;
@@ -113,7 +113,7 @@ sub plugin {
         $path = "/$2";
     }
     # Retreive current cookies
-    my $pc = parse_set_cookie($cookies);
+    my $pc = parse_cookies($cookies);
     $r->err_headers_out->unset('Set-Cookie');
     foreach my $ck (keys(%$pc)){
         # Set cookie expiration in past 
@@ -132,20 +132,5 @@ sub plugin {
     $r->pnotes( 'response_content' => '<html><head></head><body></body></html>');
     $r->pnotes( 'response_content_type' => 'text/html' );
     return Apache2::Const::OK;
-}
-sub parse_set_cookie{
-        my $sc = shift;
-        my $tab = {};
-        foreach my $v (split (';',$sc)) {
-            my ($t,$u) = split ('=',$v);
-            $tab->{trim($t)} = $u;
-        }
-        return $tab;
-}
-sub trim{
-    my $string = shift;
-    $string =~ s/^\s+//;
-    $string =~ s/\s+$//;
-    return $string;
 }
 1;
