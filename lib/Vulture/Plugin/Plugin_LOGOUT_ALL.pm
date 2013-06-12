@@ -16,40 +16,11 @@ BEGIN {
 
 use Apache2::Log;
 use Apache2::Reload;
-
 use Core::VultureUtils
-  qw(&get_cookie &session &get_memcached &set_memcached &notify &get_translations &get_style);
-
+  qw(&get_cookie &session &get_memcached &set_memcached &notify &get_translations &get_style &parse_set_cookie);
 use Apache2::Const -compile => qw(OK FORBIDDEN REDIRECT);
-
-use DBI;
-
 use Apache::SSLLookup;
 use LWP::UserAgent;
-
-sub trim{
-    my $string = shift;
-    $string =~ s/^\s+//;
-    $string =~ s/\s+$//;
-    return $string;
-}
-sub parse_setcookie($) {
-        my $sc = shift;
-        my $i=0;
-        my $tab = {};
-        foreach my $v (split (';',$sc)) {
-                if ($i eq 0) {
-                        $i++;
-                        ($tab->{"name"},$tab->{"value"}) = split ('=',$v);
-                } else {
-                        my ($t,$u) = split ('=',$v);
-                        $tab->{trim($t)} = $u;
-                }
-        }
-        print $tab->{"name"};
-        return $tab;
-}
-
 
 sub plugin {
     my ( $package_name, $r, $log, $dbh, $intf, $app, $options ) = @_;
@@ -193,7 +164,7 @@ sub plugin {
                 if ( $response->headers->header('Set-Cookie') ) {
                     # Adding new couples (name, value) thanks to POST response
                     foreach my $c ( $response->headers->header('Set-Cookie') ) {
-                        my $tc = parse_setcookie($c);
+                        my $tc = parse_set_cookie($c);
                         $cookies_app{$tc->{"name"}} = $tc;
                         $log->debug("ADD/REPLACE" . $tc->{"name"} . "=" . $tc->{"value"});
                     }
@@ -231,8 +202,6 @@ sub plugin {
 
     #Logout from SSO
     tied(%session_SSO)->delete();
-
-    #};
 
     #Debug for eval
     $log->debug($@) if $@;

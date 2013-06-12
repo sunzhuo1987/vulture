@@ -93,7 +93,7 @@ sub plugin {
                 }
         }
         my $parsed_itf = APR::URI->parse($r->pool, "//" . $intf->{sso_portal});
-        my ($ihost, $ipath)=($parsed_itf->hostname, $parsed_itf->path );
+        my ($ihost, $ipath)=($parsed_itf->hostname, $parsed_itf->path||'' );
         $session_SSO{is_auth} = 0;
         $log->debug("deco list : $app_list");
         $resp_content = <<RESP_BODY

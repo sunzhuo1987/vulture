@@ -15,7 +15,7 @@ BEGIN {
       qw(&get_memcached_conf &version_check &get_app &get_intf &session 
       &get_cookie &get_memcached &set_memcached &get_DB_object
       &get_LDAP_object &get_style &get_translations &generate_random_string 
-      &notify &get_LDAP_field &get_SQL_field &load_module &is_JK &parse_set_cookie);
+      &notify &get_LDAP_field &get_SQL_field &load_module &is_JK &parse_set_cookie &parse_cookies);
 }
 
 use Apache::Session::Generate::MD5;
@@ -738,7 +738,22 @@ sub load_module{
         return $error;
     };
 }
-sub parse_set_cookie{
+sub parse_set_cookie {
+        my $sc = shift;
+        my $i=0;
+        my $tab = {};
+        foreach my $v (split (';',$sc)) {
+                if ($i eq 0) {
+                        $i++;
+                        ($tab->{"name"},$tab->{"value"}) = split ('=',$v);
+                } else {
+                        my ($t,$u) = split ('=',$v);
+                        $tab->{trim($t)} = $u;
+                }
+        }
+        return $tab;
+}
+sub parse_cookies{
         my $sc = shift;
         my $tab = {};
         foreach my $v (split (';',$sc)) {
