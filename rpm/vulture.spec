@@ -79,7 +79,6 @@ Vulture Reverse Proxy
      cd %{serverroot}/%{name}/rpm
      tar zxf Apache2-AuthenNTLM-*.tar.gz && cd Apache2-AuthenNTLM-*/ && 
 	perl Makefile.PL && make && make install
-     easy_install -U django_evolution
     if [ ! -f %{serverroot}/%{name}/conf/server.crt ]; then
         PATH=$PATH:%{serverroot}/bin openssl req -x509 -newkey rsa:1024 -batch\
         	-out %{serverroot}/%{name}/conf/server.crt\
@@ -92,7 +91,6 @@ Vulture Reverse Proxy
     /sbin/chkconfig --add vulture
 	PYTHONPATH=$PYTHONPATH:%{serverroot}/%{name}%{python_sitearch}/:%{serverroot}/%{name}%{python_sitelib}/
 	export PYTHONPATH 
-    easy_install -U django_evolution
     echo no | python %{serverroot}/%{name}/admin/manage.py syncdb
     /etc/init.d/vulture start
     if [ -f %{serverroot}/%{name}/admin/vulture/sql/log.sql ] ; then
