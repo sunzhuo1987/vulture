@@ -125,8 +125,7 @@ sub plugin {
                     'User-Agent' => $r->headers_in->{'User-Agent'} );
                 #Pushing cookies
                 $request->remove_header( 'Cookie');
-                $request->push_header( 'Cookie' => $r->headers_in->{'Cookie'});
-
+                $request->push_header('Cookie' => $current_app{cookie}) if ($current_app{cookie});
                 my $sth =
                   $dbh->prepare("SELECT name, type, value FROM header WHERE app_id= ?");
                 $sth->execute( $app_id );

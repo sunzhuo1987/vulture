@@ -61,6 +61,7 @@ sub proxy_redirect {
     else{
         $r->headers_in->unset( "Cookie");
     }
+    $session_app{cookie} = $cleaned_cookies;
     #Not canonicalising url (i.e : not escaping chars)
     if ( not $app->{'canonicalise_url'} ) {
         $log->debug("Skipping url canonicalising");
