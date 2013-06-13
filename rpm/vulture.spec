@@ -92,6 +92,7 @@ Vulture Reverse Proxy
     /sbin/chkconfig --add vulture
 	PYTHONPATH=$PYTHONPATH:%{serverroot}/%{name}%{python_sitearch}/:%{serverroot}/%{name}%{python_sitelib}/
 	export PYTHONPATH 
+    easy_install -U django_evolution
     echo no | python %{serverroot}/%{name}/admin/manage.py syncdb
     /etc/init.d/vulture start
     if [ -f %{serverroot}/%{name}/admin/vulture/sql/log.sql ] ; then
