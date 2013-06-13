@@ -95,7 +95,7 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.auth',
     'admin.vulture',
-    'django_evolution',
+#    'django_evolution',
 )
 
 AUTHENTICATION_BACKENDS = (
