@@ -44,7 +44,7 @@ sub get_nonce {
             alarm 0;
         };
     }
-if ( $self->{nonce} ) {
+    if ( $self->{nonce} ) {
         $log->debug( "Auth_NTLM: get_nonce -> Reuse " . $self->{nonce} );
         return $self->{nonce};
     }
@@ -55,7 +55,7 @@ if ( $self->{nonce} ) {
       Authen::Smb::Valid_User_Connect( $pdc, $bdc, $domain, $nonce );
     if ( !$smbhandle ) {
         $log->debug(
-"Auth_NTLM: Connect to SMB Server failed (pdc = $pdc bdc = $bdc domain = $domain error = "
+            "Auth_NTLM: Connect to SMB Server failed (pdc = $pdc bdc = $bdc domain = $domain error = "
               . Authen::Smb::SMBlib_errno() . '/'
               . Authen::Smb::SMBlib_SMB_Error()
               . ") for "
