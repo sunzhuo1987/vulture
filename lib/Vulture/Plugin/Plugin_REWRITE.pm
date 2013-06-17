@@ -43,8 +43,10 @@ sub plugin {
 
         #Redirect
     }
-    elsif ( @$options[2] =~ /(.+)\[R\]/ ) {
+    elsif(@$options[2] =~ /([^\s]+)\s+\[R(=>(\d{3}))?\]/){
         my $rewrite = $1;
+        # return custom code if option matches [R=>nnn]
+        my $http_code = $2 ? $3 : Apache2::Const::REDIRECT;
         my (@replace) = $r->uri =~ /@$options[0]/;
         my $i = 1;
         foreach (@replace) {
@@ -53,7 +55,7 @@ sub plugin {
         }
         $log->debug( "Redirecting to " . $rewrite );
         $r->err_headers_out->set( 'Location' => $rewrite );
-        return Apache2::Const::REDIRECT;
+        return $http_code;
     }
     return undef;
 }
