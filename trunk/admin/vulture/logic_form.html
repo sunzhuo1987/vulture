@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}
+	{% trans "System" %} - <small>{% trans "Logic authentication" %}</small>
+{% endblock %}
+
+{% block tabs %}
+    <li><a href="/logic/">{% trans "List" %}</a></li>
+    <li><a href="#" id="main_tab_1" class="active">{% trans "Main settings" %}</a></li>
+{% endblock %}
+
+{% block content %}
+    <form method="post" id="logic" action=".">
+        <div id="main_content_1" class="main_content">
+            <table>
+                 {{form}}
+            </table>
+        </div>
+        <br />
+        <input type="submit" value="{% trans "Save settings" %}"/>
+        <input type="button" onclick="document.location='/logic/'" value="{% trans "Cancel" %}"/>
+    </form>
+    <script>
+        var login_auth = document.getElementById("id_login_auth")
+        var auths = document.getElementById("id_auths")
+        function select_changed(){
+            var c=login_auth.childElementCount;
+            for (var i=0;i<c;i++)
+                login_auth.remove(0);
+            for (var i=0;i<auths.childElementCount;i++){
+                var ci = auths.children[i];
+                if (ci.selected){
+                    var opt = document.createElement("option");
+                    opt.value = ci.value;
+                    opt.text = ci.text;
+                    login_auth.appendChild(opt);
+                }
+            }
+        }
+        auths.onchange=select_changed;
+        select_changed();
+    </script>
+{% endblock %}
