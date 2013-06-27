@@ -303,7 +303,7 @@ FOO
     <td><input type="password" autocomplete="off" name="vulture_password"></td>
 </tr>
 <tr class="row">
-    <td colspan="2" style="align:right"><input type="submit" value=$translations->{'SUBMIT'}{'translation'}></td></tr>
+    <td></td><td colspan="2" style="align:right"><input type="submit" value="$translations->{'SUBMIT'}{'translation'}"></td></tr>
 </table>
 <input type="hidden" name="vulture_token" value="$token">
 </form>

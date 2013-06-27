@@ -302,8 +302,8 @@ sub anon_app{
 sub authen_app{
     my ($log,$r,$dbh,$app,$session_app,$proxy_url) = @_;
     #Setting username && password for FixupHandler and ResponseHandler
-    $r->pnotes( 'username' => $session_app->{username} );
-    $r->pnotes( 'password' => $session_app->{password} );
+    $r->pnotes( 'username' => ''.$session_app->{username} );
+    $r->pnotes( 'password' => ''.$session_app->{password} );
     $r->user( $session_app->{username} );
     $log->debug( "This app : "
           . $r->hostname
