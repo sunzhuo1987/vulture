@@ -169,10 +169,11 @@ sub get_app {
     # Match app with the deepest path
     my $max_fields = -1;
     my $fi;
+    $host.="/" if not ($host =~ /\/$/);
     while ( my ( $name, $hashref ) = each(%$apps) ) {
         $fi = 0;
         $fi++ while ( $name =~ m/\//g );
-        if ( $host =~ /^$name/ ) {
+        if ( $host =~ /^$name\// ) {
             if ( $fi > $max_fields ) {
                 $max_fields = $fi;
                 $ref        = $apps->{$name};
@@ -186,7 +187,7 @@ sub get_app {
             $log->debug("alias is ".$hashref->{alias}."and host is $host");
             my $cpy = $hashref->{alias};
             $cpy =~ s|\*|\(\.\*\)\\|g;
-            if ( $host =~ /$cpy/ ) {
+            if ( $host =~ /^$cpy\// ) {
                 $ref = $apps->{$name};
                 $ref->{name} = $host;
                 last;
