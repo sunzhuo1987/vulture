@@ -58,7 +58,7 @@ sub rewrite_uri {    # Rewrite uri for being valid
         }
         else {
             $path =~ s/[^\/]+$/$uri/g;
-            $rewrite_uri2->path( $path + "/" );
+            $rewrite_uri2->path( "$path/" );
         }
         $uri = $rewrite_uri2->unparse;
     }
