@@ -212,7 +212,7 @@ sub get_profile {
                     }
                 }
                 else {
-                    $return->{$var} = $field_prefix . $value . $field_suffix;
+                    $return->{$var} = [ $field_prefix . $value . $field_suffix, $type];
                 }
             }
             return $return;

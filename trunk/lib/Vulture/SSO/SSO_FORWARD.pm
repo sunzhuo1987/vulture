@@ -37,37 +37,33 @@ use APR::URI;
 use APR::Table;
 use APR::SockAddr;
 
-use Data::Dumper;
-
 use URI::Escape;
 use List::Util;
 
 sub rewrite_uri {    # Rewrite uri for being valid
     my ( $r, $app, $uri, $real_post_url, $log ) = @_;
-    my $mc_conf = $r->pnotes('mc_conf');
-    my $hostname;
-    if ( $app->{name} =~ /(.*)\// ) {
+    my $hostname = $app->{name};
+    if ( $app->{name} =~ /([^\/]*)\// ) {
         $hostname = $1;
     }
     if ( $uri !~ /^(http|https):\/\/(.*)/ ) {
-        my $rewrite_uri2 = APR::URI->parse( $r->pool, $real_post_url );
-        my $path = $rewrite_uri2->path();
         if ( $uri =~ /^\/(.*)/ ) {
-            $rewrite_uri2->hostname($hostname);
-            $rewrite_uri2->path($uri);
+	   return $uri;
         }
         else {
-            $path =~ s/[^\/]+$/$uri/g;
-            $rewrite_uri2->path( "$path/" );
+	    my $rewrite_uri2 = APR::URI->parse( $r->pool, $real_post_url );
+	    my $rpath = $rewrite_uri2->path();
+            $rpath =~ s/[^\/]+$/$uri/g;
+	    return $rpath;
         }
-        $uri = $rewrite_uri2->unparse;
     }
-    my $rewrite_uri = APR::URI->parse( $r->pool, $uri );
-    $rewrite_uri->hostname($hostname);
-    $rewrite_uri->scheme('http');
-    $rewrite_uri->scheme('https') if $r->is_https;
-    $rewrite_uri->port( $r->connection->local_addr->port );
-    return $rewrite_uri->unparse;
+    else{
+        my $rewrite_uri = APR::URI->parse( $r->pool, $uri );
+        $rewrite_uri->hostname($hostname);
+        $rewrite_uri->scheme($r->is_https ? 'https' : 'http');
+        $rewrite_uri->port( $r->connection->local_addr->port );
+        return $rewrite_uri->unparse;
+    }
 }
 
 sub handle_action {
@@ -278,7 +274,6 @@ sub forward {
             }
         }
     }
-
     $mech->delete_header('Cookie');
     $mech->add_header( 'Cookie', $cleaned_cookies ) if ($cleaned_cookies ne '');
 
@@ -393,7 +388,7 @@ sub forward {
 			my ($value,$type) = ($vals[0][0],$vals[0][1]);
 			$log->debug($key);
 			if ($type eq "cookie") {
-				$cookies .= ";".$key."=".$value;
+				$cleaned_cookies = "$key=$value ; $cleaned_cookies";
 				$r->err_headers_out->add('set-cookie' => $key."=".$value."; path=/");
 				delete($results{$key});
 			}
@@ -442,13 +437,12 @@ sub forward {
         my %results =
           %{ SSO::ProfileManager::get_profile( $r, $log, $dbh, $app, $user ) };
 	if (%results){
-		$request = HTTP::Request->new('POST', $base_url.$app->{logon_url}, undef, $post);
-#			while (my ($key, $value) = each(%results)){
+			
 		while (my ($key, @vals) = each(%results)){
 			my ($value,$type) = ($vals[0][0],$vals[0][1]);
 #				if ($key =~ /(.*)TMP(.*)/) {
 			if ($type eq 'cookie'){
-				$cookies .= ";".$key."=".$value;
+				$cleaned_cookies = "$key=$value ; $cleaned_cookies";
 				$r->err_headers_out->add('Set-Cookie' => $key."=".$value."; path=/");
 				delete($results{$key});
 				next;
@@ -456,17 +450,16 @@ sub forward {
 			#$post .= uri_escape($key)."=".uri_escape($value)."&";
 			$post .= uri_escape($key)."=".uri_escape_utf8($value)."&";
 		}
-		$log->debug("request is ".$request->as_string());
-		#Setting headers
+		$request = HTTP::Request->new('POST', $base_url.$app->{logon_url}, undef, $post);
+		$request->remove_header('Cookie');
+		$request->push_header( 'Cookie' => $cleaned_cookies );    # adding/replace
 		$request->push_header('Content-Type' => 'application/x-www-form-urlencoded');
-
+		#Setting headers
         }
         else {
             return Apache2::Const::OK;
         }
     }
-
-    $log->debug($cookies);
 
     #Setting headers for both htaccess and normal way
     #Push user-agent, etc.
@@ -556,10 +549,6 @@ sub forward {
             $log->debug( "ADD/REPLACE " . $1 . "=" . $2 );
         }
     }
-    $request->remove_header('Cookie');
-    $request->push_header( 'Cookie' => $cookies );    # adding/replace
-
-    #$log->debug($request->as_string);
 
     #Send !!! simple !!! request (POST or GET (htaccess))
     #The client browser must do the rest
