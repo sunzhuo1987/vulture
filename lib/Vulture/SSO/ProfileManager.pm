@@ -46,7 +46,7 @@ sub get_profile {
 
 #Getting specials fields like "autologon_* or hidden fields"
 #my $query = "SELECT field_var, field_type, field_encrypted, field_value, field_prefix, field_suffix FROM field, sso, app WHERE field.sso_id = sso.id AND sso.id = app.sso_forward_id AND app.id=? AND (field_type = 'autologon_password' OR field_type = 'autologon_user' OR field_type = 'hidden')";
-    my $query = "SELECT field_var, field_type, field_encrypted, field_value,field_prefix, field_suffix FROM field JOIN  sso ON field.sso_id=sso.id JOIN  app ON sso.id = app.sso_forward_id WHERE app.id=? AND field_type IN ('autologon_password','autologon_user','hidden','script','script-cookie')";
+    my $query = "SELECT field_var, field_type, field_encrypted, field_value,field_prefix, field_suffix FROM field JOIN  sso ON field.sso_id=sso.id JOIN  app ON sso.id = app.sso_forward_id WHERE app.id=? AND field_type IN ('autologon_password','autologon_user','hidden','script','script-cookie','cookie')";
     $log->debug($query);
     my $sth = $dbh->prepare($query);
     $sth->execute( $app->{id} );
@@ -93,7 +93,7 @@ sub get_profile {
 
     #Getting fields to retrieve
     $query =
-"SELECT field_var, field_mapped, field_encrypted, field_value, field_prefix, field_suffix, field_type FROM field, sso, app WHERE field.sso_id = sso.id AND sso.id = app.sso_forward_id AND app.id=? AND field.field_type NOT IN ('autologon_user','autologon_password','hidden','script','script-cookie')";
+"SELECT field_var, field_mapped, field_encrypted, field_value, field_prefix, field_suffix, field_type FROM field, sso, app WHERE field.sso_id = sso.id AND sso.id = app.sso_forward_id AND app.id=? AND field.field_type NOT IN ('autologon_user','autologon_password','hidden','script','script-cookie','cookie')";
     $sth = $dbh->prepare($query);
     $sth->execute( $app->{id} );
     my @fields = @{ $sth->fetchall_arrayref };
