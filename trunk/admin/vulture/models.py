@@ -772,7 +772,7 @@ class LDAP(models.Model):
         db_table = 'ldap'
     
     def __str__(self):
-        return "%s [LDAP]"%self.host
+        return "%s [LDAP]"%self.name
 
     def __unicode__(self):
         return str(self)
