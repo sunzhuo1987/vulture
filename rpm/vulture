@@ -26,6 +26,7 @@ export HTTPD_BIN="/usr/sbin/httpd"
 export MEMCACHED="/usr/bin/memcached"
 export MEMCACHED_IP="127.0.0.1"
 export MEMCACHED_PORT="9091"
+export MEMCACHED_PID="/opt/vulture/admin/mc.pid"
 VULTURE_USER="apache"
 
 # Source an auxiliary options file if we have one, and pick up OPTIONS,
@@ -38,7 +39,7 @@ RETVAL=0
 function start() {
 	/opt/vulture/bin/test-perl.sh || exit 1;
 	echo -n $"Starting ${NAME}: "
-        daemon $MEMCACHED -d -m 512 -l $MEMCACHED_IP -p $MEMCACHED_PORT -u $VULTURE_USER
+        daemon $MEMCACHED -d -m 512 -l $MEMCACHED_IP -p $MEMCACHED_PORT -u $VULTURE_USER -P $MEMCACHED_PID
 	su -c "python ${VULTURE_HOME}/${NAME}/admin/vulture/memcached.py start >/dev/null 2>&1 &" $VULTURE_USER
 	python "${VULTURE_HOME}/${NAME}/conf/vintf_startup.py" up
 	sleep 2
