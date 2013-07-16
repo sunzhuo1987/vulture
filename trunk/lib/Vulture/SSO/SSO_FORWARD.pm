@@ -245,6 +245,7 @@ sub forward {
 
     $log->debug("########## SSO_FORWARD ##########");
 
+    my $config = $r->pnotes('config');
     $log->debug(
         "LWP::UserAgent is emulating post request on " . $app->{name} );
 
@@ -254,9 +255,16 @@ sub forward {
     my $sso_is_post             = $app->{'sso'}->{'is_post'};
     $log->debug( "SSO_FORWARD_TYPE=" . $sso_forward_type );
 
+    my %ssl_opts = (
+        verify_hostname => 1,
+    );
+    my $SSL_ca_file = $config->get_key('SSL_ca_file')||'';
+    if ($SSL_ca_file){
+        $ssl_opts{SSL_ca_file} = $SSL_ca_file;
+    }
     #Setting browser
     my ( $mech, $response, $post_response, $request, $cookies );
-    $mech = WWW::Mechanize::GZip->new;
+    $mech = WWW::Mechanize::GZip->new(ssl_opts => \%ssl_opts);
 
     $cookies = $r->headers_in->{Cookie};
     my $cleaned_cookies = '';
@@ -563,6 +571,9 @@ sub forward {
 		$mech->cookie_jar->scan( \&SSO::SSO_FORWARD::callback );
 	} else {	
 		my $ua = LWP::UserAgent->new;
+        while ( my ($k,$v) = each %ssl_opts){
+            $ua->ssl_opts ( $k => $v );
+        }
 		$post_response = $ua->request($request);
 		foreach ($post_response->headers->header('Set-Cookie')) {
 		       if (/([^,; ]+)=([^,; ]+)/) {
