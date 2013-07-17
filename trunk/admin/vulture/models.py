@@ -64,12 +64,6 @@ class VINTF(models.Model):
     class Meta:
 	db_table = 'vintf'
 	
-class ClusterVulture:
-    def __init__(self):
-        pass
-    def all_elements(self):
-        return MC.all_elements()
-
 class Log(models.Model):
     LOG_LEVELS = (
         ('emerg', 'emerg'),
@@ -569,7 +563,8 @@ class CAS(models.Model):
 
 class SSL(models.Model):
     SSL_REQUIRE = (
-        ('optional', 'optional'),
+        ('none', 'none'),
+        ('optional','optional'),
         ('require', 'require'),
         )
     name = models.CharField(max_length=128,unique=1)
@@ -772,7 +767,7 @@ class LDAP(models.Model):
         db_table = 'ldap'
     
     def __str__(self):
-        return "%s [LDAP]"%self.name
+        return "%s [LDAP]"%self.host
 
     def __unicode__(self):
         return str(self)
@@ -917,7 +912,7 @@ class SSO(models.Model):
         )
     name = models.CharField(max_length=128, unique=1)
     type = models.CharField(max_length=20, choices=SSO_TYPES, blank=1)
-    auth = models.ForeignKey('Auth', null=1)
+    auth = models.ForeignKey('Auth', null=1, blank=1)
     table_mapped = models.CharField(max_length=128, blank=1, null=1)
     base_dn_mapped = models.CharField(max_length=128, blank=1, null=1)
     user_mapped = models.CharField(max_length=128, blank=1, null=1)
