@@ -129,26 +129,16 @@ sub handler : method {
         Core::AuthenHandler::csrf_ok($token, \%session_SSO, $app, $intf));
     $log->debug(" Auth gave : " . ($ret==Apache2::Const::OK ? "OK" : "NOK"));
 
-    # Auth module: The authentication is successful"
-    # -- User has been authentified
-    if ($ret == Apache2::Const::OK){
-        $session_SSO{'auth_user_' . $auth->{id}} =  $r->pnotes('username');
-    }
-
     #Trigger action when change pass is needed / auth failed
     Core::AuthenHandler::auth_triggers ($r,$ret,$user,$password,$intf,$app);
 
+    # Auth module: The authentication is successful"
+    # -- User has been authentified
     if (defined $ret and $ret == scalar Apache2::Const::OK )
     {
         #Get new username and password
         $user = $r->pnotes('username'); 
-        if (exists $session_SSO{tmp_pwd}){
-            $password = $session_SSO{tmp_pwd};
-            delete $session_SSO{tmp_pwd};
-        }
-        else{
-            $password = $r->pnotes('password') || $password;
-        }
+        $password = $r->pnotes('password');
         $log->debug("Good user/password for $user");
 
         $log->debug('Validate SSO session');

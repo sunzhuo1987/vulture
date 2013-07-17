@@ -509,8 +509,8 @@ sub get_style {
                         $log, $r->pnotes('mc_conf'), $intf->{sso_update_access_time} );
                     
                     my $ok_auth = "{" . (join ",", map{  
-                                "$1:\"" . js_escape($session_SSO{"auth_user_$1"}) .'"' if ($_ =~ /auth_user_(\d+)/)
-                                } grep {$_ =~ /^auth_user_(\d+)$/}(keys %session_SSO)) . "}";
+                                "$1:\"" . js_escape($session_SSO{"auth_infos_$1"}{login}) .'"' if ($_ =~ /auth_infos_(\d+)/)
+                                } grep {$_ =~ /^auth_infos_(\d+)$/}(keys %session_SSO)) . "}";
 
                     my $auth = ($app and defined $app->{'auth'} ) ? $app->{'auth'} : $intf->{'auth'};
                     if ( not $auth) {

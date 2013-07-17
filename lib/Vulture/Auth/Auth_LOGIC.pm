@@ -42,7 +42,7 @@ sub checkAuth {
     my $lusr = undef;
     my $lpwd = undef;
     my $fail_login = 0;
-    my $and_login = undef;
+    my ($and_login, $and_pwd) = (undef,undef);
 
     $log->debug("########## Auth_LOGIC ($name, $operator, $login_id) ##########");
 
@@ -51,9 +51,12 @@ sub checkAuth {
         $log->debug("LOGIC (auth): $name, $type, $meth");        
         $lusr = $lpwd = undef;
 
+        my $akey = "auth_infos_$auth_id";
         # We are not already logged with this method:
-        if (defined $session_sso->{'auth_user_' . $auth_id}){
-            $lusr = $session_sso->{'auth_user_' . $auth_id};
+        if (defined $session_sso->{$akey}){
+            my $ainfo = $session_sso->{$akey};
+            $lusr = $ainfo->{login};
+            $lpwd = $ainfo->{pwd};
             $log->debug("LOGIC : $user already logged in $name as '$lusr'");
         }
         else{
@@ -69,8 +72,8 @@ sub checkAuth {
             ){
                 $r->pnotes('auth_message' => 'PENDING_LOGIN');
                 $user = $r->pnotes('username');
-                $log->debug("LOGIC : save '$user' in 'auth_user_$auth_id'");
-                $session_sso->{'auth_user_' . $auth_id} = $user;
+                $log->debug("LOGIC : save '$user' in '$akey'");
+                $session_sso->{$akey} = { login => $user, pwd => $password};
                 $lusr = $user;
                 $lpwd = $password;
             }
@@ -82,13 +85,13 @@ sub checkAuth {
             if ($operator eq 'OR'){
                 # Alright, that's enought for a 'OR' 
                 $r->pnotes('username' => "$lusr");
+                $r->pnotes('password' => "$lpwd");
                 return Apache2::Const::OK;
             }
             # AND
             elsif ($auth_id == $login_id){
                 $and_login = $lusr;
-                # we have to save the password in session to keep autologon
-                $session_sso->{tmp_pwd} = $lpwd if defined $lpwd;
+                $and_pwd = $lpwd;
             }
         }
         else {
@@ -109,6 +112,7 @@ sub checkAuth {
     }
     $log->debug("LOGIC : AND succeeded");
     $r->pnotes('username' => "$and_login");
+    $r->pnotes('password' => "$and_pwd");
     return Apache2::Const::OK;
 }
 1;
