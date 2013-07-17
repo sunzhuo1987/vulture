@@ -16,7 +16,7 @@ from time import sleep
 from django.core.exceptions import FieldError
 import ldap
 import re
-from memcached import MC
+from memcached import MC, SynchroDaemon
 from vulture.models import *
 from vulture.forms import *
 
@@ -48,7 +48,8 @@ def manage_cluster(request):
         curversion += 1
         version_conf.value = str(curversion)
         version_conf.save()
-    return render_to_response('vulture/cluster_list.html', {'last_version':curversion, 'object_list':MC.list_servers()})
+    daemon = SynchroDaemon()
+    return render_to_response('vulture/cluster_list.html', {'last_version':curversion, 'object_list':daemon.list_servers()})
 
 @permission_required('vulture.delete_appearance')
 def remove_appearance(request,object_id=None):
@@ -197,9 +198,10 @@ def stop_intf(request, intf_id):
     intf = Intf.objects.get(pk=intf_id)
     k_output = intf.k('stop')
     apps = App.objects.filter(intf=intf).all()
+    mc = MC()
     for app in apps:
         # Delete memcached records to update config
-        MC.delete(app.name + ':app')
+        mc.delete(app.name + ':app')
     sleep(2)
     return render_to_response('vulture/intf_list.html',
                               {'object_list': Intf.objects.all(), 'k_output': k_output, 'user' : request.user})
@@ -214,9 +216,10 @@ def reload_intf(request, intf_id):
         k_output = intf.k('graceful')
     
         apps = App.objects.filter(intf=intf).all()
+        mc = MC()
         for app in apps:
             # Delete memcached records to update config
-            MC.delete("%s:app"%app.name)
+            mc.delete("%s:app"%app.name)
     return render_to_response('vulture/intf_list.html',
                               {'object_list': Intf.objects.all(), 'k_output': k_output, 'user' : request.user})
                               
@@ -224,6 +227,7 @@ def reload_intf(request, intf_id):
 def reload_all_intfs(request):
     k_output = "Reloading all interface :<br>"
     intfs = Intf.objects.all()
+    mc = MC()
     for intf in intfs :
         if intf.need_restart:
             fail = intf.maybeWrite()
@@ -239,7 +243,7 @@ def reload_all_intfs(request):
                 k_output += "<br>"
                 # Delete memcached records to update config
                 for app in App.objects.filter(intf=intf).all():
-                    MC.delete(app.name + ':app')
+                    mc.delete(app.name + ':app')
     return render_to_response('vulture/intf_list.html', {'object_list': intfs, 'k_output': k_output, 'user' : request.user})
 
 @user_passes_test(lambda u: u.is_staff)
@@ -448,7 +452,7 @@ def edit_app(request,object_id=None):
                     instance = Header(app=app, name = desc, value = dataPosted['field_value-' + id_], type=type_)
                     instance.save()
         # delete cached version of this app in memcache
-        MC.delete('%s:app'%app.name)
+        MC().delete('%s:app'%app.name)
         # Make sure we're using logic auth there
         app.auth = get_logic_auth_for(app.auth)
         app.save()

@@ -21,125 +21,125 @@ except:
     from pysqlite2 import dbapi2 as sqlite3
 import time
 import signal
+import memcache
+from storable import thaw
+
+class StorablePickler:
+    def __init__(self,fd, protocol=None):
+        self.fd = fd
+    def dump(self, obj):
+        raise NotImplementError()
+    def dumps(self, obj):
+        raise NotImplementError()
+    def load(self):
+        return thaw(self.fd.read())
+    def loads(self, obj):
+        return thaw(obj)
 
 class MC:
     LOCKNAME = "vulture_lock"
+    def __init__(self,perl_storable=False):
+        self.mc_servers = [x.strip() for x in Conf.objects.get(var="memcached").value.split(",")]
+        if perl_storable:
+            self.client = memcache.Client(self.mc_servers,
+                    pickler=StorablePickler, unpickler=StorablePickler)
+        else:
+            self.client = memcache.Client(self.mc_servers)
+        
+    def get(self, key):
+        try:
+            return self.client.get(str(key))
+        except:
+            pass
+
+    def set(self,key,value):
+        return self.client.set(str(key),value)
+
+    def add(self,key,value):
+        return self.client.add(str(key),value)
+
+    def append(self,key,value):
+        return self.client.append(str(key),value)
+
+    def prepend(self,key,value):
+        return self.client.prepend(str(key),value)
+
+    def delete(self,key):
+        return self.client.delete(str(key))
+    
+    def lock(self):
+        while not self.add(self.LOCKNAME,1):
+            time.sleep(1)
+
+    def unlock(self):
+        self.delete(self.LOCKNAME)
+
+class SynchroDaemon:
     LOCKFILE = "%s/vulture-daemon.lock"%settings.CONF_PATH
     VERSIONKEY = "vulture_version"
     KEYSTORE = "vulture_instances"
     MSCONFKEY = "conf:ms_files"
-    TMPFILE = "vulture_tmp"
     INTERVAL = 30
-    mc_servers = [x.strip() for x in Conf.objects.get(var="memcached").value.split(",")]
-    mc_client = None
-    try:
-        import memcache
-        mc_client = memcache.Client(mc_servers)
-    except:
-        pass
-    if not mc_client:
-        raise Exception("no memcached driver available")
+    def __init__(self):
+        self.db = sqlite3.connect(settings.DATABASES['default']['NAME'])
+        self.db.row_factory=sqlite3.Row
+        self.mc = MC()
 
-    db = sqlite3.connect(settings.DATABASES['default']['NAME'])
-    db.row_factory=sqlite3.Row
-
-    @staticmethod
-    def getConf(key):    
+    def getConf(self, key):    
         val=Conf.objects.get(var=key)
         return val and val.value or None
 
-    @staticmethod
-    def get(key):
+    def cluster_activated(self):
         try:
-            return MC.mc_client.get(str(key))
-        except:
-            pass
-
-    @staticmethod
-    def set(key,value):
-        return MC.mc_client.set(str(key),value)
-
-    @staticmethod
-    def add(key,value):
-        return MC.mc_client.add(str(key),value)
-
-    @staticmethod
-    def append(key,value):
-        return MC.mc_client.append(str(key),value)
-
-    @staticmethod
-    def prepend(key,value):
-        return MC.mc_client.prepend(str(key),value)
-
-    @staticmethod
-    def delete(key):
-        return MC.mc_client.delete(str(key))
-    
-    @staticmethod
-    def lock():
-        while not MC.add(MC.LOCKNAME,1):
-            time.sleep(1)
-
-    @staticmethod
-    def unlock():
-        MC.delete(MC.LOCKNAME)
-
-    @staticmethod
-    def clusterActivated():
-        try:
-            useMe = MC.getConf("use_cluster")
+            useMe = self.getConf("use_cluster")
             if useMe == "1" :
                 return True
         except:
             return False
  
-    @staticmethod
-    def daemonStarted():
+    def started(self):
         try:
-            f = open(MC.LOCKFILE,"rb")
-            pid = f.read()
+            f = open(self.LOCKFILE,"rb")
+            pid = int(f.read())
             f.close()
-            pid=int(pid)
             os.kill(pid,0)
             return pid
         except:
             return False
 
-    @staticmethod
-    def startDaemon():
-        if MC.daemonStarted():
+    def start(self):
+        if self.started():
             print ("[-] %s: Already started"%time.ctime())
-            MC.stopDaemon()
-            if MC.daemonStarted():
+            self.stop()
+            if self.started():
                 print ("[-] %s: Unable to stop daemon"%time.ctime())
                 return False
-        if not MC.clusterActivated():
+        if not self.cluster_activated():
             print ("[-] %s: Cluster not activated in conf"%time.ctime())
             return True
         print ("[+] %s: Cluster sync daemon starting .. "%time.ctime())
         # creating lock file
-        f = open(MC.LOCKFILE,"wb")
+        f = open(self.LOCKFILE,"wb")
         f.write(str(os.getpid()))
         f.close()
         # set interrupt handler
-        signal.signal(signal.SIGINT, MC.stopDaemon)
+        signal.signal(signal.SIGINT, self.stop)
         try:
             os.mkdir("%s/security-rules"%settings.CONF_PATH)
         except:
             pass
         while True:
             # check if the cluster was deactivated in conf
-            if not MC.clusterActivated():
-                MC.stopDaemon()
+            if not self.cluster_activated():
+                self.stop()
             # check if conf is up to date, eventually update
-            MC.refresh()
+            self.refresh()
             # wait x seconds
-            time.sleep(MC.INTERVAL)
+            time.sleep(self.INTERVAL)
 
-    @staticmethod
-    def stopDaemon(sig=2, v=0):
-        name = MC.getConf("name")
-        pid = MC.daemonStarted()
+    def stop(self,sig=2, v=0):
+        name = self.getConf("name")
+        pid = self.started()
         if not pid:
         # daemon is already stopped
             print ("[-] %s: Daemon not started..."%time.ctime())
@@ -152,65 +152,62 @@ class MC:
         # stopping this process
         print ("[+] %s: Stopping daemon [%s]"%(time.ctime(),pid))
         # remove this cluster from memcache
-        old = MC.get(MC.KEYSTORE) or []
+        old = self.mc.get(self.KEYSTORE) or []
         if old:
-            MC.set(MC.KEYSTORE,[f for f in old if f!=name])
-        MC.delete("%s:infos"%name)
+            self.mc.set(self.KEYSTORE,[f for f in old if f!=name])
+        self.mc.delete("%s:infos"%name)
         # remove lock file
-        os.remove(MC.LOCKFILE)
+        os.remove(self.LOCKFILE)
         sys.exit(0)
     
-    @staticmethod
-    def refresh():
-        MC.lock()
+    def refresh(self):
+        self.mc.lock()
         try:
-            MC.check_config()
+            self.check_config()
         except:
-            MC.unlock()
+            self.mc.unlock()
             raise
-        MC.unlock()
+        self.mc.unlock()
     
-    @staticmethod
-    def check_config():
+    def check_config(self):
         # get database conf vars
-        myversion = int(MC.getConf("version_conf"))
-        name = MC.getConf('name')
+        myversion = int(self.getConf("version_conf"))
+        name = self.getConf('name')
         # get memcache conf version
-        mcversion = MC.get(MC.VERSIONKEY)
+        mcversion = self.mc.get(self.VERSIONKEY)
         mcversion = mcversion == None and -1 or int(mcversion)
         if myversion == mcversion:
             pass
         elif myversion > mcversion:
         # push my conf in memcache 
             print ("[+] %s: Pushing my conf into memcache..."%time.ctime())
-            MC.push_conf()
-            MC.set(MC.VERSIONKEY, myversion)
+            self.push_conf()
+            self.mc.set(self.VERSIONKEY, myversion)
             print ("[+] %s: Push done"%time.ctime())
         else:
         # new config available, update
             print ("[+] %s: Updating conf..."%time.ctime())
-            MC.pop_conf()
+            self.pop_conf()
             myversion = mcversion
             # update my version number in database
             Conf.objects.filter(var="version_conf").update(value=str(myversion))
             print ("[+] %s: Update done"%time.ctime())
         # put this server name in memcache if not already there
-        all_srv = MC.get(MC.KEYSTORE) or []
+        all_srv = self.mc.get(self.KEYSTORE) or []
         if not name in all_srv:
-            MC.set(MC.KEYSTORE,all_srv+[name])
+            self.mc.set(self.KEYSTORE,all_srv+[name])
         # put infos of this server in memcache for monitoring purpose
         infos = {"version":myversion,"last":time.time()}
-        MC.set("%s:infos"%name,infos)
+        self.mc.set("%s:infos"%name,infos)
     
     # monitoring func, return list of servers and infos
-    @staticmethod
-    def list_servers():
+    def list_servers(self):
         ret = []
-        all_srv = MC.get(MC.KEYSTORE)
+        all_srv = self.mc.get(self.KEYSTORE)
         if not all_srv:
             return ret
         for name in all_srv:
-            info = MC.get("%s:infos"%name)
+            info = self.mc.get("%s:infos"%name)
             # if we failed to get infos, return err value
             if not info:
                 info = {"name":name,"version":-1,"last":0,"up":False}
@@ -218,15 +215,14 @@ class MC:
             # else return memcache value with this server's name
                 info.update({"name":name})
                 # check if server is up, give it 3 seconds to update its conf
-                if (info['last'] + MC.INTERVAL+3) >= time.time() :
+                if (info['last'] + self.INTERVAL+3) >= time.time() :
                     info['up'] = True
                 else:
                     info['up'] = False
             ret += [info]
         return ret
         
-    @staticmethod
-    def reload_intfs():
+    def reload_intfs(self):
         intfs= Intf.objects.all()
         for intf in intfs :
             if intf.need_restart:
@@ -236,33 +232,30 @@ class MC:
                     intf.k('graceful')
                     apps = App.objects.filter(intf=intf).all()
                     for app in apps:
-                        MC.delete('%s:app'%app.name)
+                        self.mc.delete('%s:app'%app.name)
 
-    @staticmethod
-    def reset_mc():
+    def reset_mc(self):
         # delete sql conf
-        for t in MC.list_tables():
-            MC.delete("conf:%s"%t)
+        for t in self.list_tables():
+            self.mc.delete("conf:%s"%t)
         # delete ms conf
-        MC.delete(MC.MSCONFKEY)
+        self.mc.delete(self.MSCONFKEY)
         # delete servers infos
-        srv = MC.get(MC.KEYSTORE) or []
+        srv = self.mc.get(self.KEYSTORE) or []
         for s in srv:
-            MC.delete("%s:infos"%s)
-        MC.delete(MC.KEYSTORE)
+            self.mc.delete("%s:infos"%s)
+        self.mc.delete(self.KEYSTORE)
         # delete conf version
-        MC.delete(MC.VERSIONKEY)
+        self.mc.delete(self.VERSIONKEY)
         # eventually delete lock
-        MC.unlock()
+        self.mc.unlock()
 
     # push conf of this server in memcache
-    @staticmethod
-    def push_conf():
-        MC.push_sql_conf()
-        MC.push_ms_conf()
+    def push_conf(self):
+        self.push_sql_conf()
+        self.push_ms_conf()
        
-    @staticmethod
-    def push_ms_conf():
+    def push_ms_conf(self):
         sec_dir = "%s/security-rules"%(settings.CONF_PATH)
         ms_files = []
         for type_ in ('activated','CUSTOM'):
@@ -277,32 +270,29 @@ class MC:
                     fcont = f.read()
                     f.close()
                     ms_files.append(f_path)
-                    MC.set("%s:%s"%(MC.MSCONFKEY,f_path),fcont)
-        MC.set(MC.MSCONFKEY,ms_files)
+                    self.mc.set("%s:%s"%(self.MSCONFKEY,f_path),fcont)
+        self.mc.set(self.MSCONFKEY,ms_files)
  
-    @staticmethod
-    def push_sql_conf():
-        for table in MC.list_tables():
-            MC.set('conf:%s'%table,MC.get_SQL_table(table))
+    def push_sql_conf(self):
+        for table in self.list_tables():
+            self.mc.set('conf:%s'%table,self.get_SQL_table(table))
 
-    @staticmethod
-    def pop_conf():
+    def pop_conf(self):
         try:
-            MC.pop_sql_conf()
+            self.pop_sql_conf()
         except sqlite3.IntegrityError, e:
             if (len(e.args)==1 and 
                 e.args[0]=='columns app_id, intf_id are not unique'):
-                print "Warning: integrity error, cleaning.."
-                MC.db.execute("DELETE from app_intf");
-                return MC.pop_conf()
+                print ("Warning: integrity error, cleaning..")
+                self.db.execute("DELETE from app_intf");
+                return self.pop_conf()
             raise
-        MC.pop_ms_conf()
+        self.pop_ms_conf()
         # eventually reload interfaces with changes
-        if MC.getConf("auto_restart")=='1':
-            MC.reload_intfs()
+        if self.getConf("auto_restart")=='1':
+            self.reload_intfs()
 
-    @staticmethod
-    def pop_ms_conf():
+    def pop_ms_conf(self):
         sec_dir = os.path.realpath(
                 "%s/security-rules"%(settings.CONF_PATH))
         # remove old conf 
@@ -317,7 +307,7 @@ class MC:
                 os.rmdir(sec_dir2)
             os.rmdir(sec_dir1)
         # get files from memcache
-        list_files = MC.get(MC.MSCONFKEY)
+        list_files = self.mc.get(self.MSCONFKEY)
 	
         if list_files:
             for relpath in list_files:
@@ -325,7 +315,7 @@ class MC:
                 if not os.path.realpath("%s/%s"%(sec_dir,relpath)
                         ).startswith(sec_dir):
                     continue
-                print "[?] %s: pop ms file : %s"%(time.ctime(),relpath)
+                print ("[?] %s: pop ms file : %s"%(time.ctime(),relpath))
                 dirs = relpath.split("/")
                 filename = dirs[len(dirs)-1]
                 dirs = dirs[:len(dirs)-1]
@@ -337,16 +327,16 @@ class MC:
                         os.mkdir(d)
                 # write file in its right place
                 f = open("%s/%s"%(sec_dir,relpath),"wb")
-                file=MC.get("%s:%s"%(MC.MSCONFKEY,relpath))
+                file=self.mc.get("%s:%s"%(self.MSCONFKEY,relpath))
                 f.write(file)
                 f.close()
 
-    @staticmethod
-    def pop_sql_conf():
-        for table in MC.list_tables():
+    def pop_sql_conf(self):
+        for table in self.list_tables():
+#todo therse
             print("[?] %s: checking  %s ..."%(time.ctime(),table))
-            db_conf = MC.get_SQL_table(table)
-            mc_conf = MC.get("conf:%s"%table)
+            db_conf = self.get_SQL_table(table)
+            mc_conf = self.mc.get("conf:%s"%table)
             db_ids,mc_ids = {},{}
             if db_conf:
                 for row in db_conf:
@@ -360,7 +350,7 @@ class MC:
                 q = "DELETE FROM `%s` WHERE id IN (%s)"%(
                     table,",".join(dels))
                 print("%s: %s"%(time.ctime(),q))
-                MC.db.execute(q)
+                self.db.execute(q)
             # for all keys in memcache conf, 
             # check if it's present in the db
             for mc_k in mc_ids:
@@ -379,7 +369,7 @@ class MC:
                             ",".join(["`%s`=?"%k for k in keys])
                             )
                         print("%s: UPDATE TABLE %s"%(time.ctime(),table))
-                        MC.db.execute(q,vals+[mc_k])
+                        self.db.execute(q,vals+[mc_k])
                 elif mc_e: 
                     vals = [mc_e[k] for k in mc_e]
                     q = "INSERT INTO `%s` (%s) VALUES (%s)"%(table,
@@ -387,11 +377,10 @@ class MC:
                         ",".join(['?']*len(vals))
                         )
                     print("%s: INSERT INTO %s"%(time.ctime(),table))
-                    MC.db.execute(q,vals)
-        MC.db.commit()
+                    self.db.execute(q,vals)
+        self.db.commit()
    
-    @staticmethod
-    def convert_sqliteRow_to_dict(rows):
+    def convert_sqliteRow_to_dict(self,rows):
         #for easy work, we convert sqliteRow object (return by the query) to table of dictionnary
         tab=[]
         for row in rows:
@@ -402,35 +391,33 @@ class MC:
         return tab
 
     #get data from database
-    @staticmethod
-    def get_SQL_table(table):
-        sth = MC.db.execute("SELECT * from `%s`"%table)
+    def get_SQL_table(self,table):
+        sth = self.db.execute("SELECT * from `%s`"%table)
         rows = sth.fetchall();
-        di = MC.convert_sqliteRow_to_dict(rows)
+        di = self.convert_sqliteRow_to_dict(rows)
         return di
     
-    @staticmethod
-    def list_tables():
+    def list_tables(self):
         return [table for table in connection.introspection.table_names()
             # avoid server specific tables
             if not ( table in ('conf','vintf','event_logger') 
             # avoid django tables
                     or table.startswith("django_")) ]
 
-    @staticmethod
-    def usage():
-        sys.stderr.write("usage : vulture-daemon.py {start/stop/status}\n")
-        sys.exit(1)
+def usage():
+    sys.stderr.write("usage : vulture-daemon.py {start/stop/status}\n")
+    sys.exit(1)
 
 if __name__ == '__main__':
+    daemon = SynchroDaemon()
     func = {
-            'start':MC.startDaemon,
-            'stop':MC.stopDaemon,
-            'status':MC.daemonStarted,
+            'start':daemon.start,
+            'stop':daemon.stop,
+            'status':daemon.started,
         }
     try:
         f = func[sys.argv[1]]
     except:
-        MC.usage()
+        usage()
     sys.exit(not f() and 1 or 0)
 

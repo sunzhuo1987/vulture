@@ -204,7 +204,7 @@ class LogicForm(forms.ModelForm):
         model = Logic
 
 class SSOForm(forms.ModelForm):
-    auth = forms.ModelChoiceField(required=True, queryset=Auth.objects.filter(auth_type__in=['sql','ldap']))
+    auth = forms.ModelChoiceField(required=False,queryset=Auth.objects.filter(auth_type__in=['sql','ldap']))
     class Meta:
         model= SSO
         
