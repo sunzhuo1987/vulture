@@ -88,7 +88,7 @@ sub plugin {
     }
     else {
         foreach my $k (keys(%session_SSO)){
-                if ($k =~ /^auth_user/){
+                if ($k =~ /^auth_infos_/){
                         delete $session_SSO{$k};
                 }
         }
