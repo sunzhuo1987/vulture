@@ -505,7 +505,7 @@ sub app_down{
     $html |= '';
     $log->debug($html);
     $r->custom_response( Apache2::Const::NOT_FOUND, $html )
-        if $html =~ /<body>.+<\/body>/;
+        if $html =~ /<body>.+<\/body>/s;
     return Apache2::Const::NOT_FOUND;
 }
 sub app_not_found{
