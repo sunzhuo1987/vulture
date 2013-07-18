@@ -47,6 +47,7 @@ Vulture Reverse Proxy
      install -m0644 rpm/settings.py\
      $RPM_BUILD_ROOT%{serverroot}/%{name}/admin/settings.py
      install -d -m0755 $RPM_BUILD_ROOT%{serverroot}/%{name}/conf
+     install -d -m0770 $RPM_BUILD_ROOT%{serverroot}/%{name}/conf/security-rules
      install -m0644 rpm/httpd.conf\
      $RPM_BUILD_ROOT%{serverroot}/%{name}/conf/httpd.conf
      install -m0644 rpm/vulture.wsgi\
@@ -166,7 +167,7 @@ o.write(B.b64encode(f.read(128))[:32])' > %{serverroot}/%{name}/conf/aes-encrypt
 %{serverroot}/%{name}/rpm
 %defattr(-,vulture-admin,apache,-)
 %config(noreplace) %{serverroot}/%{name}/conf
-%defattr(-,vulture-admin,apache,770)
+%defattr(-,vulture-admin,apache)
 %config(noreplace) %{serverroot}/%{name}/conf/security-rules
 %defattr(-,vulture-admin,vulture-admin,-)
 %{serverroot}/%{name}/bin
