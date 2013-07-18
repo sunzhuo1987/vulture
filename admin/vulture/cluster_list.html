@@ -11,7 +11,8 @@
 
 {% block content %}
 	<div id="main_content_1" class="main_content">
-        <table>
+        <form method="POST" action="">
+        <table><tbody>
             <tr>
                 <th>{% trans "Name" %}</th>
                 <th>{% trans "Config version" %}</th>
@@ -26,11 +27,10 @@
             {% endfor %}
             <tr>
 	        <th>{% trans "Local conf version : "%}[{{ last_version}}]</th>
-			<form method="POST" action="">
                 <td><input type="submit" value="{% trans "Push conf" %}"/></td>
-                <td><input type="button" value="{% trans "Refresh" %}" onclick="javascript:document.location.reload()"/></td>
-			</form>
+                <td><input type="button" value="{% trans "Refresh" %}" onclick="javascript:window.location=''"/></td>
 	    <tr>
-	</table>
+	</tbody></table>
+			</form>
 	</div>	
 {% endblock %}
