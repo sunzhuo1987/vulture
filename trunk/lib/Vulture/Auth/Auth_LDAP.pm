@@ -30,7 +30,7 @@ sub checkAuth {
       @_;
 
     $log->debug("########## Auth_LDAP ##########");
-    return Apache2::Const::FORBIDDEN unless $csrf_ok;
+    return Apache2::Const::FORBIDDEN unless $csrf_ok and $user ne '';
 
     my (
         $ldap,              $ldap_url_attr,

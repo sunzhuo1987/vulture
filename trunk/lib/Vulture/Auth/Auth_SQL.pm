@@ -33,7 +33,7 @@ sub checkAuth {
       @_;
 
     $log->debug("########## Auth_SQL ##########");
-    return Apache2::Const::FORBIDDEN unless $csrf_ok;
+    return Apache2::Const::FORBIDDEN unless $csrf_ok and $user ne '';
 
     my ( $new_dbh, $ref ) = get_DB_object( $log, $dbh, $id_method );
     if ( $new_dbh eq "error" ) {

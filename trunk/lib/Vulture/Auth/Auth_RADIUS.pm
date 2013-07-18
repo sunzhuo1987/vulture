@@ -27,7 +27,7 @@ sub checkAuth {
       @_;
 
     $log->debug("########## Auth_RADIUS ##########");
-    return Apache2::Const::FORBIDDEN unless $csrf_ok;
+    return Apache2::Const::FORBIDDEN unless $csrf_ok and $user ne '';
 
     #get Radius info
     my $query =
