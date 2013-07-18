@@ -34,8 +34,10 @@ chmod 660 /var/www/vulture/admin/db
 chown root. /var/www/vulture/conf/httpd.conf
 chown vulture-admin:www-data /var/www/vulture/admin/
 chmod g+w /var/www/vulture/admin/
+mkdir /var/www/vulture/conf/security-rules
 chown -R vulture-admin:www-data /var/www/vulture/conf/
 chmod -R 750 /var/www/vulture/conf/
+chmod 0770 /var/www/vulture/conf/security-rules/
 chmod +x /var/www/vulture/bin/test-perl.sh
 
 #insert data into database

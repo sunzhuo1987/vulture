@@ -166,6 +166,8 @@ o.write(B.b64encode(f.read(128))[:32])' > %{serverroot}/%{name}/conf/aes-encrypt
 %{serverroot}/%{name}/rpm
 %defattr(-,vulture-admin,apache,-)
 %config(noreplace) %{serverroot}/%{name}/conf
+%defattr(-,vulture-admin,apache,770)
+%config(noreplace) %{serverroot}/%{name}/conf/security-rules
 %defattr(-,vulture-admin,vulture-admin,-)
 %{serverroot}/%{name}/bin
 %{serverroot}/%{name}/admin
