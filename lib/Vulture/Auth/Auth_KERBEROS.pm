@@ -26,7 +26,7 @@ sub checkAuth {
       @_;
 
     $log->debug("########## Auth_KERBEROS ##########");
-    return Apache2::Const::FORBIDDEN unless $csrf_ok;
+    return Apache2::Const::FORBIDDEN unless $csrf_ok and $user ne '';
 
     #Get infos
     my $query = "SELECT * FROM kerberos WHERE id= ?";
