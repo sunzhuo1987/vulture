@@ -15,7 +15,8 @@ BEGIN {
       qw(&get_memcached_conf &version_check &get_app &get_intf &session 
       &get_cookie &get_memcached &set_memcached &get_DB_object
       &get_LDAP_object &get_style &get_translations &generate_random_string 
-      &notify &get_LDAP_field &get_SQL_field &load_module &is_JK &parse_set_cookie &parse_cookies);
+      &notify &get_LDAP_field &get_SQL_field &load_module &is_JK &parse_set_cookie &parse_cookies
+      &encrypt &decrypt);
 }
 
 use Apache::Session::Generate::MD5;
@@ -30,6 +31,10 @@ use DBI;
 use Cache::Memcached;
 use APR::Table;
 use Math::Random::Secure qw(irand);
+
+use Crypt::CBC;
+use Crypt::OpenSSL::AES;
+use MIME::Base64;
 
 our ($memd);
 
@@ -803,5 +808,49 @@ sub auth_to_string{
     $json .= "}";
     $json .= " , children: [$childs]" if $childs;
     return "{$json}";
+}
+sub encrypt {
+    my ( $r, $value_to_encrypt ) = @_;
+
+    #Opening key file for encryption
+    my $conf = $r->dir_config('VultureConfPath');
+    open( my $fh, "<", $conf . 'aes-encrypt-key.key' )
+      or die "cannot open < $conf aes-encrypt-key.key : $!";
+    my @lines = <$fh>;
+    my $key   = $lines[0];
+
+    #Encrypting
+    my $cipher = Crypt::CBC->new(
+        -key    => $key,
+        -cipher => "Crypt::OpenSSL::AES"
+
+          #			-header => 'none'
+    );
+    my $value = $cipher->encrypt($value_to_encrypt);
+    close $fh or die $!;
+    return encode_base64($value);
+}
+
+sub decrypt {
+    my ( $r, $value_to_decrypt ) = @_;
+
+    #Opening key file for encryption
+    my $conf = $r->dir_config('VultureConfPath');
+    open( my $fh, "<", $conf . 'aes-encrypt-key.key' )
+      or die "cannot open < $conf aes-encrypt-key.key : $!";
+    my @lines = <$fh>;
+    my $key   = $lines[0];
+
+    #Encrypting
+    my $cipher = Crypt::CBC->new(
+        -key    => $key,
+        -cipher => "Crypt::OpenSSL::AES"
+
+          #			-header => 'none'
+    );
+    my $value = $cipher->decrypt(decode_base64($value_to_decrypt));
+    close $fh or die $!;
+    return $value;
+
 }
 1;

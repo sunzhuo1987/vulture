@@ -15,7 +15,7 @@ use Apache::SSLLookup;
 use Apache2::Const -compile => qw(OK FORBIDDEN REDIRECT DONE NOT_FOUND);
 use Core::VultureUtils qw(&get_memcached_conf &get_app &get_intf &version_check &get_cookie 
    &session &get_translations &get_style &load_module 
-   &get_memcached &set_memcached);
+   &get_memcached &set_memcached &decrypt);
 use Core::Log qw(&new &debug &error);
 use Core::Config qw(&new &get_key);
 use MIME::Base64 ;
@@ -303,7 +303,7 @@ sub authen_app{
     my ($log,$r,$dbh,$app,$session_app,$proxy_url) = @_;
     #Setting username && password for FixupHandler and ResponseHandler
     $r->pnotes( 'username' => ''.$session_app->{username} );
-    $r->pnotes( 'password' => ''.$session_app->{password} );
+    $r->pnotes( 'password' => ''.Core::VultureUtils::decrypt($r,$session_app->{password}) );
     $r->user( $session_app->{username} );
     $log->debug( "This app : "
           . $r->hostname
@@ -315,7 +315,7 @@ sub authen_app{
     if (    $app->{'sso'}->{'type'}
         and $app->{'sso'}->{'type'} eq "sso_forward_htaccess" )
     {
-        my $authorization = encode_base64($session_app->{username}.':'.$session_app->{password});
+        my $authorization = encode_base64($session_app->{username}.':'.Core::VultureUtils::decrypt($r,$session_app->{password}));
         $authorization =~ s/\n//;
         $r->headers_in->set(
             'Authorization' => "Basic $authorization"

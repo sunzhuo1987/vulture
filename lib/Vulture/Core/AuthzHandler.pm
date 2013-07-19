@@ -18,6 +18,7 @@ use Apache2::Const -compile => qw(OK HTTP_UNAUTHORIZED);
 
 use Core::VultureUtils qw(&session &get_memcached &notify &load_module);
 use Core::ActionManager qw(&handle_action);
+use Core::VultureUtils qw(&decrypt);
 
 sub handler {
     my $r = shift;
@@ -132,7 +133,7 @@ sub validate_auth{
     #Setting app session
     $session_app->{is_auth}  = 1;
     $session_app->{username} = $user;
-    $session_app->{password} = $password;
+    $session_app->{password} = Core::VultureUtils::encrypt($r,$password);
     $session_app->{app_name} = $app->{name};
 
     #Backward logout
