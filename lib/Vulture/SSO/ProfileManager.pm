@@ -22,6 +22,8 @@ use Net::LDAP;
 use Net::LDAP::Util;
 use DBI;
 
+use String::ShellQuote;
+
 BEGIN {
     use Exporter ();
     my @ISA = qw(Exporter);
@@ -65,7 +67,8 @@ sub get_profile {
         }
 	elsif($type eq 'script') {
 		    $log->debug("sso type is script");
-		    $value = `$value $user`;
+            my $script = "$value " . shell_quote $user;
+		    $value = `$script`;
 		    #return->{$var} = $field_prefix.$value.$field_suffix;
 		    $return->{$var} = [$field_prefix.$value.$field_suffix,$type];
 	}
