@@ -270,7 +270,7 @@ sub forward {
     my $cleaned_cookies = '';
     my $route           = '';
     foreach ( split( ';', $cookies ) ) {
-        if (/([^,; ]+)=([^,; ]+)/) {
+        if (/([^,; ]+)=([^,; ]*)/) {
             if (    $1 ne $r->dir_config('VultureAppCookieName')
                 and $1 ne $r->dir_config('VultureProxyCookieName') )
             {
@@ -543,7 +543,7 @@ sub forward {
 	$cleaned_cookies = '';
 	
 	foreach (split(';', $cookies)) {
-		if (/([^,; ]+)=([^,; ]+)/) {
+		if (/([^,; ]+)=([^,; ]*)/) {
 			if ($1 ne $r->dir_config('VultureAppCookieName') and $1 ne $r->dir_config('VultureProxyCookieName')){
 				$cleaned_cookies .= $1."=".$2.";";
 			}
@@ -552,7 +552,7 @@ sub forward {
 	$cookies = $cleaned_cookies;
 	$log->debug("This is cookie that we get from GET request ". $mech->cookie_jar->as_string);
     foreach ( split( "\n", $mech->cookie_jar->as_string ) ) {
-        if (/([^,; ]+)=([^,; ]+)/) {
+        if (/([^,; ]+)=([^,; ]*)/) {
             $cookies .= $1 . "=" . $2 . ";";
             $log->debug( "ADD/REPLACE " . $1 . "=" . $2 );
         }
@@ -576,7 +576,7 @@ sub forward {
         }
 		$post_response = $ua->request($request);
 		foreach ($post_response->headers->header('Set-Cookie')) {
-		       if (/([^,; ]+)=([^,; ]+)/) {
+		       if (/([^,; ]+)=([^,; ]*)/) {
 				$cookies_app{$1} = $2;		# ajout/remplacement
 				$log->debug("ADD/REPLACE ".$1."=".$2);
 		       }
