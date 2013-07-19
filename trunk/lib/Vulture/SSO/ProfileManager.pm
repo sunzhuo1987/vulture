@@ -16,21 +16,17 @@ use Apache2::Reload;
 use Apache2::Const -compile => qw(OK REDIRECT FORBIDDEN);
 use LWP;
 
-use Crypt::CBC;
-use Crypt::OpenSSL::AES;
-
-use Core::VultureUtils qw(&get_DB_object &get_LDAP_object);
+use Core::VultureUtils qw(&get_DB_object &get_LDAP_object &encrypt &decrypt);
 
 use Net::LDAP;
 use Net::LDAP::Util;
 use DBI;
-use MIME::Base64;
 
 BEGIN {
     use Exporter ();
     my @ISA = qw(Exporter);
     my @EXPORT_OK =
-      qw(&get_profile &set_profile &delete_profile &encrypt &decrypt);
+      qw(&get_profile &set_profile &delete_profile);
 }
 
 sub get_profile {
@@ -76,7 +72,7 @@ sub get_profile {
         else {
             if ($need_decryption) {
                 $log->debug("Decrypting $var");
-                $value = decrypt( decode_base64($value) );
+                $value = Core::VultureUtils::decrypt($r, $value );
             }
 		    #$return->{$var} = $field_prefix.$value.$field_suffix;        
 		    $return->{$var} = [$field_prefix.$value.$field_suffix,$type];
@@ -134,7 +130,7 @@ sub get_profile {
                     #Decryption is needed
                     if ($need_decryption) {
 	                    #$return->{$var} = $field_prefix.decrypt($r, decode_base64($ref->{$mapping})).$field_suffix;
-			    $return->{$var} = [$field_prefix.decrypt($r, decode_base64($ref->{$mapping})).$field_suffix,$type];
+			    $return->{$var} = [$field_prefix.Core::VultureUtils::decrypt($r, $ref->{$mapping}).$field_suffix,$type];
                     }
                     else {
 	                    #$return->{$var} = $field_prefix.$ref->{$mapping}.$field_suffix;
@@ -142,7 +138,7 @@ sub get_profile {
                     }
                 }
                 else {
-+                        $return->{$var} = [$field_prefix.$value.$field_suffix || '',$type]
+                        $return->{$var} = [$field_prefix.$value.$field_suffix || '',$type]
                 }
             }
             return $return;
@@ -204,7 +200,7 @@ sub get_profile {
                     #Decryption is needed
                     if ($need_decryption) {
 	                    #$return->{$var} = $field_prefix.decrypt($r, decode_base64($entry->get_value($mapping))).$field_suffix;
-	                    $return->{$var} = [$field_prefix.decrypt($r, decode_base64($entry->get_value($mapping))).$field_suffix,$type];
+	                    $return->{$var} = [$field_prefix.Core::VultureUtils::decrypt($r, $entry->get_value($mapping)).$field_suffix,$type];
                     }
                     else {
 	                    #$return->{$var} = $field_prefix.$entry->get_value($mapping).$field_suffix;
@@ -268,7 +264,7 @@ sub set_profile {
                 my $value = param($var);
                 if ($need_encryption) {
                     $log->debug("Encrypting $var");
-                    $value = encode_base64( encrypt( $r, $value ) );
+                    $value =  Core::VultureUtils::encrypt( $r, $value );
                 }
 
          #$log->debug("Pushing ".$prefix.$value.$suffix." into column $mapped");
@@ -379,7 +375,7 @@ sub set_profile {
                 my $value = param($var);
                 if ($need_encryption) {
                     $log->debug("Encrypting $var");
-                    $value = encode_base64( encrypt( $r, $value ) );
+                    $value = Core::VultureUtils::encrypt( $r, $value );
                 }
                 $log->debug( "Replacing " 
                       . $prefix 
@@ -439,50 +435,5 @@ sub delete_profile {
     else {
         return;
     }
-}
-
-sub encrypt {
-    my ( $r, $value_to_encrypt ) = @_;
-
-    #Opening key file for encryption
-    my $conf = $r->dir_config('VultureConfPath');
-    open( my $fh, "<", $conf . 'aes-encrypt-key.key' )
-      or die "cannot open < $conf aes-encrypt-key.key : $!";
-    my @lines = <$fh>;
-    my $key   = $lines[0];
-
-    #Encrypting
-    my $cipher = Crypt::CBC->new(
-        -key    => $key,
-        -cipher => "Crypt::OpenSSL::AES"
-
-          #			-header => 'none'
-    );
-    my $value = $cipher->encrypt($value_to_encrypt);
-    close $fh or die $!;
-    return $value;
-}
-
-sub decrypt {
-    my ( $r, $value_to_decrypt ) = @_;
-
-    #Opening key file for encryption
-    my $conf = $r->dir_config('VultureConfPath');
-    open( my $fh, "<", $conf . 'aes-encrypt-key.key' )
-      or die "cannot open < $conf aes-encrypt-key.key : $!";
-    my @lines = <$fh>;
-    my $key   = $lines[0];
-
-    #Encrypting
-    my $cipher = Crypt::CBC->new(
-        -key    => $key,
-        -cipher => "Crypt::OpenSSL::AES"
-
-          #			-header => 'none'
-    );
-    my $value = $cipher->decrypt($value_to_decrypt);
-    close $fh or die $!;
-    return $value;
-
 }
 1;

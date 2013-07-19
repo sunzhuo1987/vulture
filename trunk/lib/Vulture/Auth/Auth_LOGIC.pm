@@ -15,6 +15,7 @@ BEGIN {
 use Apache2::Reload;
 use Apache2::Log;
 use Apache2::Const -compile => qw(OK FORBIDDEN);
+use Core::VultureUtils qw(&encrypt &decrypt);
 
 sub checkAuth {
     my ( $package_name, $r, $log, $dbh, $app, $user, 
@@ -56,7 +57,7 @@ sub checkAuth {
         if (defined $session_sso->{$akey}){
             my $ainfo = $session_sso->{$akey};
             $lusr = $ainfo->{login};
-            $lpwd = $ainfo->{pwd};
+            $lpwd = Core::VultureUtils::decrypt($r,$ainfo->{pwd});
             $log->debug("LOGIC : $user already logged in $name as '$lusr'");
         }
         else{
@@ -73,7 +74,7 @@ sub checkAuth {
                 $r->pnotes('auth_message' => 'PENDING_LOGIN');
                 $user = $r->pnotes('username');
                 $log->debug("LOGIC : save '$user' in '$akey'");
-                $session_sso->{$akey} = { login => $user, pwd => $password};
+                $session_sso->{$akey} = { login => $user, pwd => Core::VultureUtils::encrypt($r,$password)};
                 $lusr = $user;
                 $lpwd = $password;
             }
