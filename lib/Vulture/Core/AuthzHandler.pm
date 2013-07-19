@@ -18,8 +18,7 @@ use Apache2::Const -compile => qw(OK HTTP_UNAUTHORIZED);
 
 use Core::VultureUtils qw(&session &get_memcached &notify &load_module);
 use Core::ActionManager qw(&handle_action);
-use Core::VultureUtils qw(&decrypt);
-
+use Core::VultureUtils qw(&encrypt);
 sub handler {
     my $r = shift;
     my $log = $r->pnotes('log');
