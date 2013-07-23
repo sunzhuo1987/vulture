@@ -278,7 +278,9 @@ sub forward {
             }
             elsif ( $1 eq $app->{Balancer_Stickyness} ) {
                 $route = $2;
-                $route =~ s/.//;
+                # if stickiness cookies contains a dot, route begins after it
+                # see https://httpd.apache.org/docs/2.2/mod/mod_proxy_balancer.html#stickyness_implementation
+                $route =~ s/^[^.]+\.//g;
             }
         }
     }
@@ -300,8 +302,14 @@ sub forward {
     }
     $ENV{HTTPS_PROXY} = $app->{remote_proxy};
     $ENV{HTTP_PROXY}  = $app->{remote_proxy};
+
+    # The base url of the app we'll connect to 
     my $base_url = $app->{url};
+
     if ( $app->{url} =~ /balancer:\/\// ) {
+        # We cannot pass a balancer:// uri to LWP user agentt
+        # So for now, Vulture does mod_balancer job, and choose the route
+        # So we'll have to set the stickiness cookie later 
         my @urls = split( ';', $app->{Balancer_Node} );
         my $u;
         my @shuffled;
@@ -311,14 +319,16 @@ sub forward {
             $base_url = $row[0];
             foreach $r (@row) {
                 if ( $r =~ /route=(.*)/ ) {
-                    $route = ".$1";
+                    # I really see no reason to put a dot there...
+                    $route = "$1";
                 }
             }
         }
         else {
             foreach $u (@urls) {
-                if ( $u =~ /route=(.*)$route(.*)/ ) {
-                    $base_url = split( ' ', $u );
+                if ( $u =~ /^\s*([^\s]+).*\s+route=.*$route/ ) {
+                    $base_url = $1;
+                    last;
                 }
             }
         }
@@ -605,18 +615,22 @@ sub forward {
         $log->debug( "path is " . $path );
         $r->err_headers_out->add( 'Set-Cookie' => $k . "="
               . $cookies_app{$k}
-              . "; domain="
-              . $r->hostname
+# We'll let the browser set the domain as he likes..
+#              . "; domain="
+#              . $r->hostname
               . "; path="
-              . $path );    # Send cookies to browser's client
+              . $path 
+        );    # Send cookies to browser's client
         $log->debug( "PROPAG " . $k . "=" . $cookies_app{$k} );
     }
-    if ( $route ne '' ) {
+    # We won't set the stickyness cookie if it's already there
+    if ( $route ne '' and not exists $cookies_app{$app->{Balancer_Stickyness}} ) {
         $r->err_headers_out->add(
                 'Set-Cookie' => $app->{Balancer_Stickyness} . "=" 
               . $route
-              . "; domain="
-              . $r->hostname
+# We'll let the browser set the domain as he likes..
+#              . "; domain="
+#              . $r->hostname
               . "; path="
               . $path );
     }
