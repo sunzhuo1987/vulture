@@ -283,7 +283,7 @@ class Intf(models.Model):
         self.write()
         fail_msg = self.tryConf()
         if fail_msg:
-            self.restoreConf(bpath)
+           # self.restoreConf(bpath)
             return fail_msg
 
     def delete(self,*args,**kwargs):
@@ -1340,10 +1340,8 @@ class Plugincontent(models.Model):
     ('Header Add', 'Header Add'),
     ('Header Modify', 'Header Modify'),
     ('Header Replacement', 'Header Replacement'),
-    ('Mime Forbiden', 'Mime Forbiden'),
+    ('Mime Forbidden', 'Mime Forbidden'),
     ('Header Unset','Header Unset'),
-    ('Header to link','Header to link'),
-    ('Header to proxy','Header to proxy'),
     ('Rewrite Content','Rewrite Content'),
     ('Rewrite Link','Rewrite Link'),
     )
