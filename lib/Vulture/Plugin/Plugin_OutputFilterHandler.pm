@@ -5,12 +5,6 @@ package Plugin::Plugin_OutputFilterHandler;
 use strict;
 use warnings;
 
-BEGIN {
-    use Exporter ();
-    our @ISA       = qw(Exporter);
-    our @EXPORT_OK = qw(&plugin);
-}
-
 use base qw(Apache2::Filter);
 use Apache2::Const qw(OK DECLINED FORBIDDEN :conn_keepalive);
 use Apache2::Connection ();
@@ -53,131 +47,108 @@ use Encode;
     'tr'     => ['background'],
     'xmp'    => ['href'],
 );
-
+%Plugin::Plugin_OutputFilterHandler::functions = (
+    'Header Add' => \&Plugin::Plugin_OutputFilterHandler::header_add,
+    'Header Modify' => \&Plugin::Plugin_OutputFilterHandler::header_modify,
+    'Header Replacement' => \&Plugin::Plugin_OutputFilterHandler::header_replace,
+    'Header Unset' => \&Plugin::Plugin_OutputFilterHandler::header_unset,
+    'Mime Forbiden' => \&Plugin::Plugin_OutputFilterHandler::mime_forbid,
+    'Rewrite Content' => \&Plugin::Plugin_OutputFilterHandler::rewrite_content,
+    'Rewrite Link' => \&Plugin::Plugin_OutputFilterHandler::rewrite_link,
+);
+sub header_add{
+    my ($f, $exp, $opt, $opt1) = @_;
+    $f->r->headers_out->unset($exp);
+    $f->r->headers_out->set($exp=>$opt);
+}
+sub header_modify{
+    my ($f, $exp, $opt, $opt1) = @_;
+    if ( $f->r->content_type =~ m/$exp/i ) {
+        $f->r->headers_out->unset( $opt);
+        $f->r->headers_out->set( $opt => $opt1);
+    }
+}
+sub header_replace{
+    my ($f, $exp, $opt, $opt1) = @_;
+    foreach my $headval ($f->r->headers_out->get($exp)) {
+        if ( $headval and ($headval =~ /$opt/x) ) {
+            $headval =~ s/$opt/$opt1/ig;
+            $f->r->headers_out->unset($exp);
+            $f->r->headers_out->set( $exp => $headval );
+        }
+    }
+}
+sub header_unset{
+    my ($f, $exp, $opt, $opt1) = @_;
+    $f->r->headers_out->unset($exp);
+}
+sub mime_forbid{
+    my ($f, $exp, $opt, $opt1) = @_;
+    if ( $f->r->content_type =~ m/$exp/i ) {
+        return Apache2::Const::FORBIDDEN;
+    }
+}
+sub rewrite_content{
+    my ($f,  $exp, $opt, $opt1) = @_;
+    if ( $f->r->content_type =~ /charset=(.*)/ ) {
+        Encode::from_to( $exp, "utf8", $1 );
+        Encode::from_to( $opt, "utf8", $1 );
+    }
+    $f->r->headers_out->unset('Content-Length');
+    my $ctx = $f->ctx;
+    $ctx->{do_rewrite} = 1;
+    push(@{$ctx->{rewrite_content}}, [$exp, $opt]);
+    $f->ctx($ctx);
+}
+sub rewrite_link{
+    my ($f,  $exp, $opt, $opt1) = @_;
+    my $content_type = $f->r->content_type() || '';
+    if ( $content_type =~ /charset=(.*)/ ) {
+        Encode::from_to( $exp,     "utf8", $1 );
+        Encode::from_to( $opt, "utf8", $1 );
+    }
+    $f->r->headers_out->unset('Content-Length');
+    my $ctx = $f->ctx;
+    $ctx->{do_rewrite} = 1;
+    push( @{ $ctx->{rewrite_link} }, [$exp , $opt] );
+    $f->ctx($ctx);
+}
 sub handler {
     my $f    = shift;
     my $r    = $f->r;
     my $log  = $r->server->log;
     my $user = $r->user;
-    my $i    = 0;
+    my $ctx = $f->ctx;
 
-    #return Apache2::Const::DECLINED;
-    if ( $r->content_type eq "image/svg+xml" ) {
+    if ( $r->content_type eq "image/svg+xml" ){
         return Apache2::Const::DECLINED;
     }
-    unless ( $f->ctx ) {
-        while ( $r->pnotes( 'type' . $i ) ) {
-            my $type = $r->pnotes( 'type' . $i );
-            my $exp  = $r->pnotes( 'exp' . $i );
-            if ( $type eq "Header Add" ) {
-                $r->headers_out->unset($exp);
-                $r->headers_out->set(
-                    $exp => $r->pnotes( 'options_' . $i ) );
-            }
-            if ( $type eq "Header Modify" ) {
-                if ( $r->content_type =~ m/$exp/i ) {
-                    $r->headers_out->unset( $r->pnotes( 'options_' . $i ) );
-                    $r->headers_out->set( $r->pnotes( 'options_' . $i ) =>
-                          $r->pnotes( 'options1_' . $i ) );
-                }
-            }
-            if ( $type eq "Header Replacement" ) {
-                $log->debug("Header Replacement");
-                my @valhead           = $r->headers_out->get($exp);
-                my $value             = $r->pnotes( 'options_' . $i );
-                my $replacementheader = $r->pnotes( 'options1_' . $i );
-                my $headval;
-                foreach $headval (@valhead) {
-                    if ( $headval && $headval =~ /$value/x ) {
-                        $log->debug(
-"Plugin_OutputFilterHandler RH Rule substitution OLDVAL=",
-                            $headval
-                        );
-                        $headval =~ s/$value/$replacementheader/ig;
-                        $log->debug(
-"Plugin_OutputFilterHandler RH Rule substitution NEWVAL=",
-                            $headval
-                        );
-                        $r->headers_out->unset($exp);
-                        $r->headers_out->set( $exp => $headval );
-                    }
-                }
-            }
-            if ( $type eq "Mime Forbiden" ) {
-                if ( $r->content_type =~ m/$exp/i ) {
-                    return Apache2::Const::FORBIDDEN;
-                }
-            }
-            if ( $type eq "Header Unset" ) {
-                $r->headers_out->unset($exp);
-            }
-            if ( $type eq "Header to Link" ) {
-                my $linkval = $r->headers_out->get($exp);
-                $linkval =
-                  $linkval . " => " . $r->pnotes( 'options_' . $i );
-                $log->debug($linkval);
-            }
-            if ( $type eq "Header to Proxy" ) {
-                $log->debug($exp);
-                my $linkval = $r->headers_out->get($exp);
-
-                #$session{url} = $linkval;
-                $log->debug( "we follow the link", $linkval );
-            }
-            if ( $type eq "Rewrite Content" ) {
-                $log->debug("Rewrite Content");
-                my $options = $r->pnotes( 'options_' . $i );
-                my $content_type = $f->r->content_type() || '';
-                if ( $content_type =~ /charset=(.*)/ ) {
-                    Encode::from_to( $exp,     "utf8", $1 );
-                    Encode::from_to( $options, "utf8", $1 );
-                }
-                $f->r->headers_out->unset('Content-Length');
-                my @rewrite = $exp . " => " . $options;
-                $log->debug($exp);
-                my $ct = $f->ctx;
-                $ct->{data} = '';
-                foreach my $p (@rewrite) {
-                    push( @{ $ct->{rewrite} }, $p );
-                }
-                $f->ctx($ct);
-            }
-            my $linkval;
-            if ( (( $type eq "Rewrite Link" ) or ( defined($linkval) )) ) {
-                $log->debug("Rewrite Link");
-                my $options = $r->pnotes( 'options_' . $i );
-                my $content_type = $f->r->content_type() || '';
-                if ( $content_type =~ /charset=(.*)/ ) {
-                    Encode::from_to( $exp,     "utf8", $1 );
-                    Encode::from_to( $options, "utf8", $1 );
-                }
-                $f->r->headers_out->unset('Content-Length');
-                my @pattern = $exp . " => " . $options;
-                if ( defined($linkval) ) {
-                    @pattern = $linkval;
-                }
-                my $ct = $f->ctx;
-                $ct->{data} = '';
-                foreach my $p (@pattern) {
-                    push( @{ $ct->{pattern} }, $p );
-                }
-                $f->ctx($ct);
-            }
-            $i++;
-        }
-        $i = 0;
-    }
-    my $ctx = $f->ctx;
-    while ( $f->read( my $buffer, BUFF_LEN ) ) {
-        $ctx->{data} .= $buffer;
-        $ctx->{keepalives} = $f->c->keepalives;
+    unless ( $ctx->{once} ){
+        $ctx->{once} = 1;
         $f->ctx($ctx);
+        my $rewrites = $r->pnotes("content_rewrites");
+        foreach my $conf_row (@$rewrites){
+            my ($type, $exp, $opt, $opt1) = @$conf_row;
+            if (not exists $Plugin::Plugin_OutputFilterHandler::functions{$type}){
+                $log->error("Unknown rewrite function in outputfilter!");
+                next;
+            }
+            my $ret = &{$Plugin::Plugin_OutputFilterHandler::functions{$type}}(
+                $f, $exp, $opt, $opt1 );
+            return $ret if defined $ret and $ret == Apache2::Const::FORBIDDEN;
+        }
     }
-
+    $ctx = $f->ctx;
+    my $content = '';
+    while ( $f->read( my $buffer, BUFF_LEN ) ) {
+        $content .= $buffer;
+        $ctx->{keepalives} = $f->c->keepalives;
+    }
+    $ctx->{data} .= $content;
+    $f->ctx($ctx);
     return Apache2::Const::OK unless ($f->seen_eos);
     # Thing we do at end
-    if ( ( $ctx->{pattern} ) || ( $ctx->{rewrite} ) ) {
-
+    if ( $ctx->{do_rewrite} ) {
         # Skip content that should not have links
         my $parsed_uri = $f->r->construct_url();
         my $encoding = $f->r->headers_out->{'Content-Encoding'} || '';
@@ -199,27 +170,23 @@ sub handler {
         }
         if ( $r->content_type =~
 /(text\/xml|text\/html|application\/vnd.ogc.wms_xml|text\/css|application\/x-javascript)/
-          )
-        {
-
+          ){
             # Replace links if pattern match
             my $parsed_2 = APR::URI->parse( $f->r->pool, $parsed_uri );
-            &link_replacement( \$ctx->{data}, '//',
+            &do_rewrite_link( \$ctx->{data}, '//',
                 $parsed_2->scheme . '://', $parsed_uri );
-            foreach my $p ( @{ $ctx->{pattern} } ) {
-                my ( $match, $substitute ) = split( / => /, $p );
-                $log->debug($match);
-                $log->debug($substitute);
-                &link_replacement( \$ctx->{data}, $match, $substitute,
+            foreach my $p ( @{$ctx->{rewrite_link}} ) {
+                my ( $match, $substitute ) = @$p;#split( / => /, $p );
+                $log->debug("LINK : MATCH : $match, SUB : $substitute");
+                &do_rewrite_link( \$ctx->{data}, $match, $substitute,
                     $parsed_uri );
             }
 
             # Rewrite content if pattern match
-            foreach my $p ( @{ $ctx->{rewrite} } ) {
-                my ( $match, $substitute ) = split( / => /, $p );
-                $log->debug($match);
-                $log->debug($substitute);
-                &rewrite_content( \$ctx->{data}, $match, $substitute,
+            foreach my $p ( @{$ctx->{rewrite_content}} ) {
+                my ( $match, $substitute ) = @$p;#split( / => /, $p );
+                $log->debug("CONTENT : MATCH : $match, SUB : $substitute");
+                &do_rewrite_content( \$ctx->{data}, $match, $substitute,
                     $parsed_uri );
             }
         }
@@ -241,17 +208,17 @@ sub handler {
         unless ( defined $ctx->{data} ) {
             $ctx->{data} = '';
         }
+        $f->ctx($ctx);
     }
-    $f->ctx($ctx);
 
     # Dump datas out
-    $f->print( $f->ctx->{data} );
+    $f->print( $f->ctx->{data});
+
     my $c = $f->c or return Apache2::Const::DECLINED;
     if (   $c->keepalive == Apache2::Const::CONN_KEEPALIVE
         && $ctx->{data}
         && $c->keepalives > $ctx->{keepalives} )
     {
-
     #unused variable debug
     #if ($debug) {
     #	warn "[ModProxyPerlHtml] cleaning context for keep alive request\n";
@@ -263,9 +230,8 @@ sub handler {
     return Apache2::Const::OK;
 }
 
-sub link_replacement {
+sub do_rewrite_link {
     my ( $data, $pattern, $replacement, $uri ) = @_;
-
     return if ( !$$data );
 
     my $old_terminator = $/;
@@ -327,9 +293,8 @@ s/(\.src[\s\t]*=[\s\t]*['"]*)($replacement|$pattern)(.*['"]*)/$1$replacement$3/i
 
 }
 
-sub rewrite_content {
+sub do_rewrite_content {
     my ( $data, $pattern, $replacement, $uri ) = @_;
-
     return if ( !$$data );
 
     my $old_terminator = $/;
@@ -342,4 +307,3 @@ sub rewrite_content {
 
 }
 1;
-

@@ -26,8 +26,6 @@ use APR::SockAddr;
 
 use DBI ;
 
-use Data::Dumper;
-
 sub handler {
 
     my $r            = Apache::SSLLookup->new(shift);
@@ -224,30 +222,17 @@ sub rewrite_content{
         $log->debug("got $key from memcached");
     }
     else{
-        my $query = ('SELECT pattern, type, options, options1 FROM plugincontent'
-            . ' WHERE (app_id = ?  OR app_id IS NULL) ORDER BY type');
-        $log->debug($query);
+        my $query = ('SELECT type, pattern, options, options1 FROM plugincontent'
+            . ' WHERE app_id = ? OR app_id IS NULL');
         $plugins = $dbh->selectall_arrayref( $query, undef, $app->{id} );
         Core::VultureUtils::set_memcached( $key, $plugins, 60, $mc_conf);
         $log->debug("set $key in memcached");
     }
-    my $i = 0;
-    foreach my $row (@$plugins) {
-        $log->debug( "COOKIEDEBUG type" . @$row[1] );
-        $r->pnotes( 'type' . $i      => @$row[1] );
-        $r->pnotes( 'exp' . $i       => @$row[0] );
-        $r->pnotes( 'options_' . $i  => @$row[2] );
-        $r->pnotes( 'options1_' . $i => @$row[3] );
-        $i++;
-    }
-    if ( $i > 0) {
-        $log->debug("COOKIEDEBUG sending rewrite content");
-        my $module_name = 'Plugin::Plugin_REWRITE_CONTENT';
-        $log->debug("Load $module_name");
-
+    if ( scalar @$plugins) {
         #Calling associated plugin
-        Core::VultureUtils::load_module($module_name,'plugin');
-        $module_name->plugin( $r, $log, $dbh, $intf, $app );
+        use Plugin::Plugin_OutputFilterHandler;
+        $r->pnotes(content_rewrites => $plugins);
+        $r->add_output_filter( \&Plugin::Plugin_OutputFilterHandler::handler );
     }
 }
 sub header_input{
@@ -368,7 +353,6 @@ sub redirect_portal{
     my $incoming_uri = $app->{name};
     my $ssl          = 0;
     my $auths = $app->{'auth'};
-    $log->debug("Auth : " . Data::Dumper::Dumper($auths));
     if (defined $auths and $auths and $auths->{auth_type} eq 'SSL'){
         $ssl = 1;
     }
