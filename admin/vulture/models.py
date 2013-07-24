@@ -283,7 +283,7 @@ class Intf(models.Model):
         self.write()
         fail_msg = self.tryConf()
         if fail_msg:
-           # self.restoreConf(bpath)
+            self.restoreConf(bpath)
             return fail_msg
 
     def delete(self,*args,**kwargs):

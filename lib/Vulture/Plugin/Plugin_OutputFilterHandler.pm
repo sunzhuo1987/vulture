@@ -52,7 +52,7 @@ use Encode;
     'Header Modify' => \&Plugin::Plugin_OutputFilterHandler::header_modify,
     'Header Replacement' => \&Plugin::Plugin_OutputFilterHandler::header_replace,
     'Header Unset' => \&Plugin::Plugin_OutputFilterHandler::header_unset,
-    'Mime Forbiden' => \&Plugin::Plugin_OutputFilterHandler::mime_forbid,
+    'Mime Forbidden' => \&Plugin::Plugin_OutputFilterHandler::mime_forbid,
     'Rewrite Content' => \&Plugin::Plugin_OutputFilterHandler::rewrite_content,
     'Rewrite Link' => \&Plugin::Plugin_OutputFilterHandler::rewrite_link,
 );
@@ -304,6 +304,5 @@ sub do_rewrite_content {
     $$data =~ s/$pattern/$replacement/g;
 
     $/ = $old_terminator;
-
 }
 1;
