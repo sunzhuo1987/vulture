@@ -319,8 +319,9 @@ sub forward {
             $base_url = $row[0];
             foreach $r (@row) {
                 if ( $r =~ /route=(.*)/ ) {
-                    # I really see no reason to put a dot there...
-                    $route = "$1";
+                    # No a see the reason: mod_proxy_balancer will use only the part of the cookie 
+                    # that is after the first dot as the route.
+                    $route = ".$1";
                 }
             }
         }
