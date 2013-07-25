@@ -38,9 +38,36 @@ sub checkAuth {
 
     my $realm = $ref->{'realm'};
 
-    my $kerberos = Authen::Simple::Kerberos->new( realm => $realm );
-    if ( $kerberos->authenticate( $user, $password ) ) {
-        $r->pnotes( 'username' => "$user" );
+    my @realms = ();
+    while ( $realm =~ /.*?([^;\s]+)/g){
+        push (@realms, $1);
+    }
+    if (not scalar @realms){
+        $log->error("Invalid kerberos realm in configuration\n");
+        return Apache2::Const::FORBIDDEN;
+    }
+
+    my $user_name = $user;
+    my $user_realm = $realms[0];
+
+    if ($user =~ /([^@]+)@(.*)/){
+        $user_name = $1;
+        $user_realm = '';
+        foreach my $r (@realms){
+            if ($2 eq $r){
+                $user_realm = $2;
+                last;
+            }
+        }
+        if ($user_realm eq ''){
+            $log->error("Invalid realm for user $user\n");
+            return Apache2::Const::FORBIDDEN;
+        }
+    }
+
+    my $kerberos = Authen::Simple::Kerberos->new( realm => $user_realm );
+    if ( $kerberos->authenticate( $user_name, $password ) ) {
+        $r->pnotes( 'username' => "$user_name" );
         return Apache2::Const::OK;
     }
     else {
