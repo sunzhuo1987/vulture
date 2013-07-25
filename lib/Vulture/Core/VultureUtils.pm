@@ -198,7 +198,7 @@ sub get_app {
                 last;
             }
             else {
-                foreach my $alias ( split( /\s*/, $hashref->{alias} ) ) {
+                foreach my $alias ( split( /\s+/, $hashref->{alias} ) ) {
                     next if $hashref->{alias} eq '';
                     $log->debug("$name : alias is $alias an host is $host");
                     if ( $host =~ /$alias/ ) {
