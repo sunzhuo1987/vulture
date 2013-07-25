@@ -194,7 +194,6 @@ sub get_app {
             $cpy =~ s|\*|\(\.\*\)\\|g;
             if ( $host =~ /^$cpy\// ) {
                 $ref = $apps->{$name};
-                $ref->{name} = $host;
                 last;
             }
             else {
