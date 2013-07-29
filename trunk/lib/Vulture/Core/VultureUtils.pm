@@ -156,6 +156,7 @@ sub get_app {
     return undef unless ( $host and $intf and $dbh );
     my $key = "applist:$intf";
     my $apps = Core::VultureUtils::get_memcached($key,$mc_conf);
+    $log->debug("GET_APP: for '$host'"); 
     unless (defined $apps){
 #Getting app and wildcardsv
         $query =
@@ -181,6 +182,7 @@ sub get_app {
         if ( $host =~ /^$name\// ) {
             if ( $fi > $max_fields ) {
                 $max_fields = $fi;
+                $log->debug("GET_APP: selecting '$name'"); 
                 $ref        = $apps->{$name};
             }
         }
@@ -189,21 +191,16 @@ sub get_app {
     unless ( defined $ref ) {
         while ( my ( $name, $hashref ) = each(%$apps) ) {
             next if $hashref->{alias} eq '';
-            $log->debug("alias is ".$hashref->{alias}."and host is $host");
-            my $cpy = $hashref->{alias};
-            $cpy =~ s|\*|\(\.\*\)\\|g;
-            if ( $host =~ /^$cpy\// ) {
-                $ref = $apps->{$name};
-                last;
-            }
-            else {
-                foreach my $alias ( split( /\s+/, $hashref->{alias} ) ) {
-                    next if $hashref->{alias} eq '';
-                    $log->debug("$name : alias is $alias an host is $host");
-                    if ( $host =~ /$alias/ ) {
-                            $ref = $apps->{$name};
-                            last;
-                    }
+            foreach my $alias ( split( /\s+/, $hashref->{alias} ) ) {
+                next if $alias eq '';
+                $log->debug("$name : alias is '$alias' an host is '$host'");
+                my $cpy = $alias;
+                $cpy =~ s|\*|\(\.\*\)\\|g;
+                if ( $host =~ /^($cpy)\// ) {
+                    $ref = $hashref;
+                    $ref->{name} = $1;
+                    $log->debug("GET_APP: selecting '".$ref->{name}."'"); 
+                    last;
                 }
             }
         }
@@ -223,7 +220,7 @@ sub get_app {
     $query =
 #' SELECT auth.name, auth.auth_type, auth.id_method,auth.id FROM auth JOIN auth_multiple ON auth.id = auth_multiple.auth_id WHERE auth_multiple.app_id = ?';
 ' SELECT auth.name, auth.auth_type, auth.id_method,auth.id FROM auth JOIN app ON auth.id=app.auth_id WHERE app.id = ?';
-    $log->debug($query);
+#    $log->debug($query);
     $sth = $dbh->prepare($query);
     $sth->execute($ref->{id});
     $ref->{'auth'} = $sth->fetchrow_hashref;
@@ -232,7 +229,7 @@ sub get_app {
 #Getting ACL
     $query =
 'SELECT acl.id, acl.name, auth.auth_type AS acl_type, auth.id_method FROM acl JOIN auth ON acl.auth_id = auth.id JOIN app ON acl.id = app.acl_id WHERE app.id = ?';
-    $log->debug($query);
+#    $log->debug($query);
     $sth = $dbh->prepare($query);
     $sth->execute( $ref->{id} );
     $ref->{'acl'} = $sth->fetchrow_hashref;
@@ -241,7 +238,7 @@ sub get_app {
     #Getting actions
     $query =
 "SELECT auth_server_failure_action, auth_server_failure_options, account_locked_action, account_locked_options, login_failed_action, login_failed_options, need_change_pass_action, need_change_pass_options, acl_failed_action, acl_failed_options FROM app WHERE app.id = ?";
-    $log->debug($query);
+#    $log->debug($query);
     $sth = $dbh->prepare($query);
     $sth->execute( $ref->{id} );
     $ref->{'actions'} = $sth->fetchrow_hashref;
@@ -250,7 +247,7 @@ sub get_app {
     #Getting SSO
     $query =
 "SELECT sso.type, sso.follow_get_redirect, sso.is_post FROM sso JOIN app ON sso.id = app.sso_forward_id WHERE app.id=?";
-    $log->debug($query);
+#    $log->debug($query);
     $sth = $dbh->prepare($query);
     $sth->execute( $ref->{id} );
     $ref->{'sso'} = $sth->fetchrow_hashref;
