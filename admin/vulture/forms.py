@@ -8,6 +8,10 @@ import os
 import hashlib
 import ifconfig
 
+class PolicyForm(forms.ModelForm):
+    class Meta:
+        model=Politique
+
 class IntfForm(forms.ModelForm):
     def __init__(self,*args,**kwargs):
         super(forms.ModelForm,self).__init__(*args,**kwargs)
@@ -105,38 +109,6 @@ class PluginCASForm(forms.ModelForm):
         model = PluginCAS
          
 class AppForm(forms.ModelForm):
-    def __init__(self, *args, **kwargs):
-        super(forms.ModelForm, self).__init__(*args, **kwargs)
-        path = settings.CONF_PATH+"security-rules/"
-        directory = {'base_rules/': "securitybase", 'experimental_rules/': "securityexp", 'optional_rules/': "securityopt", 'slr_rules/': "securityslr", 'CUSTOM/':"CUSTOM"}
-        
-        if not os.path.exists(path):
-            os.mkdir(path,0770)
-
-        if not os.path.exists(path+'activated/'):
-            os.mkdir(path+'activated/',0770)
-        
-        for (key, fieldname) in directory.items():
-            CHOICES=[]
-            INITIAL={}
-            if os.path.exists(path+key):
-                for fileName in os.listdir(path+key):
-                    if 'data' not in fileName and 'example' not in fileName  and os.path.isfile(path+key+fileName):
-                        CHOICES.append((fileName,fileName))
-                        if os.path.exists(path+'activated/'+str(self.instance).replace("/","")):
-                            if fileName in os.listdir(path+'activated/'+str(self.instance).replace("/","")):
-                                INITIAL[fileName] = True
-            
-            self.fields[fieldname].choices = CHOICES
-            self.fields[fieldname].initial = INITIAL
-                
-    securitybase = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple,required=False)
-    securityexp = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple,required=False)
-    securityopt = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple,required=False)
-    securityslr = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple,required=False)
-    CUSTOM = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple,required=False)
-    
-    
     class Meta:
         model = App
 
@@ -209,12 +181,39 @@ class SSOForm(forms.ModelForm):
         model= SSO
         
 class ModSecurityForm(forms.ModelForm):
+    
     class Meta:
-        model = ModSecurity
+        model = ModSecConf
+
+class GroupSecurityForm(forms.ModelForm):
+    url  = forms.URLField(required=False)
+    path = forms.FileField(required=False)
+
+    def clean(self):
+        cleaned_data = super(GroupSecurityForm, self).clean()
+        path = cleaned_data.get("path")
+        url = cleaned_data.get("url")
+        name = cleaned_data.get("name")
+
+        for groupName in [g.name for g in Groupe.objects.all()]:
+            if name == groupName:
+                raise forms.ValidationError("/!\ already Used Rules set Name")
+
+        if (not url) ^ (not path):
+            # Only do something if one field is valid 
+            return cleaned_data
+        else:
+            raise forms.ValidationError("fill in valid url or valid path to validate please")
+    
+        # Always return the full collection of cleaned data.
+    class Meta:
+        model = Groupe
+        
 
 class LocalizationForm(forms.ModelForm):
     class Meta:
         model = Localization
+    
     def clean(self):
         country = self.cleaned_data.get('country')
         message = self.cleaned_data.get('message')
