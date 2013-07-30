@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}
+	{% trans "System" %} - <small>{% trans "Event viewer" %}</small>
+{% endblock %}
+
+{% block tabs %}
+    <li><a href="/event/" id="main_tab_1" {% if not log_content %}class="active"{% endif %}>{% trans "Settings" %}</a></li>
+    <li><a href="#" {% if not log_content %}onclick="document.forms['log'].submit();"{% endif %} id="main_tab_2" {% if log_content %}class="active"{% endif %}>{% trans "Log" %}</a></li>
+{% endblock %}
+
+{% block content %}
+    <form method="get" action="." id="log_viewer">
+        <div id="main_content_1" class="main_content">
+            <table class="list">
+                {% if not log_content %}
+                    <tr>
+                        <th>{% trans "View log related to : " %}</th>
+                        <td class="input">
+                            <select name='file'>
+                            {% for file in file_list %}
+                                <option {{ file.1 }} value={{ file.0 }}>{{ file.2 }}</option>
+                            {% endfor %}
+                            </select>
+                        </td>
+                        <td>
+                            <span class="require">*</span>
+                            <img src="/img/vulture2/agt_support.png" alt="support" class="support" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>{% trans "Type" %}</th>
+                        <td class="input">
+                            <select name='type'>
+                            {% for xtype in type_list %}
+                                <option {% ifequal type xtype %}selected{% endifequal %} value='{{ xtype }}'>{{ xtype|title }}</option>
+                            {% endfor %}
+                            </select>
+                        </td>
+                        <td>
+                            <span class="require">*</span>
+                            <img src="/img/vulture2/agt_support.png" alt="support" class="support" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>{% trans "Records" %}</th>
+                        <td class="input">
+                            <input type='text' name='records' value={{ records }} />
+                        </td>
+                        <td>
+                            <span class="require">*</span>
+                            <img src="/img/vulture2/agt_support.png" alt="support" class="support" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>{% trans "Filter" %}</th>
+                        <td class="input">
+                            <input type='text' name='filter' value={{ filter }} />
+                        </td>
+                        <td>
+                            <img src="/img/vulture2/agt_support.png" alt="support" class="support" />
+                        </td>
+                    </tr>
+                {% endif %}
+                {% if log_content %}
+                    {% if active_sessions %}<tr><td>{% trans "Currently, there is : " %}</td><td><b>{{ active_sessions.info }}</b> active sessions in SSO (last update : {{ active_sessions.timestamp }})</td></tr>{% endif %}
+                    {% if connections_failed %}<tr><td>{% trans "Connections failed on SSO : " %}</td><td><b>{{ connections_failed }}</b> (sum)</td></tr>{% endif %}
+                    <tr><td><b>Stats : </b><td></td></tr>
+                    {% if stats_month %}<tr><td>{% trans "Connections / Month" %}</td><td><b>{{ stats_month|floatformat:2 }}</b>{% if stats_failed_month %} / <b>{{ stats_month|add:stats_failed_month|floatformat:2 }}</b> {{ stats_failed_month }} failed due to ACL{% endif %}</td></tr>{% endif %}
+                    {% if stats_day %}<tr><td>{% trans "Connections / Day" %}</td><td><b>{{ stats_day|floatformat:2 }}</b>{% if stats_failed_day %} / <b>{{ stats_day|add:stats_failed_day|floatformat:2 }}</b> {{ stats_failed_day }} failed due to ACL{% endif %}</td></tr>{% endif %}
+                    {% if stats_hour %}<tr><td>{% trans "Connections / Hour" %}</td><td><b>{{ stats_hour|floatformat:2 }}</b>{% if stats_failed_hour %} / <b>{{ stats_hour|add:stats_failed_hour|floatformat:2 }}</b> (sum)(ACL and wrong users){% endif %}</td></tr>{% endif %}
+                    <tr>
+                        <td colspan='2'>
+                            <textarea style="width:75%;" rows="{{ length }}"readonly="readonly">
+                                {{ log_content }}
+                            </textarea>
+                        </td>
+                    </tr>
+                {% endif %}
+            </table>
+        </div>
+        <br />
+        <input type="submit" value="{% trans "View log" %}"/>
+    </form>
+{% endblock %}

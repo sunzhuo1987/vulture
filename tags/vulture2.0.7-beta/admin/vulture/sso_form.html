@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}
+    {% trans "Authentication" %} - <small>{% trans "Web SSO settings" %}</small>
+{% endblock %}
+
+{% block tabs %}
+    <li><a href="/sso/">{% trans "List" %}</a></li>
+    <li><a href="javascript:swapTab(1, 5, 'main_tab_', 'main_content_');" id="main_tab_1" class="active">{% trans "Main settings" %}</a></li>
+    <li><a href="javascript:swapTab(2, 5, 'main_tab_', 'main_content_');" id="main_tab_2">{% trans "SQL" %}</a></li>
+    <li><a href="javascript:swapTab(3, 5, 'main_tab_', 'main_content_');" id="main_tab_3">{% trans "LDAP" %}</a></li>
+    <li><a href="javascript:swapTab(4, 5, 'main_tab_', 'main_content_');" id="main_tab_4">{% trans "Fields" %}</a></li>
+    <li><a href="javascript:swapTab(5, 5, 'main_tab_', 'main_content_');" id="main_tab_5">{% trans "Advanced" %}</a></li>
+{% endblock %}
+
+{% block content %}
+    <script type='text/javascript'>
+        var nbfields = {{ form.post|length }};
+
+        function delRowTo(table, row) {
+              var d = document.getElementById(table);
+              var olddiv = document.getElementById(row);
+              d.removeChild(olddiv);
+        }
+        (function($) {
+            // we can now rely on $ within the safety of our “bodyguard” function
+            $(document).ready( function() {
+                $("#addrow").click(function() {
+                    nbfields++;
+                    var name = 'table.' + nbfields;
+                    var tr = $('<tr>').attr('id', name);
+                    
+                    tr.append($('<input type="hidden">').attr('name', 'post_id-' + nbfields).attr('value', nbfields));
+                    tr.append($('<td>').append($('<input type="text">').attr('name', 'field_desc-' + nbfields).attr('maxlength', '128')));
+                    tr.append($('<td>').append($('<input type="text">').attr('name', 'field_var-' + nbfields).attr('maxlength', '100')));
+                    tr.append($('<td>').append($('<input type="text">').attr('name', 'field_mapped-' + nbfields).attr('maxlength', '128')));
+                    var select  = $('<select>').attr('name', 'field_type-' + nbfields);
+                        select.append($('<option>').attr('value', 'text').text('text'));
+                        select.append($('<option>').attr('value', 'hidden').text('hidden'));
+                        select.append($('<option>').attr('value', 'password').text('password'));
+                        select.append($('<option>').attr('value', 'submit').text('submit'));
+                        select.append($('<option>').attr('value', 'checkbox').text('checkbox'));
+                        select.append($('<option>').attr('value', 'radio').text('radio'));
+                        select.append($('<option>').attr('value', 'cookie').text('cookie'));
+                        select.append($('<option>').attr('value', 'autologon_user').text('autologon_user'));
+                        select.append($('<option>').attr('value', 'autologon_password').text('autologon_password'));
+                        select.append($('<option>').attr('value', 'script').text('script'));
+                        select.append($('<option>').attr('value', 'script-cookie').text('script-cookie'));
+                    tr.append($('<td>').append(select));
+                    tr.append($('<td>').append($('<input type="checkbox">').attr('name', 'field_encrypted-' + nbfields)));
+                    tr.append($('<td>').append($('<input type="text">').attr('name', 'field_value-' + nbfields).attr('maxlength', '100')));
+                    tr.append($('<td>').append($('<input type="text">').attr('name', 'field_prefix-' + nbfields).attr('maxlength', '50')));
+                    tr.append($('<td>').append($('<input type="text">').attr('name', 'field_suffix-' + nbfields).attr('maxlength', '50')));
+                    tr.append($('<td>').append($('<a href="#">').append('<img src="/img/vulture2/trash.png" alt="delete" />').click(function(){
+                        $(this).closest('tr').remove();
+                    })));
+                       // title: 'Blah',
+                       // href: '#'
+                        //click: function(){ $(this).parent().remove();return false;}
+                       // )));
+                    
+                    $('#tbl1body').append(tr);
+                });
+                
+                //Display input when required by select
+                $("#main_content_5 table tr").each(function() {
+                    var tr = $(this);
+                    tr.find(":input:last").hide();
+                    var input = tr.find("select");
+                    //Initial state
+                    switch(input.attr('value')){
+                            case "message":
+                            case "redirect":
+                                tr.find(":input:last").show();
+                                break;
+                            default:
+                                tr.find(":input:last").hide().val('');
+                                break;
+                        }
+                    //On select change
+                    input.change(function(){
+                        switch($(this).attr('value')){
+                            case "message":
+                            case "redirect":
+                                tr.find(":input:last").show();
+                                break;
+                            default:
+                                tr.find(":input:last").hide().val('');
+                                break;
+                        }
+                    });
+                });
+                
+                $('#sso').submit(function() {
+                    $('#nbfields').attr('value', nbfields);
+                });
+            });
+        })(jQuery);
+    </script>
+    <form method="post" action="." id="sso">
+        <div id="main_content_1" class="main_content">
+            <table>
+                <tr><th>{% trans "Name" %}</th><td class="input">{{ form.name }}{% if form.name.errors %}<div class="error">{{ form.name.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+                <tr><th>{% trans "Follow get redirect" %}</th><td class="input">{{ form.follow_get_redirect }}{% if form.follow_get_redirect.errors %}<div class="error">{{ form.follow_get_redirect.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+		<tr><th>{% trans "Post authentication data to this URL" %}</th><td class="input">{{ form.is_post }}{% if form.is_post.errors %}<div class="error">{{ form.is_post.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+                <tr><th>{% trans "Referential" %}</th><td class="input">{{ form.auth }}{% if form.auth.errors %}<div class="error">{{ form.auth.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+            </table>
+        </div>
+        
+        <div id="main_content_2" class="main_content">
+            <table>
+                <tr><th>{% trans "Table" %}</th><td class="input">{{ form.table_mapped }}{% if form.table_mapped.errors %}<div class="error">{{ form.table_mapped.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+                <tr><th>{% trans "App" %}</th><td class="input">{{ form.app_mapped }}{% if form.app_mapped.errors %}<div class="error">{{ form.app_mapped.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+                <tr><th>{% trans "User" %}</th><td class="input">{{ form.user_mapped }}{% if form.user_mapped.errors %}<div class="error">{{ form.user_mapped.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+            </table>
+        </div>
+
+        <div id="main_content_3" class="main_content">
+            <table>
+                <tr><td colspan="3">{% trans "You don't have any fields to fill in LDAP (recovered from auth LDAP)" %}</td></tr>
+            </table>
+        </div>
+
+        <div id="main_content_4" class="main_content">
+            <table class="fields">
+                <tbody id="tbl1body">
+                    <tr>
+                        <th>{% trans "Field desc" %}</th>
+                        <th>{% trans "Field name (unique)" %}</th>
+                        <th>{% trans "Mapped" %}</th>
+                        <th>{% trans "Field type" %}</th>
+                        <th>{% trans "Encrypted" %}</th>
+                        <th>{% trans "Field value (optional)" %}</th>
+                        <th>{% trans "Field prefix (optional)" %}</th>
+                        <th>{% trans "Field suffix (optional)" %}</th>
+                        <th><a id= "addrow" href="#"><img src="/img/vulture2/add.png" alt="add" /></a></th>
+                    </tr>
+                    {% for post in form.post %}
+                        <tr id="table.{{forloop.counter}}">
+                            <input type="hidden" name="post_id-{{forloop.counter}}" value="{{ forloop.counter }}" />
+                            <input type="hidden" name="field_desc-{{forloop.counter}}" value="{{ post.field_desc }}" />
+                            <input type="hidden" name="field_var-{{forloop.counter}}" value="{{ post.field_var }}" />
+                            <input type="hidden" name="field_mapped-{{forloop.counter}}" value="{{ post.field_mapped }}" />
+                            <input type="hidden" name="field_type-{{forloop.counter}}" value="{{ post.field_type }}" />
+                            <input type="hidden" name="field_encrypted-{{forloop.counter}}" value="{{ post.field_encrypted }}" />
+                            <input type="hidden" name="field_value-{{forloop.counter}}" value="{{ post.field_value }}" />
+                            <input type="hidden" name="field_prefix-{{forloop.counter}}" value="{{ post.field_prefix }}" />
+                            <input type="hidden" name="field_suffix-{{forloop.counter}}" value="{{ post.field_suffix }}" />
+                            <td>{{ post.field_desc }}{% if post.field_desc.errors %}<div class="error">{{ post.field_desc.errors|join:", " }}</div>{% endif %}</td>
+                            <td>{{ post.field_var }}{% if post.field_var.errors %}<div class="error">{{ post.field_var.errors|join:", " }}</div>{% endif %}</td>
+                            <td>{{ post.field_mapped }}{% if post.field_mapped.errors %}<div class="error">{{ post.field_mapped.errors|join:", " }}</div>{% endif %}</td>
+                            <td>{{ post.field_type }}{% if post.field_type.errors %}<div class="error">{{ post.field_type.errors|join:", " }}</div>{% endif %}</td>
+                            <td align = center>{% if post.field_encrypted %}<img src="/img/vulture2/ok.png" alt="ok" />{% else %}<img src="/img/vulture2/stop.png" alt="stop" />{% endif %}{% if post.field_encrypted.errors %}<div class="error">{{ post.field_encrypted.errors|join:", " }}</div>{% endif %}</td>
+                            <td>{{ post.field_value }}{% if post.field_value.errors %}<div class="error">{{ post.field_value.errors|join:", " }}</div>{% endif %}</td>
+                            <td>{{ post.field_prefix }}{% if post.field_prefix.errors %}<div class="error">{{ post.field_prefix.errors|join:", " }}</div>{% endif %}</td>
+                            <td>{{ post.field_suffix }}{% if post.field_suffix.errors %}<div class="error">{{ post.field_suffix.errors|join:", " }}</div>{% endif %}</td>
+                            <td><a onclick="delRowTo('tbl1body','table.{{forloop.counter}}')" href="#"><img src="/img/vulture2/trash.png" alt="delete" /></a></td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div id="main_content_5" class="main_content">
+            <table class="fields">
+                <tr><th></th><th>{% trans "Regexp" %}</th><th>{% trans "Action" %}</th><th>{% trans "Options" %}</th></tr>
+                <tr><th>{% trans "In page" %}</th><td class="input">{{ form.is_in_page }}</td><td class="input">{{ form.is_in_page_action }}</td><td class="input">{{ form.is_in_page_options }}</td></tr>
+                <tr><th>{% trans "In URL" %}</th><td class="input">{{ form.is_in_url }}</td><td class="input">{{ form.is_in_url_action }}</td><td class="input">{{ form.is_in_url_options }}</td></tr>
+				<tr><th>{% trans "In Redirect URL" %}</th><td class="input">{{ form.is_in_url_redirect }}</td><td class="input">{{ form.is_in_url_redirect_action }}</td><td class="input">{{ form.is_in_url_redirect_options }}</td></tr>
+                <tr><th>{% trans "Information" %}</th><td>10x {% trans "headers" %} </td><td class="input">{{ form.is_info }}</td><td class="input">{{ form.is_info_options }}</td></tr>
+                <tr><th>{% trans "Success" %}</th><td>20x {% trans "headers" %}</td><td class="input">{{ form.is_success }}</td><td class="input">{{ form.is_success_options }}</td></tr>
+                <tr><th>{% trans "Redirect" %}</th><td>30x {% trans "headers" %}</td><td class="input">{{ form.is_redirect }}</td><td class="input">{{ form.is_redirect_options }}</td></tr>
+                <tr><th>{% trans "Error" %}</th><td>40x / 50x {% trans "headers" %}</td><td class="input">{{ form.is_error }}</td><td class="input">{{ form.is_error_options }}</td></tr>
+            </table>
+        </div>
+        <br />
+        <input type="submit" value="{% trans "Save settings" %}"/>
+        <input type="button" onclick="document.location='/intf/'" value="{% trans "Cancel" %}"/>
+    </form>
+{% endblock %}

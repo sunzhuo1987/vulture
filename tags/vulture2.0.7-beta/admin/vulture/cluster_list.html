@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}
+	{% trans "System" %} - <small>{% trans "Vulture cluster management" %}</small>
+{% endblock %}
+
+{% block tabs %}
+    <li><a href="javascript:swapTab(1, 1, 'main_tab_', 'main_content_');" id="main_tab_1" class="active">{% trans "List" %}</a></li>
+{% endblock %}
+
+{% block content %}
+	<div id="main_content_1" class="main_content">
+        <form method="POST" action="">
+        <table><tbody>
+            <tr>
+                <th>{% trans "Name" %}</th>
+                <th>{% trans "Config version" %}</th>
+                <th>{% trans "up" %}</th>
+            </tr>
+            {% for object in object_list %}
+                <tr>
+                    <td>{{ object.name }}</td>
+                    <td>{{ object.version }}</td>
+                    <td>{{ object.up }}</td>
+                </tr>
+            {% endfor %}
+            <tr>
+	        <th>{% trans "Local conf version : "%}[{{ last_version}}]</th>
+                <td><input type="submit" value="{% trans "Push conf" %}"/></td>
+                <td><input type="button" value="{% trans "Refresh" %}" onclick="javascript:window.location=''"/></td>
+	    <tr>
+	</tbody></table>
+			</form>
+	</div>	
+{% endblock %}

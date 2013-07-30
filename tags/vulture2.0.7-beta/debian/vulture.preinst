@@ -1,0 +1,25 @@
+#! /bin/sh
+# preinst script for vulture
+#
+# see: dh_installdeb(1)
+
+set -e
+if grep -E "^www-data:" /etc/passwd > /dev/null ; then
+	echo "L'utilisateur www-data existe."
+else
+	useradd www-data
+fi
+if grep -E "^www-data:" /etc/group > /dev/null ; then
+	echo "Le groupe www-data existe."
+else
+	groupadd www-data
+fi
+if grep -E "^vulture-admin:" /etc/passwd > /dev/null ; then
+	echo "L'utilisateur admin existe."
+else
+	useradd vulture-admin -G www-data
+fi
+
+exit 0
+
+

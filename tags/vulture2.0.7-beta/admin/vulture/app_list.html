@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}
+	{% trans "Web Applications" %} - <small>{% trans "Application list" %}</small>
+{% endblock %}
+
+{% block tabs %}
+    <li><a href="#" id="main_tab_1" class="active">{% trans "List" %}</a></li>
+    <li><a href="/app/new/">{% trans "Add" %}</a></li>
+    <li><a href="/app/copy/">{% trans "Copy" %}</a></li>
+{% endblock %}
+
+{% block content %}
+    <div id="main_content_1" class="main_content">
+        <table>
+            <tr>
+                <th>{% trans "Internet name" %}</th>
+                <th>{% trans "Alias" %}</th>
+                <th>{% trans "Private URL" %}</th>
+                <th>{% trans "Authentications Methods" %}</th>
+                <th>{% trans "Network interface" %}</th>
+                <th style="width: 32px">{% trans "Status" %}</th>
+                <th style="width: 80px"></th>
+            </tr>
+            {% for object in object_list %}
+                <tr>
+                    <td>{{ object.name }}</td>
+                    <td>{{ object.alias }}</td>
+                    <td>{{ object.url }}</td>
+                    <td>{{ object.auth}}</td>
+                    <td>{{ object.intf.all|join:", " }}</td>
+                    <td>
+                        {% if object.up %}<img src="/img/vulture2/ok.png" alt="ok" />{% else %}<img src="/img/vulture2/stop.png" alt="stop" />{% endif %}
+                        {% if object.acl %}<img src="/img/vulture2/filter.png" alt="acl" />{% endif %}
+                    </td>
+                    <td>
+                        {% if object.up %}
+                            <a href="/app/{{ object.id }}/stop/"><img src="/img/vulture2/stop.png" alt="stop" /></a>
+                        {% else %}
+                            <a href="/app/{{ object.id }}/start/"><img src="/img/vulture2/reload.png" alt="reload" /></a>
+                        {% endif %}
+                        <a href="/app/{{ object.id }}/del/"><img src="/img/vulture2/trash.png" alt="delete" /></a>
+                        <a href="/app/{{ object.id }}"><img src="/img/vulture2/edit.png" alt="edit" /></a>
+						{% if object.isWildCard %}
+						    <img src="/img/vulture2/star.png" alt="wildcard" />
+						{% endif %}
+                    </td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="6" style="text-align:center;">{% trans "The list is empty. You can add an item " %}<a href="/app/new/">{% trans "here" %}</a></td></tr>
+            {% endfor %}
+        </table>
+    </div>
+{% endblock %}
