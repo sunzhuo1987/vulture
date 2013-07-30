@@ -189,13 +189,15 @@ sub get_app {
     }
     # Wildcard
     unless ( defined $ref ) {
-        while ( my ( $name, $hashref ) = each(%$apps) ) {
+        while ( my ( $name, $hashref ) = each(%$apps) and not defined $ref) {
             next if $hashref->{alias} eq '';
             foreach my $alias ( split( /\s+/, $hashref->{alias} ) ) {
                 next if $alias eq '';
                 $log->debug("$name : alias is '$alias' an host is '$host'");
                 my $cpy = $alias;
-                $cpy =~ s|\*|\(\.\*\)\\|g;
+                $cpy =~ s|\.|\\.|g;
+                $cpy =~ s|\*|\(\.\*\)|g;
+                $log->debug("GET_APP : $alias => $cpy");
                 if ( $host =~ /^($cpy)\// ) {
                     $ref = $hashref;
                     $ref->{name} = $1;
@@ -220,7 +222,6 @@ sub get_app {
     $query =
 #' SELECT auth.name, auth.auth_type, auth.id_method,auth.id FROM auth JOIN auth_multiple ON auth.id = auth_multiple.auth_id WHERE auth_multiple.app_id = ?';
 ' SELECT auth.name, auth.auth_type, auth.id_method,auth.id FROM auth JOIN app ON auth.id=app.auth_id WHERE app.id = ?';
-#    $log->debug($query);
     $sth = $dbh->prepare($query);
     $sth->execute($ref->{id});
     $ref->{'auth'} = $sth->fetchrow_hashref;
@@ -229,7 +230,6 @@ sub get_app {
 #Getting ACL
     $query =
 'SELECT acl.id, acl.name, auth.auth_type AS acl_type, auth.id_method FROM acl JOIN auth ON acl.auth_id = auth.id JOIN app ON acl.id = app.acl_id WHERE app.id = ?';
-#    $log->debug($query);
     $sth = $dbh->prepare($query);
     $sth->execute( $ref->{id} );
     $ref->{'acl'} = $sth->fetchrow_hashref;
@@ -238,7 +238,6 @@ sub get_app {
     #Getting actions
     $query =
 "SELECT auth_server_failure_action, auth_server_failure_options, account_locked_action, account_locked_options, login_failed_action, login_failed_options, need_change_pass_action, need_change_pass_options, acl_failed_action, acl_failed_options FROM app WHERE app.id = ?";
-#    $log->debug($query);
     $sth = $dbh->prepare($query);
     $sth->execute( $ref->{id} );
     $ref->{'actions'} = $sth->fetchrow_hashref;
@@ -247,7 +246,6 @@ sub get_app {
     #Getting SSO
     $query =
 "SELECT sso.type, sso.follow_get_redirect, sso.is_post FROM sso JOIN app ON sso.id = app.sso_forward_id WHERE app.id=?";
-#    $log->debug($query);
     $sth = $dbh->prepare($query);
     $sth->execute( $ref->{id} );
     $ref->{'sso'} = $sth->fetchrow_hashref;
@@ -275,7 +273,6 @@ sub get_intf {
     #Getting intf
     $query =
 "SELECT id, ip, port, ssl_engine, log_id, sso_portal, sso_timeout, sso_update_access_time,check_csrf, cert, key, ca, cas_portal, cas_display_portal, cas_auth_basic AS auth_basic, cas_st_timeout, cas_redirect FROM intf WHERE id = ?";
-    $log->debug($query);
     $sth = $dbh->prepare($query);
     $sth->execute($intf);
     $ref = $sth->fetchrow_hashref;
@@ -285,7 +282,6 @@ sub get_intf {
     $query =
 #'SELECT auth.name, auth.auth_type, auth.id_method, auth.id FROM auth JOIN intf_auth_multiple ON auth.id = intf_auth_multiple.auth_id WHERE intf_auth_multiple.intf_id = ?';
 'SELECT auth.name, auth.auth_type, auth.id_method, auth.id FROM auth JOIN intf ON auth.id = intf.cas_auth_id WHERE intf.id = ?';
-    $log->debug($query);
     $sth = $dbh->prepare($query);
     $sth->execute($ref->{id});
     $ref->{auth} = $sth->fetchrow_hashref;
