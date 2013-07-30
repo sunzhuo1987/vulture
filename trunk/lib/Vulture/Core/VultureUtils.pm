@@ -154,9 +154,9 @@ sub get_app {
     my ( $log, $dbh,$mc_conf,$intf,$host ) = @_;
     my ( $query, $sth, $ref );
     return undef unless ( $host and $intf and $dbh );
-    my $key = "applist:$intf";
-    my $apps = Core::VultureUtils::get_memcached($key,$mc_conf);
-    $log->debug("GET_APP: for '$host'"); 
+    my $all_apps_key = "applist:$intf";
+    my $apps = Core::VultureUtils::get_memcached($all_apps_key,$mc_conf);
+    $log->debug("GET_APP: url is '$host'"); 
     unless (defined $apps){
 #Getting app and wildcardsv
         $query =
@@ -166,61 +166,53 @@ sub get_app {
         $sth->execute($intf);
         $apps = $sth->fetchall_hashref('name');
         $sth->finish();
-        $log->debug("set $key in memcache");
-        Core::VultureUtils::set_memcached($key,$apps,60,$mc_conf);
+        $log->debug("set $all_apps_key in memcache");
+        Core::VultureUtils::set_memcached($all_apps_key,$apps,60,$mc_conf);
     }else{
-        $log->debug("got $key from memcache");
+        $log->debug("got $all_apps_key from memcache");
     }
-
-    # Match app with the deepest path
+    # Convert appname and aliases into a single perl regex for each app.
+    # (should be cached for performances improvement)
+    # Match app with the deepest path, using name and alias for each application.
+    # if we have two applications: appname.com, and appname.com/admin
+    # appname.com/admin will be selected for url appname.com/admin/index.html.
     my $max_fields = -1;
-    my $fi;
-    $host.="/" if not ($host =~ /\/$/);
+    $host = "$host/" if not ($host =~ /\/$/);
     while ( my ( $name, $hashref ) = each(%$apps) ) {
-        $fi = 0;
-        $fi++ while ( $name =~ m/\//g );
-        if ( $host =~ /^$name\// ) {
+        my $appreg = "$name $hashref->{alias}";
+        $appreg =~ s/^\s+//g;
+        $appreg =~ s/\s+$//g;
+        $appreg =~ s/\s+/|/g;
+        $appreg =~ s/([\.\/])/\\$1/g;
+        $appreg =~ s/\*/\(\[a-zA-Z\\-0-9\]\+\)/g;
+        $log->debug("GET_APP: test against ^($appreg)\\/");
+        if ( $host =~ /^($appreg)\// ) {
+            my $matched_name = $1;
+            my $fi = 0;
+            $fi++ while ( $matched_name =~ m/\//g );
             if ( $fi > $max_fields ) {
                 $max_fields = $fi;
-                $log->debug("GET_APP: selecting '$name'"); 
-                $ref        = $apps->{$name};
-            }
-        }
-    }
-    # Wildcard
-    unless ( defined $ref ) {
-        while ( my ( $name, $hashref ) = each(%$apps) and not defined $ref) {
-            next if $hashref->{alias} eq '';
-            foreach my $alias ( split( /\s+/, $hashref->{alias} ) ) {
-                next if $alias eq '';
-                $log->debug("$name : alias is '$alias' an host is '$host'");
-                my $cpy = $alias;
-                $cpy =~ s|\.|\\.|g;
-                $cpy =~ s|\*|\(\.\*\)|g;
-                $log->debug("GET_APP : $alias => $cpy");
-                if ( $host =~ /^($cpy)\// ) {
-                    $ref = $hashref;
-                    $ref->{name} = $1;
-                    $log->debug("GET_APP: selecting '".$ref->{name}."'"); 
-                    last;
-                }
+                $log->debug("GET_APP: selecting '$matched_name' ($fi)"); 
+                $ref = $hashref;
+                $ref->{name} = $matched_name;
             }
         }
     }
     # we still did'nt found the app
     return undef unless $ref->{id};
+    $log->debug("GET_APP: found '$ref->{name}'"); 
     $ref->{'intf'} = $intf;
     #Use memcached if possible
-    my $obj = Core::VultureUtils::get_memcached( $ref->{'intf'}.$ref->{name}.":app", $mc_conf );
+    my $app_key = "$ref->{intf}-$ref->{name}:app";
+    my $obj = Core::VultureUtils::get_memcached( $app_key, $mc_conf );
     if ($obj) {
-        $log->debug("got memcached ".$ref->{'intf'}.$ref->{name}.":app");
-        $obj->{'intf'} = $intf;
+        $log->debug("got memcached '$app_key'");
+        $obj->{intf} = $intf;
         return $obj;
     }
 
 #Getting auth
     $query =
-#' SELECT auth.name, auth.auth_type, auth.id_method,auth.id FROM auth JOIN auth_multiple ON auth.id = auth_multiple.auth_id WHERE auth_multiple.app_id = ?';
 ' SELECT auth.name, auth.auth_type, auth.id_method,auth.id FROM auth JOIN app ON auth.id=app.auth_id WHERE app.id = ?';
     $sth = $dbh->prepare($query);
     $sth->execute($ref->{id});
@@ -254,8 +246,8 @@ sub get_app {
     $ref->{'is_jk'} = is_JK($log,$dbh,$ref->{id} );
 
     #Caching app if possible
-    $log->debug("set memcached : ".$ref->{id}.$ref->{name}.":app");
-    Core::VultureUtils::set_memcached( $ref->{id}.$ref->{name}.":app", $ref, 60, $mc_conf );
+    $log->debug("set memcached : '$app_key'");
+    Core::VultureUtils::set_memcached( $app_key, $ref, 60, $mc_conf );
     return $ref;
 }
 
@@ -280,13 +272,11 @@ sub get_intf {
 
 #Getting auth (CAS)
     $query =
-#'SELECT auth.name, auth.auth_type, auth.id_method, auth.id FROM auth JOIN intf_auth_multiple ON auth.id = intf_auth_multiple.auth_id WHERE intf_auth_multiple.intf_id = ?';
 'SELECT auth.name, auth.auth_type, auth.id_method, auth.id FROM auth JOIN intf ON auth.id = intf.cas_auth_id WHERE intf.id = ?';
     $sth = $dbh->prepare($query);
     $sth->execute($ref->{id});
     $ref->{auth} = $sth->fetchrow_hashref;
     $sth->finish();
-#    $ref->{'auth'} = $dbh->selectall_arrayref( $query, undef, $ref->{id} );
 
     #Getting actions
     $query =
