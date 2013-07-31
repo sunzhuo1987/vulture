@@ -53,20 +53,23 @@ class MC:
             pass
 
     def set(self,key,value):
-        return self.client.set(str(key),value)
+        try:
+            return self.client.set(str(key),value)
+        except:
+            pass
 
     def add(self,key,value):
-        return self.client.add(str(key),value)
-
-    def append(self,key,value):
-        return self.client.append(str(key),value)
-
-    def prepend(self,key,value):
-        return self.client.prepend(str(key),value)
+        try:
+            return self.client.add(str(key),value)
+        except:
+            pass
 
     def delete(self,key):
-        return self.client.delete(str(key))
-    
+        try:
+            return self.client.delete(str(key))
+        except:
+            pass
+
     def lock(self):
         while not self.add(self.LOCKNAME,1):
             time.sleep(1)
