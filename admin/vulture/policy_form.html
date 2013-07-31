@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}
+	{% trans "Web Firewall" %} - <small>{% trans "edit policy" %}</small>
+{% endblock %}
+
+{% block tabs %}
+    <li><a href="/policy/">{% trans "List" %}</a></li>
+    <li><a href="#" id="main_tab_1" class="active">{% trans "Main settings" %}</a></li>
+{% endblock %}
+
+{% block content %}
+    <script type=text/javascript>
+        function add_ignore_rule(element){
+            tab = document.getElementById("tab_"+element.id);
+            tr = document.createElement("tr");
+            td= document.createElement("td");
+            td2= document.createElement("td");
+            label = document.createElement("label");
+            input=document.createElement("input");
+            
+            label.for="ignored_rule"
+            label.textContent="ignored rule :";
+            input.type="text";
+            input.name="ignore_"+element.id+"_"+(tab.childElementCount+1);
+            td2.innerHTML="<img id=\"del"+(tab.childElementCount+1)+"\" onclick=\"del_ignore_rule(this)\" src=\"/img/vulture2/trash.png\" alt=\"delete\" />";
+            label.appendChild(input);
+            td.appendChild(label);
+            tr.appendChild(td);
+            td2.style.float="right";
+            td2.style.width="16px";
+            tr.appendChild(td2);
+            tab.appendChild(tr);
+        }
+
+        function del_ignore_rule(el){
+            tr=el.parentNode.parentNode;
+            el.parentNode.parentNode.parentNode.removeChild(tr);
+        }
+    </script>
+
+    <div id="main_content_1" class="main_content">
+    <form id="form" method="post" action="">
+    <table>
+        {{form}}
+        <tr>
+            <th colspan="2"><input type="submit" name="add_button" value="{% trans "Rules set selection" %}"/></th>
+        </tr>
+    </table>
+    <table>    
+    <tbody>
+        {% if policy_files %}
+        {% for pfile in policy_files %}
+        <tr>
+            <th>{{pfile.fichier.name}}</th>
+            <td id="file_{{pfile.pk}}" onclick="add_ignore_rule(this)">
+                {% if not noedit %}
+                    <img src="/img/vulture2/add.png" alt="add" id="add{{forloop.counter}}" />
+                {% endif %}
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <table>
+                <tbody id="tab_file_{{pfile.pk}}">
+                    {% for ignorerule in pfile.ignorerules_set.all %}
+                    <tr >
+                        <td ><label>{% trans "ignored rule :" %}<input type="text" name="ignore_file_{{pfile.pk}}_{{forloop.counter}}" value="{{ ignorerule.rules_number }}"></label>
+                        {% if ignorerule.is_strange %}
+                            <p><img src="/img/vulture2/warning.png" alt="warning" /> rule id non trouvée dans les fichiers en base </p>
+                        {% endif %}
+                        </td>
+                        <td style="float:right;width:16px;">
+                                <img style="float:inherit;" id="del{{ forloop.counter }}" onclick="del_ignore_rule(this)" src="/img/vulture2/trash.png" alt="delete" />
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                </table>
+            </td>
+        </tr>
+        {% endfor %}
+        {% endif %}
+        <tr>
+        <th colspan="2"><input type="submit" name="save_button" value="{% trans "Save settings" %}" /></th>
+        </tr>
+    </tbody>
+    </table>
+    </form>
+    </div>
+{% endblock %}

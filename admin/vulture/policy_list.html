@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load getattribute %}
+
+{% block title %}
+	{% trans category|title %} - <small>{% blocktrans with name|title as name_t %}{{ name_t }} list{% endblocktrans %}</small>
+{% endblock %}
+
+{% block tabs %}
+    <li><a href="#" id="main_tab_1" class="active">{% trans "List" %}</a></li>
+    {% if not noadd %}<li><a href="{{ url }}/new/">{% trans "Add" %}</a></li>{% endif %}
+{% endblock %}
+
+{% block content %}
+	<div id="main_content_1" class="main_content">
+        <table>
+            <tr>
+                {% if not noname %}<th>{% trans "Name" %}</th>{% endif %}
+                {% for tuple in fields %}
+                    <th>{% trans tuple.1|title %}</th>
+                {% endfor %}
+                <th style="width:65px;"></th>
+            </tr>
+            {% for object in object_list %}
+                <tr>
+                {% if not noname %}
+                    <td>{{ object.name }}
+                
+            </td>{% endif %}
+                    {% for tuple in fields %}
+                        <td>{{ object|getattribute:tuple.0 }}
+                        </td>
+                    {% endfor %}
+                    <td>
+                    
+                    {% if not nodelete %}<a href="{{ url }}/{{ object.id }}/del/"><img src="/img/vulture2/trash.png" alt="delete" /></a>{% endif %}{% if not noedit %}<a href="{{ url }}/{{ object.id }}"><img src="/img/vulture2/edit.png" alt="edit" /></a>{% endif %}
+                        {% if object.has_strange_ignore %}
+                             <img src="/img/vulture2/warning.png"  alt="this policy has strange rule id" title="this policy has strange rule id" />
+                        {% endif %}
+                            
+                    </td>
+                </tr>
+            {% empty %}
+                {% if not noadd %}<tr><td colspan="5" style="text-align:center;">{% trans "The list is empty. You can add an item " %}<a href="{{ url }}/new/">{% trans "here" %}</a></td></tr>{% endif %}
+            {% endfor %}
+        </table>
+    </div>
+{% endblock %}
