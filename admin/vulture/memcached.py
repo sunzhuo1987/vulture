@@ -302,7 +302,7 @@ class SynchroDaemon:
     def reload_intfs(self):
         intfs= Intf.objects.all()
         for intf in intfs :
-            if intf.need_restart:
+            if intf.need_restart():
                 fail = intf.maybeWrite()
                 if not fail:
                     # conf is valid : reload
