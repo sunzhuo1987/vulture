@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}
+	{% trans "System" %} - <small>{% trans "Rule Set view" %}</small>
+{% endblock %}
+
+{% block tabs %}
+    <li><a href="/group/">{% trans "List" %}</a></li>
+    <li><a href="#" id="main_tab_1" class="active">{% trans "Main settings" %}</a></li>
+{% endblock %}
+
+{% block content %}
+    <div id="main_content_1" class="main_content">
+    <table>
+        <tr>
+            <th>Name</th>
+            <th>Version</th>
+            <th>Date</th>
+        </tr>
+        <tr>
+            <td>{{groupe.name}}</td>
+            <td>{{groupe.version}}</td>
+            <td>{{groupe.date}}</td>
+        </tr>
+    </table>
+    <table>
+        <tr>
+            <th>Name</th>
+        </tr>
+        {%for fichier in groupe.fichier_set.all%}
+        <tr>
+            <td>{{fichier.name}}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    </div>
+{% endblock %}

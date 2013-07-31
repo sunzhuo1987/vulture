@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}
+	{% trans "Web Firewall" %} - <small>{% trans "Mod security Rules Set" %}</small>
+{% endblock %}
+
+{% block tabs %}
+    <li><a href="/group/">{% trans "List" %}</a></li>
+    <li><a href="#" id="main_tab_1" class="active">{% trans "Add Rule Set" %}</a></li>
+{% endblock %}
+
+{% block content %}
+    <div id="main_content_1" class="main_content">
+        <form method="post" enctype="multipart/form-data" action="">
+        <table>
+        {{ form }}
+            <tr>
+                <th></th><td><input type="submit" value="Enregistrer" href="." style="text-align: center;"/></td>  
+            </tr>
+        </table>
+    </form>
+    </div>
+{% endblock %}
+

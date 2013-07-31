@@ -7,19 +7,17 @@
 
 {% block tabs %}
     <li><a href="/app/">{% trans "List" %}</a></li>
-    <li><a href="javascript:swapTab(1, 13, 'main_tab_', 'main_content_');" id="main_tab_1" class="active">{% trans "Main settings" %}</a></li>
-    <li><a href="javascript:swapTab(2, 13, 'main_tab_', 'main_content_');" id="main_tab_2">{% trans "Remote proxy" %}</a></li>
-    <li><a href="javascript:swapTab(3, 13, 'main_tab_', 'main_content_');" id="main_tab_3">{% trans "Authentication" %}</a></li>
-    <li><a href="javascript:swapTab(4, 13, 'main_tab_', 'main_content_');" id="main_tab_4">{% trans "ACL" %}</a></li>
-    <li><a href="javascript:swapTab(5, 13, 'main_tab_', 'main_content_');" id="main_tab_5">{% trans "SSO Forward" %}</a></li>
-    <li><a href="javascript:swapTab(6, 13, 'main_tab_', 'main_content_');" id="main_tab_6">{% trans "Mod security" %}</a></li>
-    <li><a href="javascript:swapTab(7, 13, 'main_tab_', 'main_content_');" id="main_tab_7">{% trans "Headers" %}</a></li>
-    <li><a href="javascript:swapTab(8, 13, 'main_tab_', 'main_content_');" id="main_tab_8">{% trans "Timeout" %}</a></li>
-    <li><a href="javascript:swapTab(9, 13, 'main_tab_', 'main_content_');" id="main_tab_9">{% trans "Balancer Settings" %}</a></li>
-    <li><a href="javascript:swapTab(10,13, 'main_tab_', 'main_content_');" id="main_tab_10">{% trans "Deflate settings" %}</a></li>
-    <li><a href="javascript:swapTab(11,13, 'main_tab_', 'main_content_');" id="main_tab_11">{% trans "Cache Settings" %}</a></li>
-    <li><a href="javascript:swapTab(12,13, 'main_tab_', 'main_content_');" id="main_tab_12">{% trans "Advanced settings" %}</a></li>
-    <li><a href="javascript:swapTab(13,13, 'main_tab_', 'main_content_');" id="main_tab_13">{% trans "JK Directives" %}</a></li>
+    <li><a href="javascript:swapTab(1, 11, 'main_tab_', 'main_content_');" id="main_tab_1" class="active">{% trans "Main settings" %}</a></li>
+    <li><a href="javascript:swapTab(2, 11, 'main_tab_', 'main_content_');" id="main_tab_2">{% trans "Remote proxy" %}</a></li>
+    <li><a href="javascript:swapTab(3, 11, 'main_tab_', 'main_content_');" id="main_tab_3">{% trans "SSO Forward" %}</a></li>
+    <li><a href="javascript:swapTab(4, 11, 'main_tab_', 'main_content_');" id="main_tab_4">{% trans "Security" %}</a></li>
+    <li><a href="javascript:swapTab(5, 11, 'main_tab_', 'main_content_');" id="main_tab_5">{% trans "Headers" %}</a></li>
+    <li><a href="javascript:swapTab(6, 11, 'main_tab_', 'main_content_');" id="main_tab_6">{% trans "Timeout" %}</a></li>
+    <li><a href="javascript:swapTab(7, 11, 'main_tab_', 'main_content_');" id="main_tab_7">{% trans "Balancer Settings" %}</a></li>
+    <li><a href="javascript:swapTab(8, 11, 'main_tab_', 'main_content_');" id="main_tab_8">{% trans "Deflate settings" %}</a></li>
+    <li><a href="javascript:swapTab(9, 11, 'main_tab_', 'main_content_');" id="main_tab_9">{% trans "Cache Settings" %}</a></li>
+    <li><a href="javascript:swapTab(10, 11, 'main_tab_', 'main_content_');" id="main_tab_10">{% trans "Advanced settings" %}</a></li>
+    <li><a href="javascript:swapTab(11, 11, 'main_tab_', 'main_content_');" id="main_tab_11">{% trans "JK Directives" %}</a></li>
 {% endblock %}
 
 {% block content %}
@@ -35,24 +33,6 @@
         (function($) {
             // we can now rely on $ within the safety of our “bodyguard” function
             $(document).ready( function() {
-                if ($('#id_MS_Activated').attr('checked')) {
-                    $('#mod-security').show();
-                }
-                else {
-                    $('#mod-security').hide();
-                }
-                if ($('#id_BT_activated').attr('checked')) {
-                    $('#BFP').show();
-                }
-                else {
-                    $('#BFP').hide();
-                }
-                if ($('#id_DoS_activated').attr('checked')) {
-                    $('#DoSP').show();
-                }
-                else {
-                    $('#DoSP').hide();
-                }
                 $("#addrow").click(function() {
                     nbheaders++;
                     var name = 'table.' + nbheaders;
@@ -208,16 +188,42 @@
         
         <div id="main_content_2" class="main_content">
             <table>
+                <tr><th>{% trans "ACL" %}</th><td class="input">{{ form.acl }}{% if form.acl.errors %}<div class="error">{{ form.acl.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+            </table>
+            <table class="actions">
+                <tr><th></th><th>{% trans "Action" %}</th><th>{% trans "Options" %}</th></tr>
+                <tr><th>{% trans "ACL failed" %}</th><td class="input">{{ form.acl_failed_action }}</td><td class="input">{{ form.acl_failed_options }}</td></tr>
+            </table>
+        </div>
+        
+        <div id="main_content_3" class="main_content">
+            <table>
+                <tr><th>{% trans "SSO Forward" %}</th><td class="input">{{ form.sso_forward }}{% if form.sso_forward.errors %}<div class="error">{{ form.sso_forward.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+                <tr><th>{% trans "Logon URL" %}</th><td class="input">{{ form.logon_url }}{% if form.logon_url.errors %}<div class="error">{{ form.logon_url.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+                <tr><th>{% trans "Logout URL" %}</th><td class="input">{{ form.logout_url }}{% if form.logout_url.errors %}<div class="error">{{ form.logout_url.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+                <tr><th>{% trans "SSO Learning extern" %}</th><td class="input">{{ form.sso_learning_ext }}{% if form.sso_learning_ext.errors %}<div class="error">{{ form.sso_learning_ext.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+            </table>
+        </div>
+        
+        <div id="main_content_4" class="main_content">
+            <table>
+                <tr>
+                    <th colspan="2" style="text-align:center;height:20px;">{% trans "Authentication" %}</th>
+                </tr>
+                <tr><td></td><td></td>
                 <tr><th>{% trans "Remote proxy" %}</th><td class="input">{{ form.remote_proxy }}{% if form.remote_proxy.errors %}<div class="error">{{ form.remote_proxy.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
                 <tr><th>{% trans "Machine Certificate file (full path)" %}</th><td class="input">{{ form.remote_proxy_SSLProxyMachineCertificateFile }}{% if form.remote_proxy_SSLProxyMachineCertificateFile.errors %}<div class="error">{{ form.remote_proxy_SSLProxyMachineCertificateFile.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
                 <tr><th>{% trans "CA Certificate file (full path)" %}</th><td class="input">{{ form.remote_proxy_SSLProxyCACertificateFile }}{% if form.remote_proxy_SSLProxyCACertificateFile.errors %}<div class="error">{{ form.remote_proxy_SSLProxyCACertificateFile.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
                 <tr><th>{% trans "CA Revocation file (full path)" %}</th><td class="input">{{ form.remote_proxy_SSLProxyCARevocationFile }}{% if form.remote_proxy_SSLProxyCARevocationFile.errors %}<div class="error">{{ form.remote_proxy_SSLProxyCARevocationFile.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
                 <tr><th>{% trans "Verify Remote Certificate" %}</th><td class="input">{{ form.remote_proxy_SSLProxyVerify }}{% if form.remote_proxy_SSLProxyVerify.errors %}<div class="error">{{ form.remote_proxy_SSLProxyVerify.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
             </table>
-        </div>
         
-        <div id="main_content_3" class="main_content">
             <table>
+
+                <tr>
+                    <th colspan="2" style="text-align:center;height:20px;">{% trans "ACL" %}</th>
+                </tr>
+                <tr><td></td><td></td>
                 <tr><th>{% trans "Authentication" %}</th><td class="input">{{ form.auth }}{% if form.auth.errors %}<div class="error">{{ form.auth.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
                 <tr><th>{% trans "Authentication url" %}</th><td class="input">{{ form.auth_url }}{% if form.auth_url.errors %}<div class="error">{{ form.auth_url.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
                 <tr><th>{% trans "Basic Auth" %}</th><td class="input">{{ form.auth_basic }}{% if form.auth_basic.errors %}<div class="error">{{ form.auth_basic.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
@@ -233,140 +239,24 @@
                 <tr><th>{% trans "Secondary authentification server" %}</th><td class="input">{{ form.secondary_authentification_failure_action }}</td><td class="input">{{ form.secondary_authentification_failure_options }}</td></tr>
 
 			</table>
-        </div>
-        
-        <div id="main_content_4" class="main_content">
+    
             <table>
-                <tr><th>{% trans "ACL" %}</th><td class="input">{{ form.acl }}{% if form.acl.errors %}<div class="error">{{ form.acl.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-            </table>
-            <table class="actions">
-                <tr><th></th><th>{% trans "Action" %}</th><th>{% trans "Options" %}</th></tr>
-                <tr><th>{% trans "ACL failed" %}</th><td class="input">{{ form.acl_failed_action }}</td><td class="input">{{ form.acl_failed_options }}</td></tr>
-            </table>
-        </div>
-        
-        <div id="main_content_5" class="main_content">
-            <table>
-                <tr><th>{% trans "SSO Forward" %}</th><td class="input">{{ form.sso_forward }}{% if form.sso_forward.errors %}<div class="error">{{ form.sso_forward.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-                <tr><th>{% trans "Logon URL" %}</th><td class="input">{{ form.logon_url }}{% if form.logon_url.errors %}<div class="error">{{ form.logon_url.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-                <tr><th>{% trans "Logout URL" %}</th><td class="input">{{ form.logout_url }}{% if form.logout_url.errors %}<div class="error">{{ form.logout_url.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-                <tr><th>{% trans "SSO Learning extern" %}</th><td class="input">{{ form.sso_learning_ext }}{% if form.sso_learning_ext.errors %}<div class="error">{{ form.sso_learning_ext.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+                <tr>
+                    <th colspan="2" style="text-align:center;height:20px;">{% trans "Mod Security" %}</th>
+                </tr>
+                <tr><td></td><td></td>
+                <tr> 
+                    <td>{% trans "configuration" %}</td>
+                    <td>{{ form.security }}</td>
+                </tr>
+                <tr> 
+                    <td>{% trans "policy" %}</td>
+                    <td>{{ form.policy }}</td>
+                </tr>
             </table>
         </div>
         
-        <div id="main_content_6" class="main_content">
-            <table>
-                <tr><th>{% trans "Mod security" %}</th><td class="input"><ul>
-                    <p> Activation : {{form.MS_Activated}} </p>
-                        <div id="mod-security">
-                                <li>
-
-                                    <div name="Basic Settings">
-                                        <fieldset>
-                                            <legend> Paramètre de base </legend>
-                                            <table id="md-table">
-                                                <tr><td> Version : </td><td>{{form.version}}</td></tr>
-                                                <tr><td> Action par défaut : </td><td>{{form.action}}</td></tr>
-                                                <tr><td> Moteur : </td><td>{{form.motor}}</td></tr>
-                                                <tr><td> Paranoïd Mode : </td><td>{{form.paranoid}}</td></tr>
-                                                <tr><td> UTF : </td><td>{{form.UTF}}</td></tr>
-                                                <tr><td> XML : </td><td>{{form.XML}}</td></tr>
-                                                <tr><td> Body Access : </td><td>{{form.BodyAccess}}</td></tr>
-                                            </table>
-                                        </fieldset>
-                                    </div>
-                                    
-                                    <div id="SL" name="Scoring Levels">
-                                        <fieldset>
-                                            <legend> Définition des seuils </legend>
-                                            <table id="md-table">
-                                                <tr><td> Score Critique : </td><td>{{form.critical_score}}<td></tr>
-                                                <tr><td> Score Erreur : </td><td>{{form.error_score}}</td></tr>
-                                                <tr><td> Score Attention : </td><td>{{form.warning_score}}</td></tr>
-                                                <tr><td> Score Information : </td><td>{{form.notice_score}}</td></tr>
-                                                <tr><td> Inbound Score : </td><td>{{form.inbound_score}}</td></tr>
-                                                <tr><td> Outbound Score : </td><td>{{form.outbound_score}}</td></tr>
-                                            </table>
-                                        </fieldset>
-                                    </div>
-                                    
-                                    <div name="HTTP Policy">
-                                        <fieldset> 
-                                            <legend> Politique HTTP</legend>
-                                            <table id="md-table">
-                                            <tr><td> Nombre Maximum d'Arguments dans la requête : </td><td>{{form.max_num_args}}</td></tr>
-                                            <tr><td> Longueur max du nom des arguments : </td><td>{{form.arg_name_length}}</td></tr>
-                                            <tr><td> Longueur max des arguments : </td><td>{{form.arg_length}}</td></tr>
-                                            <tr><td> Longueur max total des arguments : </td><td>{{form.total_arg_length}}</td></tr>
-                                            <tr><td> Taille maximum d'un fichier : </td><td>{{form.max_file_size}}</td></tr>
-                                            <tr><td> Combined file size : </td><td>{{form.combined_file_size}}</td></tr>
-                                            <tr><td> Méthodes HTTP autorisées : </td><td>{{form.allowed_http}}</td></tr>
-                                            <tr><td> Content Type autorisés : </td><td>{{form.allowed_content_type}} </td></tr>
-                                            <tr><td> Version HTTP autorisée : </td><td>{{form.allowed_http_version}}</td></tr>
-                                            <tr><td> Extensions interdites : </td><td>{{form.restricted_extensions}}</td></tr>
-                                            <tr><td> Headers interdits : </td><td>{{form.restricted_headers}}</td></tr>
-                                            </table>
-                                        </fieldset>
-                                    </div>
-                                    
-                                    <p> Activer les protections contre les attaques de type brute force : {{form.BT_activated}}</p>
-                                    <div id="BFP" name="Brute Force Policy">
-                                        <fieldset>
-                                            <legend> Politique contre les attaques "force brute"</legend>
-                                            <table id="md-table">
-                                                <tr><td> Urls protégées :</td><td>{{form.protected_urls}}</td></tr>
-                                                <tr><td> Burst time slice :</td><td>{{form.BT_burst_time_slice}}</td></tr>
-                                                <tr><td> Seuil d'activation :</td><td>{{form.BT_counter_threshold}}</td></tr>
-                                                <tr><td> Durée du blocage :</td><td>{{form.BT_block_timeout}}</td></tr>
-                                            </table>
-                                        </fieldset>
-                                    </div>
-                                    <p> Activer les protections contre les attaques de deny de service: {{form.DoS_activated}}</p>
-                                    <div id="DoSP" name="DoS Protection">
-                                        <fieldset>
-                                            <legend> Protection contre les attaques DoS</legend>
-                                            <table id="md-table">
-                                                <tr><td> Burst time slice :</td><td>{{form.DoS_burst_time_slice}}</td></tr>
-                                                <tr><td> Seuil d'activation :</td><td>{{form.DoS_counter_threshold}}</td></tr>
-                                                <tr><td> Durée du blocage :</td><td>{{form.DoS_block_timeout}}</td></tr>
-                                            </table>
-                                        </fieldset>
-                                    </div>
-                                    <div name="Custom">
-                                        <fieldset>
-                                            <legend>Règles personnalisées</legend>
-                                            <p>{{form.Custom}}</p>
-                                        </fieldset>
-                                    </div>
-                                </li>
-                                <li>
-                                    <ul style="background-color:#636D76; color:#FFFFFF; border-radius: 5px 5px 5px 5px;">Base Rules</ul>
-                                    {{ form.securitybase}}{% if form.securitybase.errors %}<div class="error">{{ form.securitybase.errors|join:", " }}</div>{% endif %}
-                                </li>
-                                <li>
-                                    <ul style="background-color:#636D76; color:#FFFFFF; border-radius: 5px 5px 5px 5px;">Experimental Rules</ul>
-                                        {{ form.securityexp}}{% if form.securityexp.errors %}<div class="error">{{ form.securityexp.errors|join:", " }}</div>{% endif %}
-                                </li>
-                                <li>
-                                    <ul style="background-color:#636D76; color:#FFFFFF; border-radius: 5px 5px 5px 5px;">Optional Rules</ul>
-                                        {{ form.securityopt }}{% if form.securityopt.errors %}<div class="error">{{ form.securityopt.errors|join:", " }}</div>{% endif %}
-                                </li>
-                                <li>
-                                    <ul style="background-color:#636D76; color:#FFFFFF; border-radius: 5px 5px 5px 5px;">SpiderLabs Research Rules</ul>
-                                        {{ form.securityslr }}{% if form.securityslr.errors %}<div class="error">{{ form.securityslr.errors|join:", " }}</div>{% endif %}
-                                </li>   
-                                <li>
-                                    <ul style="background-color:#636D76; color:#FFFFFF; border-radius: 5px 5px 5px 5px;">CUSTOM Rules</ul>
-                                        {{ form.CUSTOM }}{% if form.CUSTOM.errors %}<div class="error">{{ form.CUSTOM.errors|join:", " }}</div>{% endif %}
-                                </li>   
-                        </div>
-
-                            </td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" />
-                </ul></tr>
-            </table>
-        </div>
-        
-        <div id='main_content_7' class="main_content">
+        <div id='main_content_5' class="main_content">
             <input type='hidden' name='nbheaders' value='0'><br>
             <table class="fields">
                 <tbody id="tbl1body">
@@ -392,13 +282,13 @@
             </table>
         </div>
         
-        <div id="main_content_8" class="main_content">
+        <div id="main_content_6" class="main_content">
             <table>
                 <tr><th>{% trans "Timeout for user session (leave blank for no timeout)" %}</th><td class="input">{{ form.timeout }}{% if form.timeout.errors %}<div class="error">{{ form.timeout.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
                 <tr><th>{% trans "Update user session timeout each time he does smth" %}</th><td class="input">{{ form.update_access_time }}{% if form.update_access_time.errors %}<div class="error">{{ form.update_access_time.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
             </table>
         </div>
-        <div id="main_content_9" class="main_content">
+        <div id="main_content_7" class="main_content">
             <table>
                 <tr><th>{% trans "Activate Balancer"%}</th><td class="input">{{ form.Balancer_Activated }}{% if form.Balancer_Activated.errors %}<div class="error">{{ form.Balancer_Activated.errors|join:", " }}</div>{% endif %}</td></tr>
                 <tr><th>{% trans "Balancer Name" %}</th><td class="input">{{ form.Balancer_Name }}{% if form.Balancer_Name.errors %}<div class="error">{{ form.Balancer_Name.errors|join:", " }}</div>{% endif %}</td></tr>
@@ -407,7 +297,7 @@
                 <tr><th>{% trans "Balancer Stickyness" %}</th><td class="input">{{ form.Balancer_Stickyness }}{% if form.Balancer_Stickyness.errors %}<div class="error">{{ form.Balancer_Stickyness.errors|join:", " }}</div>{% endif %}</td></tr>
              </table>
         </div>
-        <div id="main_content_10" class="main_content">
+        <div id="main_content_8" class="main_content">
             <table>
                 <tr><th>{% trans "Activated" %}</th><td class="input">{{ form.deflate_activated }}{% if form.deflate_activated.errors %}<div class="error">{{ form.canonicalise_url.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
                 <tr><th>{% trans "Content-types" %}</th><td class="input">{{ form.deflate_types }}{% if form.deflate_types %}<div class="error">{{ form.deflate_types.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
@@ -417,7 +307,7 @@
                 <tr><th>{% trans "Window Size" %}</th><td class="input">{{ form.deflate_win_size }}{% if form.deflate_win_size %}<div class="error">{{ form.deflate_win_size.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
             </table>
         </div>
-        <div id="main_content_11" class="main_content">
+        <div id="main_content_9" class="main_content">
             <table>
                 <tr><th>{% trans "Activated" %}</th><td class="input">{{ form.cache_activated }}{% if form.cache_activated.errors %}<div class="error">{{ form.cache_activated.errors|join:", " }}</div>{% endif %}</td><td><img src    ="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
                 <tr><th>{% trans "Cache Type" %}</th><td class="input">{{ form.cache_type }}{% if form.cache_type.errors %}<div class="error">{{ form.cache_type.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
@@ -438,13 +328,13 @@
 
             </table>
         </div>
-        <div id="main_content_12" class="main_content">
+        <div id="main_content_10" class="main_content">
             <table>
                 <tr><th>{% trans "Canonicalise URL" %}</th><td class="input">{{ form.canonicalise_url }}{% if form.canonicalise_url.errors %}<div class="error">{{ form.canonicalise_url.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
                 <tr><th>{% trans "Add VirtualHost directives" %}</th><td class="input">{{ form.virtualhost_directives }}{% if form.virtualhost_directives.errors %}<div class="error">{{ form.virtualhost_directives.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
             </table>
         </div>
-        <div id="main_content_13" class="main_content">
+        <div id="main_content_11" class="main_content">
             <table>
                 {{fjkd}}
             </table>
@@ -453,5 +343,5 @@
         <input type="submit" value="{% trans "Save settings" %}" />
         <input type="button" onclick="document.location='/app/'" value="{% trans "Cancel" %}"/>
     </form>
-    <script>swapTab(1, 13, 'main_tab_', 'main_content_');</script>
+    <script>swapTab(1, 11, 'main_tab_', 'main_content_');</script>
 {% endblock %}
