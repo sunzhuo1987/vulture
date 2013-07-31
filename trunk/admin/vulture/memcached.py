@@ -104,13 +104,13 @@ class MC:
             keys = val.get_keys()
         except:
             return val
-        val = ''
-        for k in keys:
-            val += func(k)
         try:
+            val = ''
+            for k in keys:
+                val += func(k)
             return pickle.loads(val)
         except:
-            pass
+            return None
 
     def get(self, key):
         try:
