@@ -188,17 +188,27 @@
         
         <div id="main_content_2" class="main_content">
             <table>
-                <tr><th>{% trans "ACL" %}</th><td class="input">{{ form.acl }}{% if form.acl.errors %}<div class="error">{{ form.acl.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-            </table>
-            <table class="actions">
-                <tr><th></th><th>{% trans "Action" %}</th><th>{% trans "Options" %}</th></tr>
-                <tr><th>{% trans "ACL failed" %}</th><td class="input">{{ form.acl_failed_action }}</td><td class="input">{{ form.acl_failed_options }}</td></tr>
-            </table>
+                <tr>
+                <th>{% trans "Remote proxy" %}</th>
+                <td class="input">{{ form.remote_proxy }}{% if form.remote_proxy.errors %}<div class="error">{{ form.remote_proxy.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+                
+                <tr><th>{% trans "Machine Certificate file (full path)" %}</th><td class="input">{{ form.remote_proxy_SSLProxyMachineCertificateFile }}{% if form.remote_proxy_SSLProxyMachineCertificateFile.errors %}<div class="error">{{ form.remote_proxy_SSLProxyMachineCertificateFile.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+                
+                <tr><th>{% trans "CA Certificate file (full path)" %}</th><td class="input">{{ form.remote_proxy_SSLProxyCACertificateFile }}{% if form.remote_proxy_SSLProxyCACertificateFile.errors %}<div class="error">{{ form.remote_proxy_SSLProxyCACertificateFile.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+                                                                        
+                <tr><th>{% trans "CA Revocation file (full path)" %}</th><td class="input">{{ form.remote_proxy_SSLProxyCARevocationFile }}{% if form.remote_proxy_SSLProxyCARevocationFile.errors %}<div class="error">{{ form.remote_proxy_SSLProxyCARevocationFile.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+                
+                <tr><th>{% trans "Verify Remote Certificate" %}</th><td class="input">{{ form.remote_proxy_SSLProxyVerify }}{% if form.remote_proxy_SSLProxyVerify.errors %}<div class="error">{{ form.remote_proxy_SSLProxyVerify.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+        </table>
         </div>
         
         <div id="main_content_3" class="main_content">
             <table>
-                <tr><th>{% trans "SSO Forward" %}</th><td class="input">{{ form.sso_forward }}{% if form.sso_forward.errors %}<div class="error">{{ form.sso_forward.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+                <tr>
+                    <th>{% trans "SSO Forward" %}</th>
+                    <td class="input">{{ form.sso_forward }}{% if form.sso_forward.errors %}<div class="error">{{ form.sso_forward.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" />
+                    </td>
+                </tr>
                 <tr><th>{% trans "Logon URL" %}</th><td class="input">{{ form.logon_url }}{% if form.logon_url.errors %}<div class="error">{{ form.logon_url.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
                 <tr><th>{% trans "Logout URL" %}</th><td class="input">{{ form.logout_url }}{% if form.logout_url.errors %}<div class="error">{{ form.logout_url.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
                 <tr><th>{% trans "SSO Learning extern" %}</th><td class="input">{{ form.sso_learning_ext }}{% if form.sso_learning_ext.errors %}<div class="error">{{ form.sso_learning_ext.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
@@ -208,20 +218,20 @@
         <div id="main_content_4" class="main_content">
             <table>
                 <tr>
-                    <th colspan="2" style="text-align:center;height:20px;">{% trans "Authentication" %}</th>
+                    <th colspan="3" style="text-align:center;height:20px;">{% trans "ACL" %}</th>
                 </tr>
-                <tr><td></td><td></td>
-                <tr><th>{% trans "Remote proxy" %}</th><td class="input">{{ form.remote_proxy }}{% if form.remote_proxy.errors %}<div class="error">{{ form.remote_proxy.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-                <tr><th>{% trans "Machine Certificate file (full path)" %}</th><td class="input">{{ form.remote_proxy_SSLProxyMachineCertificateFile }}{% if form.remote_proxy_SSLProxyMachineCertificateFile.errors %}<div class="error">{{ form.remote_proxy_SSLProxyMachineCertificateFile.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-                <tr><th>{% trans "CA Certificate file (full path)" %}</th><td class="input">{{ form.remote_proxy_SSLProxyCACertificateFile }}{% if form.remote_proxy_SSLProxyCACertificateFile.errors %}<div class="error">{{ form.remote_proxy_SSLProxyCACertificateFile.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-                <tr><th>{% trans "CA Revocation file (full path)" %}</th><td class="input">{{ form.remote_proxy_SSLProxyCARevocationFile }}{% if form.remote_proxy_SSLProxyCARevocationFile.errors %}<div class="error">{{ form.remote_proxy_SSLProxyCARevocationFile.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-                <tr><th>{% trans "Verify Remote Certificate" %}</th><td class="input">{{ form.remote_proxy_SSLProxyVerify }}{% if form.remote_proxy_SSLProxyVerify.errors %}<div class="error">{{ form.remote_proxy_SSLProxyVerify.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+                <tr><th>{% trans "ACL" %}</th><td class="input">{{ form.acl }}{% if form.acl.errors %}<div class="error">{{ form.acl.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+            </table>
+            <table class="actions">
+                <tr><th></th><th>{% trans "Action" %}</th><th>{% trans "Options" %}</th></tr>
+                <tr><th>{% trans "ACL failed" %}</th><td class="input">{{ form.acl_failed_action }}</td><td class="input">{{ form.acl_failed_options }}</td></tr>
+
             </table>
         
             <table>
 
                 <tr>
-                    <th colspan="2" style="text-align:center;height:20px;">{% trans "ACL" %}</th>
+                    <th colspan="3" style="text-align:center;height:20px;">{% trans "Authentification" %}</th>
                 </tr>
                 <tr><td></td><td></td>
                 <tr><th>{% trans "Authentication" %}</th><td class="input">{{ form.auth }}{% if form.auth.errors %}<div class="error">{{ form.auth.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
