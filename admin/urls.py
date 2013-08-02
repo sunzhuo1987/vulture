@@ -136,7 +136,7 @@ urlpatterns = patterns('',
   (r'^localization/(?P<object_id>\d+)/del/$', 'vulture.views.vulture_delete_object_adm', dict({'model': Localization}, template_name='vulture/generic_confirm_delete.html', extra_context = dict(category='System', name='Localization', url='/localization'), post_delete_redirect='/localization/')),
   
   (r'^event/$',                               'vulture.views.view_event'),
-  (r'^(?P<type>import|export)/$',             'vulture.views.export_import_config'),
+  (r'^(?P<type_>import|export)/$',             'vulture.views.export_import_config'),
   
   (r'^plugincontent/$',                              'vulture.views.vulture_object_list_adm', dict({'queryset': Plugincontent.objects.all().order_by('app')}, template_name='vulture/generic_list.html', extra_context = dict(category='Web Applications', name='Plugin Content Rewrite', url='/plugincontent', noname=True, fields=(('app','Application'), ('pattern','Pattern'), ('type','Type'), ('options','Options'), ('options1','Options1'))))),
   (r'^plugincontent/(?P<object_id>\d+)/$',           'vulture.views.vulture_update_object_adm', dict({'model': Plugincontent}, post_save_redirect='/plugincontent/')),
