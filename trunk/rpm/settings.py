@@ -96,5 +96,6 @@ INSTALLED_APPS = (
 AUTHENTICATION_BACKENDS = (
    'vulture.auth.sql',
 )
+AUTH_PROFILE_MODULE = 'vulture.UserProfile'
 
 EMAIL_HOST='127.0.0.1'
