@@ -230,7 +230,7 @@ def reload_all_intfs(request):
     intfs = Intf.objects.all()
     mc = MC()
     for intf in intfs :
-        if intf.need_restart:
+        if intf.need_restart():
             fail = intf.maybeWrite()
             if fail:
                 k_output += "%s:%s"%(intf.name,fail)
