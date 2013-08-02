@@ -230,7 +230,7 @@ def reload_all_intfs(request):
     intfs = Intf.objects.all()
     mc = MC()
     for intf in intfs :
-        if intf.need_restart():
+        if intf.need_restart:
             fail = intf.maybeWrite()
             if fail:
                 k_output += "%s:%s"%(intf.name,fail)
@@ -631,35 +631,36 @@ def view_event (request, object_id=None):
     return render_to_response('vulture/event_list.html', {'file_list': file_list, 'log_content': content, 'type_list': type_list, 'type' : type_, 'records' : str(records_nb), 'length' : length, 'filter' : filter_, 'active_sessions' : active_sessions, 'user' : request.user, 'stats_month' : stats_month, 'stats_day' : stats_day, 'stats_hour' : stats_hour, 'stats_failed_month' : stats_failed_month, 'stats_failed_day' : stats_failed_day, 'stats_failed_hour' : stats_failed_hour, 'connections_failed' : connections_failed})
     
 @login_required
-def export_import_config (request, type):
-    query = request.POST
+def export_import_config (request, type_):
     content = None
     path = None
-    if 'path' in query:
-        path = query['path']
-        argsOK = True
-        if type == 'import':
-            nIN=path
-            nOUT=settings.DATABASE_PATH+"/db"
-        elif type == 'export':
-            nIN=settings.DATABASE_PATH+"/db"
-            nOUT=path
-        if os.path.exists(path):
+    if request.method == "POST": 
+        query = request.POST
+        if 'path' in query:
+            path = query['path']
+            argsOK = True
+            if type_ == 'import':
+                nIN=path
+                nOUT=settings.DATABASE_PATH+"/db"
+            elif type_ == 'export':
+                nIN=settings.DATABASE_PATH+"/db"
+                nOUT=path
+                if os.path.exists(path):
+                    argsOK = False
+        else:    
+            content = 'Invalid query'
             argsOK = False
-    else:    
-        content = 'You had not specify type'
-        argsOK = False
-    if argsOK:
-        try:
-            fIN=open(nIN,"r")
-            fOUT=open(nOUT,"w")
-            fOUT.write(fIN.read())
-            fOUT.close()
-            fIN.close()
-            content=type+" database: complete"
-        except:
-            content = type+" database: failed"
-    return render_to_response('vulture/exportimport_form.html', {'type': type, 'path': path, 'content': content})
+        if argsOK:
+            try:
+                fIN=open(nIN,"r")
+                fOUT=open(nOUT,"w")
+                fOUT.write(fIN.read())
+                fOUT.close()
+                fIN.close()
+                content=type_+" database: complete"
+            except:
+                content = type_+" database: failed"
+    return render_to_response('vulture/exportimport_form.html', {'type': type_, 'path': path, 'content': content})
     
 @login_required    
 def edit_security (request, object_id=None):
@@ -824,7 +825,7 @@ def edit_style(request, object_id=None):
 def view_css(request):
     try:
         if request.user:
-            # TODO : fix this
+            # TODO : fix this (use post_save instead)
             try:
                 style = request.user.get_profile().style 
                 return HttpResponse(content=style.style, mimetype='text/css')
