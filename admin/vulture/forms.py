@@ -199,16 +199,16 @@ class GroupSecurityForm(forms.ModelForm):
         path = cleaned_data.get("path")
         url = cleaned_data.get("url")
         name = cleaned_data.get("name")
+        version = cleaned_data.get("version");
 
-        for groupName in [g.name for g in Groupe.objects.all()]:
-            if name == groupName:
-                raise forms.ValidationError("/!\ already Used Rules set Name")
+        if Groupe.objects.filter(name=name, version=version):
+            raise forms.ValidationError("/!\ A group with same name and version already exists")
 
         if (not url) ^ (not path):
             # Only do something if one field is valid 
             return cleaned_data
         else:
-            raise forms.ValidationError("fill in valid url or valid path to validate please")
+            raise forms.ValidationError("/!\ fill in valid url or valid path to validate please")
     
         # Always return the full collection of cleaned data.
     class Meta:
