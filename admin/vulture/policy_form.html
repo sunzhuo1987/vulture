@@ -40,9 +40,9 @@
         }
     </script>
 
+    <table>
     <div id="main_content_1" class="main_content">
     <form id="form" method="post" action="">
-    <table>
         {{form}}
         <tr>
             <th colspan="2"><input type="submit" name="add_button" value="{% trans "Rules set selection" %}"/></th>
@@ -51,13 +51,12 @@
     <table>    
     <tbody>
         {% if policy_files %}
+        <h2 style="text-align:left;">{% trans "Activated files:" %}</h2>
         {% for pfile in policy_files %}
         <tr>
             <th>{{pfile.fichier.name}}</th>
             <td id="file_{{pfile.pk}}" onclick="add_ignore_rule(this)">
-                {% if not noedit %}
-                    <img src="/img/vulture2/add.png" alt="add" id="add{{forloop.counter}}" />
-                {% endif %}
+                    <img src="/img/vulture2/add.png" alt="add" id="add{{forloop.counter}}" title="Add Ignore Rule"/>
             </td>
         </tr>
         <tr>
