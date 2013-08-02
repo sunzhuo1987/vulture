@@ -112,6 +112,11 @@ class AppForm(forms.ModelForm):
     class Meta:
         model = App
 
+class CustomRuleForm(forms.ModelForm):
+    class Meta:
+        model = CustomRule
+
+
 class AppCopy(forms.Form):
     app = forms.ModelChoiceField(required=True, queryset=App.objects.all())
     name = forms.CharField()
@@ -238,3 +243,11 @@ class JKWorkerForm(forms.ModelForm):
             queryset=JKWorker.objects.filter(is_template=True),required=False)
     class Meta:
         model = JKWorker
+
+class AdminStyleForm(forms.ModelForm):
+    class Meta:
+        model = AdminStyle
+
+class UserProfileForm(forms.ModelForm):
+    class Meta:
+        model = UserProfile

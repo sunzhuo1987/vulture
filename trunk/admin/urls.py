@@ -100,6 +100,12 @@ urlpatterns = patterns('',
   (r'^group/(?P<object_id>\d+)/?$',           'vulture.views.view_group'),
   (r'^group/(?P<object_id>\d+)/del/$',        'vulture.views.vulture_delete_object_adm', dict({'model': Groupe}, template_name='vulture/generic_confirm_delete.html', extra_context = dict(category='Web Firewall', name='Rule Set', url='/group'), post_delete_redirect='/group/')),
 
+
+  (r'^customrule/?$',                              'vulture.views.vulture_object_list_adm', dict({'queryset': CustomRule.objects.all()}, template_name='vulture/generic_list.html',extra_context = dict(category='Web Firewall', name='Custom Rule', url='/customrule'))),
+  (r'^customrule/new/?$',                          'vulture.views.edit_rule'),
+  (r'^customrule/(?P<object_id>\d+)/?$',           'vulture.views.edit_rule'),
+  (r'^customrule/(?P<object_id>\d+)/del/$',        'vulture.views.vulture_delete_object_adm', dict({'model': CustomRule}, template_name='vulture/generic_confirm_delete.html', extra_context = dict(category='Web Firewall', name='Rule Set', url='/customrule'), post_delete_redirect='/customrule/')),
+  
   (r'^plugin/$',                              'vulture.views.vulture_object_list_adm', dict({'queryset': Plugin.objects.all()}, template_name='vulture/generic_list.html', extra_context = dict(category='Web Applications', name='Plugin', url='/plugin', noname=True, fields=(('app','App'), ('uri_pattern','URI Pattern'), ('type','Type'), ('options','Options'))))),
   (r'^plugin/(?P<object_id>\d+)/$',           'vulture.views.vulture_update_object_adm', dict({'model': Plugin}, post_save_redirect='/plugin/')),
   (r'^plugin/new/$',                          'vulture.views.vulture_create_object_adm', dict({'model': Plugin}, post_save_redirect='/plugin/')),
@@ -163,8 +169,8 @@ urlpatterns = patterns('',
 
   (r'^cluster/$',	'vulture.views.manage_cluster'),
   (r'^plugincas/$','vulture.views.plugincas_config'),
-  (r'^(?P<url>logic)/(?P<object_id>\d+)/$',    'vulture.views.edit_auth'),
   (r'^(?P<url>logic)/new/$',                   'vulture.views.edit_auth'),
+  (r'^(?P<url>logic)/(?P<object_id>\d+)/$',    'vulture.views.edit_auth'),
   (r'^(?P<url>logic)/(?P<object_id>\d+)/del/$','vulture.views.remove_auth'), 
   (r'^logic/$','vulture.views.vulture_object_list_adm', dict({'queryset': Logic.objects.all()}, template_name='vulture/generic_list.html', extra_context = dict(category='Authentication', name='Logic', url='/logic', ))),
   (r'^otp/$','vulture.views.vulture_object_list_adm', dict({'queryset': OTP.objects.all()}, template_name='vulture/otp_list.html', extra_context = dict(category='Auth', name='One-Time-Password', url='/otp', fields=(('ldap','LDAP'),('script','Script'),('passlen','Password Length'),('template','SMS template'),('timeout','Timeout'))))),
@@ -175,5 +181,10 @@ urlpatterns = patterns('',
   (r'^jk/(?P<object_id>\d+)/?$',    'vulture.views.edit_jkworker'),
   (r'^jk/(?P<object_id>\d+)/del/?$', 'vulture.views.delete_jkworker'),
   (r'^jk/new/$',    'vulture.views.edit_jkworker'),
+  (r'^adminstyle/$','vulture.views.vulture_object_list_adm', dict({'queryset': AdminStyle.objects.all()}, template_name='vulture/generic_list.html', extra_context = dict(category='Admin Style', name='Style', url='/adminstyle', ))),
+  (r'^adminstyle/new/$',                   'vulture.views.edit_style'),
+  (r'^adminstyle/(?P<object_id>\d+)/$',    'vulture.views.edit_style'),
+  (r'^adminstyle/(?P<object_id>\d+)/del/$','vulture.views.vulture_delete_object_adm', dict({'model': AdminStyle}, template_name='vulture/generic_confirm_delete.html', extra_context = dict(category='System', name='AdminStyle', url='/adminstyle'), post_delete_redirect='/adminstyle/')),
+  (r'^vulture.css$', 'vulture.views.view_css'),
 )
 

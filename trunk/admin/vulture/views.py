@@ -17,6 +17,7 @@ from django.core.exceptions import FieldError
 import ldap
 import re
 from memcached import MC, SynchroDaemon
+import vulture.models
 from vulture.models import *
 from vulture.forms import *
 
@@ -229,7 +230,7 @@ def reload_all_intfs(request):
     intfs = Intf.objects.all()
     mc = MC()
     for intf in intfs :
-        if intf.need_restart():
+        if intf.need_restart:
             fail = intf.maybeWrite()
             if fail:
                 k_output += "%s:%s"%(intf.name,fail)
@@ -511,12 +512,16 @@ def create_user(request,object_id=None):
 @login_required
 def edit_user(request,object_id=None):
     form = MyUserChangeForm(request.POST or None,instance=object_id and User.objects.get(id=object_id))
+    user_profile_form = UserProfileForm(request.POST or None,instance=object_id and UserProfile.objects.get(user=object_id))
+
     # Save new/edited component
     if request.method == 'POST' and form.is_valid():
         user = form.save(commit=False)
         user.save()
+        if user_profile_form.is_valid():
+            user_profile_form.save()
         return HttpResponseRedirect('/user/')
-    return render_to_response('vulture/useredit_form.html', {'form': form, 'user' : request.user, 'id' : object_id})
+    return render_to_response('vulture/useredit_form.html', {'form': form, 'user_profile': user_profile_form, 'user' : request.user, 'id' : object_id})
     
 @login_required
 def edit_user_password(request,object_id=None):    
@@ -686,6 +691,15 @@ def edit_group(request, object_id=None):
         form = GroupSecurityForm(instance=inst )
     return render_to_response('vulture/group_form.html', {'form' : form, })
 
+@login_required    
+def edit_rule(request, object_id=None):
+    form = CustomRuleForm(request.POST or None,instance=object_id and CustomRule.objects.get(id=object_id))
+    if request.method == 'POST':
+        if form.is_valid():
+            form.save()
+        return HttpResponseRedirect('/customrule')
+    return render_to_response('vulture/custom_rule_form.html', {'form' : form, })
+
 def view_group(request, object_id):
     groupe = Groupe.objects.get(pk=object_id);
     return render_to_response('vulture/group_view.html', {'groupe':groupe})
@@ -794,3 +808,30 @@ def delete_jkworker(request, object_id=None):
         f.write(jkw.genConf())
         return HttpResponseRedirect("/jk")
     return render_to_response("vulture/generic_confirm_delete.html",{"object":jkw,"category":"Web Applications","name":"Mod_JK","url":"/jk","user":request.user})
+
+@login_required
+def edit_style(request, object_id=None):
+    inst=object_id != None and AdminStyle.objects.get(pk=object_id) or None
+    if request.method == 'POST':
+        form = AdminStyleForm(request.POST,instance=inst)
+        if form.is_valid(): 
+            form.save()
+            return render_to_response('vulture/style_form.html', {'form' : form, })
+    else:
+        form = AdminStyleForm(instance=inst )
+    return render_to_response('vulture/style_form.html', {'form' : form, })
+
+def view_css(request):
+    try:
+        if request.user:
+            # TODO : fix this
+            try:
+                style = request.user.get_profile().style 
+                return HttpResponse(content=style.style, mimetype='text/css')
+            except:
+                up = UserProfile(user=request.user)
+                up.save()
+                style = up.style 
+    except:
+        style = AdminStyle.objects.get(name='default')
+    return HttpResponse(content=style.style, mimetype='text/css')
