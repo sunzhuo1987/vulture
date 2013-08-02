@@ -132,7 +132,7 @@ class Groupe(models.Model):
         return os.path.exists(self.get_dir_path())
 
     def __unicode__(self):
-        return self.name
+        return self.name+"-"+self.version
 
     class Meta:
         db_table = 'groupe'
