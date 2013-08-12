@@ -248,6 +248,6 @@ class AdminStyleForm(forms.ModelForm):
     class Meta:
         model = AdminStyle
 
-class UserProfileForm(forms.ModelForm):
+class UserProfileForm2(forms.ModelForm):
     class Meta:
         model = UserProfile

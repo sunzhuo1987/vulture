@@ -512,7 +512,7 @@ def create_user(request,object_id=None):
 @login_required
 def edit_user(request,object_id=None):
     form = MyUserChangeForm(request.POST or None,instance=object_id and User.objects.get(id=object_id))
-    user_profile_form = UserProfileForm(request.POST or None,instance=object_id and UserProfile.objects.get(user=object_id))
+    user_profile_form = UserProfileForm2(request.POST or None,instance=object_id and UserProfile.objects.get(user=object_id))
 
     # Save new/edited component
     if request.method == 'POST' and form.is_valid():
