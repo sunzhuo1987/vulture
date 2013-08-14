@@ -1366,6 +1366,7 @@ class Plugin(models.Model):
     PLUGIN_TYPES = (
     ('Static', 'Static'),
     ('Rewrite', 'Rewrite'),
+    ('SQLPASS', 'Change SQL pass'),
     ('Block', 'Block'),
     ('Logout', 'Logout'),
     ('Logout_ALL', 'Logout_ALL'),
