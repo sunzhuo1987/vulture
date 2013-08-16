@@ -128,8 +128,12 @@ sub plugin {
     $r->set_handlers( PerlAuthzHandler  => undef );
     $r->set_handlers( PerlFixupHandler  => undef );
 
-    # Return empty iframe content
-    $r->pnotes( 'response_content' => '<html><head></head><body></body></html>');
+    # Return empty content or redirect if option
+	my $redir = "";
+	if ($options){
+		$redir = "<meta http-equiv=\"Refresh\" content=\"0; url='$options'\">";
+	}
+    $r->pnotes( 'response_content' => "<html><head>$redir</head><body></body></html>");
     $r->pnotes( 'response_content_type' => 'text/html' );
     return Apache2::Const::OK;
 }
