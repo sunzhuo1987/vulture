@@ -302,43 +302,38 @@ sub get_DB_object {
     $sth->finish();
 
     #Let's connect to this new database and retrieve all fields
-    if ($ref) {
-
-        #Build a driver like "dbi:SQLite:dbname=/var/www/vulture/admin/db"
-        my $dsn = 'dbi:' . $ref->{'driver'};
-        if ( $ref->{'driver'} ne 'Oracle' ) {
-            $dsn .= ':dbname=' . $ref->{'database'};
-            if ( $ref->{'host'} ) {
-                $dsn .= ':' . $ref->{'host'};
-                if ( $ref->{'port'} ) {
-                    $dsn .= ':' . $ref->{'port'};
-                }
-            }
-        }
-        else {
-            if ( $ref->{'host'} ) {
-                $dsn .= '://' . $ref->{'host'};
-                if ( $ref->{'port'} ) {
-                    $dsn .= ':' . $ref->{'port'};
-                }
-            }
-            $dsn .= '/' . $ref->{'database'};
-        }
-
-        #my $dbi->{printError} = 0;
-        my $dbi = (
-            DBI->connect( $dsn, $ref->{'user'}, $ref->{'password'} )
-              or "error"
-        );
-        if ( $dbi eq "error" ) {
-
-            $log->debug("can't connect to secondary authentification");
-
-        }
-        return ( $dbi, $ref );
+    if (not $ref){
+        $log->error("Can't find DB object");
+        return undef;
     }
-    $log->error("Can't find DB object");
-    return;
+    
+    #Build a driver like "dbi:SQLite:dbname=/var/www/vulture/admin/db"
+    my $dsn = 'dbi:' . $ref->{'driver'};
+    if ( $ref->{'driver'} ne 'Oracle' ) {
+        $dsn .= ':dbname=' . $ref->{'database'};
+        if ( $ref->{'host'} ) {
+            $dsn .= ':' . $ref->{'host'};
+            if ( $ref->{'port'} ) {
+                $dsn .= ':' . $ref->{'port'};
+            }
+        }
+    }
+    else {
+        if ( $ref->{'host'} ) {
+            $dsn .= '://' . $ref->{'host'};
+            if ( $ref->{'port'} ) {
+                $dsn .= ':' . $ref->{'port'};
+            }
+        }
+        $dsn .= '/' . $ref->{'database'};
+    }
+
+    #my $dbi->{printError} = 0;
+    my $dbi = DBI->connect( $dsn, $ref->{'user'}, $ref->{'password'});
+    if ( not $dbi) {
+        $log->debug("can't connect to secondary authentification");
+    }
+    return ( $dbi, $ref );
 }
 
 sub get_LDAP_object {
@@ -466,70 +461,77 @@ sub get_style {
     $html .="<title>$title</title>";
     $html .= "<style type=\"text/css\">" . $ref->{css} . "</style>"
         if ( defined $ref->{css} );
-    $html .= $ref->{tpl_head} 
-        if ( defined $ref->{tpl_head} );
+    if ( defined $ref->{tpl_head} ){
+        $html .= parse_template($r, $log, $dbh, $app,
+            $ref->{tpl_head}, $translations, $fields, $ref->{image});
+    }
     $html .= "</head><body>"; 
 
     #Parse template
     if ( defined $ref->{tpl} ) {
-        $log->debug("Parse template");
-        $html .= join "", map {
-            my ($directive) = $_ =~ /__(.+)__/s;
-            if ($directive) {
-                if ( $directive eq "IMAGE" ) {
-                    $_ =
-                      "<img id=\"logo\" src=\"/static/"
-                      . $ref->{image} . "\" />"
-                      if $ref->{image};
-                }
-                elsif ( $directive eq "APPNAME" ) {
-                    $_ = $app?$app->{name}:'';
-                }
-                elsif ($directive eq "LOGIN_NAME"){
-                    $_ = $r->pnotes("username");
-                }
-                elsif ($directive eq "LOGGED_AUTH"){
-                    my $intf = $r->pnotes('intf');
-                    my (%session_SSO);
-                    Core::VultureUtils::session( \%session_SSO, $intf->{sso_timeout},
-                        $r->pnotes('id_session_SSO'),
-                        $log, $r->pnotes('mc_conf'), $intf->{sso_update_access_time} );
-                    
-                    my $ok_auth = "{" . (join ",", map{  
-                                "$1:\"" . js_escape($session_SSO{"auth_infos_$1"}{login}) .'"' if ($_ =~ /auth_infos_(\d+)/)
-                                } grep {$_ =~ /^auth_infos_(\d+)$/}(keys %session_SSO)) . "}";
-
-                    my $auth = ($app and defined $app->{'auth'} ) ? $app->{'auth'} : $intf->{'auth'};
-                    if ( not $auth) {
-                        $log->error("incorrect usage of LOGGED_AUTH");
-                        $_ = $ok_auth;
-                    }else{
-                        my $todo_auth = Core::VultureUtils::auth_to_string($dbh, $auth->{id});
-                        $_ = "var ok_auth = $ok_auth; var todo_auth=$todo_auth;";
-                    }
-                }
-                elsif ( defined $fields->{$directive} ) {
-                    $_ = $fields->{$directive};
-                    #Custom translated string
-                }
-                elsif ( defined $translations->{$directive}
-                    and defined $translations->{$directive}{'translation'} )
-                {
-                    $_ = $translations->{$directive}{'translation'};
-                }
-                else {
-                }
-            }
-            else {
-                $_ = $_;
-            }
-        } split( /(__.*?__)/s, $ref->{tpl} );
+        $html .= parse_template($r, $log, $dbh, $app,
+            $ref->{tpl}, $translations, $fields, $ref->{image});
     }
     $html .= '</body></html>';
 
     return $html;
 }
 
+sub parse_template{
+    my ($r, $log, $dbh, $app,
+        $template, $translations, $fields, $image) = @_;
+    return join "", map {
+        my ($directive) = $_ =~ /__(.+)__/s;
+        if ($directive) {
+            if ( $directive eq "IMAGE" ) {
+                $_ =
+                  "<img id=\"logo\" src=\"/static/"
+                  . $image . "\" />"
+                  if $image;
+            }
+            elsif ( $directive eq "APPNAME" ) {
+                $_ = $app?$app->{name}:'';
+            }
+            elsif ($directive eq "LOGIN_NAME"){
+                $_ = $r->pnotes("username");
+            }
+            elsif ($directive eq "LOGGED_AUTH"){
+                my $intf = $r->pnotes('intf');
+                my (%session_SSO);
+                Core::VultureUtils::session( \%session_SSO, $intf->{sso_timeout},
+                    $r->pnotes('id_session_SSO'),
+                    $log, $r->pnotes('mc_conf'), $intf->{sso_update_access_time} );
+                
+                my $ok_auth = "{" . (join ",", map{  
+                            "$1:\"" . js_escape($session_SSO{"auth_infos_$1"}{login}) .'"' if ($_ =~ /auth_infos_(\d+)/)
+                            } grep {$_ =~ /^auth_infos_(\d+)$/}(keys %session_SSO)) . "}";
+
+                my $auth = ($app and defined $app->{'auth'} ) ? $app->{'auth'} : $intf->{'auth'};
+                if ( not $auth) {
+                    $log->error("incorrect usage of LOGGED_AUTH");
+                    $_ = $ok_auth;
+                }else{
+                    my $todo_auth = Core::VultureUtils::auth_to_string($dbh, $auth->{id});
+                    $_ = "var ok_auth = $ok_auth; var todo_auth=$todo_auth;";
+                }
+            }
+            elsif ( defined $fields->{$directive} ) {
+                $_ = $fields->{$directive};
+                #Custom translated string
+            }
+            elsif ( defined $translations->{$directive}
+                and defined $translations->{$directive}{'translation'} )
+            {
+                $_ = $translations->{$directive}{'translation'};
+            }
+            else {
+            }
+        }
+        else {
+            $_ = $_;
+        }
+    } split( /(__.*?__)/s, $template );
+}
 sub get_translations {
     my ( $r, $log, $dbh, $message ) = @_;
 
@@ -671,11 +673,7 @@ sub is_JK {
     my $query = 'select count(*) from jk_worker_directives LEFT JOIN app ON app.id=jk_worker_directives.app_id where app.id=?';
     my $sth = $dbh->prepare($query);
     $sth->execute($id);
-    my $result = $sth->fetchrow;
-    $sth->finish();
-    $log->debug("result is jk is $result");
-    return "True" if $result;
-    return undef;
+    return $sth->fetchrow > 0;
 }
 
 sub get_LDAP_field {
