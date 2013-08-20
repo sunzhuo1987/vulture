@@ -18,7 +18,7 @@ use Apache2::Log;
 use Apache2::Reload;
 
 use Core::VultureUtils
-  qw(&get_cookie &session &get_memcached &set_memcached &notify &get_translations &get_style &parse_set_cookie);
+  qw(&get_cookie &session &get_memcached &set_memcached &notify &get_style &parse_set_cookie);
 
 use Apache2::Const -compile => qw(OK FORBIDDEN REDIRECT);
 
@@ -79,7 +79,6 @@ sub plugin {
         notify( $dbh, undef, $session_SSO{username}, 'deconnection', scalar( keys %users ) );
         #Logout from SSO
         tied(%session_SSO)->delete();
-        my $translations = get_translations( $r, $log, $dbh, "DISCONNECTED" );
         $options ||= "/";
         $resp_content = ( "<html><head><meta http-equiv=\"Refresh\" content=\"0; url='" 
               . $final_url
