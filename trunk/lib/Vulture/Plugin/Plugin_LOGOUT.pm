@@ -45,17 +45,15 @@ sub plugin {
     $log->debug($id_app);
     return Apache2::Const::FORBIDDEN unless $session_app{'is_auth'};
     $session_app{'is_auth'} = undef;
-
     #Debug for eval
     #$log->debug ($@) if $@;
-
     #Destroy useless handlers
     $r->set_handlers( PerlAccessHandler => undef );
     $r->set_handlers( PerlAuthenHandler => undef );
     $r->set_handlers( PerlAuthzHandler  => undef );
     $r->set_handlers( PerlFixupHandler  => undef );
 
-    my $translations = get_translations( $r, $log, $dbh, "DISCONNECTED" );
+#    my $translations = get_translations( $r, $log, $dbh, "DISCONNECTED" );
 
 #If no html, send form
 #my $html = get_style($r, $log, $dbh, $app, 'LOGOUT', 'Logout from Vulture', {FORM => ''}, $translations);
