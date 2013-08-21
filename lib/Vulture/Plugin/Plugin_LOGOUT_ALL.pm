@@ -93,9 +93,6 @@ sub plugin {
             #Logout user
             $current_app{'is_auth'} = undef;
 
-            notify( $dbh, $id_app, $session_SSO{username}, 'deconnection',
-                scalar( keys %users ) );
-
             #Getting url to logout
             my $query =
 "SELECT app.name, app.id, url, remote_proxy, logout_url FROM app, intf WHERE app.name = ? AND intf.id = ?";
@@ -105,20 +102,20 @@ sub plugin {
             $sth->execute( $current_app{'app_name'}, $intf->{id} );
             my ( $host, $app_id, $url, $remote_proxy, $logout_url ) =
               $sth->fetchrow_array;
-            if ( $url and $logout_url ) {
 
+            notify( $dbh, $app_id, $session_SSO{username}, 'deconnection',
+                scalar( keys %users ) );
+
+            if ( $url and $logout_url ) {
                 #Setting fake user agent
                 my ( $ua, $response, $request );
                 $ua = LWP::UserAgent->new;
-
                 #Setting proxy if needed
                 if ( $remote_proxy ne '' ) {
                     $ua->proxy( [ 'http', 'https' ], $remote_proxy );
                 }
-
                 #Setting request
                 $request = HTTP::Request->new( 'GET', $url . $logout_url );
-
                 #Setting headers
                 $request->remove_header('User-Agent');
                 $request->push_header(
@@ -129,23 +126,19 @@ sub plugin {
                 my $sth =
                   $dbh->prepare("SELECT name, type, value FROM header WHERE app_id= ?");
                 $sth->execute( $app_id );
-
                 #Push specific headers to get the right form
                 while ( my ( $h_name, $h_type, $h_value ) = $sth->fetchrow ) {
                     if ( $h_type eq "REMOTE_ADDR" ) {
                         $h_value = $r->connection->remote_ip;
-
                         #Nothing to do
                     }
                     elsif ( $h_type eq "CUSTOM" ) {
-
                         #Types related to SSL
                     }
                     else {
                         $h_value = $r->ssl_lookup( $headers_vars{$h_type} )
                           if ( exists $headers_vars{$h_type} );
                     }
-
                     #Try to push custom headers
                     eval {
                         $log->debug("Pushing custom header $h_name => $h_value");
@@ -154,10 +147,8 @@ sub plugin {
                     };
                 }
                 $sth->finish();
-
                 #Getting response
                 $response = $ua->request($request);
-
                 #Render cookie
                 my %cookies_app;
                 if ( $response->headers->header('Set-Cookie') ) {
@@ -183,36 +174,28 @@ sub plugin {
                          );    # Send cookies to browser's client
                     $log->debug( "PROPAG " . $k . "=" . $cookies_app{$k} );
                 }
-
                 if ( $response->code =~ /^30[0-9]/ )
                 {                    #On gère les redirections de type 30x
                     $r->err_headers_out->set(
                         'Location' => $response->headers->header('Location') );
                 }
             }
-
             #End query
             $sth->finish();
-
             #Delete current session
             tied(%current_app)->delete();
         }
     }
-
     #Logout from SSO
     tied(%session_SSO)->delete();
-
     #Debug for eval
     $log->debug($@) if $@;
-
     #Destroy useless handlers
     $r->set_handlers( PerlAccessHandler => undef );
     $r->set_handlers( PerlAuthenHandler => undef );
     $r->set_handlers( PerlAuthzHandler  => undef );
     $r->set_handlers( PerlFixupHandler  => undef );
-
     my $translations = get_translations( $r, $log, $dbh, "DISCONNECTED" );
-
 #If no html, send form
 #    my $html = get_style($r, $log, $dbh, $app, 'LOGOUT', 'Logout from Vulture', {FORM => ''}, $translations);
     $options ||= "/";
@@ -220,8 +203,6 @@ sub plugin {
             "<html><head><meta http-equiv=\"Refresh\" content=\"0; url='" 
           . $options
           . "'\"/></head></html>");
-
-    #    $r->pnotes('response_content' => $html);
     $r->pnotes( 'response_content_type' => 'text/html' );
     return Apache2::Const::OK;
 }

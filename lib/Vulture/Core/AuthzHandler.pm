@@ -115,7 +115,7 @@ sub handler {
 }
 sub invalidate_auth{
     my ($r, $dbh, $app, $user, $users, $session_app, $session_sso) = @_;
-    Core::VultureUtils::notify( $dbh, $app ? $app->{id} : -1, $user,
+    Core::VultureUtils::notify( $dbh, $app ? $app->{id} : undef, $user,
         'connection_failed', scalar( keys %$users ) );
     $session_app->{is_auth}=0 if $session_app;
     
