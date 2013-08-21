@@ -106,6 +106,8 @@ sub plugin {
     my $id_app = get_cookie( $cookies, $r->dir_config('VultureAppCookieName') . '=([^;]*)' );
     my %session_app;
     session( \%session_app, undef, $id_app, undef, $mc_conf );
+
+    notify( $dbh, $app->{id}, $session_app{username}, 'deconnection', 0);
     $session_app{is_auth} = 0;
 
     my $path = "/";

@@ -24,14 +24,11 @@ use DBI;
 
 use LWP::UserAgent;
 
-use Apache::SSLLookup;
-
 use Data::Dumper;
 
 sub plugin {
     my ( $package_name, $r, $log, $dbh, $intf, $app, $options ) = @_;
 
-    $r = Apache::SSLLookup->new($r);
     my $mc_conf = $r->pnotes('mc_conf');
     $log->debug("########## Plugin_LOGOUT ##########");
 
@@ -40,19 +37,18 @@ sub plugin {
     my ($id_app) = get_cookie( $r->headers_in->{Cookie},
         $r->dir_config('VultureAppCookieName') . '=([^;]*)' )
       || return Apache2::Const::FORBIDDEN;
-    $log->debug("cookie is : ". $r->headers_in->{Cookie});
+
     session( \%session_app, undef, $id_app, undef, $mc_conf );
-    $log->debug($id_app);
-    return Apache2::Const::FORBIDDEN unless $session_app{'is_auth'};
+    return Apache2::Const::FORBIDDEN unless $session_app{is_auth};
+
     $session_app{'is_auth'} = undef;
-    #Debug for eval
-    #$log->debug ($@) if $@;
+    notify( $dbh, $app->{id}, $session_app{username}, 'deconnection', 0);
+
     #Destroy useless handlers
     $r->set_handlers( PerlAccessHandler => undef );
     $r->set_handlers( PerlAuthenHandler => undef );
     $r->set_handlers( PerlAuthzHandler  => undef );
     $r->set_handlers( PerlFixupHandler  => undef );
-
 #    my $translations = get_translations( $r, $log, $dbh, "DISCONNECTED" );
 
 #If no html, send form
@@ -66,5 +62,4 @@ sub plugin {
     $r->pnotes( 'response_content_type' => 'text/html' );
     return Apache2::Const::OK;
 }
-
 1;

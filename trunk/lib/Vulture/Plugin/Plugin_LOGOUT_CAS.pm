@@ -23,8 +23,6 @@ use POSIX;
 use Core::VultureUtils
   qw(&session &get_memcached &set_memcached &get_cookie &get_app &get_LDAP_field &get_SQL_field);
 
-
-
 sub trim {
     my $arg = shift;
     $arg =~ s/^\s+//;
@@ -48,7 +46,6 @@ sub plugin {
     my (%users);
 
     %users = %{ get_memcached( 'vulture_users_in', $mc_conf ) || {} };
-
 
     try {
         my $xmlreq = $parser->load_xml( string => $posted );
@@ -93,18 +90,19 @@ sub plugin {
                 #Logout user
                 $current_app{'is_auth'} = undef;
 
-                Core::VultureUtils::notify( $dbh, $id_app, $session_SSO{username}, 'deconnection',
-                    scalar( keys %users ) );
 
                 #Getting url to logout
                 my $query =
-    "SELECT app.name, url, remote_proxy, logout_url FROM app, intf WHERE app.name = ? AND intf.id = ?";
+    "SELECT app.id, app.name, url, remote_proxy, logout_url FROM app, intf WHERE app.name = ? AND intf.id = ?";
                 $log->debug($query);
                 my $sth = $dbh->prepare($query);
                 $log->debug( $intf->{id} );
                 $sth->execute( $current_app{'app_name'}, $intf->{id} );
-                my ( $host, $url, $remote_proxy, $logout_url ) =
+                my ( $app_id, $host, $url, $remote_proxy, $logout_url ) =
                   $sth->fetchrow_array;
+
+                Core::VultureUtils::notify( $dbh, $app_id, $session_SSO{username}, 'deconnection',
+                    scalar( keys %users ) );
                 if ( $url and $logout_url ) {
 
                     #Setting fake user agent
