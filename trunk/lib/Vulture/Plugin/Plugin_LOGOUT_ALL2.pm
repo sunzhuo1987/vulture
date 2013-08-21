@@ -18,14 +18,12 @@ use Apache2::Log;
 use Apache2::Reload;
 
 use Core::VultureUtils
-  qw(&get_cookie &session &get_memcached &set_memcached &notify &get_style &parse_set_cookie);
+  qw(&get_cookie &session &get_memcached &set_memcached &notify);
 
 use Apache2::Const -compile => qw(OK FORBIDDEN REDIRECT);
 
 use APR::URI;
 use DBI;
-
-use LWP::UserAgent;
 
 sub plugin {
     my ( $package_name, $r, $log, $dbh, $intf, $app, $options ) = @_;

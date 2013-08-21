@@ -21,7 +21,7 @@ use Error qw(:try);
 use POSIX;
 
 use Core::VultureUtils
-  qw(&session &get_memcached &set_memcached &get_cookie &get_app &get_LDAP_field &get_SQL_field);
+  qw(&session &get_memcached &set_memcached &get_cookie &get_app &get_LDAP_field &get_SQL_field &get_ua_object &get_http_request);
 
 sub trim {
     my $arg = shift;
@@ -107,33 +107,17 @@ sub plugin {
 
                     #Setting fake user agent
                     my ( $ua, $response, $request );
-                    $ua = LWP::UserAgent->new;
-
-                    #Setting proxy if needed
-                    if ( $remote_proxy ne '' ) {
-                        $ua->proxy( [ 'http', 'https' ], $remote_proxy );
-                    }
-
-                    #Setting request
-                    $request = HTTP::Request->new( 'GET', $url . $logout_url );
-                    $request->push_header(
-                        'User-Agent' => $r->headers_in->{'User-Agent'} );
-
-                    #Setting headers
+                    $ua = get_ua_object($r, $remote_proxy);
+                    $request = get_http_request($r, $dbh, $app_id, 'GET', $url . $logout_url);
                     #Pushing cookies
-                    $log->debug( $current_app{cookie} );
                     $request->push_header( 'Cookie' => $current_app{cookie} );
-                    $request->push_header( 'Cookie' => $r->headers_in->{'Cookie'});
-                    $request->push_header(
-                        'User-Agent' => $r->headers_in->{'User-Agent'} );
-                    $request->push_header( 'Host' => $host );
 
                     #Getting response
                     $response = $ua->request($request);
 
                     #Render cookie
                     my %cookies_app;
-		    my $cookie;
+                    my $cookie;
                     if ( $response->headers->header('Set-Cookie') ) {
 
                         # Adding new couples (name, value) thanks to POST response
