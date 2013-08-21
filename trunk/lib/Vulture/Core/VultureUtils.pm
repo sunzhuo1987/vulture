@@ -16,7 +16,7 @@ BEGIN {
       &get_cookie &get_memcached &set_memcached &get_DB_object
       &get_LDAP_object &get_style &get_translations &generate_random_string 
       &notify &get_LDAP_field &get_SQL_field &load_module &is_JK &parse_set_cookie &parse_cookies
-      &encrypt &decrypt);
+      &encrypt &decrypt &get_ua_object &get_http_request);
 }
 
 use Apache::Session::Generate::MD5;
@@ -36,7 +36,32 @@ use Crypt::CBC;
 use Crypt::OpenSSL::AES;
 use MIME::Base64;
 
+use HTTP::Request;
+use LWP::UserAgent;
+use Apache::SSLLookup;
+
 our ($memd);
+
+our %ssl_headers = (
+    2  => 'SSL_CLIENT_I_DN',
+    3  => 'SSL_CLIENT_M_SERIAL',
+    4  => 'SSL_CLIENT_S_DN',
+    5  => 'SSL_CLIENT_V_START',
+    6  => 'SSL_CLIENT_V_END',
+    7  => 'SSL_CLIENT_S_DN_C',
+    8  => 'SSL_CLIENT_S_DN_ST',
+    9  => 'SSL_CLIENT_S_DN_Email',
+    10 => 'SSL_CLIENT_S_DN_L',
+    11 => 'SSL_CLIENT_S_DN_O',
+    12 => 'SSL_CLIENT_S_DN_OU',
+    13 => 'SSL_CLIENT_S_DN_CN',
+    14 => 'SSL_CLIENT_S_DN_T',
+    15 => 'SSL_CLIENT_S_DN_I',
+    16 => 'SSL_CLIENT_S_DN_G',
+    17 => 'SSL_CLIENT_S_DN_S',
+    18 => 'SSL_CLIENT_S_DN_D',
+    19 => 'SSL_CLIENT_S_DN_UID',
+);
 
 sub version_check {
     my ($config) = @_;
@@ -832,5 +857,57 @@ sub decrypt {
     close $fh or die $!;
     return $value;
 
+}
+sub get_ua_object {
+    my ($r, $remote_proxy) = @_;
+    my $config = $r->pnotes('config');
+    my %ssl_opts = (
+        verify_hostname => 1,
+    );
+    my $SSL_ca_file = $config->get_key('SSL_ca_file')||'';
+    if ($SSL_ca_file){
+        $ssl_opts{SSL_ca_file} = $SSL_ca_file;
+    }
+    my $ua = LWP::UserAgent->new;
+    if ( $remote_proxy ne '' ) {
+        $ua->proxy( [ 'http', 'https' ], $remote_proxy );
+    }
+    return $ua;
+}
+sub get_http_request{
+    my ($r, $dbh, $app_id, $method, $url) = @_;
+    my $req = Apache::SSLLookup->new($r);
+    my $http_req = HTTP::Request->new( $method, $url );
+
+    #Setting headers
+    $http_req->remove_header('User-Agent');
+    $http_req->push_header('User-Agent' => $req->headers_in->{'User-Agent'});
+    #Pushing cookies
+    $http_req->remove_header( 'Cookie');
+    $http_req->push_header( 'Cookie' => $req->headers_in->{'Cookie'});
+
+    my $sth = $dbh->prepare("SELECT name, type, value FROM header WHERE app_id= ?");
+    $sth->execute( $app_id );
+
+    #Push specific headers to get the right form
+    while ( my ( $h_name, $h_type, $h_value ) = $sth->fetchrow ) {
+        if ( $h_type eq "REMOTE_ADDR" ) {
+            $h_value = $r->connection->remote_ip;
+            #Nothing to do
+        }
+        elsif ( $h_type eq "CUSTOM" ) {
+            #Types related to SSL
+        }
+        else {
+            $h_value = $req->ssl_lookup( $ssl_headers{$h_type} )
+              if ( exists $ssl_headers{$h_type} );
+        }
+        #Try to push custom headers
+        eval {
+            $http_req->remove_header($h_name);
+            $http_req->push_header($h_name => $h_value);
+        };
+    }
+    return $http_req;
 }
 1;
