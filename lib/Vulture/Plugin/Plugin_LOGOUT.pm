@@ -22,10 +22,6 @@ use Apache2::Const -compile => qw(OK FORBIDDEN REDIRECT);
 
 use DBI;
 
-use LWP::UserAgent;
-
-use Data::Dumper;
-
 sub plugin {
     my ( $package_name, $r, $log, $dbh, $intf, $app, $options ) = @_;
 
