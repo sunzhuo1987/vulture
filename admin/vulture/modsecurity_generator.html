@@ -6,15 +6,14 @@
 {% endblock %}
 
 {% block tabs %}
-    <li><a href="/security/">{% trans "List" %}</a></li>
+    <li><a href="/configuration/">{% trans "List" %}</a></li>
     <li><a href="#" id="main_tab_1" class="active">{% trans "Main settings" %}</a></li>
 {% endblock %}
 
 {% block content %}
-	<form method="post" action="." id="security">
-
+	<form method="post" action="" id="configuration">
         <div id="main_content_1" class="main_content">
-               <script type='text/javascript'>
+            <script type='text/javascript'>
             ctl_counter=0;
             t_counter=0;
             setvar_counter=0;
@@ -46,8 +45,8 @@
                     <br /> \
                     <select id="what"> \
                         <option value="@contains"> contient </option> \
-                        <option value="streq"> streq </option> \
-                        <option value="regexp"> ressemble (expression régulière) </option> \
+                        <option value="streq"> est Egale </option> \
+                        <option value="regexp"> correspond à l\'expression régulière </option> \
                     </select> \
                     <input type="text" id="what_text"/> \
                     <br /> \
@@ -56,12 +55,12 @@
                     <select id="ms-action"> \
                         <option value="chain"> chaine </option> \
                         <option value="phase"> phase </option> \
-                        <option value="t"> transformation </option> \
-                        <option value="pass"> Accepter </option> \
+                        <option value="T"> transformation </option> \
+                        <option value="Pass"> Accepter </option> \
                         <option value="Log"> Log </option> \
                         <option value="AuditLog"> AuditLog</option> \
-                        <option value="ctl"> ctl</option> \
-                        <option value="message"> Message</option> \
+                        <option value="Ctl"> ctl</option> \
+                        <option value="Message"> Message</option> \
                         <option value="Tag"> Tag </option> \
                         <option value="Severity"> Severity </option> \
                         <option value="SetVar"> SetVar </option> \
@@ -87,7 +86,7 @@
                     $("#rule_div_"+current_rule+" #conteneur_name").show();
                 }
             }
-                       function addAction(current_rule) {
+            function addAction(current_rule) {
 
                 dom="";
                 if ($("#rule_div_"+current_rule+" #ms-action").val() == "phase") {
@@ -102,8 +101,8 @@
                         <a href="#" onclick="delAction(\'phase\',0,'+current_rule+')"> - </a> \
                         </div>';
                     }
-                               }
-                               else if ($("#rule_div_"+current_rule+" #ms-action").val() == "Log") {
+                }
+                else if ($("#rule_div_"+current_rule+" #ms-action").val() == "Log") {
                     if($("#rule_div_"+current_rule+" #log")[0] == undefined) {
                         dom = '<div id="log_div_0"><select id="log" class="optionnal" > \
                         <option value="log" >log</option> \
@@ -111,8 +110,8 @@
                         </select> \
                         <a href="#" onclick="delAction(\'log\',0,'+current_rule+')"> - </a> \
                         </div>';
-                                       }
-                               }
+                    }
+                }
                 else if ($("#rule_div_"+current_rule+" #ms-action").val() == "AuditLog") {
                     if($("#rule_div_"+current_rule+" #auditlog")[0] == undefined) {
                         dom = '<div id="auditlog_div_0"><select id="auditlog" class="optionnal" > \
@@ -121,9 +120,9 @@
                         </select> \
                         <a href="#" onclick="delAction(\'auditlog\',0,'+current_rule+')"> - </a> \
                         </div>';
-                                       }
-                               }
-                               else if ($("#rule_div_"+current_rule+" #ms-action").val() == "pass") {
+                    }
+                }
+                else if ($("#rule_div_"+current_rule+" #ms-action").val() == "pass") {
                     if($("#rule_div_"+current_rule+" #allow")[0] == undefined) {
                         dom = '<div id="pass_div_0"><select id="allow" class="optionnal" > \
                         <option value="allow" >allow</option> \
@@ -135,7 +134,7 @@
                         <a href="#" onclick="delAction(\'pass\',0,'+current_rule+')"> - </a>\
                         </div>';
                     }
-                               }
+                }
                 else if ($("#rule_div_"+current_rule+" #ms-action").val() == "t") {
                     t_counter++;
                     dom = '<div id="t_div_'+t_counter+'"><select id="trans" class="optionnal"> \
@@ -264,7 +263,6 @@
             }
 
             function compute() {
-
                 rule=$("#ms-main").children().first();
                 result = compute_rule(rule);
                 while((rule=rule.next())[0] != undefined) {
@@ -274,6 +272,8 @@
                 //console.log($("#result"));
                 $("#result").html(result);
                 $("#id_postresult").val(result);
+                //document.getElementById("result").value = result;
+
             }
 
             function compute_rule(rule_object) {
@@ -341,16 +341,21 @@
                 }
                 return rules;
             }
-               </script>
-        <table>
+            </script>
+            
             <div id="ms-main">
-
             </div>
+            
             <input type="button" value="générer la requête" onclick="compute()" />
-            <div id="result"> </div>
-        </table>
-        {{ form.postresult }}
+            
+            <input type="text" name="generated" id="result" >
+            <div/>
+        </div>
+        {% if postedData %}
+        <p>data</p>
+        {{ postedData}}
+        {% endif %}
         <input type="submit" value="{% trans "Save settings" %}"/>
-        <input type="button" onclick="document.location='/security/'" value="{% trans "Cancel" %}"/>
+        <input type="button" onclick="document.location='/configuration/'" value="{% trans "Cancel" %}"/>
 	</form>
 {% endblock %}
