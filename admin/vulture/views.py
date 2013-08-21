@@ -668,7 +668,7 @@ def edit_security (request, object_id=None):
     if request.method == 'POST':
         if form.is_valid():
             form.save()
-            return HttpResponseRedirect('/security')
+            return HttpResponseRedirect('/configuration')
     return render_to_response('vulture/modsecurity_form.html', {'form' : form, })
 
 @login_required    
@@ -689,7 +689,7 @@ def edit_group(request, object_id=None):
                 raise
             return HttpResponseRedirect('/group/%s/'%groupe.pk)
     else:
-        form = GroupSecurityForm(instance=inst )
+        form = GroupSecurityForm(instance=inst)
     return render_to_response('vulture/group_form.html', {'form' : form, })
 
 @login_required    
@@ -703,6 +703,10 @@ def edit_rule(request, object_id=None):
 
 def view_group(request, object_id):
     groupe = Groupe.objects.get(pk=object_id);
+    if request.POST:
+        up=groupe.is_uptodate()
+        if up:
+            return render_to_response('vulture/group_view.html', {'groupe':Groupe.objects.latest('id'),'up':up})
     return render_to_response('vulture/group_view.html', {'groupe':groupe})
 
 def edit_policy_files(request, object_id):
@@ -763,6 +767,9 @@ def edit_policy(request, object_id=None):
 
 @login_required
 def generator (request):
+    if request.POST:
+        f.save()
+        return HttpResponseRedirect('vulture/modsecurity_generator.html', {'postedData', request.POST})
     return render_to_response('vulture/modsecurity_generator.html')
 
 @login_required
@@ -817,10 +824,10 @@ def edit_style(request, object_id=None):
         form = AdminStyleForm(request.POST,instance=inst)
         if form.is_valid(): 
             form.save()
-            return render_to_response('vulture/style_form.html', {'form' : form, })
+            return render_to_response('vulture/style_form.html', {'form' : form,})
     else:
         form = AdminStyleForm(instance=inst )
-    return render_to_response('vulture/style_form.html', {'form' : form, })
+    return render_to_response('vulture/style_form.html', {'form' : form,})
 
 def view_css(request):
     try:
@@ -836,3 +843,14 @@ def view_css(request):
     except:
         style = AdminStyle.objects.get(name='default')
     return HttpResponse(content=style.style, mimetype='text/css')
+
+@login_required
+def file_view(request,object_id=None,file_name=None):
+    policy= object_id != None and Politique.objects.get(id=object_id) or None
+    fp=policy.fichierpolitique_set.filter(fichier__name=file_name)[0]
+
+    if request.POST: 
+        fp.update(request.POST.items())
+        return HttpResponseRedirect('/policy/%s/'%policy.pk)
+    return render_to_response('vulture/rules_view.html', {'fp' : fp,})
+
