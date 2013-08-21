@@ -872,6 +872,9 @@ sub get_ua_object {
     if ( $remote_proxy ne '' ) {
         $ua->proxy( [ 'http', 'https' ], $remote_proxy );
     }
+    while ( my ($k,$v) = each %ssl_opts){
+        $ua->ssl_opts ( $k => $v );
+    }
     return $ua;
 }
 sub get_http_request{
