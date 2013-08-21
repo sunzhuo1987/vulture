@@ -42,9 +42,36 @@ import shutil
 class Groupe(models.Model):
     name = models.CharField(max_length = 255,blank=False,null=True)
     date = models.DateField(auto_now_add=True,editable=False)
-    version = models.CharField(max_length = 255)
+    version = models.IntegerField(default=0)
     url= models.URLField(null=True)
-    
+
+    def copy(self):
+        groupe=Groupe(name=self.name,version=self.version+1,url=self.url)
+        groupe.save()
+        try:
+            if groupe.url:
+                fd = groupe.get_file(url = self.url)
+                groupe.extract_archive(fd)
+        except:
+            groupe.delete()
+            raise Exception('error testing rule set updates')
+        return groupe
+
+    def is_uptodate(self):
+        """check if a group is uptodate and create one if not"""
+        copy=self.copy()
+        if len(copy.fichier_set.all()) != len(self.fichier_set.all()):
+            return False
+        for c in copy.fichier_set.all():
+            r=False
+            for f in self.fichier_set.all():
+                if f.content == c.content:
+                    r=True
+            if not r:
+                return False
+        copy.delete()
+        return True
+
     def delete(self,*args,**kwargs):
         if self.is_ondisk():
             shutil.rmtree(self.get_dir_path())
@@ -54,10 +81,6 @@ class Groupe(models.Model):
         """put group files on disk to be used by apache"""
         
         #creer un dossier "gpe_version" dans security rules en utilisant settings.conf
-        # -vider le dossier
-        #if os.path.exists(self.get_dir_path()):
-        #    shutil.rmtree(self.get_dir_path())
-        
         if self.is_ondisk():
             return False
 
@@ -90,6 +113,22 @@ class Groupe(models.Model):
         t.seek(0,0)
         return t
 
+    def extract_archive(self,fd):
+        """extrait une archive"""
+        destination_path = tempfile.mkdtemp()
+        if zipfile.is_zipfile(fd):
+            archive = zipfile.ZipFile(fd)
+        elif tarfile.is_tarfile(fd.name):
+            archive = tarfile.open(fd.name)
+        else:
+            raise Exception("%s is no a tarfile or zipfile"%fd.name ) 
+        archive.extractall(destination_path)
+        fd.close()
+        archive.close()
+        self.walk_dir(destination_path)
+        shutil.rmtree(destination_path)
+        return True
+    
     def walk_dir(self, tempdir):
         """parcoure recursivement le path et lance la fonction d'ajout pour tous les fichiers"""
         reg = re.compile('.*\.(conf|data|lua|js|c|pl|tests)$')
@@ -108,22 +147,6 @@ class Groupe(models.Model):
                 f.close()
         return True
 
-    def extract_archive(self,fd):
-        """extrait une archive"""
-        destination_path = tempfile.mkdtemp()
-        if zipfile.is_zipfile(fd):
-            archive = zipfile.ZipFile(fd)
-        elif tarfile.is_tarfile(fd.name):
-            archive = tarfile.open(fd.name)
-        else:
-            raise Exception("%s is no a tarfile or zipfile"%fd.name ) 
-        archive.extractall(destination_path)
-        fd.close()
-        archive.close()
-        self.walk_dir(destination_path)
-        shutil.rmtree(destination_path)
-        return True
-    
     def get_dir_path(self):
         return "%ssecurity-rules/%s_%s"%(settings.CONF_PATH,self.name, self.version)
 
@@ -132,7 +155,7 @@ class Groupe(models.Model):
         return os.path.exists(self.get_dir_path())
 
     def __unicode__(self):
-        return self.name+"-"+self.version
+        return self.name+"-"+str(self.version)
 
     class Meta:
         db_table = 'groupe'
@@ -148,7 +171,42 @@ class Fichier(models.Model):
 
     def get_full_file_path(self):
         return "%s/%s"%(self.get_full_dir_path(), self.name)
-    
+
+    def get_rule_list(self):
+        content=self.content.replace("\\\n"," ")
+        return [d for d in filter(None,[ x.strip() for x in content.split("\n")]) if not d.startswith("#")]
+
+    def get_rule_components(self):
+        rule_list=self.get_rule_list()
+        reg = re.compile('(?P<sec>Sec[a-zA-Z]+)(\s+(?P<variables>.*?))?(\s+\"(?P<operator>.?@.*?)\")?\s+\"(?P<actions>.*?)\"\s*')
+        t=[]
+        for rule in rule_list:
+            m=reg.search(rule)
+            if m:
+                t+=[m.groupdict()]
+        return t 
+
+    def get_actions_rules_components(self):
+        """ transform rules actions form string to array of actions"""
+        reg1 = re.compile("id\s*:\s*'?(\d+)'?")
+        try:
+            t=self.get_rule_components()
+            for k in t:
+                if k['actions']:
+                    k['actions']=k['actions'].split(",")
+                    j=0
+                    while j < len(k['actions']):
+                        splited = k['actions'][j].split(":")
+                        if splited[0]=='id':
+                            k['id']= int(splited[1].strip("'"))
+                            del(k['actions'][j])
+                        else:
+                            k['actions'][j]= splited
+                            j+=1
+        except:
+            t=[]
+        return t
+
     def __unicode__(self):
         return self.name
 
@@ -217,6 +275,34 @@ class FichierPolitique(models.Model):
         for i in self.ignorerules_set.all():
             if i.is_strange():
                 return True
+
+    def all_ignores(self):
+        return [i.rules_number for i in self.ignorerules_set.all()]
+
+    def update(self,post):
+        """update fp with adding/removing ignoreRules depeding on post"""
+        #delete all ignores
+        self.ignorerules_set.all().delete() 
+
+        #creation des ignores rules en base
+        reg = re.compile('ignore_rule_(\d+)')
+        
+        #recense les rule_id du fichier
+        t=[]
+        for i in self.fichier.get_actions_rules_components():
+            if 'id' in i:
+                t.append(i['id'])            
+        #pour chaque rule_id trouvé dans le post, on l'enleve de tableau d'id
+        for data,activated in post:
+            n = reg.search(data)
+            if n:
+                idr=int(n.group(1))
+                if idr in t:
+                    t.remove(idr)
+        #pour chaque rule_id restant, on cree un ignorerule associe au fichier politique
+        for i in t:
+            self.ignorerules_set.create(rules_number=i)
+       
 
     def __unicode__(self):
         return self.fichier.name
