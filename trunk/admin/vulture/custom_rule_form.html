@@ -9,16 +9,40 @@
     <li><a href="/customrule/">{% trans "List" %}</a></li>
     <li><a href="#" id="main_tab_1" class="active">{% trans "Main settings" %}</a></li>
 {% endblock %}
-
 {% block content %}
+    <form method="post" action="" id="customrule">
     <div id="main_content_1" class="main_content">
-        <form method="post" action="" id="customrule">
-            <table>
-            {{form}}
-            <tr><th></th><td>
-                <input type="submit" value="{% trans "Save settings" %}"/>
-            </td></tr>
-            </table>
-        </form>
-        </div>
+        <table id="ms-main">
+            <tr>
+                <th>{% trans "Name" %}</th>
+                <td>{{form.name}}</td>
+            </tr>
+            <tr>
+                <th colspan="2">
+                    <input type="button" value="{% trans "Use Generator" %}" onclick="useGenerator()(jQuery)" style="width:100%;"/>
+                </th>
+            </tr>
+            <tr id="id_tr_rule">
+                <th>{% trans "Rule" %}</th>
+                <td>{{form.rule}}</td>
+            </tr>
+         </table>
+                <input style="width:100%;" type="button" value="générer la requête" onclick="compute()" />
+    </div>
+    <input  type="submit" value="{% trans "Save settings" %}"/>
+    </form>
+<script type="text/javascript" >
+    hide_div=1;
+    function useGenerator(){
+        if(hide_div){
+            $("#generator").hide();
+            $("#id_tr_rule").show();
+        }else{
+            $("#generator").show();
+            $("#id_tr_rule").hide();
+        }
+    hide_div=(hide_div+1)%2;
+    }
+$(document).ready( function() {useGenerator();});
+</script>
 {% endblock %}

@@ -7,8 +7,9 @@
 
 {% block tabs %}
     <li><a href="/policy/"/>{% trans "List" %}</a></li>
-
-    <li><a href="#" id="main_tab_1" class="active">{% trans "Main settings" %}</a></li>
+    {% for group in groups %}
+        <li><a href="javascript:swapTab({{forloop.counter}},{{ groups|length }} , 'main_tab_', 'main_content_');" id="main_tab_{{forloop.counter}}" {% if i == 1 %}class="active"{% endif %}>{{group.nom}}</a></li>
+    {% endfor %}
 {% endblock %}
 
 {% block content %}
@@ -18,7 +19,6 @@
     function setAllBox(className,CheckValue){
         var boxes = document.getElementsByClassName(className);
         if(!boxes){
-            alert('no boxes');
             return;
         }
         for(var i=0;i < boxes.length;i++){
@@ -27,25 +27,27 @@
     }
 
 </script>
-    <div id="main_content_1" class="main_content">
     <form method="post" name="form" action="">
-    <table>
-        {{form}}
-    <tr>
-    <th colspan="2"><input type="submit" value="{% trans "Save settings" %}" /></td>
-</th>
-    </tr>
-    </table>
-    <table>
-        {% for group in groups %}
-        <tr><th>{{group.nom}}</th><th><input type="checkbox" name="file_{{fichier.pk}}" onclick="setAllBox('{{group.nom}}',this.checked)"/>{% trans "Select"%}</th></tr>
-            {%for fichier in group.fichiers %}
-            <tr>
-                <td>{{fichier.name}}</td><td><input type="checkbox" name="file_{{fichier.pk}}" class="{{group.nom}}" {% if fichier.checked %} checked="checked"{%endif%}/></td>
-            </tr>
-            {%endfor%}
-        {% endfor %}
-    </table>
-    </form>
+    {% with i=0 %}
+    {% for group in groups %}
+    <div id="main_content_{{forloop.counter}}" class="main_content">
+        <table>
+            <tr><th colspan="2"><input type="submit" value="{% trans "Save settings" %}" /></th></tr>
+            <tr><th>{{group.nom}}</th><th><input type="checkbox" name="file_{{fichier.pk}}" onclick="setAllBox('{{group.nom}}',this.checked)"/>{% trans "Select"%}</th></tr>
+                
+                {%for fichier in group.fichiers %}
+                <tr>
+                    <td>{{fichier.name}}</td>
+                    <td>
+                    <input type="checkbox" name="file_{{fichier.pk}}" class="{{group.nom}}" {% if fichier.checked %} checked="checked"{%endif%}/>
+                    </td>
+                </tr>
+                {%endfor%}
+
+        </table>
     </div>
+    {% endfor %}
+    {% endwith %}
+    </form>
+    <script>swapTab(1, {{ groups|length }}, 'main_tab_', 'main_content_');</script>
 {% endblock %}
