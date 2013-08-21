@@ -23,10 +23,6 @@ import time
 import signal
 import memcache
 from storable import thaw
-try:
-    import cPickle as pickle
-except:
-    import pickle
 
 class StorablePickler:
     def __init__(self,fd, protocol=None):
@@ -40,111 +36,37 @@ class StorablePickler:
     def loads(self, obj):
         return thaw(obj)
 
-class NopPickler:
-    def __init__(self,fd, protocol=None):
-        self.fd = fd
-    def dump(self, obj):
-        return obj
-    def dumps(self, obj):
-        self.fd.write(obj)
-    def load(self):
-        return self.fd.read()
-    def loads(self, obj):
-        return obj
-
-class KeyList:
-    def __init__(self, keys):
-        self.keys = keys
-
-    def get_keys(self):
-        return self.keys
-
 class MC:
     LOCKNAME = "vulture_lock"
-    MAX_VALUE_LEN = 1000000
     def __init__(self,perl_storable=False):
         self.mc_servers = [x.strip() for x in Conf.objects.get(var="memcached").value.split(",")]
         if perl_storable:
             self.client = memcache.Client(self.mc_servers,
                     pickler=StorablePickler, unpickler=StorablePickler)
         else:
-            self.client = memcache.Client(self.mc_servers,
-                    pickler=NopPickler, unpickler=NopPickler)
+            self.client = memcache.Client(self.mc_servers)
         
-    def split_put(self, key, value, func):
-        """
-        split_put pickle the value, and return a list of objects to add/set, 
-        of length < MAX_VALUE_LEN
-        """
-        pickled = pickle.dumps(value)
-        if len(pickled) <= MC.MAX_VALUE_LEN:
-            return func(key, pickled)
-        else:
-            keys = []
-            i=0
-            while len(pickled):
-                sval = pickled[:MC.MAX_VALUE_LEN]
-                pickled = pickled[MC.MAX_VALUE_LEN:]
-                k = "%s__sub%s"%(key,i)
-                if not func(k,sval):
-                    return False
-                keys += [k]
-                i += 1
-            return func(key, pickle.dumps(KeyList(keys)))
-
-    def unsplit_get(self,key,func):
-        """
-        get a value from the memcache, eventually unsplit it if needed
-        """
-        try:
-            val = pickle.loads(func(key))
-        except:
-            return None
-        try:
-            keys = val.get_keys()
-        except:
-            return val
-        try:
-            val = ''
-            for k in keys:
-                val += func(k)
-            return pickle.loads(val)
-        except:
-            return None
-
     def get(self, key):
         try:
-            return self.unsplit_get( str(key), self.client.get)
+            return self.client.get(str(key))
         except:
             pass
 
     def set(self,key,value):
-        try:
-            return self.split_put(str(key),value,self.client.set)
-        except:
-            pass
+        return self.client.set(str(key),value)
 
     def add(self,key,value):
-        try:
-            return self.split_put(str(key),value,self.client.add)
-        except:
-            pass
+        return self.client.add(str(key),value)
+
+    def append(self,key,value):
+        return self.client.append(str(key),value)
+
+    def prepend(self,key,value):
+        return self.client.prepend(str(key),value)
 
     def delete(self,key):
-        try:
-            k1 = str(key)
-            keys = [k1]
-            v = self.client.get(k1)
-            try:
-                val = pickle.loads(v)
-                keys += val.get_keys()
-            except:
-                pass
-            for k in keys:
-                self.client.delete(k)
-        except:
-            pass
-
+        return self.client.delete(str(key))
+    
     def lock(self):
         while not self.add(self.LOCKNAME,1):
             time.sleep(1)
@@ -302,7 +224,7 @@ class SynchroDaemon:
     def reload_intfs(self):
         intfs= Intf.objects.all()
         for intf in intfs :
-            if intf.need_restart():
+            if intf.need_restart:
                 fail = intf.maybeWrite()
                 if not fail:
                     # conf is valid : reload
