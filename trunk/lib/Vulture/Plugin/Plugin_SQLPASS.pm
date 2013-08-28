@@ -40,12 +40,14 @@ sub plugin {
     Core::VultureUtils::session( \%session_SSO, $intf->{sso_timeout},
         $sso_sid, $log, $mc_conf, $intf->{sso_update_access_time} );
 
+    my $sth = $dbh->prepare("SELECT id FROM sql WHERE name=?");
+    $sth->execute($options);
+    my ($sql_id) = $sth->fetchrow_array();
     my $user = $req->param('vulture_login');
     my $oldp = $req->param('vulture_password');
     my $newp1 = $req->param('vulture_newpass1');
     my $newp2 = $req->param('vulture_newpass2');
 
-    my $sql_id = $options;
     my $success = 0;
     if (not ($user and $oldp and $newp1 and ( $newp1 eq $newp2)))
     {
