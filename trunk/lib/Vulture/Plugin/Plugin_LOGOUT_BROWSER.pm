@@ -28,6 +28,10 @@ sub plugin {
 
     my $cookies = $r->headers_in->{Cookie};
 
+    my $id_app = get_cookie( $cookies, $r->dir_config('VultureAppCookieName') . '=([^;]*)' );
+    my %session_app;
+    session( \%session_app, undef, $id_app, undef, $mc_conf );
+
     # Getting server side logout informations
     my $query = ( "SELECT url, remote_proxy, logout_url FROM app WHERE app.name = ?");
     my $sth = $dbh->prepare($query);
@@ -39,13 +43,13 @@ sub plugin {
         #Create logout request
         my $ua = Core::VultureUtils::get_ua_object($r, $remote_proxy);
         my $request = Core::VultureUtils::get_http_request($r, $dbh, $app->{id}, 'GET', $url . $logout_url);
+        if (exists $session_app{cookie} and $session_app{cookie}){
+            $request->remove_header('cookie');
+            $request->push_header( 'Cookie' => $session_app{cookie} );
+        }
         #Send logout request
         $ua->request($request);
     }
-
-    my $id_app = get_cookie( $cookies, $r->dir_config('VultureAppCookieName') . '=([^;]*)' );
-    my %session_app;
-    session( \%session_app, undef, $id_app, undef, $mc_conf );
 
     notify( $dbh, $app->{id}, $session_app{username}, 'deconnection', 0);
     $session_app{is_auth} = 0;

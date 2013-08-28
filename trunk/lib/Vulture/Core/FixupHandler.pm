@@ -13,7 +13,7 @@ use Apache2::Log;
 
 use Apache2::Const -compile => qw(OK);
 
-use Core::VultureUtils qw(&session );
+use Core::VultureUtils qw(&session &get_app_cookies);
 
 sub handler {
     my $r   = shift;
@@ -42,25 +42,9 @@ sub proxy_redirect {
 
     #Cleaning up cookies
     #Don't send VultureApp && VultureProxy cookies
-    my $cookies         = $r->headers_in->{Cookie};
-    my $cleaned_cookies = '';
-    if ($cookies){
-        foreach ( split( ';', $cookies ) ) {
-            if (/([^,; ]+)=([^,;]*)/) {
-                if (    $1 ne $r->dir_config('VultureAppCookieName')
-                    and $1 ne $r->dir_config('VultureProxyCookieName') )
-                {
-                    $cleaned_cookies .= $1 . "=" . $2 . ";";
-                }
-            }
-        }
-    }
-    if ($cleaned_cookies){
-        $r->headers_in->set( "Cookie" => $cleaned_cookies );
-    }
-    else{
-        $r->headers_in->unset( "Cookie");
-    }
+    my $cleaned_cookies = Core::VultureUtils::get_app_cookies($r);
+    $r->headers_in->unset( "Cookie");
+    $r->headers_in->set( "Cookie" => $cleaned_cookies ) if ($cleaned_cookies);
     $session_app{cookie} = $cleaned_cookies;
     #Not canonicalising url (i.e : not escaping chars)
     if ( not $app->{'canonicalise_url'} ) {
