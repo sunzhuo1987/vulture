@@ -110,25 +110,23 @@ sub plugin {
                     $ua = get_ua_object($r, $remote_proxy);
                     $request = get_http_request($r, $dbh, $app_id, 'GET', $url . $logout_url);
                     #Pushing cookies
-                    $request->push_header( 'Cookie' => $current_app{cookie} );
-
+                    if (exists $current_app{cookie} and $current_app{cookie}){
+                        $request->remove_header('cookie');
+                        $request->push_header( 'Cookie' => $current_app{cookie} );
+                    }
                     #Getting response
                     $response = $ua->request($request);
-
                     #Render cookie
                     my %cookies_app;
                     my $cookie;
                     if ( $response->headers->header('Set-Cookie') ) {
-
-                        # Adding new couples (name, value) thanks to POST response
+                    # Adding new couples (name, value) thanks to POST response
                         foreach ( $response->headers->header('Set-Cookie') ) {
                             if (/([^,; ]+)=([^,; ]+)/) {
                                 $cookies_app{$1} = $2;    # adding/replace
                                 $log->debug( "ADD/REPLACE " . $1 . "=" . $2 );
-
                             }
                         }
-
                         #Fill session with cookies returned by app (for logout)
                         $cookie =
                           $response->headers->header('Set-Cookie');
@@ -154,22 +152,18 @@ sub plugin {
                             'Location' => $response->headers->header('Location') );
                     }
                 }
-
                 #End query
                 $sth->finish();
-
                 #Delete current session
                 tied(%current_app)->delete();
             }
         }
-
         #Logout from SSO
         tied(%session_SSO)->delete();
     } else {
         #do nothing. No session to destroy
         $log->debug("Nothing to do because $status");
     }
-
 }
 1;
 

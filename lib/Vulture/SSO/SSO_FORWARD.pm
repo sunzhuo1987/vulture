@@ -27,7 +27,7 @@ use HTML::Form;
 
 use Apache2::Const -compile => qw(OK REDIRECT FORBIDDEN);
 
-use Core::VultureUtils qw(&session);
+use Core::VultureUtils qw(&session &get_app_cookies &get_cookie &get_mech_object &get_ua_object);
 use SSO::ProfileManager qw(&get_profile &delete_profile);
 
 use Apache::SSLLookup;
@@ -102,41 +102,27 @@ sub handle_action {
         # Headers
     }
     else {
-
-        # 10x headers
         if ( $response->is_info ) {
-
-#$query = 'SELECT is_info, is_info_options FROM sso, app WHERE app.id = ? AND sso.id = app.sso_forward_id';
+            # 10x headers
             $query =
 'SELECT is_info, is_info_options FROM sso JOIN app ON sso.id = app.sso_forward_id WHERE app.id = ?';
-
-            # 20x headers
         }
         elsif ( $response->is_success ) {
-
-#$query = 'SELECT is_success, is_success_options FROM sso, app WHERE app.id = ? AND sso.id = app.sso_forward_id';
+            # 20x headers
             $query =
 'SELECT is_success, is_success_options FROM sso JOIN app ON sso.id = app.sso_forward_id WHERE app.id = ?';
-
-            # 30x headers
         }
         elsif ( $response->is_redirect ) {
-
-#$query = 'SELECT is_redirect, is_redirect_options FROM sso, app WHERE app.id = ? AND sso.id = app.sso_forward_id';
+            # 30x headers
             $query =
 'SELECT is_redirect, is_redirect_options FROM sso JOIN app ON sso.id = app.sso_forward_id WHERE app.id = ?';
-
-            # 40x and 50x headers
         }
         elsif ( $response->is_error ) {
-
-#$query = 'SELECT is_error, is_error_options FROM sso, app WHERE app.id = ? AND sso.id = app.sso_forward_id';
+            # 40x and 50x headers
             $query =
 'SELECT is_error, is_error_options FROM sso JOIN app ON sso.id = app.sso_forward_id WHERE app.id = ?';
-
-            # No action defined
         }
-
+        # No action defined
         $log->debug($query);
 
         $sth = $dbh->prepare($query);
@@ -263,45 +249,33 @@ sub forward {
         $ssl_opts{SSL_ca_file} = $SSL_ca_file;
     }
     #Setting browser
-    my ( $mech, $response, $post_response, $request, $cookies );
-    $mech = WWW::Mechanize::GZip->new(ssl_opts => \%ssl_opts);
+    my ( $mech, $response, $post_response, $request);
 
-    $cookies = $r->headers_in->{Cookie};
-    my $cleaned_cookies = '';
-    my $route           = '';
-    foreach ( split( ';', $cookies ) ) {
-        if (/([^,; ]+)=([^,; ]*)/) {
-            if (    $1 ne $r->dir_config('VultureAppCookieName')
-                and $1 ne $r->dir_config('VultureProxyCookieName') )
-            {
-                $cleaned_cookies .= $1 . "=" . $2 . ";";
-            }
-            elsif ( $1 eq $app->{Balancer_Stickyness} ) {
-                $route = $2;
-                # if stickiness cookies contains a dot, route begins after it
-                # see https://httpd.apache.org/docs/2.2/mod/mod_proxy_balancer.html#stickyness_implementation
-                $route =~ s/^[^.]+\.//g;
-            }
+    my $cleaned_cookies = Core::VultureUtils::get_app_cookies($r);
+    my $route = '';
+    if ($app->{Balancer_Activated}){
+        $route = Core::VultureUtils::get_cookie($r->headers_in->{Cookie},$app->{Balancer_Stickyness}. '=([^;]*)' ) || '' ;
+        # if stickiness cookies contains a dot, route begins after it
+        # see https://httpd.apache.org/docs/2.2/mod/mod_proxy_balancer.html#stickyness_implementation
+        if ($route){
+            $route =~ s/^[^.]*\.//g;
+            $log->debug("route: $route");
         }
     }
+    $mech = Core::VultureUtils::get_mech_object($r,$app->{remote_proxy});
+
     $mech->delete_header('Cookie');
     $mech->add_header( 'Cookie', $cleaned_cookies ) if ($cleaned_cookies ne '');
 
     #$mech->cookie_jar->set_cookie( $cleaned_cookies );
-
     $mech->delete_header('Host');
     $mech->add_header( 'Host' => $r->headers_in->{'Host'} );
 
     #Setting proxy if needed
     if ( $app->{remote_proxy} ne '' ) {
-        if ( $app->{remote_proxy} =~ /\/$/ ) {
-            $app->{remote_proxy} = substr( $app->{remote_proxy}, 0, -1 );
-        }
-
-        $mech->proxy(['http', 'https'], $app->{remote_proxy});
+        $ENV{HTTPS_PROXY} = $app->{remote_proxy};
+        $ENV{HTTP_PROXY}  = $app->{remote_proxy};
     }
-    $ENV{HTTPS_PROXY} = $app->{remote_proxy};
-    $ENV{HTTP_PROXY}  = $app->{remote_proxy};
 
     # The base url of the app we'll connect to 
     my $base_url = $app->{url};
@@ -321,7 +295,7 @@ sub forward {
                 if ( $r =~ /route=(.*)/ ) {
                     # Now I see the reason: mod_proxy_balancer will use only the part of the cookie 
                     # that is after the first dot as the route.
-                    $route = ".$1";
+                    $route = "$1";
                 }
             }
         }
@@ -397,12 +371,19 @@ sub forward {
         $log->debug( $response->request->as_string );
         $log->debug( $response->as_string );
 
+        $log->debug("This is cookie that we get from GET request ". $mech->cookie_jar->as_string);
+        foreach ( split( "\n", $mech->cookie_jar->as_string ) ) {
+            if (/([^,; ]+)=([^,; ]*)/) {
+                $cleaned_cookies .= $1 . "=" . $2 . ";";
+                $log->debug( "ADD/REPLACE " . $1 . "=" . $2 );
+            }
+        }
         #Get profile
         my %results =
           %{ SSO::ProfileManager::get_profile( $r, $log, $dbh, $app, $user ) };
 
         #Get form which contains fields set in admin
-#		while (my ($key, $value) = each(%results)){
+        #while (my ($key, $value) = each(%results)){
 		while (my ($key, @vals) = each(%results)){
 			my ($value,$type) = ($vals[0][0],$vals[0][1]);
 			$log->debug($key);
@@ -417,35 +398,33 @@ sub forward {
         my $form = $mech->form_with_fields( keys %results ) if %results;
 
         #Fill form with profile
-	if ($form and %results){
-			my $gotclick = 0;
-		foreach my $inputis ($form->inputs){
-			$log->debug("FWD: look click in ".$inputis->type);
-			if ( $inputis->type eq 'submit') {
-				$gotclick = 1;
-				$log->debug("Setting got click to 1");
-			}
-			
-		}
-		while (my ($key, $value) = each(%results)){
-			$mech->field($key, $value);
-		}
-
-		#Simulate click
-		if ($gotclick == 1){
-				$log->debug("using form click");
-				$request = $form->click();
-		}
-		else{
-			$log->debug("using form make request");
-			$request = $form->make_request();
-		}
-	}
+        if ($form and %results){
+            my $gotclick = 0;
+            foreach my $inputis ($form->inputs){
+                $log->debug("FWD: look click in ".$inputis->type);
+                if ( $inputis->type eq 'submit') {
+                    $gotclick = 1;
+                    $log->debug("Setting got click to 1");
+                }
+                
+            }
+            while (my ($key, $value) = each(%results)){
+                $mech->field($key, $value);
+            }
+            #Simulate click
+            if ($gotclick == 1){
+                    $log->debug("using form click");
+                    $request = $form->click();
+            }
+            else{
+                $log->debug("using form make request");
+                $request = $form->make_request();
+            }
+        }
         else {
             return Apache2::Const::OK;
         }
     }
-
     #Direct POST
     else {
         $log->debug(
@@ -455,7 +434,7 @@ sub forward {
         #Getting fields from profile
         my %results =
           %{ SSO::ProfileManager::get_profile( $r, $log, $dbh, $app, $user ) };
-	if (%results){
+        if (%results){
 			
 		while (my ($key, @vals) = each(%results)){
 			my ($value,$type) = ($vals[0][0],$vals[0][1]);
@@ -470,8 +449,6 @@ sub forward {
 			$post .= uri_escape($key)."=".uri_escape_utf8($value)."&";
 		}
 		$request = HTTP::Request->new('POST', $base_url.$app->{logon_url}, undef, $post);
-		$request->remove_header('Cookie');
-		$request->push_header( 'Cookie' => $cleaned_cookies );    # adding/replace
 		$request->push_header('Content-Type' => 'application/x-www-form-urlencoded');
 		#Setting headers
         }
@@ -483,10 +460,8 @@ sub forward {
     #Setting headers for both htaccess and normal way
     #Push user-agent, etc.
     $request->push_header( 'User-Agent' => $r->headers_in->{'User-Agent'} );
-
     #Host header
     $request->push_header( 'Host' => $r->headers_in->{'Host'} );
-
     if ( defined( $r->headers_in->{'Max-Forwards'} ) ) {
         $request->push_header(
             'Max-Forwards' => $r->headers_in->{'Max-Forwards'} - 1 );
@@ -502,10 +477,8 @@ sub forward {
     else {
         $request->push_header( 'X-Forwarded-For' => $r->connection->remote_ip );
     }
-
     $request->push_header( 'X-Forwarded-Host'   => $r->hostname() );
     $request->push_header( 'X-Forwarded-Server' => $r->hostname() );
-
     #Accept* headers
     $request->push_header( 'Accept' => $r->headers_in->{'Accept'} );
     $request->push_header(
@@ -514,7 +487,6 @@ sub forward {
         'Accept-Encoding' => $r->headers_in->{'Accept-Encoding'} );
     $request->push_header(
         'Accept-Charset' => $r->headers_in->{'Accept-Charset'} );
-
     #We need to parse referer to replace @ IP by hostnames
     my $host = $r->headers_in->{'Host'};
     my $parsed_uri = APR::URI->parse( $r->pool, $base_url . $app->{logon_url} );
@@ -547,27 +519,8 @@ sub forward {
         };
     }
     $sth->finish();
-
-	if ($cookies !~ /;$/ and $cookies ne '') {
-		$cookies .=";";
-	}
-	$cleaned_cookies = '';
-	
-	foreach (split(';', $cookies)) {
-		if (/([^,; ]+)=([^,; ]*)/) {
-			if ($1 ne $r->dir_config('VultureAppCookieName') and $1 ne $r->dir_config('VultureProxyCookieName')){
-				$cleaned_cookies .= $1."=".$2.";";
-			}
-		}
-	}
-	$cookies = $cleaned_cookies;
-	$log->debug("This is cookie that we get from GET request ". $mech->cookie_jar->as_string);
-    foreach ( split( "\n", $mech->cookie_jar->as_string ) ) {
-        if (/([^,; ]+)=([^,; ]*)/) {
-            $cookies .= $1 . "=" . $2 . ";";
-            $log->debug( "ADD/REPLACE " . $1 . "=" . $2 );
-        }
-    }
+    $request->remove_header('Cookie');
+    $request->push_header( 'Cookie' => $cleaned_cookies );    # adding/replace
 
     #Send !!! simple !!! request (POST or GET (htaccess))
     #The client browser must do the rest
@@ -587,11 +540,11 @@ sub forward {
         }
 		$post_response = $ua->request($request);
 		foreach ($post_response->headers->header('Set-Cookie')) {
-		       if (/([^,; ]+)=([^,; ]*)/) {
-				$cookies_app{$1} = $2;		# ajout/remplacement
-				$log->debug("ADD/REPLACE ".$1."=".$2);
-		       }
-	       }
+           if (/([^,; ]+)=([^,; ]*)/) {
+                $cookies_app{$1} = $2;		# ajout/remplacement
+                $log->debug("ADD/REPLACE ".$1."=".$2);
+           }
+       }
 	}
 
 #Keep cookies to be able to log out
@@ -628,7 +581,7 @@ sub forward {
     if ( $route ne '' and not exists $cookies_app{$app->{Balancer_Stickyness}} ) {
         $r->err_headers_out->add(
                 'Set-Cookie' => $app->{Balancer_Stickyness} . "=" 
-              . $route
+              . ".$route"
 # We'll let the browser set the domain as he likes..
 #              . "; domain="
 #              . $r->hostname

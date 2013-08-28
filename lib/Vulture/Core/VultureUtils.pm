@@ -16,7 +16,7 @@ BEGIN {
       &get_cookie &get_memcached &set_memcached &get_DB_object
       &get_LDAP_object &get_style &get_translations &generate_random_string 
       &notify &get_LDAP_field &get_SQL_field &load_module &is_JK &parse_set_cookie &parse_cookies
-      &encrypt &decrypt &get_ua_object &get_http_request);
+      &encrypt &decrypt &get_ua_object &get_http_request &get_app_cookies &get_mech_object);
 }
 
 use Apache::Session::Generate::MD5;
@@ -185,7 +185,7 @@ sub get_app {
     unless (defined $apps){
 #Getting app and wildcardsv
         $query =
-    'SELECT app.id, app.name, app.alias, app.url, app.log_id, app.sso_forward_id AS sso_forward, app.logon_url, app.logout_url, intf.port, app.remote_proxy, app.up, app.auth_url,app.auth_basic, app.display_portal,app.check_csrf , app.canonicalise_url, app.timeout, app.update_access_time, app.sso_learning_ext, app.secondary_authentification_failure_options,app.Balancer_Node,app.Balancer_Stickyness FROM app JOIN app_intf ON app.id = app_intf.app_id JOIN intf ON app_intf.intf_id = intf.id WHERE intf.id = ? ORDER BY app.name ASC';
+    'SELECT app.id, app.name, app.alias, app.url, app.log_id, app.sso_forward_id AS sso_forward, app.logon_url, app.logout_url, intf.port, app.remote_proxy, app.up, app.auth_url,app.auth_basic, app.display_portal,app.check_csrf , app.canonicalise_url, app.timeout, app.update_access_time, app.sso_learning_ext, app.secondary_authentification_failure_options,app.Balancer_Activated, app.Balancer_Node,app.Balancer_Stickyness FROM app JOIN app_intf ON app.id = app_intf.app_id JOIN intf ON app_intf.intf_id = intf.id WHERE intf.id = ? ORDER BY app.name ASC';
         $log->debug($query);
         $sth = $dbh->prepare($query);
         $sth->execute($intf);
@@ -861,6 +861,20 @@ sub decrypt {
 sub get_ua_object {
     my ($r, $remote_proxy) = @_;
     my $config = $r->pnotes('config');
+    my $ua = LWP::UserAgent->new;
+    if ( $remote_proxy ne '' ) {
+        $ua->proxy( [ 'http', 'https' ], $remote_proxy );
+    }
+    $ua->ssl_opts ( verify_hostname => 1 );
+    my $SSL_ca_file = $config->get_key('SSL_ca_file')||'';
+    if ($SSL_ca_file){
+        $ua->ssl_opts(SSL_ca_file => $SSL_ca_file);
+    }
+    return $ua;
+}
+sub get_mech_object{
+    my ($r, $remote_proxy) = @_;
+    my $config = $r->pnotes('config');
     my %ssl_opts = (
         verify_hostname => 1,
     );
@@ -868,26 +882,25 @@ sub get_ua_object {
     if ($SSL_ca_file){
         $ssl_opts{SSL_ca_file} = $SSL_ca_file;
     }
-    my $ua = LWP::UserAgent->new;
+    my $mech = WWW::Mechanize::GZip->new(ssl_opts => \%ssl_opts);
     if ( $remote_proxy ne '' ) {
-        $ua->proxy( [ 'http', 'https' ], $remote_proxy );
+        if ( $remote_proxy =~ /(.*)\/$/ ) {
+            $remote_proxy = $1;
+        }
+        $mech->proxy(['http', 'https'], $remote_proxy);
     }
-    while ( my ($k,$v) = each %ssl_opts){
-        $ua->ssl_opts ( $k => $v );
-    }
-    return $ua;
 }
 sub get_http_request{
-    my ($r, $dbh, $app_id, $method, $url) = @_;
+    my ($r, $dbh, $app_id, $method, $url, $data) = @_;
     my $req = Apache::SSLLookup->new($r);
-    my $http_req = HTTP::Request->new( $method, $url );
+    my $http_req = HTTP::Request->new( $method, $url , undef, $data);
 
     #Setting headers
     $http_req->remove_header('User-Agent');
     $http_req->push_header('User-Agent' => $req->headers_in->{'User-Agent'});
     #Pushing cookies
     $http_req->remove_header( 'Cookie');
-    $http_req->push_header( 'Cookie' => $req->headers_in->{'Cookie'});
+    $http_req->push_header( 'Cookie' => Core::VultureUtils::get_app_cookies($r));
 
     my $sth = $dbh->prepare("SELECT name, type, value FROM header WHERE app_id= ?");
     $sth->execute( $app_id );
@@ -912,5 +925,22 @@ sub get_http_request{
         };
     }
     return $http_req;
+}
+sub get_app_cookies{
+    my ($r) = @_;
+    my $cookies = $r->headers_in->{Cookie};
+    my $cleaned_cookies = '';
+    if ($cookies){
+        foreach ( split( ';', $cookies ) ) {
+            if (/([^,; ]+)=([^,;]*)/) {
+                if (    $1 ne $r->dir_config('VultureAppCookieName')
+                    and $1 ne $r->dir_config('VultureProxyCookieName') )
+                {
+                    $cleaned_cookies .= $1 . "=" . $2 . ";";
+                }
+            }
+        }
+    }
+    return $cleaned_cookies;
 }
 1;

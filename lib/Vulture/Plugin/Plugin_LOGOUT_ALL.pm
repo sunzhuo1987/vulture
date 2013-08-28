@@ -84,6 +84,10 @@ sub plugin {
                 #Setting fake user agent
                 my $ua = Core::VultureUtils::get_ua_object($r, $remote_proxy);
                 my $request = Core::VultureUtils::get_http_request($r, $dbh, $app_id, 'GET', $url . $logout_url);
+                if (exists $current_app{cookie} and $current_app{cookie}){
+                    $request->remove_header('cookie');
+                    $request->push_header( 'Cookie' => $current_app{cookie} );
+                }
                 #Getting response
                 my $response = $ua->request($request);
                 #Render cookie

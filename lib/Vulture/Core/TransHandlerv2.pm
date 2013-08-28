@@ -29,14 +29,11 @@ use DBI ;
 sub handler {
 
     my $r            = Apache::SSLLookup->new(shift);
-    my $uri          = $r->uri;
-    my $unparsed_uri = $r->unparsed_uri;
     my $protocol     = $r->protocol();
     my $dbh          = DBI->connect( $r->dir_config('VultureDSNv3') );
     my $log = Core::Log->new($r);
     my $config = Core::Config->new($dbh);
     my $mc_conf = Core::VultureUtils::get_memcached_conf($config);
-    my $cookie_app_name=$r->dir_config('VultureAppCookieName');
 
     #Sending db handler to next Apache Handlers, always needed
     $r->pnotes( 'dbh'     => $dbh );
@@ -64,18 +61,20 @@ sub handler {
     $r->pnotes( 'intf' => $intf );
     
     my $app = Core::VultureUtils::get_app( $log, $dbh,$mc_conf,
-        $intf->{id},$r->hostname . $unparsed_uri);
+        $intf->{id},$r->hostname . $r->unparsed_uri);
+    my $cookie_app_name=$r->dir_config('VultureAppCookieName');
+
     my $id_sap = undef;
-    if ( $unparsed_uri =~ /$cookie_app_name=([a-zA-Z0-9]+)/ ){
+    if ( $r->unparsed_uri =~ /$cookie_app_name=([a-zA-Z0-9]+)/ ){
         $id_sap = $1;
     }
-    else{
+    #else{
         # Setting pnotes
         $r->pnotes( 'app' => $app );
-    }
+    #}
 
     #Plugin or Rewrite (according to URI)
-    my $ret = Core::TransHandlerv2::plugins_th ($log,$r,$dbh,$app,$intf,$unparsed_uri);
+    my $ret = Core::TransHandlerv2::plugins_th ($log,$r,$dbh,$app,$intf,$r->unparsed_uri);
     return $ret if defined $ret;
     
     #Call content rewrite plugins
@@ -84,7 +83,6 @@ sub handler {
     #Call header rewrite plugins
     Core::TransHandlerv2::header_input($log,$r,$dbh,$app,$intf);
 
-#    $log->debug("APP: ".$app->{name}.", SAP: $id_sap");
     #Get sso url for this query:
     my $sso_url = ((defined $intf->{sso_portal} and $intf->{sso_portal}) 
             ? $intf->{sso_portal}
@@ -95,7 +93,7 @@ sub handler {
     if ( $app and not $id_sap and $app->{'up'}
     ){
         # get url to proxify
-        my $proxy_url = Core::TransHandlerv2::get_proxy_url($r,$app,$uri);
+        my $proxy_url = Core::TransHandlerv2::get_proxy_url($r,$app,$r->uri);
         $log->debug("proxy = $proxy_url");
 
         #No authentication is needed
@@ -119,8 +117,7 @@ sub handler {
         }
         # Not authentified in this app. Setting cookie for app. 
         # Redirecting to SSO Portal.
-        $log->debug( "App "
-              . $r->hostname
+        $log->debug( "App ". $r->hostname
               . " is secured and user is not authentified in app. Let's"
               . " have fun with AuthenHandler / redirect to SSO Portal."
               . $intf->{'sso_portal'} );
@@ -140,19 +137,17 @@ sub handler {
             $session_app{url_to_redirect} = $r->pnotes('url_to_redirect');
         }
         else {
-            $log->debug("TRANS2 : will redirect to '$unparsed_uri'");
-            $session_app{url_to_redirect} = $unparsed_uri;
-        }
-        # Redirect to SSO Portal
-        # if $r->pnotes('url_to_mod_proxy') wasn't set by Rewrite engine
-        unless ( $r->pnotes('url_to_mod_proxy') ) {
-            return Core::TransHandlerv2::redirect_portal($log,$r,$app,$intf,
-                    \%session_app);
+            $log->debug("TRANS2 : will redirect to '$r->unparsed_uri'");
+            $session_app{url_to_redirect} = $r->unparsed_uri;
         }
         # A plugin has send a $r->pnotes('url_to_mod_proxy') => proxify
-        else {
+        if ( $r->pnotes('url_to_mod_proxy') ) {
             return Core::TransHandlerv2::plugin_proxify($log,$r,$app,\%session_app);
         }
+
+        # Redirect to SSO Portal
+        # if $r->pnotes('url_to_mod_proxy') wasn't set by Rewrite engine
+        return Core::TransHandlerv2::redirect_portal($log,$r,$app,$intf,\%session_app);
     }
     elsif (
         # SSO Portal
@@ -188,7 +183,6 @@ sub plugins_th{
         my $options;
         my @result;
         my $exp = @$row[0];
-
         if ( (@result) = ( $uuri =~ /$exp/ ) ) {
             $log->debug( "Pattern " . $exp . " matches with URI" );
             $module_name = 'Plugin::Plugin_' . uc( @$row[1] );

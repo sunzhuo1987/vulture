@@ -22,11 +22,9 @@ use Apache::SSLLookup;
 
 use Apache2::Const -compile => qw(OK FORBIDDEN REDIRECT);
 
-use LWP::UserAgent;
-
 use URI::Escape;
 
-use Core::VultureUtils qw(&session &set_memcached);
+use Core::VultureUtils qw(&session &set_memcached &get_ua_object);
 
 sub checkAuth {
     my (
@@ -86,13 +84,7 @@ sub checkAuth {
         $log->debug( "Querying url" . $url );
 
         #Get answer
-        my $ua = LWP::UserAgent->new;
-
-        #Setting proxy if needed
-        if ( $app->{remote_proxy} ne '' ) {
-            $ua->proxy( [ 'http', 'https' ], $app->{remote_proxy} );
-        }
-
+        my $ua = get_ua_object($r, $app->{remote_proxy});
         my $response = $ua->get($url);
 
         $log->debug( $response->decoded_content );
