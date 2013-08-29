@@ -1869,7 +1869,7 @@ class AdminStyle(models.Model):
 
 class UserProfile(models.Model):
     user=models.OneToOneField(DjangoUser)
-    style=models.ForeignKey('AdminStyle', default=AdminStyle.objects.get(name='default').pk)
+    style=models.ForeignKey('AdminStyle')
     class Meta:
         db_table = 'user_profile'
     def __unicode__(self):
