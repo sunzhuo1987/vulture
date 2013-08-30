@@ -99,14 +99,15 @@ class Groupe(models.Model):
         return True
 
     def get_file(self, url='', filecontent=''):#,path="http://vulture.googlecode.com/files/mod_secu_rules.tgz"):
-        """retourne file descriptor sur l'archive de regles mod security
-        Attention, ne pas oublier de fermer ce fd..."""
+        """retourne file descriptor sur l'archive de regles mod security"""
         t = tempfile.NamedTemporaryFile()
         if url: 
-            proxy_url= Conf.objects.filter(var__contains="proxy").get().value 
-            proxy_handler = urllib2.ProxyHandler({'http': proxy_url, 'https': proxy_url, 'ftp':proxy_url })
-            opener = urllib2.build_opener(proxy_handler)
-            t.write('')
+            try:
+                proxy_url= Conf.objects.get(var="proxy").value 
+                proxy_handler = urllib2.ProxyHandler({'http': proxy_url, 'https': proxy_url, 'ftp':proxy_url })
+                opener = urllib2.build_opener(proxy_handler)
+            except:
+                opener = urllib2.build_opener()
             t.write(opener.open(url).read())
         else:
             t.write(filecontent)
@@ -1869,12 +1870,11 @@ class AdminStyle(models.Model):
 
 class UserProfile(models.Model):
     user=models.OneToOneField(DjangoUser)
-    style=models.ForeignKey('AdminStyle')
+    style=models.ForeignKey('AdminStyle', null=1)
     class Meta:
         db_table = 'user_profile'
     def __unicode__(self):
         return self.user
-
 
 def create_user_profile(sender, instance, created, **kwargs):  
     if created:  

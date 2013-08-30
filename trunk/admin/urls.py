@@ -84,7 +84,7 @@ urlpatterns = patterns('',
   (r'^configuration/(?P<object_id>\d+)/$',         'vulture.views.edit_security'),
   (r'^configuration/new/$',                        'vulture.views.edit_security'),
   (r'^configuration/update/$',                     'vulture.views.update_security'),
-  (r'^customrule/generator$',                   'vulture.views.generator'),
+#  (r'^customrule/generator$',                   'vulture.views.generator'),
   (r'^configuration/(?P<object_id>\d+)/del/$',     'vulture.views.remove_security'),
   
   (r'^policy/?$',                              'vulture.views.vulture_object_list_adm', dict({'queryset': Politique.objects.all()}, template_name='vulture/policy_list.html',extra_context = dict(category='Web Firewall', name='Policy', url='/policy'))),
