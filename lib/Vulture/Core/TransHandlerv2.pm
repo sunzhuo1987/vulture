@@ -42,7 +42,7 @@ sub handler {
     $r->pnotes( 'mc_conf' => $mc_conf );
     
     $log->debug("########## TransHandler ($protocol|"
-            . $r->hostname.$r->unparsed_uri."|".$r->dir_config('VultureID').")");
+            . $r->hostname.$r->uri."|".$r->dir_config('VultureID').")");
     #protocol check
     if ( $protocol !~ /^HTTP\/[0-9]\.[0-9]$/ ) {
         $log->error("Rejecting bad protocol $protocol");
@@ -61,7 +61,7 @@ sub handler {
     $r->pnotes( 'intf' => $intf );
     
     my $app = Core::VultureUtils::get_app( $log, $dbh,$mc_conf,
-        $intf->{id},$r->hostname . $r->unparsed_uri);
+        $intf->{id},$r->hostname . $r->uri);
     my $cookie_app_name=$r->dir_config('VultureAppCookieName');
 
     my $id_sap = undef;

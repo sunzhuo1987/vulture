@@ -14,10 +14,12 @@
 
     <div id="main_content_1" class="main_content">
     <form method="post" name="form1">
+<!--
 {% if up %}
     <h2> <img src="/img/vulture2/info.png" /> Une nouvelle version de la rule set {{groupe.name}} a été téléchargé. La nouvelle rule set est diponible en version {{groupe.version}}</h2>
     <h3> <img src="/img/vulture2/warning.png" /> Attention ! La mise à jour d'une rule set peut entrainer une perte de compatibilité avec l'application web. <br />en cas de problème, il suffit de remettre l'ancienne version du groupe </h3>
 {% endif %}
+-->
     <input type="hidden" name="necessay" value"for post"/>
     <table>
         <tr>
@@ -30,8 +32,13 @@
             <td>{{groupe.name}}</td>
             <td>{{groupe.version}}</td>
             <td>{{groupe.date}}</td>
-            <td><div>{{groupe.url}}{%if groupe.url %}<input type="submit" value"{% trans "update" %}"><img src="/img/vulture2/reload.png" alt="reload" title="Mettre a jour ModSecurity" /></input></div>
-{%endif%}</td>
+            <td>{{groupe.url}}
+<!--{%if groupe.url %}
+<div><input type="submit" value"{% trans "update" %}"><img src="/img/vulture2/reload.png" alt="reload" title="Mettre a jour ModSecurity" /></input>
+</div>
+{%endif%}
+-->
+            </td>
         </tr>
     </table>
     </form>
