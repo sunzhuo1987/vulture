@@ -3,7 +3,7 @@ Requires: sudo make gcc httpd httpd-devel krb5-devel libapreq2 perl-DBD-MySQL li
 Vendor: Advens
 %define release 0
 %define name vulture
-%define version 2.0.6
+%define version 2.0.7
 AutoReqProv: no
 
 Summary: Vulture Reverse Proxy

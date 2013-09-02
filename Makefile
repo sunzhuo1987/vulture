@@ -1,5 +1,5 @@
 NAME		= vulture
-VERSION		= 2.0.6
+VERSION		= 2.0.7
 PREFIX		= /var/www
 PREFIXLIB	= /opt
 UID		= -o www-data
