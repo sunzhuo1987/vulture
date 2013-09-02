@@ -889,6 +889,7 @@ sub get_mech_object{
         }
         $mech->proxy(['http', 'https'], $remote_proxy);
     }
+    return $mech;
 }
 sub get_http_request{
     my ($r, $dbh, $app_id, $method, $url, $data) = @_;
