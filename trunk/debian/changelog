@@ -1,3 +1,16 @@
+vulture (2.0.7) stable; urgency=low
+  * add new mod_security configuration interface
+  * enable css configuration in admin interface
+  * allow to parse directives in "header" field in html templates
+  * fix bugs in VultureUtils::get_app
+  * allow configuration of multiple realms in kerberos configuration
+  * encrypt password stored in session
+  * fix regression on autologon in 2.0.6
+  * add support of custom response code in plugin_rewrite (ie [R=>302] )
+  * bugfixes..
+
+ -- Etienne Helluy-Lafont <etienne.helluy-lafont@advens.fr>  Mon, 02 Sep 2013 11:59:00 +0200
+
 vulture (2.0.6) stable; urgency=low
 
   * add authentication combination support
