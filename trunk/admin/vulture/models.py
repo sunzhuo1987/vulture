@@ -12,23 +12,11 @@ except:
 	from pysqlite2 import dbapi2 as sqlite3
 from datetime import date
 import ldap
-import ldap.modlist as modlist
 import operator
 import os, time
-import smtplib
 import os
 import subprocess
 import re
-from random import choice
-from django.utils.translation import ugettext_lazy as _
-from re import escape
-import types
-from OpenSSL import crypto
-from email.MIMEMultipart import MIMEMultipart
-from email.MIMEBase import MIMEBase
-from email.MIMEText import MIMEText
-from email.Utils import COMMASPACE, formatdate
-from email import Encoders
 from django.contrib.auth.models import User as DjangoUser, UserManager as DjangoUserManager
 from django.db.models.signals import post_save
 from django import forms
@@ -93,9 +81,10 @@ class Groupe(models.Model):
                 os.makedirs(file_subdir)
             file_path = file_.get_full_file_path()
             # -creer le fichier
-            f=open(file_path,'w')
-            f.write(file_.content.encode('utf-8'))
-            f.close()
+            if not os.path.exists(file_path):
+                f=open(file_path,'w')
+                f.write(file_.content.encode('utf-8'))
+                f.close()
         return True
 
     def get_file(self, url='', filecontent=''):#,path="http://vulture.googlecode.com/files/mod_secu_rules.tgz"):
