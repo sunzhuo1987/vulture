@@ -90,8 +90,11 @@ sub handler {
 
     $log->debug("SSO_URL : $sso_url");
     #If application exists and is not down, check auth
-    if ( $app and not $id_sap and $app->{'up'}
-    ){
+    if ( $app and not $id_sap ){
+        # Application is down or unusable
+        if (defined $app->{'up'} and not $app->{'up'} ) {
+            return Core::TransHandlerv2::app_down($log,$r,$dbh,$app);
+        }
         # get url to proxify
         my $proxy_url = Core::TransHandlerv2::get_proxy_url($r,$app,$r->uri);
         $log->debug("proxy = $proxy_url");
@@ -161,11 +164,6 @@ sub handler {
     elsif ( $r->hostname =~ $intf->{'cas_portal'} ) {
         $log->debug('cas portal');
         return Apache2::Const::OK;
-
-    }
-    # Application is down or unusable
-    elsif ( $app and defined $app->{'up'} and not $app->{'up'} ) {
-        return Core::TransHandlerv2::app_down($log,$r,$dbh,$app);
     }
     # Fail
     else {
