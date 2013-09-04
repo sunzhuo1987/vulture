@@ -106,8 +106,8 @@ class Groupe(models.Model):
     def extract_archive(self,fd):
         """extrait une archive"""
         destination_path = tempfile.mkdtemp()
-        if zipfile.is_zipfile(fd):
-            archive = zipfile.ZipFile(fd)
+        if zipfile.is_zipfile(fd.name):
+            archive = zipfile.ZipFile(fd.name)
         elif tarfile.is_tarfile(fd.name):
             archive = tarfile.open(fd.name)
         else:
