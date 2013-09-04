@@ -769,7 +769,7 @@ def edit_policy(request, object_id=None):
 def generator (request):
     if request.POST:
         f.save()
-        return HttpResponseRedirect('vulture/modsecurity_generator.html', {'postedData', request.POST})
+        return HttpResponseRedirect('vulture/modsecurity_generator.html', {'postedData': request.POST})
     return render_to_response('vulture/modsecurity_generator.html')
 
 @login_required
