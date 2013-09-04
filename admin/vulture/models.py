@@ -128,7 +128,7 @@ class Groupe(models.Model):
                     continue
                 path_file="%s/%s"%(root,each_file)
                 f=open(path_file, "rb")
-                content = f.read().decode('utf-8',errors='replace')
+                content = f.read().decode('utf-8','replace')
                 self.fichier_set.create(
                     name=each_file,
                     content=content,
