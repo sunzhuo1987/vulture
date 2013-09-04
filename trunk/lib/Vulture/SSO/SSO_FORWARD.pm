@@ -536,7 +536,9 @@ sub forward {
 	} else {	
 		my $ua = LWP::UserAgent->new;
         while ( my ($k,$v) = each %ssl_opts){
-            $ua->ssl_opts ( $k => $v );
+            eval{
+                $ua->ssl_opts ( $k => $v );
+            };
         }
 		$post_response = $ua->request($request);
 		foreach ($post_response->headers->header('Set-Cookie')) {

@@ -865,10 +865,14 @@ sub get_ua_object {
     if ( $remote_proxy ne '' ) {
         $ua->proxy( [ 'http', 'https' ], $remote_proxy );
     }
-    $ua->ssl_opts ( verify_hostname => 1 );
+    eval{
+        $ua->ssl_opts ( verify_hostname => 1 );
+    };
     my $SSL_ca_file = $config->get_key('SSL_ca_file')||'';
     if ($SSL_ca_file){
-        $ua->ssl_opts(SSL_ca_file => $SSL_ca_file);
+        eval{
+            $ua->ssl_opts(SSL_ca_file => $SSL_ca_file);
+        };
     }
     return $ua;
 }
