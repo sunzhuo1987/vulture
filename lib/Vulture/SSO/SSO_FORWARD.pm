@@ -528,7 +528,7 @@ sub forward {
     #$post_response = $mech->request($request);
 
     #Cookie coming from response and from POST response
-    our %cookies_app;
+    our %cookies_app = ();
 	if ((int($sso_is_post) != 1)) {
 		$post_response = $mech->request($request);
 #	$log->debug($mech->cookie_jar->as_string);
