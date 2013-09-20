@@ -614,7 +614,8 @@ def view_event (request, object_id=None):
         app = get_object_or_404(App, id=object_id)
         type_ = query['type']
         log = Log.objects.get (id=app.log_id)
-        location="%s/Vulture-%s-%s_log"%(log.dir,app.name,type_)
+       clean_name = app.name.replace("/","")
+        location="%s/Vulture-%s-%s_log"%(log.dir,clean_name,type_)
         f = open(location,'rb')
         lines = f.readlines()
         f.close()
