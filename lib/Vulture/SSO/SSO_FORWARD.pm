@@ -388,7 +388,7 @@ sub forward {
 			my ($value,$type) = ($vals[0][0],$vals[0][1]);
 			$log->debug($key);
 			if ($type eq "cookie") {
-				$cleaned_cookies = "$key=$value ; $cleaned_cookies";
+				$cleaned_cookies = "$key=$value;$cleaned_cookies";
 				$r->err_headers_out->add('set-cookie' => $key."=".$value."; path=/");
 				delete($results{$key});
 			}
@@ -440,7 +440,7 @@ sub forward {
 			my ($value,$type) = ($vals[0][0],$vals[0][1]);
 #				if ($key =~ /(.*)TMP(.*)/) {
 			if ($type eq 'cookie'){
-				$cleaned_cookies = "$key=$value ; $cleaned_cookies";
+				$cleaned_cookies = "$key=$value;$cleaned_cookies";
 				$r->err_headers_out->add('Set-Cookie' => $key."=".$value."; path=/");
 				delete($results{$key});
 				next;
