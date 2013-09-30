@@ -160,7 +160,16 @@ sub handle_action {
                 'Pattern detected, deleting profile and relearning credentials'
             );
             $r->pnotes( 'SSO_Forwarding' => 'LEARNING' );
-            $r->headers_out->add( 'Location' => $r->unparsed_uri );
+	    my $redir = $r->hostname . $r->unparsed_uri;
+	    if ($r->is_https) {
+	    	$redir = 'https://'.$redir; 
+	    }
+	    else {
+		$redir = 'http://'.$redir;
+	    }
+	    $log->debug('Redirecting to ' .$redir );
+	    #$r->headers_out->add( 'Location' => $r->unparsed_uri );
+	    $r->headers_out->add( 'Location' => $redir );
 
             #Set status
             $r->status(302);
@@ -520,7 +529,7 @@ sub forward {
     }
     $sth->finish();
     $request->remove_header('Cookie');
-    $request->push_header( 'Cookie' => $cleaned_cookies );    # adding/replace
+    $request->push_header( 'Cookie' => $cleaned_cookies ) if ($cleaned_cookies ne '') ;    # adding/replace
 
     #Send !!! simple !!! request (POST or GET (htaccess))
     #The client browser must do the rest
