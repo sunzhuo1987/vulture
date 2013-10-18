@@ -8,16 +8,17 @@
 {% block tabs %}
     <li><a href="/ssl/">{% trans "List" %}</a></li>
     <li><a href="#" id="main_tab_1" class="active">{% trans "Main settings" %}</a></li>
+    <li><a href='http://www.vultureproject.org/documentation/configuration/configuration-de-lauthentification/methodes-dauthentification-ssl/' target='_blank'>{% trans "Need help ?" %}</a></td></tr></li>
 {% endblock %}
 
 {% block content %}
     <form method="post" id="ssl" action=".">
         <div id="main_content_1" class="main_content">
             <table>
-                <tr><th>{% trans "Name" %}</th><td class="input">{{ form.name }}{% if form.name.errors %}<div class="error">{{ form.name.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-                <tr><th>{% trans "Require" %}</th><td class="input">{{ form.require }}{% if form.require.errors %}<div class="error">{{ form.require.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-                <tr><th>{% trans "CA Certificate" %}</th><td class="input">{{ form.crt }}{% if form.crt.errors %}<div class="error">{{ form.crt.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-                <tr><th>{% trans "Constraint" %}</th><td class="input">{{ form.constraint }}{% if form.constraint.errors %}<div class="error">{{ form.constraint.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+                <tr><th>{% trans "Name" %}</th><td class="input">{{ form.name }}{% if form.name.errors %}<div class="error">{{ form.name.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span></td></tr>
+                <tr><th>{% trans "Require" %}</th><td class="input">{{ form.require }}{% if form.require.errors %}<div class="error">{{ form.require.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span></td></tr>
+                <tr><th>{% trans "CA Certificate" %}</th><td class="input">{{ form.crt }}{% if form.crt.errors %}<div class="error">{{ form.crt.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span></td></tr>
+                <tr><th>{% trans "Constraint" %}</th><td class="input">{{ form.constraint }}{% if form.constraint.errors %}<div class="error">{{ form.constraint.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span></td></tr>
             </table>
         </div>
         <br />

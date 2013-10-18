@@ -9,6 +9,7 @@
     <li><a href="/user/">{% trans "List" %}</a></li>
     <li><a href="javascript:swapTab(1, 2, 'main_tab_', 'main_content_');" id="main_tab_1" class="active">{% trans "Main settings" %}</a></li>
     <li><a href="javascript:swapTab(2, 2, 'main_tab_', 'main_content_');" id="main_tab_2">{% trans "Manage permissions" %}</a></li>
+    <li><a href='http://www.vultureproject.org/documentation/configuration/configuration-systeme/gestion-des-utilisateurs/' target='_blank'>{% trans "Need help ?" %}</a></td></tr></li>
 {% endblock %}
 
 {% block content %}
@@ -17,8 +18,8 @@
             <input name="edit" type="hidden" value="on"/>
             To change the password, please click <a href="/user/{{ id }}/password/">here</a>
             <table>
-                <tr><th>{% trans "Administrator" %}</th><td class="input">{{ form.is_staff }}{% if form.is_staff.errors %}<div class="error">{{ form.is_admin.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-                <tr><th>{% trans "Super Administrator" %}</th><td class="input">{{ form.is_superuser }}{% if form.is_superuser.errors %}<div class="error">{{ form.is_superadmin.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+                <tr><th>{% trans "Administrator" %}</th><td class="input">{{ form.is_staff }}{% if form.is_staff.errors %}<div class="error">{{ form.is_admin.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span></td></tr>
+                <tr><th>{% trans "Super Administrator" %}</th><td class="input">{{ form.is_superuser }}{% if form.is_superuser.errors %}<div class="error">{{ form.is_superadmin.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span></td></tr>
                 <tr>
                 <th>{% trans "Style" %}</th>
                 <td>{{ user_profile.style }}</td>
@@ -30,7 +31,7 @@
         
         <div id="main_content_2" class="main_content">
             <table>
-                <tr><th>{% trans "Permissions" %}</th><td class="input">{{ form.permissions }}{% if form.permissions.errors %}<div class="error">{{ form.permissions.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+                <tr><th>{% trans "Permissions" %}</th><td class="input">{{ form.permissions }}{% if form.permissions.errors %}<div class="error">{{ form.permissions.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
             </table>
         </div>
         <br />

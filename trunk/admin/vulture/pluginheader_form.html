@@ -8,17 +8,18 @@
 {% block tabs %}
     <li><a href="/pluginheader/">{% trans "List" %}</a></li>
     <li><a href="#" id="main_tab_1" class="active">{% trans "Main settings" %}</a></li>
+    <li><a href='http://www.vultureproject.org/documentation/configuration/configuration-des-applications-web/composants-plugins/entetes-entrantes/' target='_blank'>{% trans "Need help ?" %}</a></td></tr></li>
 {% endblock %}
 
 {% block content %}
     <form method="post" id="pluginheader" action=".">
         <div id="main_content_1" class="main_content">
             <table>
-                <tr><th>{% trans "Type" %}</th><td class="input">{{ form.type }}{% if form.type.errors %}<div class="error">{{ form.type.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-                <tr><th>{% trans "App" %}</th><td class="input">{{ form.app }}{% if form.app.errors %}<div class="error">{{ form.app.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-                <tr><th>{% trans "Pattern" %}</th><td class="input">{{ form.pattern }}{% if form.pattern.errors %}<div class="error">{{ form.pattern.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr> 
-                <tr><th>{% trans "Options" %}</th><td class="input">{{ form.options }}{% if form.options.errors %}<div class="error">{{ form.options.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-                <tr><th>{% trans "Options1" %}</th><td class="input">{{ form.options1 }}{% if form.options1.errors %}<div class="error">{{ form.options1.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+                <tr><th>{% trans "Type" %}</th><td class="input">{{ form.type }}{% if form.type.errors %}<div class="error">{{ form.type.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span></td></tr>
+                <tr><th>{% trans "App" %}</th><td class="input">{{ form.app }}{% if form.app.errors %}<div class="error">{{ form.app.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
+                <tr><th>{% trans "Pattern" %}</th><td class="input">{{ form.pattern }}{% if form.pattern.errors %}<div class="error">{{ form.pattern.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span></td></tr> 
+                <tr><th>{% trans "Options" %}</th><td class="input">{{ form.options }}{% if form.options.errors %}<div class="error">{{ form.options.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
+                <tr><th>{% trans "Options1" %}</th><td class="input">{{ form.options1 }}{% if form.options1.errors %}<div class="error">{{ form.options1.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
              </table>
         </div>
         <br />

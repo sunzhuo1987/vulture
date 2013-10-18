@@ -10,33 +10,34 @@
     <li><a href="javascript:swapTab(1, 3, 'main_tab_', 'main_content_');" id="main_tab_1" class="active">{% trans "Main settings" %}</a></li>
     <li><a href="javascript:swapTab(2, 3, 'main_tab_', 'main_content_');" id="main_tab_2">{% trans "Connection" %}</a></li>
     <li><a href="javascript:swapTab(3, 3, 'main_tab_', 'main_content_');" id="main_tab_3">{% trans "Authentication" %}</a></li>
+    <li><a href='http://www.vultureproject.org/documentation/configuration/configuration-de-lauthentification/methodes-dauthentification-sql/' target='_blank'>{% trans "Need help ?" %}</a></td></tr></li>
 {% endblock %}
 
 {% block content %}
     <form method="post" id="sql" action=".">
         <div id="main_content_1" class="main_content">
             <table>
-                <tr><th>{% trans "Name" %}</th><td class="input">{{ form.name }}{% if form.name.errors %}<div class="error">{{ form.name.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-                <tr><th>{% trans "Type" %}</th><td class="input">{{ form.driver }}{% if form.driver.errors %}<div class="error">{{ form.driver.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-                <tr><th>{% trans "Database" %}</th><td class="input">{{ form.database }}{% if form.database.errors %}<div class="error">{{ form.database.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+                <tr><th>{% trans "Name" %}</th><td class="input">{{ form.name }}{% if form.name.errors %}<div class="error">{{ form.name.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span></td></tr>
+                <tr><th>{% trans "Type" %}</th><td class="input">{{ form.driver }}{% if form.driver.errors %}<div class="error">{{ form.driver.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span></td></tr>
+                <tr><th>{% trans "Database" %}</th><td class="input">{{ form.database }}{% if form.database.errors %}<div class="error">{{ form.database.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span></td></tr>
             </table>
         </div>
         
         <div id="main_content_2" class="main_content">
             <table>
-                <tr><th>{% trans "Host" %}</th><td class="input">{{ form.host }}{% if form.host.errors %}<div class="error">{{ form.host.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-                <tr><th>{% trans "Port" %}</th><td class="input">{{ form.port }}{% if form.port.errors %}<div class="error">{{ form.port.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-                <tr><th>{% trans "User" %}</th><td class="input">{{ form.user }}{% if form.user.errors %}<div class="error">{{ form.user.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-                <tr><th>{% trans "Password" %}</th><td class="input">{{ form.password }}{% if form.password.errors %}<div class="error">{{ form.password.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+                <tr><th>{% trans "Host" %}</th><td class="input">{{ form.host }}{% if form.host.errors %}<div class="error">{{ form.host.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
+                <tr><th>{% trans "Port" %}</th><td class="input">{{ form.port }}{% if form.port.errors %}<div class="error">{{ form.port.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
+                <tr><th>{% trans "User" %}</th><td class="input">{{ form.user }}{% if form.user.errors %}<div class="error">{{ form.user.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
+                <tr><th>{% trans "Password" %}</th><td class="input">{{ form.password }}{% if form.password.errors %}<div class="error">{{ form.password.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
             </table>
         </div>
         
         <div id="main_content_3" class="main_content">
             <table>
-                <tr><th>{% trans "SQL table name" %}</th><td class="input">{{ form.table }}{% if form.table.errors %}<div class="error">{{ form.table.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-                <tr><th>{% trans "User column" %}</th><td class="input">{{ form.user_column }}{% if form.user_column.errors %}<div class="error">{{ form.user_column.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-                <tr><th>{% trans "Password column" %}</th><td class="input">{{ form.pass_column }}{% if form.pass_column.errors %}<div class="error">{{ form.pass_column.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-                <tr><th>{% trans "Password algorithm" %}</th><td class="input">{{ form.pass_algo }}{% if form.pass_algo.errors %}<div class="error">{{ form.pass_algo.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+                <tr><th>{% trans "SQL table name" %}</th><td class="input">{{ form.table }}{% if form.table.errors %}<div class="error">{{ form.table.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span></td></tr>
+                <tr><th>{% trans "User column" %}</th><td class="input">{{ form.user_column }}{% if form.user_column.errors %}<div class="error">{{ form.user_column.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span></td></tr>
+                <tr><th>{% trans "Password column" %}</th><td class="input">{{ form.pass_column }}{% if form.pass_column.errors %}<div class="error">{{ form.pass_column.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span></td></tr>
+                <tr><th>{% trans "Password algorithm" %}</th><td class="input">{{ form.pass_algo }}{% if form.pass_algo.errors %}<div class="error">{{ form.pass_algo.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span></td></tr>
             </table>
         </div>
         <br />

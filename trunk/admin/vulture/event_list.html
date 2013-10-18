@@ -8,6 +8,7 @@
 {% block tabs %}
     <li><a href="/event/" id="main_tab_1" {% if not log_content %}class="active"{% endif %}>{% trans "Settings" %}</a></li>
     <li><a href="#" {% if not log_content %}onclick="document.forms['log'].submit();"{% endif %} id="main_tab_2" {% if log_content %}class="active"{% endif %}>{% trans "Log" %}</a></li>
+    <li><a href='http://www.vultureproject.org/documentation/configuration/configuration-systeme/systeme-event-viewer/' target='_blank'>{% trans "Need help ?" %}</a></td></tr></li>
 {% endblock %}
 
 {% block content %}
@@ -26,7 +27,7 @@
                         </td>
                         <td>
                             <span class="require">*</span>
-                            <img src="/img/vulture2/agt_support.png" alt="support" class="support" />
+                            
                         </td>
                     </tr>
                     <tr>
@@ -40,7 +41,7 @@
                         </td>
                         <td>
                             <span class="require">*</span>
-                            <img src="/img/vulture2/agt_support.png" alt="support" class="support" />
+                            
                         </td>
                     </tr>
                     <tr>
@@ -50,7 +51,7 @@
                         </td>
                         <td>
                             <span class="require">*</span>
-                            <img src="/img/vulture2/agt_support.png" alt="support" class="support" />
+                            
                         </td>
                     </tr>
                     <tr>
@@ -59,7 +60,7 @@
                             <input type='text' name='filter' value={{ filter }} />
                         </td>
                         <td>
-                            <img src="/img/vulture2/agt_support.png" alt="support" class="support" />
+                            
                         </td>
                     </tr>
                 {% endif %}
