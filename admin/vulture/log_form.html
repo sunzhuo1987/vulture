@@ -14,10 +14,12 @@
     <form method="post" action="." id="log">
         <div id="main_content_1" class="main_content">
             <table>
-                <tr><th>{% trans "Name" %}</th><td class="input">{{ form.name }}{% if form.name.errors %}<div class="error">{{ form.name.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-                <tr><th>{% trans "Error Log Verbosity" %}</th><td class="input">{{ form.level }}{% if form.level.errors %}<div class="error">{{ form.level.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-                <tr><th>{% trans "Access Log Format" %}</th><td class="input">{{ form.format }}{% if form.format.errors %}<div class="error">{{ form.format.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-                <tr><th>{% trans "Directory where to place Logfiles" %}</th><td class="input">{{ form.dir }}{% if form.dir.errors %}<div class="error">{{ form.dir.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+                <tr><td colspan=3><a href='http://www.vultureproject.org/documentation/configuration/composants-mod_log/' target='_blank'>{% trans "Need help ?" %}</a></td></tr>
+                <tr><th>{% trans "Name" %}</th><td class="input">{{ form.name }}{% if form.name.errors %}<div class="error">{{ form.name.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span></td></tr>
+                <tr><th>{% trans "Error Log Verbosity" %}</th><td class="input">{{ form.level }}{% if form.level.errors %}<div class="error">{{ form.level.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span></td></tr>
+                <tr><th>{% trans "Access Log Format" %}</th><td class="input">{{ form.format }}{% if form.format.errors %}<div class="error">{{ form.format.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span></td></tr>
+                <tr><th>{% trans "Directory where to place Logfiles" %}</th><td class="input">{{ form.dir }}{% if form.dir.errors %}<div class="error">{{ form.dir.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span></td></tr>
+                <tr><th>{% trans "Pipe Logfiles into a script" %}</th><td class="input">{{ form.script }}{% if form.script.errors %}<div class="error">{{ form.script.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
             </table>
         </div>
         <br />

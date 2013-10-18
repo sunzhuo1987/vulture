@@ -369,6 +369,7 @@ class Log(models.Model):
     level = models.CharField(max_length=10, blank=1,choices=LOG_LEVELS)
     format = models.CharField(max_length=500, blank=1)
     dir = models.CharField(max_length=200)
+    script = models.CharField(max_length=200, blank=1, null=1)
     def __str__(self):
         return self.name
         
