@@ -8,6 +8,7 @@
 {% block tabs %}
     <li><a {% ifequal type "import" %}href="#" class="active"{% else %}href="/import/"{% endifequal %}>{% trans "Import configuration" %}</a></li>
     <li><a {% ifequal type "import" %}href="/export/"{% else %}href="#" class="active"{% endifequal %}>{% trans "Export configuration" %}</a></li>
+    <li><a href='http://www.vultureproject.org/documentation/configuration/systeme-importexport/' target='_blank'>{% trans "Need help ?" %}</a></td></tr></li>
 {% endblock %}
 
 {% block content %}
@@ -16,7 +17,7 @@
         <div id="main_content_1" class="main_content">
         {% if content %}<div style="border: 1px dashed black; padding: 1em; margin: 3em"><code style="color: red">{{ content }}</code></div>{% endif %}
             <table>
-                <tr><th>{% blocktrans %}Path to {{ type }} file{% endblocktrans %}</th><td class="input"><input type='text' name='path' value='{% if path %}{{ path }}{% endif %}'/></td><td><span class="require">*</span><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+                <tr><th>{% blocktrans %}Path to {{ type }} file{% endblocktrans %}</th><td class="input"><input type='text' name='path' value='{% if path %}{{ path }}{% endif %}'/></td><td><span class="require">*</span></td></tr>
             </table>
         </div>
         <br />

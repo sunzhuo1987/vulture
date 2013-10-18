@@ -18,6 +18,7 @@
     <li><a href="javascript:swapTab(9, 11, 'main_tab_', 'main_content_');" id="main_tab_9">{% trans "Cache Settings" %}</a></li>
     <li><a href="javascript:swapTab(10, 11, 'main_tab_', 'main_content_');" id="main_tab_10">{% trans "Advanced settings" %}</a></li>
     <li><a href="javascript:swapTab(11, 11, 'main_tab_', 'main_content_');" id="main_tab_11">{% trans "JK Directives" %}</a></li>
+    <li><a href='http://www.vultureproject.org/documentation/configuration/configuration-des-applications-web/gestion-des-applications/' target='_blank'>{% trans "Need help ?" %}</a></td></tr></li>
 {% endblock %}
 
 {% block content %}
@@ -177,12 +178,12 @@
         {{ form.up.as_hidden }}
         <div id="main_content_1" class="main_content">
             <table>
-                <tr><th>{% trans "Internet name" %}</th><td class="input">{{ form.name }}{% if form.name.errors %}<div class="error">{{ form.name.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-                <tr><th>{% trans "Alias" %}</th><td class="input">{{ form.alias }}{% if form.alias.errors %}<div class="error">{{ form.alias.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-                <tr><th>{% trans "Interface" %}</th><td class="input">{{ form.intf }}{% if form.intf.errors %}<div class="error">{{ form.intf.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-                <tr><th>{% trans "Private URL" %}</th><td class="input">{{ form.url }}{% if form.url.errors %}<div class="error">{{ form.url.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-                <tr><th>{% trans "Log" %}</th><td class="input">{{ form.log }}{% if form.log.errors %}<div class="error">{{ form.log.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-                <tr><th>{% trans "Appearance" %}</th><td class="input">{{ form.appearance }}{% if form.appearance.errors %}<div class="error">{{ form.appearance.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+                <tr><th>{% trans "Internet name" %}</th><td class="input">{{ form.name }}{% if form.name.errors %}<div class="error">{{ form.name.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span></td></tr>
+                <tr><th>{% trans "Alias" %}</th><td class="input">{{ form.alias }}{% if form.alias.errors %}<div class="error">{{ form.alias.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
+                <tr><th>{% trans "Interface" %}</th><td class="input">{{ form.intf }}{% if form.intf.errors %}<div class="error">{{ form.intf.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span></td></tr>
+                <tr><th>{% trans "Private URL" %}</th><td class="input">{{ form.url }}{% if form.url.errors %}<div class="error">{{ form.url.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span></td></tr>
+                <tr><th>{% trans "Log" %}</th><td class="input">{{ form.log }}{% if form.log.errors %}<div class="error">{{ form.log.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span></td></tr>
+                <tr><th>{% trans "Appearance" %}</th><td class="input">{{ form.appearance }}{% if form.appearance.errors %}<div class="error">{{ form.appearance.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
             </table>
         </div>
         
@@ -190,15 +191,15 @@
             <table>
                 <tr>
                 <th>{% trans "Remote proxy" %}</th>
-                <td class="input">{{ form.remote_proxy }}{% if form.remote_proxy.errors %}<div class="error">{{ form.remote_proxy.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+                <td class="input">{{ form.remote_proxy }}{% if form.remote_proxy.errors %}<div class="error">{{ form.remote_proxy.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
                 
-                <tr><th>{% trans "Machine Certificate file (full path)" %}</th><td class="input">{{ form.remote_proxy_SSLProxyMachineCertificateFile }}{% if form.remote_proxy_SSLProxyMachineCertificateFile.errors %}<div class="error">{{ form.remote_proxy_SSLProxyMachineCertificateFile.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+                <tr><th>{% trans "Machine Certificate file (full path)" %}</th><td class="input">{{ form.remote_proxy_SSLProxyMachineCertificateFile }}{% if form.remote_proxy_SSLProxyMachineCertificateFile.errors %}<div class="error">{{ form.remote_proxy_SSLProxyMachineCertificateFile.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
                 
-                <tr><th>{% trans "CA Certificate file (full path)" %}</th><td class="input">{{ form.remote_proxy_SSLProxyCACertificateFile }}{% if form.remote_proxy_SSLProxyCACertificateFile.errors %}<div class="error">{{ form.remote_proxy_SSLProxyCACertificateFile.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+                <tr><th>{% trans "CA Certificate file (full path)" %}</th><td class="input">{{ form.remote_proxy_SSLProxyCACertificateFile }}{% if form.remote_proxy_SSLProxyCACertificateFile.errors %}<div class="error">{{ form.remote_proxy_SSLProxyCACertificateFile.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
                                                                         
-                <tr><th>{% trans "CA Revocation file (full path)" %}</th><td class="input">{{ form.remote_proxy_SSLProxyCARevocationFile }}{% if form.remote_proxy_SSLProxyCARevocationFile.errors %}<div class="error">{{ form.remote_proxy_SSLProxyCARevocationFile.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+                <tr><th>{% trans "CA Revocation file (full path)" %}</th><td class="input">{{ form.remote_proxy_SSLProxyCARevocationFile }}{% if form.remote_proxy_SSLProxyCARevocationFile.errors %}<div class="error">{{ form.remote_proxy_SSLProxyCARevocationFile.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
                 
-                <tr><th>{% trans "Verify Remote Certificate" %}</th><td class="input">{{ form.remote_proxy_SSLProxyVerify }}{% if form.remote_proxy_SSLProxyVerify.errors %}<div class="error">{{ form.remote_proxy_SSLProxyVerify.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+                <tr><th>{% trans "Verify Remote Certificate" %}</th><td class="input">{{ form.remote_proxy_SSLProxyVerify }}{% if form.remote_proxy_SSLProxyVerify.errors %}<div class="error">{{ form.remote_proxy_SSLProxyVerify.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
         </table>
         </div>
         
@@ -206,12 +207,12 @@
             <table>
                 <tr>
                     <th>{% trans "SSO Forward" %}</th>
-                    <td class="input">{{ form.sso_forward }}{% if form.sso_forward.errors %}<div class="error">{{ form.sso_forward.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" />
+                    <td class="input">{{ form.sso_forward }}{% if form.sso_forward.errors %}<div class="error">{{ form.sso_forward.errors|join:", " }}</div>{% endif %}</td><td>
                     </td>
                 </tr>
-                <tr><th>{% trans "Logon URL" %}</th><td class="input">{{ form.logon_url }}{% if form.logon_url.errors %}<div class="error">{{ form.logon_url.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-                <tr><th>{% trans "Logout URL" %}</th><td class="input">{{ form.logout_url }}{% if form.logout_url.errors %}<div class="error">{{ form.logout_url.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-                <tr><th>{% trans "SSO Learning extern" %}</th><td class="input">{{ form.sso_learning_ext }}{% if form.sso_learning_ext.errors %}<div class="error">{{ form.sso_learning_ext.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+                <tr><th>{% trans "Logon URL" %}</th><td class="input">{{ form.logon_url }}{% if form.logon_url.errors %}<div class="error">{{ form.logon_url.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
+                <tr><th>{% trans "Logout URL" %}</th><td class="input">{{ form.logout_url }}{% if form.logout_url.errors %}<div class="error">{{ form.logout_url.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
+                <tr><th>{% trans "SSO Learning extern" %}</th><td class="input">{{ form.sso_learning_ext }}{% if form.sso_learning_ext.errors %}<div class="error">{{ form.sso_learning_ext.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
             </table>
         </div>
         
@@ -223,11 +224,11 @@
                     <th colspan="3" style="text-align:center;height:20px;">{% trans "Authentification" %}</th>
                 </tr>
                 <tr><td></td><td></td>
-                <tr><th>{% trans "Authentication" %}</th><td class="input">{{ form.auth }}{% if form.auth.errors %}<div class="error">{{ form.auth.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-                <tr><th>{% trans "Authentication url" %}</th><td class="input">{{ form.auth_url }}{% if form.auth_url.errors %}<div class="error">{{ form.auth_url.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-                <tr><th>{% trans "Basic Auth" %}</th><td class="input">{{ form.auth_basic }}{% if form.auth_basic.errors %}<div class="error">{{ form.auth_basic.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-                <tr><th>{% trans "Display portal" %}</th><td class="input">{{ form.display_portal }}{% if form.display_portal.errors %}<div class="error">{{ form.display_portal.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-                <tr><th>{% trans "Check crsf token" %}</th><td class="input">{{ form.check_csrf }}{% if form.check_csrf.errors %}<div class="error">{{ form.check_csrf.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+                <tr><th>{% trans "Authentication" %}</th><td class="input">{{ form.auth }}{% if form.auth.errors %}<div class="error">{{ form.auth.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
+                <tr><th>{% trans "Authentication url" %}</th><td class="input">{{ form.auth_url }}{% if form.auth_url.errors %}<div class="error">{{ form.auth_url.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
+                <tr><th>{% trans "Basic Auth" %}</th><td class="input">{{ form.auth_basic }}{% if form.auth_basic.errors %}<div class="error">{{ form.auth_basic.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
+                <tr><th>{% trans "Display portal" %}</th><td class="input">{{ form.display_portal }}{% if form.display_portal.errors %}<div class="error">{{ form.display_portal.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
+                <tr><th>{% trans "Check crsf token" %}</th><td class="input">{{ form.check_csrf }}{% if form.check_csrf.errors %}<div class="error">{{ form.check_csrf.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
             </table>
             <table class="actions">
                 <tr><th></th><th>{% trans "Action" %}</th><th>{% trans "Options" %}</th></tr>
@@ -243,7 +244,7 @@
                 <tr>
                     <th colspan="3" style="text-align:center;height:20px;">{% trans "ACL" %}</th>
                 </tr>
-                <tr><th>{% trans "ACL" %}</th><td class="input">{{ form.acl }}{% if form.acl.errors %}<div class="error">{{ form.acl.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+                <tr><th>{% trans "ACL" %}</th><td class="input">{{ form.acl }}{% if form.acl.errors %}<div class="error">{{ form.acl.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
             </table>
             <table class="actions">
                 <tr><th></th><th>{% trans "Action" %}</th><th>{% trans "Options" %}</th></tr>
@@ -296,8 +297,8 @@
         
         <div id="main_content_6" class="main_content">
             <table>
-                <tr><th>{% trans "Timeout for user session (leave blank for no timeout)" %}</th><td class="input">{{ form.timeout }}{% if form.timeout.errors %}<div class="error">{{ form.timeout.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-                <tr><th>{% trans "Update user session timeout each time he does smth" %}</th><td class="input">{{ form.update_access_time }}{% if form.update_access_time.errors %}<div class="error">{{ form.update_access_time.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+                <tr><th>{% trans "Timeout for user session (leave blank for no timeout)" %}</th><td class="input">{{ form.timeout }}{% if form.timeout.errors %}<div class="error">{{ form.timeout.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
+                <tr><th>{% trans "Update user session timeout each time he does smth" %}</th><td class="input">{{ form.update_access_time }}{% if form.update_access_time.errors %}<div class="error">{{ form.update_access_time.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
             </table>
         </div>
         <div id="main_content_7" class="main_content">
@@ -311,39 +312,39 @@
         </div>
         <div id="main_content_8" class="main_content">
             <table>
-                <tr><th>{% trans "Activated" %}</th><td class="input">{{ form.deflate_activated }}{% if form.deflate_activated.errors %}<div class="error">{{ form.canonicalise_url.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-                <tr><th>{% trans "Content-types" %}</th><td class="input">{{ form.deflate_types }}{% if form.deflate_types %}<div class="error">{{ form.deflate_types.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-                <tr><th>{% trans "Buffer Size" %}</th><td class="input">{{ form.deflate_buf_size }}{% if form.deflate_buf_size%}<div class="error">{{ form.deflate_buf_size.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-                <tr><th>{% trans "Compression level" %}</th><td class="input">{{ form.deflate_compression }}{% if form.deflate_compression %}<div class="error">{{ form.deflate_compress.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-                <tr><th>{% trans "Memory level" %}</th><td class="input">{{ form.deflate_memory }}{% if form.deflate_memory %}<div class="error">{{ form.deflate_memory.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-                <tr><th>{% trans "Window Size" %}</th><td class="input">{{ form.deflate_win_size }}{% if form.deflate_win_size %}<div class="error">{{ form.deflate_win_size.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+                <tr><th>{% trans "Activated" %}</th><td class="input">{{ form.deflate_activated }}{% if form.deflate_activated.errors %}<div class="error">{{ form.canonicalise_url.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
+                <tr><th>{% trans "Content-types" %}</th><td class="input">{{ form.deflate_types }}{% if form.deflate_types %}<div class="error">{{ form.deflate_types.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
+                <tr><th>{% trans "Buffer Size" %}</th><td class="input">{{ form.deflate_buf_size }}{% if form.deflate_buf_size%}<div class="error">{{ form.deflate_buf_size.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
+                <tr><th>{% trans "Compression level" %}</th><td class="input">{{ form.deflate_compression }}{% if form.deflate_compression %}<div class="error">{{ form.deflate_compress.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
+                <tr><th>{% trans "Memory level" %}</th><td class="input">{{ form.deflate_memory }}{% if form.deflate_memory %}<div class="error">{{ form.deflate_memory.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
+                <tr><th>{% trans "Window Size" %}</th><td class="input">{{ form.deflate_win_size }}{% if form.deflate_win_size %}<div class="error">{{ form.deflate_win_size.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
             </table>
         </div>
         <div id="main_content_9" class="main_content">
             <table>
-                <tr><th>{% trans "Activated" %}</th><td class="input">{{ form.cache_activated }}{% if form.cache_activated.errors %}<div class="error">{{ form.cache_activated.errors|join:", " }}</div>{% endif %}</td><td><img src    ="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-                <tr><th>{% trans "Cache Type" %}</th><td class="input">{{ form.cache_type }}{% if form.cache_type.errors %}<div class="error">{{ form.cache_type.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-                <tr><th>{% trans "Cache Disable" %}</th><td class="input">{{ form.cache_disable }}{% if form.cache_disable.errors %}<div class="error">{{ form.cache_disable.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-                <tr><th>{% trans "Cache Default Expiration Time " %}</th><td class="input">{{ form.cache_default_exptime }}{% if form.cache_default_exptime.errors %}<div class="error">{{ form.cache_default_exptime.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-                <tr><th>{% trans "Cache Ignore Cache Control" %}</th><td class="input">{{ form.cache_ignore_cache_control }}{% if form.cache_ignore_cache_control.errors %}<div class="error">{{ form.cache_ignore_cache_control.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-                <tr><th>{% trans "Cache Ignore Headers" %}</th><td class="input">{{ form.cache_ignore_headers }}{% if form.cache_ignore_headers.errors %}<div class="error">{{ form.cache_ignore_headers.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-                <tr><th>{% trans "Cache Ignore No Last Modification" %}</th><td class="input">{{ form.cache_ignore_nolastmod }}{% if form.cache_ignore_nolastmod.errors %}<div class="error">{{ form.cache_ignore_nolastmod.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-                <tr><th>{% trans "Cache Ignore QueryString" %}</th><td class="input">{{ form.cache_ignore_querystring }}{% if form.cache_ignore_querystring.errors %}<div class="error">{{ form.cache_ignore_querystring.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-                <tr><th>{% trans "Cache Ignore URL Session Identifiers" %}</th><td class="input">{{ form.cache_ignore_URLSessionIdentifiers }}{% if form.cache_ignore_URLSessionIdentifiers.errors %}<div class="error">{{ form.cache_ignore_URLSessionIdentifiers.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-                <tr><th>{% trans "Cache Last Modified Factor " %}</th><td class="input">{{ form.cache_last_modified_factor }}{% if form.cache_last_modified_factor.errors %}<div class="error">{{ form.cache_last_modified_factor.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-                <tr><th>{% trans "Cache Lock" %}</th><td class="input">{{ form.cache_lock }}{% if form.cache_lock.errors %}<div class="error">{{ form.cache_lock.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-                <tr><th>{% trans "Cache Lock Max Age" %}</th><td class="input">{{ form.cache_lock_maxage }}{% if form.cache_lock_maxage.errors %}<div class="error">{{ form.cache_lock_maxage.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-                <tr><th>{% trans "Cache Lock Path" %}</th><td class="input">{{ form.cache_lock_path }}{% if form.cache_lock_path.errors %}<div class="error">{{ form.cache_lock_path.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-                <tr><th>{% trans "Cache Max Expire" %}</th><td class="input">{{ form.cache_max_expire }}{% if form.cache_max_expire.errors %}<div class="error">{{ form.cache_max_expire.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-                <tr><th>{% trans "Cache Store No Store" %}</th><td class="input">{{ form.cache_store_no_store }}{% if form.cache_store_no_store.errors %}<div class="error">{{ form.cache_store_no_store.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-                <tr><th>{% trans "Cache Store Private" %}</th><td class="input">{{ form.cache_store_private }}{% if form.cache_store_private.errors %}<div class="error">{{ form.cache_store_private.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+                <tr><th>{% trans "Activated" %}</th><td class="input">{{ form.cache_activated }}{% if form.cache_activated.errors %}<div class="error">{{ form.cache_activated.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
+                <tr><th>{% trans "Cache Type" %}</th><td class="input">{{ form.cache_type }}{% if form.cache_type.errors %}<div class="error">{{ form.cache_type.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
+                <tr><th>{% trans "Cache Disable" %}</th><td class="input">{{ form.cache_disable }}{% if form.cache_disable.errors %}<div class="error">{{ form.cache_disable.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
+                <tr><th>{% trans "Cache Default Expiration Time " %}</th><td class="input">{{ form.cache_default_exptime }}{% if form.cache_default_exptime.errors %}<div class="error">{{ form.cache_default_exptime.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
+                <tr><th>{% trans "Cache Ignore Cache Control" %}</th><td class="input">{{ form.cache_ignore_cache_control }}{% if form.cache_ignore_cache_control.errors %}<div class="error">{{ form.cache_ignore_cache_control.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
+                <tr><th>{% trans "Cache Ignore Headers" %}</th><td class="input">{{ form.cache_ignore_headers }}{% if form.cache_ignore_headers.errors %}<div class="error">{{ form.cache_ignore_headers.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
+                <tr><th>{% trans "Cache Ignore No Last Modification" %}</th><td class="input">{{ form.cache_ignore_nolastmod }}{% if form.cache_ignore_nolastmod.errors %}<div class="error">{{ form.cache_ignore_nolastmod.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
+                <tr><th>{% trans "Cache Ignore QueryString" %}</th><td class="input">{{ form.cache_ignore_querystring }}{% if form.cache_ignore_querystring.errors %}<div class="error">{{ form.cache_ignore_querystring.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
+                <tr><th>{% trans "Cache Ignore URL Session Identifiers" %}</th><td class="input">{{ form.cache_ignore_URLSessionIdentifiers }}{% if form.cache_ignore_URLSessionIdentifiers.errors %}<div class="error">{{ form.cache_ignore_URLSessionIdentifiers.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
+                <tr><th>{% trans "Cache Last Modified Factor " %}</th><td class="input">{{ form.cache_last_modified_factor }}{% if form.cache_last_modified_factor.errors %}<div class="error">{{ form.cache_last_modified_factor.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
+                <tr><th>{% trans "Cache Lock" %}</th><td class="input">{{ form.cache_lock }}{% if form.cache_lock.errors %}<div class="error">{{ form.cache_lock.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
+                <tr><th>{% trans "Cache Lock Max Age" %}</th><td class="input">{{ form.cache_lock_maxage }}{% if form.cache_lock_maxage.errors %}<div class="error">{{ form.cache_lock_maxage.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
+                <tr><th>{% trans "Cache Lock Path" %}</th><td class="input">{{ form.cache_lock_path }}{% if form.cache_lock_path.errors %}<div class="error">{{ form.cache_lock_path.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
+                <tr><th>{% trans "Cache Max Expire" %}</th><td class="input">{{ form.cache_max_expire }}{% if form.cache_max_expire.errors %}<div class="error">{{ form.cache_max_expire.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
+                <tr><th>{% trans "Cache Store No Store" %}</th><td class="input">{{ form.cache_store_no_store }}{% if form.cache_store_no_store.errors %}<div class="error">{{ form.cache_store_no_store.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
+                <tr><th>{% trans "Cache Store Private" %}</th><td class="input">{{ form.cache_store_private }}{% if form.cache_store_private.errors %}<div class="error">{{ form.cache_store_private.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
 
             </table>
         </div>
         <div id="main_content_10" class="main_content">
             <table>
-                <tr><th>{% trans "Canonicalise URL" %}</th><td class="input">{{ form.canonicalise_url }}{% if form.canonicalise_url.errors %}<div class="error">{{ form.canonicalise_url.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-                <tr><th>{% trans "Add VirtualHost directives" %}</th><td class="input">{{ form.virtualhost_directives }}{% if form.virtualhost_directives.errors %}<div class="error">{{ form.virtualhost_directives.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+                <tr><th>{% trans "Canonicalise URL" %}</th><td class="input">{{ form.canonicalise_url }}{% if form.canonicalise_url.errors %}<div class="error">{{ form.canonicalise_url.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
+                <tr><th>{% trans "Add VirtualHost directives" %}</th><td class="input">{{ form.virtualhost_directives }}{% if form.virtualhost_directives.errors %}<div class="error">{{ form.virtualhost_directives.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
             </table>
         </div>
         <div id="main_content_11" class="main_content">

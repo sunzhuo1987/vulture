@@ -66,8 +66,9 @@
     <form method="post" action="." id="acl">
         <div id="main_content_1" class="main_content">
             <table>
-                <tr><th>{% trans "Name" %}</th><td class="input">{{ form.name }}{% if form.name.errors %}<div class="error">{{ form.name.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-                <tr><th>{% trans "Authentication" %}</th><td class="input">{{ form.auth }}{% if form.auth.errors %}<div class="error">{{ form.auth.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+                <tr><td colspan='2'><a href='http://www.vultureproject.org/documentation/configuration/configuration-du-firewall-applicatif/acl-controle-dacces/' target='_blank'>{% trans "Need help ?" %}</a></td></tr>
+                <tr><th>{% trans "Name" %}</th><td class="input">{{ form.name }}{% if form.name.errors %}<div class="error">{{ form.name.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span></td></tr>
+                <tr><th>{% trans "Authentication" %}</th><td class="input">{{ form.auth }}{% if form.auth.errors %}<div class="error">{{ form.auth.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span></td></tr>
             </table>
             <br />
             {% if not users_ok and not users_ko and not groups_ok and not groups_ko %}

@@ -8,17 +8,18 @@
 {% block tabs %}
     <li><a href="/vintf/">{% trans "List" %}</a></li>
     <li><a href="#" id="main_tab_1" class="active">{% trans "Main settings" %}</a></li>
+    <li><a href='http://www.vultureproject.org/documentation/configuration/systeme-network-settings/' target='_blank'>{% trans "Need help ?" %}</a></td></tr></li>
 {% endblock %}
 
 {% block content %}
     <form method="post" id="vintf" action=".">
         <div id="main_content_1" class="main_content">
             <table>
-                <tr><th>{% trans "Name" %}</th><td class="input">{{ form.name }}{% if form.name.errors %}<div class="error">{{ form.name.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-                <tr><th>{% trans "Interface" %}</th><td class="input">{{ form.intf }}{% if form.intf.errors %}<div class="error">{{ form.intf.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-                <tr><th>{% trans "IP" %}</th><td class="input">{{ form.ip }}{% if form.ip.errors %}<div class="error">{{ form.ip.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-                <tr><th>{% trans "Netmask" %}</th><td class="input">{{ form.netmask }}{% if form.netmask.errors %}<div class="error">{{ form.netmask.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-                <tr><th>{% trans "Broadcast" %}</th><td class="input">{{ form.broadcast }}{% if form.broadcast.errors %}<div class="error">{{ form.broadcast.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+                <tr><th>{% trans "Name" %}</th><td class="input">{{ form.name }}{% if form.name.errors %}<div class="error">{{ form.name.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span></td></tr>
+                <tr><th>{% trans "Interface" %}</th><td class="input">{{ form.intf }}{% if form.intf.errors %}<div class="error">{{ form.intf.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span></td></tr>
+                <tr><th>{% trans "IP" %}</th><td class="input">{{ form.ip }}{% if form.ip.errors %}<div class="error">{{ form.ip.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span></td></tr>
+                <tr><th>{% trans "Netmask" %}</th><td class="input">{{ form.netmask }}{% if form.netmask.errors %}<div class="error">{{ form.netmask.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span></td></tr>
+                <tr><th>{% trans "Broadcast" %}</th><td class="input">{{ form.broadcast }}{% if form.broadcast.errors %}<div class="error">{{ form.broadcast.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span></td></tr>
             </table>
         </div>
         <br />

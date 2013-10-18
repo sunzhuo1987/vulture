@@ -8,14 +8,15 @@
 {% block tabs %}
     <li><a href="/template_css/">{% trans "List" %}</a></li>
     <li><a href="#" id="main_tab_1" class="active">{% trans "Main settings" %}</a></li>
+    <li><a href='http://www.vultureproject.org/documentation/configuration/configuration-des-applications-web/style-css/' target='_blank'>{% trans "Need help ?" %}</a></td></tr></li>
 {% endblock %}
 
 {% block content %}
     <form method="post" action="." id="css">
         <div id="main_content_1" class="main_content">
             <table>
-                <tr><th>{% trans "Name" %}</th><td class="input">{{ form.name }}{% if form.name.errors %}<div class="error">{{ form.name.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-                <tr><th>{% trans "CSS" %}</th><td class="input">{{ form.value }}{% if form.value.errors %}<div class="error">{{ form.value.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+                <tr><th>{% trans "Name" %}</th><td class="input">{{ form.name }}{% if form.name.errors %}<div class="error">{{ form.name.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span></td></tr>
+                <tr><th>{% trans "CSS" %}</th><td class="input">{{ form.value }}{% if form.value.errors %}<div class="error">{{ form.value.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span></td></tr>
             </table>
         </div>
         <br />

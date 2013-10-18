@@ -8,15 +8,16 @@
 {% block tabs %}
     <li><a href="/localization">{% trans "List" %}</a></li>
     <li><a href="#" id="main_tab_1" class="active">{% trans "Main settings" %}</a></li>
+    <li><a href='http://www.vultureproject.org/documentation/configuration/style-translations/' target='_blank'>{% trans "Need help ?" %}</a></td></tr></li>
 {% endblock %}
 
 {% block content %}
     <form method="post" action="." id="localization">
         <div id="main_content_1" class="main_content">
             <table style="padding: 0">
-            <tr><th>{% trans "Country" %}</th><td class="input">{{ form.country }}{% if form.country.errors %}<div class="error">{{ form.country.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-            <tr><th>{% trans "Message" %}</th><td class="input">{{ form.message }}{% if form.message.errors %}<div class="error">{{ form.message.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-            <tr><th>{% trans "Translation" %}</th><td class="input">{{ form.translation }}{% if form.translation.errors %}<div class="error">{{ form.translation.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+            <tr><th>{% trans "Country" %}</th><td class="input">{{ form.country }}{% if form.country.errors %}<div class="error">{{ form.country.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span></td></tr>
+            <tr><th>{% trans "Message" %}</th><td class="input">{{ form.message }}{% if form.message.errors %}<div class="error">{{ form.message.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span></td></tr>
+            <tr><th>{% trans "Translation" %}</th><td class="input">{{ form.translation }}{% if form.translation.errors %}<div class="error">{{ form.translation.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span></td></tr>
             </table>
         </div>
         <br />

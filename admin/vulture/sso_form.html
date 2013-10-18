@@ -12,6 +12,7 @@
     <li><a href="javascript:swapTab(3, 5, 'main_tab_', 'main_content_');" id="main_tab_3">{% trans "LDAP" %}</a></li>
     <li><a href="javascript:swapTab(4, 5, 'main_tab_', 'main_content_');" id="main_tab_4">{% trans "Fields" %}</a></li>
     <li><a href="javascript:swapTab(5, 5, 'main_tab_', 'main_content_');" id="main_tab_5">{% trans "Advanced" %}</a></li>
+    <li><a href='http://www.vultureproject.org/documentation/configuration/configuration-de-lauthentification/composants-sso-forward/' target='_blank'>{% trans "Need help ?" %}</a></li>
 {% endblock %}
 
 {% block content %}
@@ -101,18 +102,18 @@
     <form method="post" action="." id="sso">
         <div id="main_content_1" class="main_content">
             <table>
-                <tr><th>{% trans "Name" %}</th><td class="input">{{ form.name }}{% if form.name.errors %}<div class="error">{{ form.name.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-                <tr><th>{% trans "Follow get redirect" %}</th><td class="input">{{ form.follow_get_redirect }}{% if form.follow_get_redirect.errors %}<div class="error">{{ form.follow_get_redirect.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-		<tr><th>{% trans "Post authentication data to this URL" %}</th><td class="input">{{ form.is_post }}{% if form.is_post.errors %}<div class="error">{{ form.is_post.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-                <tr><th>{% trans "Referential" %}</th><td class="input">{{ form.auth }}{% if form.auth.errors %}<div class="error">{{ form.auth.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+                <tr><th>{% trans "Name" %}</th><td class="input">{{ form.name }}{% if form.name.errors %}<div class="error">{{ form.name.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span></td></tr>
+                <tr><th>{% trans "Follow get redirect" %}</th><td class="input">{{ form.follow_get_redirect }}{% if form.follow_get_redirect.errors %}<div class="error">{{ form.follow_get_redirect.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
+		<tr><th>{% trans "Post authentication data to this URL" %}</th><td class="input">{{ form.is_post }}{% if form.is_post.errors %}<div class="error">{{ form.is_post.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
+                <tr><th>{% trans "Referential" %}</th><td class="input">{{ form.auth }}{% if form.auth.errors %}<div class="error">{{ form.auth.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
             </table>
         </div>
         
         <div id="main_content_2" class="main_content">
             <table>
-                <tr><th>{% trans "Table" %}</th><td class="input">{{ form.table_mapped }}{% if form.table_mapped.errors %}<div class="error">{{ form.table_mapped.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-                <tr><th>{% trans "App" %}</th><td class="input">{{ form.app_mapped }}{% if form.app_mapped.errors %}<div class="error">{{ form.app_mapped.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-                <tr><th>{% trans "User" %}</th><td class="input">{{ form.user_mapped }}{% if form.user_mapped.errors %}<div class="error">{{ form.user_mapped.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+                <tr><th>{% trans "Table" %}</th><td class="input">{{ form.table_mapped }}{% if form.table_mapped.errors %}<div class="error">{{ form.table_mapped.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
+                <tr><th>{% trans "App" %}</th><td class="input">{{ form.app_mapped }}{% if form.app_mapped.errors %}<div class="error">{{ form.app_mapped.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
+                <tr><th>{% trans "User" %}</th><td class="input">{{ form.user_mapped }}{% if form.user_mapped.errors %}<div class="error">{{ form.user_mapped.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
             </table>
         </div>
 

@@ -7,14 +7,15 @@
 
 {% block tabs %}
     <li><a href="#" id="main_tab_1" class="active">{% trans "Main settings" %}</a></li>
+    <li><a href='http://www.vultureproject.org/documentation/configuration/configuration-des-applications-web/composants-plugins/plugins-plugin-cas/' target='_blank'>{% trans "Need help ?" %}</a></td></tr></li>
 {% endblock %}
 
 {% block content %}
     <form method="post" id="plugincas" action=".">
         <div id="main_content_1" class="main_content">
             <table>
-                <tr><th>{% trans "Referential" %}</th><td class="input">{{ form.auth }}{% if form.auth.errors %}<div class="error">{{ form.auth.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
-                <tr><th>{% trans "Field" %}</th><td class="input">{{ form.field }}{% if form.field.errors %}<div class="error">{{ form.field.errors|join:", " }}</div>{% endif %}</td><td><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+                <tr><th>{% trans "Referential" %}</th><td class="input">{{ form.auth }}{% if form.auth.errors %}<div class="error">{{ form.auth.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
+                <tr><th>{% trans "Field" %}</th><td class="input">{{ form.field }}{% if form.field.errors %}<div class="error">{{ form.field.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
              </table>
         </div>
         <br />
