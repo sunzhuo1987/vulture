@@ -8,7 +8,7 @@ ifpath = "/sbin/ifconfig"
 #get infos about running interfaces
 def getIntfs():
     regex = re.compile(
-         "^([\w\d:]+)\s.*\n\s*inet\s+[a-z]+:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})",
+        "^([\w\d:]+)\s.*\n\s*inet\s+[a-z]+:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})",
         re.MULTILINE|re.IGNORECASE
         )
     intf={}
