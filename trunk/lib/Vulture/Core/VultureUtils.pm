@@ -262,7 +262,7 @@ sub get_app {
 
     #Getting SSO
     $query =
-"SELECT sso.type, sso.follow_get_redirect, sso.is_post FROM sso JOIN app ON sso.id = app.sso_forward_id WHERE app.id=?";
+"SELECT sso.type, sso.follow_get_redirect, sso.is_post, sso.verify_mech_cert FROM sso JOIN app ON sso.id = app.sso_forward_id WHERE app.id=?";
     $sth = $dbh->prepare($query);
     $sth->execute( $ref->{id} );
     $ref->{'sso'} = $sth->fetchrow_hashref;
@@ -877,10 +877,10 @@ sub get_ua_object {
     return $ua;
 }
 sub get_mech_object{
-    my ($r, $remote_proxy) = @_;
+    my ($r, $remote_proxy,$sso_verify_mech_cert) = @_;
     my $config = $r->pnotes('config');
     my %ssl_opts = (
-        verify_hostname => 1,
+        verify_hostname => $sso_verify_mech_cert,
     );
     my $SSL_ca_file = $config->get_key('SSL_ca_file')||'';
     if ($SSL_ca_file){

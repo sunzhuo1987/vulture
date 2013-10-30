@@ -248,10 +248,17 @@ sub forward {
     my $sso_forward_type        = $app->{'sso'}->{'type'};
     my $sso_follow_get_redirect = $app->{'sso'}->{'follow_get_redirect'};
     my $sso_is_post             = $app->{'sso'}->{'is_post'};
+    my $sso_verify_mech_cert    = $app->{'sso'}->{'verify_mech_cert'};
+
+   if ($sso_verify_mech_cert eq '') {
+	$sso_verify_mech_cert=1;
+   }
+
     $log->debug( "SSO_FORWARD_TYPE=" . $sso_forward_type );
+    $log->debug( "SSO_VERIFY_CERT=" . $sso_verify_mech_cert );
 
     my %ssl_opts = (
-        verify_hostname => 1,
+        verify_hostname => $sso_verify_mech_cert,
     );
     my $SSL_ca_file = $config->get_key('SSL_ca_file')||'';
     if ($SSL_ca_file){
@@ -271,7 +278,7 @@ sub forward {
             $log->debug("route: $route");
         }
     }
-    $mech = Core::VultureUtils::get_mech_object($r,$app->{remote_proxy});
+    $mech = Core::VultureUtils::get_mech_object($r,$app->{remote_proxy}, $sso_verify_mech_cert);
 
     $mech->delete_header('Cookie');
     $mech->add_header( 'Cookie', $cleaned_cookies ) if ($cleaned_cookies ne '');
