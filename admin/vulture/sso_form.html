@@ -105,6 +105,7 @@
                 <tr><th>{% trans "Name" %}</th><td class="input">{{ form.name }}{% if form.name.errors %}<div class="error">{{ form.name.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span></td></tr>
                 <tr><th>{% trans "Follow get redirect" %}</th><td class="input">{{ form.follow_get_redirect }}{% if form.follow_get_redirect.errors %}<div class="error">{{ form.follow_get_redirect.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
 		<tr><th>{% trans "Post authentication data to this URL" %}</th><td class="input">{{ form.is_post }}{% if form.is_post.errors %}<div class="error">{{ form.is_post.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
+		<tr><th>{% trans "Verify remote SSL hostname" %}</th><td class="input">{{ form.verify_mech_cert }}{% if form.verify_mech_cert.errors %}<div class="error">{{ form.verify_mech_cert.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
                 <tr><th>{% trans "Referential" %}</th><td class="input">{{ form.auth }}{% if form.auth.errors %}<div class="error">{{ form.auth.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
             </table>
         </div>

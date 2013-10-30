@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-10-18 16:05+0200\n"
+"POT-Creation-Date: 2013-10-30 14:12+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -357,7 +357,7 @@ msgstr "Groupes autorisés"
 #: vulture/plugincas_form.html:22 vulture/plugincontent_form.html:26
 #: vulture/pluginheader_form.html:26 vulture/policy_file_form.html:35
 #: vulture/policy_form.html:88 vulture/radius_form.html:27
-#: vulture/sql_form.html:44 vulture/ssl_form.html:25 vulture/sso_form.html:178
+#: vulture/sql_form.html:44 vulture/ssl_form.html:25 vulture/sso_form.html:179
 #: vulture/style_form.html:21 vulture/template_form.html:36
 #: vulture/user_form.html:26 vulture/useredit_form.html:38
 #: vulture/userpassword_form.html:22 vulture/vintf_form.html:26
@@ -376,7 +376,7 @@ msgstr "Enregistrer"
 #: vulture/ntlm_form.html:26 vulture/otp_form.html:22
 #: vulture/plugin_form.html:26 vulture/plugincontent_form.html:27
 #: vulture/pluginheader_form.html:27 vulture/radius_form.html:28
-#: vulture/sql_form.html:45 vulture/ssl_form.html:26 vulture/sso_form.html:179
+#: vulture/sql_form.html:45 vulture/ssl_form.html:26 vulture/sso_form.html:180
 #: vulture/style_form.html:22 vulture/template_form.html:37
 #: vulture/user_form.html:27 vulture/useredit_form.html:39
 #: vulture/userpassword_form.html:23 vulture/vintf_form.html:27
@@ -421,7 +421,7 @@ msgstr "Copie d'application"
 
 #: vulture/app_copy.html:18 vulture/blackip_form.html:18
 #: vulture/plugin_form.html:20 vulture/plugincontent_form.html:19
-#: vulture/pluginheader_form.html:19 vulture/sso_form.html:115
+#: vulture/pluginheader_form.html:19 vulture/sso_form.html:116
 msgid "App"
 msgstr "Application"
 
@@ -547,14 +547,14 @@ msgid "Check crsf token"
 msgstr ""
 
 #: vulture/app_form.html:234 vulture/app_form.html.py:250
-#: vulture/intf_form.html:163 vulture/sso_form.html:167
+#: vulture/intf_form.html:163 vulture/sso_form.html:168
 msgid "Action"
 msgstr "Action"
 
 #: vulture/app_form.html:234 vulture/app_form.html.py:250
 #: vulture/intf_form.html:163 vulture/plugin_form.html:21
 #: vulture/plugincontent_form.html:21 vulture/pluginheader_form.html:21
-#: vulture/sso_form.html:167
+#: vulture/sso_form.html:168
 msgid "Options"
 msgstr "Options"
 
@@ -1165,7 +1165,7 @@ msgid "Connection"
 msgstr "Connexion"
 
 #: vulture/ldap_form.html:12 vulture/sql_form.html:30
-#: vulture/sso_form.html:116
+#: vulture/sso_form.html:117
 msgid "User"
 msgstr "Utilisateur"
 
@@ -1357,7 +1357,7 @@ msgstr "Motif d'URL"
 msgid "Plugin CAS settings"
 msgstr "Paramètres des plugins"
 
-#: vulture/plugincas_form.html:17 vulture/sso_form.html:108
+#: vulture/plugincas_form.html:17 vulture/sso_form.html:109
 msgid "Referential"
 msgstr "Référentiel"
 
@@ -1475,82 +1475,87 @@ msgid "Post authentication data to this URL"
 msgstr ""
 "Poster les informations d'authentification directement à l'URL de login"
 
-#: vulture/sso_form.html:114
+#: vulture/sso_form.html:108
+#, fuzzy
+msgid "Verify remote SSL hostname"
+msgstr "Vérifier le certificat distant"
+
+#: vulture/sso_form.html:115
 msgid "Table"
 msgstr "Table"
 
-#: vulture/sso_form.html:122
+#: vulture/sso_form.html:123
 msgid "You don't have any fields to fill in LDAP (recovered from auth LDAP)"
 msgstr ""
 "Vous n'avez pas à remplir ces champs pour du LDAP (ils sont récupérés depuis "
 "l'authentification LDAP)"
 
-#: vulture/sso_form.html:130
+#: vulture/sso_form.html:131
 msgid "Field desc"
 msgstr "Description du champ"
 
-#: vulture/sso_form.html:131
+#: vulture/sso_form.html:132
 msgid "Field name (unique)"
 msgstr "Nom du champ (unique)"
 
-#: vulture/sso_form.html:132
+#: vulture/sso_form.html:133
 msgid "Mapped"
 msgstr "Relié à"
 
-#: vulture/sso_form.html:133
+#: vulture/sso_form.html:134
 msgid "Field type"
 msgstr "Type"
 
-#: vulture/sso_form.html:134
+#: vulture/sso_form.html:135
 msgid "Encrypted"
 msgstr "Encrypté"
 
-#: vulture/sso_form.html:135
+#: vulture/sso_form.html:136
 msgid "Field value (optional)"
 msgstr "Valeur (optionnel)"
 
-#: vulture/sso_form.html:136
+#: vulture/sso_form.html:137
 msgid "Field prefix (optional)"
 msgstr "Préfixe (optionnel)"
 
-#: vulture/sso_form.html:137
+#: vulture/sso_form.html:138
 msgid "Field suffix (optional)"
 msgstr "Suffixe (optionnel)"
 
-#: vulture/sso_form.html:167
+#: vulture/sso_form.html:168
 msgid "Regexp"
 msgstr "Expression Régulière"
 
-#: vulture/sso_form.html:168
+#: vulture/sso_form.html:169
 msgid "In page"
 msgstr "Dans la page"
 
-#: vulture/sso_form.html:169
+#: vulture/sso_form.html:170
 msgid "In URL"
 msgstr "URL de connexion"
 
-#: vulture/sso_form.html:170
+#: vulture/sso_form.html:171
 msgid "In Redirect URL"
 msgstr "Redirection"
 
-#: vulture/sso_form.html:171
+#: vulture/sso_form.html:172
 msgid "Information"
 msgstr "Configuration"
 
-#: vulture/sso_form.html:171 vulture/sso_form.html.py:172
-#: vulture/sso_form.html:173 vulture/sso_form.html.py:174
+#: vulture/sso_form.html:172 vulture/sso_form.html.py:173
+#: vulture/sso_form.html:174 vulture/sso_form.html.py:175
 msgid "headers"
 msgstr "En-têtes"
 
-#: vulture/sso_form.html:172
+#: vulture/sso_form.html:173
 msgid "Success"
 msgstr "Réussite"
 
-#: vulture/sso_form.html:173
+#: vulture/sso_form.html:174
 msgid "Redirect"
 msgstr "Redirection"
 
-#: vulture/sso_form.html:174
+#: vulture/sso_form.html:175
 msgid "Error"
 msgstr "Erreur"
 
