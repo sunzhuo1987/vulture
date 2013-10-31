@@ -1452,7 +1452,8 @@ class Plugin(models.Model):
     ('Logout_ALL2', 'Logout_ALL2'),
     ('Logout_BROWSER', 'Logout_BROWSER'),
     ('CAS','CAS'),
-	('REDIRECT_NO_LOG','REDIRECT_NO_LOG'),
+    ('REDIRECT_NO_LOG','REDIRECT_NO_LOG'),
+    ('REDIRECT_IF_REFERER','REDIRECT_IF_REFERER'),
     ('REDIRECT_NO_REFERER','REDIRECT_NO_REFERER'),
     )
     app = models.ForeignKey(App,null=1,blank=1)
