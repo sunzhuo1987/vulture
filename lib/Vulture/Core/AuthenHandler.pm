@@ -265,7 +265,10 @@ sub auth_triggers{
     my ($r,$ret,$user,$password,$intf,$app) = @_;
     my $log = $r->pnotes('log');
     my $dbh = $r->pnotes('dbh');
+
     my $auth_msg = $r->pnotes('auth_message') || '';
+    $log->debug ("AuthenHandler: AUTH_MSG = " . $auth_msg);
+
     if ( $auth_msg eq ''){
         if ( (not defined $ret or $ret != scalar Apache2::Const::OK)
               and ($user or $password)){

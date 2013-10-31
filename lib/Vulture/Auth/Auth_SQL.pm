@@ -44,9 +44,16 @@ sub changePassword {
     if ( not ($new_dbh and $ref)){
         return 0;
     }
+
+    my $pass_changed='';
+    if ($ref->{changepass_column}) {
+	$pass_changed=", $ref->{changepass_column}=0 ";
+    }
+
     my $sth = $new_dbh->prepare(
-            "UPDATE $ref->{table} SET $ref->{pass_column}=? "
+            "UPDATE $ref->{table} SET $ref->{pass_column}=? ".$pass_changed
             . "WHERE $ref->{user_column}=? AND $ref->{pass_column}=?");
+
     return ($sth->execute(
         digest_pwd($new_pass, $ref->{pass_algo}),
         $user,
@@ -78,6 +85,8 @@ sub checkAuth {
         }
     }
     my $ret = Apache2::Const::FORBIDDEN;
+
+
     my $query = "SELECT count(*) FROM $ref->{table} "
         . "WHERE $ref->{user_column}=? AND $ref->{pass_column}=?";
     if ( $new_dbh->selectrow_array( $query, undef, 
@@ -85,6 +94,32 @@ sub checkAuth {
         $ret = Apache2::Const::OK;
         $log->debug("User is ok for Auth_SQL");
         $r->pnotes('username'=>"$user");
+    
+	$log->debug("changepass_column=".$ref->{changepass_column});
+
+	#Check if the user have to change its password
+	if ($ref->{changepass_column}) {
+		my @user_row = $new_dbh->selectrow_array("SELECT $ref->{changepass_column} FROM $ref->{table} "
+		. "WHERE $ref->{user_column}=? AND $ref->{pass_column}=?", undef,
+            $user, digest_pwd($password,$ref->{pass_algo}));
+
+		$log->debug("Change pass REQUEST = " . "SELECT $ref->{changepass_column} FROM $ref->{table} "
+                . "WHERE $ref->{user_column}=? AND $ref->{pass_column}=?");
+
+		if (@user_row) {
+			$log->debug("Found result !");
+			my ($need_change) = @user_row;
+			if ($need_change eq '1') {
+				$r->pnotes( 'auth_message' => 'NEED_CHANGE_PASS' );
+			        $log->debug("User $user need to change password");
+			}
+			else {
+				$log->debug("User $user DO NOT need to change password");
+			}
+		}
+	}
+
+
     }
     else{
         $log->debug("User is bad for Auth_SQL");
