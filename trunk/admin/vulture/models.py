@@ -814,6 +814,7 @@ class SQL(models.Model):
     user_column = models.CharField(max_length=64)
     pass_column = models.CharField(max_length=64)
     pass_algo = models.CharField(max_length=10,choices=SQL_ALGOS)
+    changepass_column = models.CharField(max_length=64,null=1, blank=1)
     def user_ko(self, user_ok):
         user_ko = []
         if self.driver == 'SQLite':

@@ -18,7 +18,11 @@ use Apache2::Request;
 
 use Apache2::Const -compile => qw(FORBIDDEN);
 use Core::AuthenHandler qw(&csrf_ok);
+use Core::Config qw(&get_key);
 use Auth::Auth_SQL qw(&changePassword);
+
+use Email::MIME;
+use Email::Sender::Simple qw(sendmail);
 
 sub plugin {
     my ( $package_name, $r, $log, $dbh, $intf, $app, $options ) = @_;
@@ -48,8 +52,49 @@ sub plugin {
     my $newp1 = $req->param('vulture_newpass1');
     my $newp2 = $req->param('vulture_newpass2');
 
+    my $lost 	= $req->param('lost');
+    my $appname = $req->param('appname');
+
     my $success = 0;
-    if (not ($user and $oldp and $newp1 and ( $newp1 eq $newp2)))
+    if ($user and $lost and $appname)
+    {
+	$log->debug("Password lost for user " . $user);
+	#Get lostContact from config
+	my $config = $r->pnotes('config');
+	my $lost_contact = $config->get_key('email_'.$appname)||'';
+	unless ($lost_contact) {
+		$log->debug("Unable to notify contact: Check Configuration !");
+	}
+	else {
+		$log->debug("Sending an email to " . $lost_contact);
+
+		my $body 	= $config->get_key('passwordlost_email_body_'.$appname) || "User = $user";
+		my $subject 	= $config->get_key('passwordlost_email_subject_'.$appname) || "A user needs a new password for $appname";
+		my $emailfrom	= $config->get_key('email_from') || 'vulture@no-reply.com';
+
+		my $message = Email::MIME->create(
+		  header_str => [
+		    From    => $emailfrom,
+		    To      => $lost_contact,
+		    Subject => $subject,
+		  ],
+		  attributes => {
+		    encoding => 'quoted-printable',
+		    charset  => 'ISO-8859-1',
+		  },
+		  body_str => $body,
+		);
+
+		# send the message
+		sendmail($message);
+
+		$success=1;
+	}
+
+	
+
+    }
+    elsif (not ($user and $oldp and $newp1 and ( $newp1 eq $newp2)))
     {
         $log->debug("change pass: wrong arguments");
     }   
@@ -57,11 +102,11 @@ sub plugin {
         my $ret = Auth::Auth_SQL::changePassword( 
             $r, $log,$dbh,$sql_id,$user, $oldp , $newp1);
         if ($ret){
-            $log->debug("change pass: no problemo");
+            $log->debug("change pass: ok");
             $success = 1;
         }
         else{
-            $log->debug("change pass: no success");
+            $log->debug("change pass: failure");
         }
     }
     $r->pnotes( 'response_content_type' => 'application/xml' );
