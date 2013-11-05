@@ -289,7 +289,7 @@ sub get_intf {
     }
     #Getting intf
     $query =
-"SELECT id, ip, port, ssl_engine, log_id, sso_portal, sso_timeout, sso_update_access_time,check_csrf, cert, key, ca, cas_portal, cas_display_portal, cas_auth_basic AS auth_basic, cas_st_timeout, cas_redirect FROM intf WHERE id = ?";
+"SELECT id, ip, port, default_url, ssl_engine, log_id, sso_portal, sso_timeout, sso_update_access_time,check_csrf, cert, key, ca, cas_portal, cas_display_portal, cas_auth_basic AS auth_basic, cas_st_timeout, cas_redirect FROM intf WHERE id = ?";
     $sth = $dbh->prepare($query);
     $sth->execute($intf);
     $ref = $sth->fetchrow_hashref;

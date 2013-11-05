@@ -136,7 +136,7 @@ sub handler {
             return Apache2::Const::FORBIDDEN;
         }
         if ( $r->pnotes('url_to_redirect') ) {
-            $log->debut("TRANS1 : will redirect to '".$r->pnotes('url_to_redirect')."'");
+            $log->debug("TRANS1 : will redirect to '".$r->pnotes('url_to_redirect')."'");
             $session_app{url_to_redirect} = $r->pnotes('url_to_redirect');
         }
         else {
@@ -164,6 +164,11 @@ sub handler {
     elsif ( $r->hostname =~ $intf->{'cas_portal'} ) {
         $log->debug('cas portal');
         return Apache2::Const::OK;
+    }
+    # If a default URL is defined in intf, redirect to it
+    elsif ($intf->{'default_url'} =~ /^http/ ) {
+	    $r->pnotes( 'url_to_redirect' => ''.$intf->{'default_url'} );
+            $log->debug("TRANS3 : will redirect to default app '".$intf->{'default_url'}."'");
     }
     # Fail
     else {

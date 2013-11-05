@@ -98,6 +98,7 @@
                 <tr><th>{% trans "Name" %}</th><td class="input">{{ form.name }}{% if form.name.errors %}<div class="error">{{ form.name.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span></td></tr>
                 <tr><th>{% trans "IP" %}</th><td class="input">{{ form.ip }}{% if form.ip.errors %}<div class="error">{{ form.ip.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span></td></tr>
                 <tr><th>{% trans "Port" %}</th><td class="input">{{ form.port }}{% if form.port.errors %}<div class="error">{{ form.port.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span></td></tr>
+                <tr><th>{% trans "Default URL" %}</th><td class="input">{{ form.default_url }}{% if form.default_url.errors %}<div class="error">{{ form.default_url.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
                 <tr><th>{% trans "Log" %}</th><td class="input">{{ form.log }}{% if form.log.errors %}<div class="error">{{ form.log.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span></td></tr>
                 <tr><th>{% trans "Appearance" %}</th><td class="input">{{ form.appearance }}{% if form.appearance.errors %}<div class="error">{{ form.appearance.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
             </table>

@@ -410,6 +410,7 @@ class Intf(models.Model):
     ip = models.IPAddressField()
     port = models.IntegerField()
     log = models.ForeignKey('Log')
+    default_url = models.CharField(max_length=256,blank=1,null=1)
     appearance = models.ForeignKey('Appearance', blank=1, null=1)
     # sso portal
     sso_portal = models.CharField(max_length=256,blank=1,null=1)
