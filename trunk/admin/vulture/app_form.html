@@ -344,6 +344,7 @@
         <div id="main_content_10" class="main_content">
             <table>
                 <tr><th>{% trans "Canonicalise URL" %}</th><td class="input">{{ form.canonicalise_url }}{% if form.canonicalise_url.errors %}<div class="error">{{ form.canonicalise_url.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
+                <tr><th>{% trans "ProxyPass directives" %}</th><td class="input">{{ form.proxypass_directives }}{% if form.proxypass_directives.errors %}<div class="error">{{ form.proxypass_directives.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
                 <tr><th>{% trans "Add VirtualHost directives" %}</th><td class="input">{{ form.virtualhost_directives }}{% if form.virtualhost_directives.errors %}<div class="error">{{ form.virtualhost_directives.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
             </table>
         </div>

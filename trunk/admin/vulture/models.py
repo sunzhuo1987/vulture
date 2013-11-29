@@ -1395,6 +1395,7 @@ class App(models.Model):
     cache_store_no_store = models.BooleanField(default=False)
     cache_store_private = models.BooleanField(default=False)
     policy=models.ForeignKey('Politique', blank=True, null=True) 
+    proxypass_directives = models.TextField(blank=1,null=1)
     
     def isWildCard (self):
         return self.alias.startswith('*')
