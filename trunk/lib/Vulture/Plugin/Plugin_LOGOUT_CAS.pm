@@ -55,7 +55,6 @@ sub plugin {
 
         $ticket =
           trim( $xpc->findvalue("//samlp:SessionIndex") );
-#	$ticket = 'ST-25-Bua4FS0gprJUIYddGbCv-qualif.ircem.com';
         $log->debug("Found valid request and ticket : $ticket");
         if ($ticket eq '') {
             $status = "No valid request. no valid ticket";
