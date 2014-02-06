@@ -132,7 +132,8 @@
         <rules>mod_security directives (see mod_security doc for more)</rules>
     </security>
     <app_copy>
-        <app>App's Internet name to copy</app>
+        <app>App's name to copy</app>
+        <friendly_name>New app's name</friendly_name>
         <name>New internet name</name>
     </app_copy>
     <app>

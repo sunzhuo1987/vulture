@@ -16,6 +16,7 @@
         <div id="main_content_1" class="main_content">
             <table>
                 <tr><th>{% trans "App" %}</th><td class="input">{{ form.app }}{% if form.app.errors %}<div class="error">{{ form.app.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
+                <tr><th>{% trans "Friendly name" %}</th><td class="input">{{ form.friendly_name }}{% if form.friendly_name.errors %}<div class="error">{{ form.friendly_name.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
                 <tr><th>{% trans "Internet name" %}</th><td class="input">{{ form.name }}{% if form.name.errors %}<div class="error">{{ form.name.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span><img src="/img/vulture2/agt_support.png" alt="support" class="support" /></td></tr>
 			</table>
             <b><u>/!\ Copying an application doesn't copy interface(s) and header(s) related to this old application</u></b>

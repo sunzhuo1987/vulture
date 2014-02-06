@@ -1319,6 +1319,7 @@ class App(models.Model):
         ('disk','disk'),
         ('mem','mem'),
         )
+    friendly_name = models.CharField(max_length=128, unique=1)
     name = models.CharField(max_length=128)
     alias = models.CharField(max_length=128, blank=1, null=1)
     url = models.CharField(max_length=256)
@@ -1436,7 +1437,7 @@ class App(models.Model):
         return " "
  
     def __str__(self):
-        return self.name# + " : " + ", ".join([i.name for i in self.intf.all()])
+        return self.friendly_name# + " : " + ", ".join([i.name for i in self.intf.all()])
     class Meta:
         db_table = 'app'
         permissions = (
