@@ -119,6 +119,7 @@ class CustomRuleForm(forms.ModelForm):
 
 class AppCopy(forms.Form):
     app = forms.ModelChoiceField(required=True, queryset=App.objects.all())
+    friendly_name = forms.CharField()
     name = forms.CharField()
 
 class ACLForm(forms.ModelForm):

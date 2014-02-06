@@ -132,7 +132,8 @@
         <rules>Directives mod_security (voir la documentation mod_security pour plus d'informations)</rules>
     </security>
     <app_copy>
-        <app>Nom internet de l'application à copier</app>
+        <app>Nom de l'application à copier</app>
+        <friendly_name>Nouveau nom de l'application copiée</friendly_name>
         <name>Nouveau nom internet de l'application copiée</name>
     </app_copy>
     <app>

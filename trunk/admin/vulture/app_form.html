@@ -178,6 +178,7 @@
         {{ form.up.as_hidden }}
         <div id="main_content_1" class="main_content">
             <table>
+                <tr><th>{% trans "Friendly name" %}</th><td class="input">{{ form.friendly_name }}{% if form.friendly_name.errors %}<div class="error">{{ form.friendly_name.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span></td></tr>
                 <tr><th>{% trans "Internet name" %}</th><td class="input">{{ form.name }}{% if form.name.errors %}<div class="error">{{ form.name.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span></td></tr>
                 <tr><th>{% trans "Alias" %}</th><td class="input">{{ form.alias }}{% if form.alias.errors %}<div class="error">{{ form.alias.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
                 <tr><th>{% trans "Interface" %}</th><td class="input">{{ form.intf }}{% if form.intf.errors %}<div class="error">{{ form.intf.errors|join:", " }}</div>{% endif %}</td><td><span class="require">*</span></td></tr>

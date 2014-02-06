@@ -15,6 +15,7 @@
     <div id="main_content_1" class="main_content">
         <table>
             <tr>
+                <th>{% trans "Friendly name" %}</th>
                 <th>{% trans "Internet name" %}</th>
                 <th>{% trans "Alias" %}</th>
                 <th>{% trans "Private URL" %}</th>
@@ -25,6 +26,7 @@
             </tr>
             {% for object in object_list %}
                 <tr>
+                    <td>{{ object.friendly_name }}</td>
                     <td>{{ object.name }}</td>
                     <td>{{ object.alias }}</td>
                     <td>{{ object.url }}</td>

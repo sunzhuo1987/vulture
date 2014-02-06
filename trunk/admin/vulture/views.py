@@ -393,8 +393,9 @@ def edit_app(request,object_id=None):
 def copy_app(request,object_id=None):
     form = AppCopy(request.POST or None)
     if request.method == 'POST' and form.is_valid():
-        a1 = App.objects.get(name=form.cleaned_data['app'])
+        a1 = App.objects.get(friendly_name=form.cleaned_data['app'])
         a1.pk = None
+        a1.friendly_name = form.cleaned_data['friendly_name']
         a1.name = form.cleaned_data['name']
         try:
             a1.save()
