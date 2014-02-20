@@ -2,7 +2,7 @@
 {% load i18n %}
 
 {% block title %}
-	{% trans "Web Applications" %} - <small>{% trans "Application's settings" %}</small>
+    {% trans "Web Applications" %} - <small>{% trans "Application's settings" %}</small>
 {% endblock %}
 
 {% block tabs %}
@@ -11,13 +11,14 @@
     <li><a href="javascript:swapTab(2, 11, 'main_tab_', 'main_content_');" id="main_tab_2">{% trans "Remote proxy" %}</a></li>
     <li><a href="javascript:swapTab(3, 11, 'main_tab_', 'main_content_');" id="main_tab_3">{% trans "SSO Forward" %}</a></li>
     <li><a href="javascript:swapTab(4, 11, 'main_tab_', 'main_content_');" id="main_tab_4">{% trans "Security" %}</a></li>
-    <li><a href="javascript:swapTab(5, 11, 'main_tab_', 'main_content_');" id="main_tab_5">{% trans "Headers" %}</a></li>
-    <li><a href="javascript:swapTab(6, 11, 'main_tab_', 'main_content_');" id="main_tab_6">{% trans "Timeout" %}</a></li>
-    <li><a href="javascript:swapTab(7, 11, 'main_tab_', 'main_content_');" id="main_tab_7">{% trans "Balancer Settings" %}</a></li>
-    <li><a href="javascript:swapTab(8, 11, 'main_tab_', 'main_content_');" id="main_tab_8">{% trans "Deflate settings" %}</a></li>
-    <li><a href="javascript:swapTab(9, 11, 'main_tab_', 'main_content_');" id="main_tab_9">{% trans "Cache Settings" %}</a></li>
-    <li><a href="javascript:swapTab(10, 11, 'main_tab_', 'main_content_');" id="main_tab_10">{% trans "Advanced settings" %}</a></li>
-    <li><a href="javascript:swapTab(11, 11, 'main_tab_', 'main_content_');" id="main_tab_11">{% trans "JK Directives" %}</a></li>
+    <li><a href="javascript:swapTab(5, 11, 'main_tab_', 'main_content_');" id="main_tab_5">{% trans "SSL" %}</a></li>
+    <li><a href="javascript:swapTab(6, 11, 'main_tab_', 'main_content_');" id="main_tab_6">{% trans "Headers" %}</a></li>
+    <li><a href="javascript:swapTab(7, 11, 'main_tab_', 'main_content_');" id="main_tab_7">{% trans "Timeout" %}</a></li>
+    <li><a href="javascript:swapTab(8, 11, 'main_tab_', 'main_content_');" id="main_tab_8">{% trans "Balancer Settings" %}</a></li>
+    <li><a href="javascript:swapTab(9, 11, 'main_tab_', 'main_content_');" id="main_tab_9">{% trans "Deflate settings" %}</a></li>
+    <li><a href="javascript:swapTab(10, 11, 'main_tab_', 'main_content_');" id="main_tab_10">{% trans "Cache Settings" %}</a></li>
+    <li><a href="javascript:swapTab(11, 11, 'main_tab_', 'main_content_');" id="main_tab_11">{% trans "Advanced settings" %}</a></li>
+    <li><a href="javascript:swapTab(12, 11, 'main_tab_', 'main_content_');" id="main_tab_12">{% trans "JK Directives" %}</a></li>
     <li><a href='http://www.vultureproject.org/documentation/configuration/configuration-des-applications-web/gestion-des-applications/' target='_blank'>{% trans "Need help ?" %}</a></td></tr></li>
 {% endblock %}
 
@@ -30,7 +31,7 @@
               var olddiv = document.getElementById(row);
               d.removeChild(olddiv);
         }
-        
+
         (function($) {
             // we can now rely on $ within the safety of our “bodyguard” function
             $(document).ready( function() {
@@ -172,6 +173,46 @@
 
                $(element).remove();
             }
+
+        // Selector behaviour when SSO Kerberos selected
+        function kerberos_update() {
+            sso_init = $('#id_sso_forward option:selected').text();
+            if (sso_init == 'Kerberos') {
+                $('.sso_kerberos').show();
+            } 
+       
+            var a_init = $("#id_sso_kerberos_default").attr('checked');
+            if (a_init == 'checked') {
+                $("#id_sso_kerberos_domain").prop('disabled',true); 
+            }
+ 
+            $("#id_sso_forward").live('change',function() {        
+                var sso = $('#id_sso_forward option:selected').text();
+                if (sso == 'Kerberos'){
+                    $('.sso_kerberos').show();
+                } else {
+                    $('.sso_kerberos').hide();
+                }
+            });
+
+            var tmp_sso_kerberos_domain = '';        
+            $("#id_sso_kerberos_default").live('change',function() {
+                var a = $(this).attr('checked');
+                if (a == 'checked') {
+                    $("#id_sso_kerberos_domain").prop('disabled',true);    
+                    tmp_sso_kerberos_domain = $("#id_sso_kerberos_domain").val();
+                    $("#id_sso_kerberos_domain").val('');    
+                } else {
+                    $("#id_sso_kerberos_domain").prop('disabled',false);
+                    $("#id_sso_kerberos_domain").val(tmp_sso_kerberos_domain);
+                }
+            });
+        };
+
+        $("#main_tab_3").live('click',function() {
+            kerberos_update();
+        });
+
         })(jQuery);
     </script>
     <form method="post" id="app" action=".">
@@ -211,8 +252,23 @@
                     <td class="input">{{ form.sso_forward }}{% if form.sso_forward.errors %}<div class="error">{{ form.sso_forward.errors|join:", " }}</div>{% endif %}</td><td>
                     </td>
                 </tr>
-                <tr><th>{% trans "Logon URL" %}</th><td class="input">{{ form.logon_url }}{% if form.logon_url.errors %}<div class="error">{{ form.logon_url.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
-                <tr><th>{% trans "Logout URL" %}</th><td class="input">{{ form.logout_url }}{% if form.logout_url.errors %}<div class="error">{{ form.logout_url.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
+               <tr class='sso_kerberos' style='display:none;'>
+                    <th>{% trans "Get Realm from login ?" %}</th>
+                    <td class="input">{{ form.sso_kerberos_default }}{% if form.sso_kerberos_default.errors %}<div class="error">{{ form.sso_kerberos_default.errors|join:", " }}</div>{% endif %}</td><td>
+                    </td>
+                </tr>
+                <tr class='sso_kerberos' style='display:none;'>
+                    <th>{% trans "Realm :" %}</th>
+                    <td class="input">{{ form.sso_kerberos_domain }}{% if form.sso_kerberos_domain.errors %}<div class="error">{{ form.sso_kerberos_domain.errors|join:", " }}</div>{% endif %}</td><td>
+                    </td>
+                </tr>
+                <tr>
+                    <th>{% trans "Logon URL" %}</th>
+                    <td class="input">{{ form.logon_url }}{% if form.logon_url.errors %}<div class="error">{{ form.logon_url.errors|join:", " }}</div>{% endif %}</td><td></td>
+                </tr>
+                <tr>
+                    <th>{% trans "Logout URL" %}</th>
+                    <td class="input">{{ form.logout_url }}{% if form.logout_url.errors %}<div class="error">{{ form.logout_url.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
                 <tr><th>{% trans "SSO Learning extern" %}</th><td class="input">{{ form.sso_learning_ext }}{% if form.sso_learning_ext.errors %}<div class="error">{{ form.sso_learning_ext.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
             </table>
         </div>
@@ -239,7 +295,7 @@
                 <tr><th>{% trans "Need change password" %}</th><td class="input">{{ form.need_change_pass_action }}</td><td class="input">{{ form.need_change_pass_options }}</td></tr>
                 <tr><th>{% trans "Secondary authentification server" %}</th><td class="input">{{ form.secondary_authentification_failure_action }}</td><td class="input">{{ form.secondary_authentification_failure_options }}</td></tr>
 
-			</table>
+            </table>
             
             <table>
                 <tr>
@@ -270,7 +326,36 @@
             </table>
         </div>
         
-        <div id='main_content_5' class="main_content">
+        <div id="main_content_5" class="main_content">
+            <table>
+                <tr>
+                    <th>{% trans "SSO Forward" %}</th>
+                    <td class="input">{{ form.sso_forward }}{% if form.sso_forward.errors %}<div class="error">{{ form.sso_forward.errors|join:", " }}</div>{% endif %}</td><td>
+                    </td>
+                </tr>
+               <tr class='sso_kerberos' style='display:none;'>
+                    <th>{% trans "Get Realm from login ?" %}</th>
+                    <td class="input">{{ form.sso_kerberos_default }}{% if form.sso_kerberos_default.errors %}<div class="error">{{ form.sso_kerberos_default.errors|join:", " }}</div>{% endif %}</td><td>
+                    </td>
+                </tr>
+                <tr class='sso_kerberos' style='display:none;'>
+                    <th>{% trans "Realm :" %}</th>
+                    <td class="input">{{ form.sso_kerberos_domain }}{% if form.sso_kerberos_domain.errors %}<div class="error">{{ form.sso_kerberos_domain.errors|join:", " }}</div>{% endif %}</td><td>
+                    </td>
+                </tr>
+                <tr>
+                    <th>{% trans "Logon URL" %}</th>
+                    <td class="input">{{ form.logon_url }}{% if form.logon_url.errors %}<div class="error">{{ form.logon_url.errors|join:", " }}</div>{% endif %}</td><td></td>
+                </tr>
+                <tr>
+                    <th>{% trans "Logout URL" %}</th>
+                    <td class="input">{{ form.logout_url }}{% if form.logout_url.errors %}<div class="error">{{ form.logout_url.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
+                <tr><th>{% trans "SSO Learning extern" %}</th><td class="input">{{ form.sso_learning_ext }}{% if form.sso_learning_ext.errors %}<div class="error">{{ form.sso_learning_ext.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
+            </table>
+        </div>
+
+
+        <div id='main_content_6' class="main_content">
             <input type='hidden' name='nbheaders' value='0'><br>
             <table class="fields">
                 <tbody id="tbl1body">
@@ -296,13 +381,13 @@
             </table>
         </div>
         
-        <div id="main_content_6" class="main_content">
+        <div id="main_content_7" class="main_content">
             <table>
                 <tr><th>{% trans "Timeout for user session (leave blank for no timeout)" %}</th><td class="input">{{ form.timeout }}{% if form.timeout.errors %}<div class="error">{{ form.timeout.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
                 <tr><th>{% trans "Update user session timeout each time he does smth" %}</th><td class="input">{{ form.update_access_time }}{% if form.update_access_time.errors %}<div class="error">{{ form.update_access_time.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
             </table>
         </div>
-        <div id="main_content_7" class="main_content">
+        <div id="main_content_8" class="main_content">
             <table>
                 <tr><th>{% trans "Activate Balancer"%}</th><td class="input">{{ form.Balancer_Activated }}{% if form.Balancer_Activated.errors %}<div class="error">{{ form.Balancer_Activated.errors|join:", " }}</div>{% endif %}</td></tr>
                 <tr><th>{% trans "Balancer Name" %}</th><td class="input">{{ form.Balancer_Name }}{% if form.Balancer_Name.errors %}<div class="error">{{ form.Balancer_Name.errors|join:", " }}</div>{% endif %}</td></tr>
@@ -311,7 +396,7 @@
                 <tr><th>{% trans "Balancer Stickyness" %}</th><td class="input">{{ form.Balancer_Stickyness }}{% if form.Balancer_Stickyness.errors %}<div class="error">{{ form.Balancer_Stickyness.errors|join:", " }}</div>{% endif %}</td></tr>
              </table>
         </div>
-        <div id="main_content_8" class="main_content">
+        <div id="main_content_9" class="main_content">
             <table>
                 <tr><th>{% trans "Activated" %}</th><td class="input">{{ form.deflate_activated }}{% if form.deflate_activated.errors %}<div class="error">{{ form.canonicalise_url.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
                 <tr><th>{% trans "Content-types" %}</th><td class="input">{{ form.deflate_types }}{% if form.deflate_types %}<div class="error">{{ form.deflate_types.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
@@ -321,7 +406,7 @@
                 <tr><th>{% trans "Window Size" %}</th><td class="input">{{ form.deflate_win_size }}{% if form.deflate_win_size %}<div class="error">{{ form.deflate_win_size.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
             </table>
         </div>
-        <div id="main_content_9" class="main_content">
+        <div id="main_content_10" class="main_content">
             <table>
                 <tr><th>{% trans "Activated" %}</th><td class="input">{{ form.cache_activated }}{% if form.cache_activated.errors %}<div class="error">{{ form.cache_activated.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
                 <tr><th>{% trans "Cache Type" %}</th><td class="input">{{ form.cache_type }}{% if form.cache_type.errors %}<div class="error">{{ form.cache_type.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
@@ -342,14 +427,14 @@
 
             </table>
         </div>
-        <div id="main_content_10" class="main_content">
+        <div id="main_content_11" class="main_content">
             <table>
                 <tr><th>{% trans "Canonicalise URL" %}</th><td class="input">{{ form.canonicalise_url }}{% if form.canonicalise_url.errors %}<div class="error">{{ form.canonicalise_url.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
                 <tr><th>{% trans "ProxyPass directives" %}</th><td class="input">{{ form.proxypass_directives }}{% if form.proxypass_directives.errors %}<div class="error">{{ form.proxypass_directives.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
                 <tr><th>{% trans "Add VirtualHost directives" %}</th><td class="input">{{ form.virtualhost_directives }}{% if form.virtualhost_directives.errors %}<div class="error">{{ form.virtualhost_directives.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
             </table>
         </div>
-        <div id="main_content_11" class="main_content">
+        <div id="main_content_12" class="main_content">
             <table>
                 {{fjkd}}
             </table>
@@ -358,5 +443,5 @@
         <input type="submit" value="{% trans "Save settings" %}" />
         <input type="button" onclick="document.location='/app/'" value="{% trans "Cancel" %}"/>
     </form>
-    <script>swapTab(1, 11, 'main_tab_', 'main_content_');</script>
+    <script>swapTab(1, 12, 'main_tab_', 'main_content_');</script>
 {% endblock %}
