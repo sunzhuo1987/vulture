@@ -376,9 +376,6 @@ class Log(models.Model):
     class Meta:
         db_table = 'log'
 
-class ssl_conf(models.Model):
-
-
 class Intf(models.Model):
     SSL_ENGINES = (
         ('cswift',   'CryptoSwift'),
