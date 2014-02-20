@@ -109,6 +109,15 @@ class PluginCASForm(forms.ModelForm):
         model = PluginCAS
          
 class AppForm(forms.ModelForm):
+    # This is to be sure to have only one Kerberos domain parameter (sso_kerberos_default or sso_kerberos_domain)
+    def clean_sso_kerberos_domain(self):
+        sso_kerberos_default = self.cleaned_data["sso_kerberos_default"]
+        sso_kerberos_domain = self.cleaned_data["sso_kerberos_domain"]
+        if sso_kerberos_default and sso_kerberos_domain:
+            return ''
+        else:
+            return sso_kerberos_domain
+    
     class Meta:
         model = App
 

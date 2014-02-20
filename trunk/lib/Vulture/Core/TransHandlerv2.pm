@@ -16,6 +16,7 @@ use Apache2::Const -compile => qw(OK FORBIDDEN REDIRECT DONE NOT_FOUND);
 use Core::VultureUtils qw(&get_memcached_conf &get_app &get_intf &version_check &get_cookie 
    &session &get_translations &get_style &load_module 
    &get_memcached &set_memcached &decrypt);
+use Core::VultureUtils_Kerberos qw(&getKerberosServiceToken);
 use Core::Log qw(&new &debug &error);
 use Core::Config qw(&new &get_key);
 use MIME::Base64 ;
@@ -302,6 +303,20 @@ sub authen_app{
         $r->headers_in->set(
             'Authorization' => "Basic $authorization"
         );
+    }
+    #Add Authorization header for kerberos
+    elsif (    $app->{'sso'}->{'type'}
+        and $app->{'sso'}->{'type'} eq "sso_forward_kerberos" )
+    {
+        $log->debug("::authen_app: sso_type = sso_forward_kerberos  => request kerberos token..");
+
+        my $token = Core::VultureUtils_Kerberos::getKerberosServiceToken($log, $r, $dbh, $app, $session_app->{username}, $session_app->{password});
+        if ( $token ) {
+            $log->debug("::authen_app: sso_type = sso_forward_kerberos  => set kerberos token in authorization header");
+            $r->headers_in->set('Authorization' => "Negotiate ".encode_base64($token,"") );
+        } else {
+            $log->debug("::authen_app: sso_type = sso_forward_kerberos  => kerberos token request failed");
+        }
     }
     #Destroy useless handlers
     $r->set_handlers( PerlAuthenHandler => undef );

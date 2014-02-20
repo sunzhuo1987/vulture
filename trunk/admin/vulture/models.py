@@ -376,6 +376,9 @@ class Log(models.Model):
     class Meta:
         db_table = 'log'
 
+class ssl_conf(models.Model):
+
+
 class Intf(models.Model):
     SSL_ENGINES = (
         ('cswift',   'CryptoSwift'),
@@ -406,6 +409,7 @@ class Intf(models.Model):
         ('LRU','LRU'),
         ('GDSF','GDSF'),
         )
+    
     name = models.CharField(max_length=128, unique=1)
     ip = models.IPAddressField()
     port = models.IntegerField()
@@ -1357,6 +1361,8 @@ class App(models.Model):
     follow_post = models.CharField(max_length=1,blank=1)
     no_cookie_mode = models.BooleanField(default=0)
     sso_forward = models.ForeignKey('SSO',null=1,blank=1)
+    sso_kerberos_default  = models.BooleanField(default=0)
+    sso_kerberos_domain = models.CharField(max_length=100,blank=1)
     appearance = models.ForeignKey('Appearance', blank=1, null=1)
     canonicalise_url = models.BooleanField(default=1)
     virtualhost_directives = models.TextField(blank=1,null=1)

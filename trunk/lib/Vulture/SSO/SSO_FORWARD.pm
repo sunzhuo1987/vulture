@@ -28,6 +28,7 @@ use HTML::Form;
 use Apache2::Const -compile => qw(OK REDIRECT FORBIDDEN);
 
 use Core::VultureUtils qw(&session &get_app_cookies &get_cookie &get_mech_object &get_ua_object);
+use Core::VultureUtils_Kerberos qw(&getKerberosServiceToken);
 use SSO::ProfileManager qw(&get_profile &delete_profile);
 
 use Apache::SSLLookup;
@@ -336,6 +337,23 @@ sub forward {
               . encode_base64( $user . ':' . $password ) );
 
         #Get form first then POST infos, only if we don't wan't to post directly
+    }
+    #Send request with kerberos Authorization header 
+    elsif ( $sso_forward_type eq 'sso_forward_kerberos' ) {
+        $log->debug("::forward: sso_type = sso_forward_kerberos => request kerberos service token");
+
+        $request = HTTP::Request->new( GET => $base_url . $app->{logon_url} );
+        $request->push_header( 'Referer' => '-' );
+
+        my $token = Core::VultureUtils_Kerberos::getKerberosServiceToken($log, $r, $dbh, $app, $user, $password);
+        if ( $token ) {
+            $log->debug("::forward: sso_type = sso_forward_kerberos => set kerberos service token in authorization header");
+
+            #Sending Negotiate (Kerberos) Authorization header
+            $request->push_header( 'Authorization' => "Negotiate " . encode_base64($token,"") );
+        } else {
+            $log->debug("::forward: sso_type = sso_forward_kerberos => request kerberos service token failed");
+        }
     }
     elsif ( ( int($sso_is_post) != 1 ) ) {
         $log->debug("Automatic POST enabled");
