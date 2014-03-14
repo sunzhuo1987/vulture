@@ -289,12 +289,11 @@ sub get_intf {
     }
     #Getting intf
     $query =
-"SELECT id, ip, port, default_url, ssl_engine, log_id, sso_portal, sso_timeout, sso_update_access_time,check_csrf, cert, key, ca, cas_portal, cas_display_portal, cas_auth_basic AS auth_basic, cas_st_timeout, cas_redirect FROM intf WHERE id = ?";
+"SELECT intf.id, ip, port, default_url, log_id, sso_portal, sso_timeout, ssl_conf.ssl_engine, ssl_conf.cert, ssl_conf.key, ssl_conf.ca, sso_update_access_time,check_csrf, cas_portal, cas_display_portal, cas_auth_basic AS auth_basic, cas_st_timeout, cas_redirect FROM intf JOIN ssl_conf ON ssl_conf.id = intf.ssl_configuration_id WHERE intf.id = ?";
     $sth = $dbh->prepare($query);
     $sth->execute($intf);
     $ref = $sth->fetchrow_hashref;
     $sth->finish();
-
 #Getting auth (CAS)
     $query =
 'SELECT auth.name, auth.auth_type, auth.id_method, auth.id FROM auth JOIN intf ON auth.id = intf.cas_auth_id WHERE intf.id = ?';
@@ -948,4 +947,5 @@ sub get_app_cookies{
     }
     return $cleaned_cookies;
 }
+
 1;

@@ -121,6 +121,10 @@ class AppForm(forms.ModelForm):
     class Meta:
         model = App
 
+class SSLConfForm(forms.ModelForm):
+    class Meta:
+        model = SSL_conf
+
 class CustomRuleForm(forms.ModelForm):
     class Meta:
         model = CustomRule

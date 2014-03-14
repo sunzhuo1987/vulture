@@ -212,6 +212,26 @@
         $("#main_tab_3").live('click',function() {
             kerberos_update();
         });
+        
+        // Behaviour when SSL Clicked
+        function ssl_update() {
+            ssl_init = $('#id_conf_from_intf').attr('checked');
+            if(ssl_init == 'checked'){
+                 $("[name*='ssl_conf-']").prop('disabled',true);
+            }
+            $("#id_conf_from_intf").live('change',function() {
+                ssl_init = $('#id_conf_from_intf').attr('checked');
+                if (ssl_init == 'checked'){
+                    $("[name*='ssl_conf-']").prop('disabled',true);
+                } else {
+                    $("[name*='ssl_conf-']").prop('disabled',false);
+                }
+            });
+        }
+        
+        $("#main_tab_5").live('click',function() {
+            ssl_update();
+        });        
 
         })(jQuery);
     </script>
@@ -328,29 +348,15 @@
         
         <div id="main_content_5" class="main_content">
             <table>
-                <tr>
-                    <th>{% trans "SSO Forward" %}</th>
-                    <td class="input">{{ form.sso_forward }}{% if form.sso_forward.errors %}<div class="error">{{ form.sso_forward.errors|join:", " }}</div>{% endif %}</td><td>
-                    </td>
-                </tr>
-               <tr class='sso_kerberos' style='display:none;'>
-                    <th>{% trans "Get Realm from login ?" %}</th>
-                    <td class="input">{{ form.sso_kerberos_default }}{% if form.sso_kerberos_default.errors %}<div class="error">{{ form.sso_kerberos_default.errors|join:", " }}</div>{% endif %}</td><td>
-                    </td>
-                </tr>
-                <tr class='sso_kerberos' style='display:none;'>
-                    <th>{% trans "Realm :" %}</th>
-                    <td class="input">{{ form.sso_kerberos_domain }}{% if form.sso_kerberos_domain.errors %}<div class="error">{{ form.sso_kerberos_domain.errors|join:", " }}</div>{% endif %}</td><td>
-                    </td>
-                </tr>
-                <tr>
-                    <th>{% trans "Logon URL" %}</th>
-                    <td class="input">{{ form.logon_url }}{% if form.logon_url.errors %}<div class="error">{{ form.logon_url.errors|join:", " }}</div>{% endif %}</td><td></td>
-                </tr>
-                <tr>
-                    <th>{% trans "Logout URL" %}</th>
-                    <td class="input">{{ form.logout_url }}{% if form.logout_url.errors %}<div class="error">{{ form.logout_url.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
-                <tr><th>{% trans "SSO Learning extern" %}</th><td class="input">{{ form.sso_learning_ext }}{% if form.sso_learning_ext.errors %}<div class="error">{{ form.sso_learning_ext.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
+                <tr><th>{% trans "Enable SSL ?" %}</th><td class="input">{{ form.enable_ssl }}{% if form.enable_ssl.errors %}<div class="error">{{ form.enable_ssl.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
+                <tr><th>{% trans "SSL Configuration from interface" %}</th><td class="input">{{ form.conf_from_intf }}{% if form.conf_from_intf.errors %}<div class="error">{{ form.conf_from_intf.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
+                <tr><th>{% trans "PEM certificat" %}</th><td class="input">{{ fssl_conf.cert }}{% if fssl_conf.cert.errors %}<div class="error">{{ fssl_conf.cert.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
+                <tr><th>{% trans "PEM key" %}</th><td class="input">{{ fssl_conf.key }}{% if fssl_conf.key.errors %}<div class="error">{{ fssl_conf.key.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
+                <tr><th>{% trans "PEM certification chain" %}</th><td class="input">{{ fssl_conf.ca }}{% if fssl_conf.ca.errors %}<div class="error">{{ fssl_conf.ca.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
+                <tr><th>{% trans "PEM-encoded CA Certificates" %}</th><td class="input">{{ fssl_conf.cacert }}{% if fssl_conf.cacert.errors %}<div class="error">{{ fssl_conf.cacert.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
+                <tr><th>{% trans "SSL options" %}</th><td class="input">{{ fssl_conf.ssl_options }}{% if fssl_conf.ssl_options.errors %}<div class="error">{{ fssl_conf.ssl_options.errors|join:", " }}</div>{% endif %}</td><td></td></tr>  
+                <tr><th>{% trans "SSL protocol" %}</th><td class="input">{{ fssl_conf.ssl_protocol }}{% if fssl_conf.ssl_protocol.errors %}<div class="error">{{ fssl_conf.ssl_protocol.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
+                <tr><th>{% trans "SSL cipher suite" %}</th><td class="input">{{ fssl_conf.ssl_cipher_suite }}{% if fssl_conf.ssl_cipher_suite.errors %}<div class="error">{{ fssl_conf.ssl_cipher_suite.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
             </table>
         </div>
 

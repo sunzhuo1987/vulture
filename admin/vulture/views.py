@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from django.db import connection
 from django.db.models import Q
-from django.forms.models import inlineformset_factory
+from django.forms.models import inlineformset_factory, modelformset_factory
 from django.conf import settings
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
@@ -115,14 +115,30 @@ def remove_log(request,object_id=None):
 
 @permission_required('vulture.change_intf')
 def edit_intf(request,object_id=None):
-    form = IntfForm(request.POST or None,instance = object_id and Intf.objects.get(id=object_id))
+    inst = object_id and Intf.objects.get(id=object_id)
+    form = IntfForm(request.POST or None,instance = object_id and inst)
+    fssl_conf = SSLConfForm(request.POST or None, instance = object_id and inst.ssl_configuration)
     if request.method == 'POST' and form.is_valid():
         intf = form.save()
+        if fssl_conf.is_valid():
+            ssl_conf_id = fssl_conf.save()
+            intf.ssl_configuration = ssl_conf_id
+            
         intf.cas_auth = get_logic_auth_for(intf.cas_auth)
         intf.save()
         return HttpResponseRedirect("/intf")
     return render_to_response('vulture/intf_form.html',
-            {'form':form, 'user': request.user })
+            {'form':form, 'user': request.user, 'fssl_conf': fssl_conf})
+
+@permission_required('vulture.change_intf')
+def delete_intf(request,object_id=None):
+    inst = object_id and Intf.objects.get(id=object_id)
+    if request.method == 'POST':
+        SSL_conf.objects.get(id = inst.ssl_configuration_id).delete()
+        inst.delete()
+        return HttpResponseRedirect("/intf")
+    else: 
+        return render_to_response('vulture/generic_confirm_delete.html', {'url':'/intf', 'name':inst.name, 'object': inst})
 
 @permission_required('vulture.change_vintf')
 def edit_vintf(request,object_id=None):
@@ -349,6 +365,7 @@ def get_logic_auth_for(auth):
 @permission_required('vulture.change_app')
 def edit_app(request,object_id=None):
     inst = object_id and App.objects.get(pk=object_id)
+    app_inst= object_id and App.objects.get(id=object_id) 
     form = AppForm(request.POST or None,instance=inst)
     form.header = Header.objects.order_by("-id").filter(app=object_id)
     FJKD = inlineformset_factory(App, JKDirective, extra=4)
@@ -362,11 +379,23 @@ def edit_app(request,object_id=None):
         dataPosted = request.POST
         app = form.save()
         fjkd = FJKD(request.POST,instance=inst)
+        #JK Directives
         if fjkd.is_valid():
             fjkd.save()
         else:
             raise ValueError("bad inline formset !!!!")
-        
+        #SSL Configuration
+        fssl_conf = SSLConfForm(request.POST, instance = object_id and app_inst.ssl_configuration, prefix='ssl_conf')
+        if form.cleaned_data['conf_from_intf']:
+             inst        = Intf.objects.get(id=form.cleaned_data['intf'])
+             ssl_conf_id = inst.ssl_configuration
+       
+        if fssl_conf.is_valid() and not form.cleaned_data['conf_from_intf']:
+            if hasattr(app_inst,'ssl_configuration') and app_inst.ssl_configuration == Intf.objects.get(id=form.cleaned_data['intf']).ssl_configuration:
+                fssl_conf = SSLConfForm(request.POST, prefix='ssl_conf') #To switch from Intf-SSL_Conf to App-SSL_Conf
+            ssl_conf_id = fssl_conf.save()
+
+        app.ssl_configuration = ssl_conf_id
         # headers .. 
         headers = Header.objects.filter(app=object_id)#Delete old headers
         headers.delete()
@@ -386,7 +415,9 @@ def edit_app(request,object_id=None):
         app.save()
         return HttpResponseRedirect('/app/')
     fjkd = FJKD(instance=inst)
-    return render_to_response('vulture/app_form.html', {'form': form, 'user' : request.user, 'fjkd':fjkd})
+    fssl_conf = SSLConfForm(request.POST or None, instance = object_id and app_inst.ssl_configuration, prefix='ssl_conf')
+    # Save new/edited app
+    return render_to_response('vulture/app_form.html', {'form': form, 'user' : request.user, 'fjkd':fjkd, 'fssl_conf':fssl_conf})
 ########################################################################
 
 @permission_required('vulture.add_app')
@@ -403,6 +434,20 @@ def copy_app(request,object_id=None):
             pass
         return HttpResponseRedirect('/app/')
     return render_to_response('vulture/app_copy.html', {'form': form, 'user' : request.user})
+
+@permission_required('vulture.add_app')
+def delete_app(request, object_id=None):
+    inst = object_id and App.objects.get(id=object_id)
+    if request.method == 'POST':
+        nb_app  = App.objects.filter(ssl_configuration_id = inst.ssl_configuration).count()
+        nb_intf = Intf.objects.filter(ssl_configuration_id = inst.ssl_configuration).count()
+        #Prevent deletion of others SSL Configuration set on others Apps
+        if nb_app <= 1 and nb_intf < 1:
+            SSL_conf.objects.get(id = inst.ssl_configuration_id).delete()
+        inst.delete()
+        return HttpResponseRedirect("/app")
+    else: 
+        return render_to_response('vulture/generic_confirm_delete.html', {'url':'/app', 'name':inst.name, 'object': inst})
 
 @permission_required('vulture.change_sso')
 def edit_sso(request,object_id=None):

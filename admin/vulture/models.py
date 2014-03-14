@@ -7,9 +7,9 @@ from django.contrib import admin
 from time import sleep
 import time
 try:
-	import sqlite3
+    import sqlite3
 except:
-	from pysqlite2 import dbapi2 as sqlite3
+    from pysqlite2 import dbapi2 as sqlite3
 from datetime import date
 import ldap
 import operator
@@ -19,6 +19,7 @@ import subprocess
 import re
 from django.contrib.auth.models import User as DjangoUser, UserManager as DjangoUserManager
 from django.db.models.signals import post_save
+from django.db.models import Q
 from django import forms
 import base64
 import ifconfig
@@ -338,8 +339,8 @@ class VINTF(models.Model):
     broadcast = models.CharField(max_length=128,unique=0,null=1)
    
     def isStarted(self):
-	started = ifconfig.getIntfs()
-	return self.intf in started and started[self.intf] == self.ip
+        started = ifconfig.getIntfs()
+        return self.intf in started and started[self.intf] == self.ip
 
     def start(self):
         ifconfig.startIntf(self.intf, self.ip, self.netmask, self.broadcast)
@@ -352,8 +353,8 @@ class VINTF(models.Model):
         self.start()
 
     class Meta:
-	db_table = 'vintf'
-	
+        db_table = 'vintf'
+
 class Log(models.Model):
     LOG_LEVELS = (
         ('emerg', 'emerg'),
@@ -377,18 +378,7 @@ class Log(models.Model):
         db_table = 'log'
 
 class Intf(models.Model):
-    SSL_ENGINES = (
-        ('cswift',   'CryptoSwift'),
-        ('chil',     'nCipher'),
-        ('atalla',   'Atalla'),
-        ('nuron',    'Nuron'),
-        ('ubsec',    'UBSEC'),
-        ('aep',      'Aep'),
-        ('sureware', 'SureWare'),
-        ('4758cca',  'IBM 4758 CCA'),
-        )
-
-        #Actions to be used to handle login problems
+    #Actions to be used to handle login problems
     ACTIONS = (
         ('nothing', 'nothing'),
         ('template', 'template'),
@@ -434,12 +424,8 @@ class Intf(models.Model):
     login_failed_options = models.CharField(max_length=128, blank=1, null=1)
     need_change_pass_action = models.CharField(max_length=128, blank=1, null=1, choices=ACTIONS, default='nothing')
     need_change_pass_options = models.CharField(max_length=128, blank=1, null=1)
-    # ssl fields	
-    cert = models.TextField(blank=1,null=1)
-    key = models.TextField(blank=1,null=1)
-    ca = models.TextField(blank=1,null=1)
-    cacert = models.TextField(blank=1,null=1)
-    ssl_engine = models.CharField(max_length=10,blank=1,choices=SSL_ENGINES)
+    # ssl fields
+    ssl_configuration = models.ForeignKey('SSL_conf',null=1,blank=1)
     # apache server setting
     srv_timeout = models.IntegerField(blank=0,default=300)
     srv_startsrv = models.IntegerField(blank=0,default=5)
@@ -499,7 +485,6 @@ class Intf(models.Model):
                      })
         return t.render(c)
 
-
     def has_deflate(self):
         return App.objects.filter(intf=self.id,
                 deflate_activated=True).count()>0
@@ -537,31 +522,56 @@ class Intf(models.Model):
         return False
 
     def is_ssl(self):
-        return self.cert and True or False
+        return self.ssl_configuration.cert and True or False
 
     def backupConf(self):
+        """ Backup actual configuration files """
         backpath="%s%s_backup/"%(settings.CONF_PATH,self.id)
         if not os.path.exists(backpath):
             os.mkdir(backpath,0770)
-        for ext in ("cert","conf","key","chain","cacrt","ca"):
+        for ext in ("conf","ca"):
             fnam="%s.%s"%(self.id,ext)
             bpath="%s%s"%(backpath,fnam)
             cpath="%s%s"%(settings.CONF_PATH,fnam)
-            try: 
+            try:
                 open(bpath,"w").write(open(cpath).read())
             except:
                 pass
+        apps = self.app_set.filter(enable_ssl=1)
+        ssl_confs = SSL_conf.objects.filter(Q(id__in=[app.ssl_configuration_id for app in apps]) | Q(id=self.ssl_configuration_id))
+        for ssl_conf in ssl_confs:
+            for ext in ('chain','crt','key','cacrt'):
+                fnam = "%s.%s" % (ssl_conf.id,ext)
+                bpath="%s%s"%(backpath,fnam)
+                cpath="%s%s"%(settings.CONF_PATH,fnam)
+                try:
+                    open(bpath,"w").write(open(cpath).read())
+                except:
+                    pass
+
         return backpath
 
     def restoreConf(self,backpath):
-        for ext in ("cert","conf","key","chain","cacrt","ca"):
+        """ Restore previous configuration files """
+        for ext in ("conf","ca"):
             fnam="%s.%s"%(self.id,ext)
             bpath="%s%s"%(backpath,fnam)
             cpath="%s%s"%(settings.CONF_PATH,fnam)
-            try: 
+            try:
                 open(cpath,"w").write(open(bpath).read())
             except:
                 pass
+        apps = self.app_set.filter(enable_ssl=1)
+        ssl_confs = SSL_conf.objects.filter(Q(id__in=[app.ssl_configuration_id for app in apps]) | Q(id=self.ssl_configuration_id))
+        for ssl_conf in ssl_confs:
+            for ext in ('chain','crt','key','cacrt'):
+                fnam = "%s.%s" % (ssl_conf.id,ext)
+                bpath="%s%s"%(backpath,fnam)
+                cpath="%s%s"%(settings.CONF_PATH,fnam)
+                try:
+                    open(cpath,"w").write(open(bpath).read())
+                except:
+                    pass
          
     def tryConf(self):
         cfile="%s%s.conf"%(settings.CONF_PATH,self.id)
@@ -584,29 +594,46 @@ class Intf(models.Model):
             fname = "%s%s.%s"%(settings.CONF_PATH,self.pk,ext)
             if os.path.exists(fname):
                 os.remove(fname)
+ 
+        apps = self.app_set.filter(enable_ssl=1)
+        ssl_confs = SSL_conf.objects.filter(Q(id__in=[app.ssl_configuration_id for app in apps]) | Q(id=self.ssl_configuration_id))
+        for ssl_conf in ssl_confs:
+            todos = (
+                    ("crt",ssl_conf.cert),
+                    ("key",ssl_conf.key),
+                    ("chain",ssl_conf.ca),
+                    ("cacrt",ssl_conf.cacert),
+                )
+            for (ext,file_) in todos:
+                fname = "%s%s.%s" % (settings.CONF_PATH, ssl_conf.id,ext)
+                if os.path.exists(fname):
+                    os.remove(fname)
         super(Intf,self).delete(*args,**kwargs)
         
-            
     def write(self):
+        """ Write Vulture configuration file and certificates files"""
         self.deploy_all()
         f=open("%s%s.conf" % (settings.CONF_PATH, self.id), 'wb')
         f.write(str(self.conf()))
         f.close()
-        todos = (
-                    ("crt",self.cert),
-                    ("key",self.key),
-                    ("chain",self.ca),
-                    ("cacrt",self.cacert),
+        apps = self.app_set.filter(enable_ssl=1)
+        ssl_confs = SSL_conf.objects.filter(Q(id__in=[app.ssl_configuration_id for app in apps]) | Q(id=self.ssl_configuration_id))
+        for ssl_conf in ssl_confs:
+            todos = (
+                    ("crt",ssl_conf.cert),
+                    ("key",ssl_conf.key),
+                    ("chain",ssl_conf.ca),
+                    ("cacrt",ssl_conf.cacert),
                 )
-        for (ext,file_) in todos:
-            fname = "%s%s.%s" % (settings.CONF_PATH, self.id,ext)
-            if file_:
-                f=open(fname, 'wb')
-                f.write(str(file_))
-                f.close()
-            else:
-                if os.path.exists(fname):
-                    os.remove(fname)
+            for (ext,file_) in todos:
+                fname = "%s%s.%s" % (settings.CONF_PATH, ssl_conf.id,ext)
+                if file_:
+                    f=open(fname, 'wb')
+                    f.write(str(file_))
+                    f.close()
+                else:
+                    if os.path.exists(fname):
+                        os.remove(fname)
         for app in App.objects.filter(intf=self.id).all():
             auth = app.auth
             if auth and auth.is_ssl():
@@ -646,13 +673,15 @@ class Intf(models.Model):
         if pid in pidof or pid in parents:
                 return pid
 
-
     def need_restart(self):
-        apps = self.app_set.all()
+        """ Check similarity between database and configurations files """
+        apps = self.app_set.filter(enable_ssl=1)
         for app in apps:
             if app.security and not app.security.is_uptodate():
                 return True
             if app.policy and not app.policy.is_uptodate():
+                return True
+            if app.ssl_configuration and not app.ssl_configuration.is_uptodate():
                 return True
         try:
             f=open("%s%s.conf" % (settings.CONF_PATH, self.id), 'r')
@@ -662,46 +691,9 @@ class Intf(models.Model):
                 return True
         except:
             return True
-
-        if self.ca:
-            try:
-                f=open("%s%s.chain" % (settings.CONF_PATH, self.id), 'r')
-                content = f.read()
-                f.close()
-                if content != self.ca :
-                    return True
-            except:
-                return True
-
-        if self.cert:
-            try:
-                f=open("%s%s.crt" % (settings.CONF_PATH, self.id), 'r')
-                content = f.read()
-                f.close()
-                if content != self.cert :
-                    return True
-            except:
-                return True
-
-        if self.key:
-            try:
-                f=open("%s%s.key" % (settings.CONF_PATH, self.id), 'r')
-                content = f.read()
-                f.close()
-                if content != self.key :
-                    return True
-            except:
-                return True
-
-        if self.cacert:
-            try:
-                f=open("%s%s.cacrt" % (settings.CONF_PATH, self.id), 'r')
-                content = f.read()
-                f.close()
-                if content != self.cacert :
-                    return True
-            except:
-                return True
+        
+        if intf.ssl_configuration and not intf.ssl_configuration.is_uptodate():
+            return True
 
         for app in App.objects.filter(intf=self.id).all():
             auth = app.auth
@@ -715,13 +707,13 @@ class Intf(models.Model):
                 except:
                     return True
           
-# send command "cmd" to apache (using httpd.conf of interface 
     def k(self, cmd):
-	confFile=settings.CONF_PATH+str(self.id)+".conf"
-	proc = subprocess.Popen(settings.HTTPD_PATH.split()+["-f",confFile,"-k",cmd],0,"/usr/bin/sudo",None,subprocess.PIPE,subprocess.PIPE)
-	if proc:
-		return proc.stdout.read()+proc.stderr.read()
-	return "unable to execute "+settings.HTTPD_PATH
+        """ send command "cmd" to apache (using httpd.conf of interface """
+        confFile=settings.CONF_PATH+str(self.id)+".conf"
+        proc = subprocess.Popen(settings.HTTPD_PATH.split()+["-f",confFile,"-k",cmd],0,"/usr/bin/sudo",None,subprocess.PIPE,subprocess.PIPE)
+        if proc:
+            return proc.stdout.read()+proc.stderr.read()
+        return "unable to execute "+settings.HTTPD_PATH
  
     def hasBlackIp (self):
         return BlackIP.objects.filter(app__isnull = True)
@@ -734,7 +726,62 @@ class Intf(models.Model):
         permissions = (
             ("reload_intf", "Can stop/start interface"),
         )
-        
+     
+class SSL_conf(models.Model):
+
+    SSL_ENGINES = (
+        ('cswift',   'CryptoSwift'),
+        ('chil',     'nCipher'),
+        ('atalla',   'Atalla'),
+        ('nuron',    'Nuron'),
+        ('ubsec',    'UBSEC'),
+        ('aep',      'Aep'),
+        ('sureware', 'SureWare'),
+        ('4758cca',  'IBM 4758 CCA'),
+    )
+
+    SSL_OPTIONS = (
+        ('+StdEnvVars','StdEnvVars'),
+        ('+ExportCertData','ExportCertData'),
+        ('+FakeBasicAuth','FakeBasicAuth'),
+        ('+StrictRequire','StrictRequire'),
+        ('+OptRenegotiate','OptRenegotiate'),
+        ('+LegacyDNStringFormat','LegacyDNStringFormat'),
+    )    
+
+    cert = models.TextField(blank=1,null=True)
+    key = models.TextField(blank=1,null=True)
+    ca = models.TextField(blank=1,null=True)
+    cacert = models.TextField(blank=1,null=True)
+    ssl_engine = models.CharField(max_length=10,blank=1,choices=SSL_ENGINES, null=True)
+    ssl_options = models.CharField(max_length=21,blank=1,choices=SSL_OPTIONS, null=True)
+    ssl_protocol = models.TextField(blank=1,null=1)
+    ssl_cipher_suite = models.TextField(blank=1,null=True)
+
+    def is_uptodate(self):
+        """ Check similarity between files and database """
+        todos = (
+            ('chain', self.ca),
+            ('crt', self.cert),
+            ('key', self.key),
+            ('cacrt',self.cacert)
+        )
+        for (ext, dbcontent) in todos:
+            try:
+                fname = "%s%s.%s" % (settings.CONF_PATH, self.id, ext)
+                f=open(fname, 'r')
+                content = f.read()
+                f.close()
+                if content != dbcontent :
+                    return False
+            except:
+                if dbcontent:
+                    return False
+        return True
+
+    class Meta:
+        db_table = 'ssl_conf'
+   
 class Profile(models.Model):
     app = models.ForeignKey('App')
     user = models.TextField()
@@ -876,16 +923,20 @@ class SSL(models.Model):
         ('optional','optional'),
         ('require', 'require'),
         )
-    name = models.CharField(max_length=128,unique=1)
-    require = models.CharField(max_length=20, choices=SSL_REQUIRE)
-    crt = models.TextField()
-    constraint = models.TextField()
+    name         = models.CharField(max_length=128,unique=1)
+    require      = models.CharField(max_length=20, choices=SSL_REQUIRE)
+    crt          = models.TextField()
+    constraint   = models.TextField()
+    verify_depth = models.IntegerField(default=1)     
 
     def get_require(self):
         return self.require
 
     def get_crt(self):
         return self.crt
+
+    def get_depth(self):
+        return str(self.verify_depth)
 
     def get_constraint(self):
         return self.constraint
@@ -1176,6 +1227,9 @@ class Auth(models.Model):
     def get_require(self):
         return self.ssl_auth().get_require()
 
+    def get_depth(self):
+        return self.ssl_auth().get_depth()
+
     def get_crt(self):
         return self.ssl_auth().get_crt()
 
@@ -1207,7 +1261,7 @@ class SSO(models.Model):
         ('log', 'log'),
         ('message', 'message'),
         ('redirect', 'redirect'),
-		('relearning' , 'relearning'),
+        ('relearning' , 'relearning'),
         ('nofollowredirect','nofollowredirect'),
         )
     name = models.CharField(max_length=128, unique=1)
@@ -1255,8 +1309,8 @@ class Field(models.Model):
         ('cookie', 'cookie'),
         ('current user', 'autologon_user'),
         ('current password', 'autologon_password'),
-	('script','script'),
-	('script-cookie','script-cookie'),
+        ('script','script'),
+        ('script-cookie','script-cookie'),
         )
     sso = models.ForeignKey('SSO')
     field_desc = models.CharField(max_length=128)
@@ -1400,6 +1454,10 @@ class App(models.Model):
     cache_store_private = models.BooleanField(default=False)
     policy=models.ForeignKey('Politique', blank=True, null=True) 
     proxypass_directives = models.TextField(blank=1,null=1)
+    # SSL Fields
+    enable_ssl = models.BooleanField(default=False)
+    conf_from_intf = models.BooleanField()
+    ssl_configuration = models.ForeignKey('SSL_conf',null=1,blank=1) 
     
     def isWildCard (self):
         return self.alias.startswith('*')
@@ -1423,11 +1481,11 @@ class App(models.Model):
     def getCookieDomain (self):
         p = re.compile ('https?://(.*)/?')
         match=p.match(self.url)
-    	if not match:
-	        return " "
+        if not match:
+            return " "
         domain = match.group(1)
         newdomain = self.name
-    	if "/" in newdomain:
+        if "/" in newdomain:
             newdomain=newdomain.split("/",1)[0]
         if domain:
             return "ProxyPassReverseCookieDomain "+domain+" "+newdomain

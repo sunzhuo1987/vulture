@@ -168,17 +168,18 @@
                 <tr><th>{% trans "Need change password" %}</th><td class="input">{{ form.need_change_pass_action }}</td><td class="input">{{ form.need_change_pass_options }}</td></tr>
             </table>
         </div>
-
         <div id="main_content_5" class="main_content">
             <table>
-                <tr><th>{% trans "SSL engine" %}</th><td class="input">{{ form.ssl_engine }}{% if form.ssl_engine.errors %}<div class="error">{{ form.ssl_engine.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
-                <tr><th>{% trans "PEM certificat" %}</th><td class="input">{{ form.cert }}{% if form.cert.errors %}<div class="error">{{ form.cert.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
-                <tr><th>{% trans "PEM key" %}</th><td class="input">{{ form.key }}{% if form.key.errors %}<div class="error">{{ form.key.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
-                <tr><th>{% trans "PEM certification chain" %}</th><td class="input">{{ form.ca }}{% if form.ca.errors %}<div class="error">{{ form.ca.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
-                <tr><th>{% trans "PEM-encoded CA Certificates" %}</th><td class="input">{{ form.cacert }}{% if form.cacert.errors %}<div class="error">{{ form.cacert.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
+                <tr><th>{% trans "SSL engine" %}</th><td class="input">{{ fssl_conf.ssl_engine }}{% if fssl_conf.ssl_engine.errors %}<div class="error">{{ fssl_conf.ssl_engine.errors|join:", " }}</div>{% endif %}</td><td></td></tr>               
+                <tr><th>{% trans "PEM certificat" %}</th><td class="input">{{ fssl_conf.cert }}{% if fssl_conf.cert.errors %}<div class="error">{{ fssl_conf.cert.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
+                <tr><th>{% trans "PEM key" %}</th><td class="input">{{ fssl_conf.key }}{% if fssl_conf.key.errors %}<div class="error">{{ fssl_conf.key.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
+                <tr><th>{% trans "PEM certification chain" %}</th><td class="input">{{ fssl_conf.ca }}{% if fssl_conf.ca.errors %}<div class="error">{{ fssl_conf.ca.errors|join:", " }}</div>{% endif %}</td><td></td></tr>
+                <tr><th>{% trans "PEM-encoded CA Certificates" %}</th><td class="input">{{ fssl_conf.cacert }}{% if fssl_conf.cacert.errors %}<div class="error">{{ fssl_conf.cacert.errors|join:", " }}</div>{% endif %}</td><td></td></tr>          
+                <tr><th>{% trans "SSL options" %}</th><td class="input">{{ fssl_conf.ssl_options }}{% if fssl_conf.ssl_options.errors %}<div class="error">{{ fssl_conf.ssl_options.errors|join:", " }}</div>{% endif %}</td><td></td></tr>          
+                <tr><th>{% trans "SSL protocol" %}</th><td class="input">{{ fssl_conf.ssl_protocol }}{% if fssl_conf.ssl_protocol.errors %}<div class="error">{{ fssl_conf.ssl_protocol.errors|join:", " }}</div>{% endif %}</td><td></td></tr>          
+                <tr><th>{% trans "SSL cipher suite" %}</th><td class="input">{{ fssl_conf.ssl_cipher_suite }}{% if fssl_conf.ssl_cipher_suite.errors %}<div class="error">{{ fssl_conf.ssl_cipher_suite.errors|join:", " }}</div>{% endif %}</td><td></td></tr>          
             </table>
         </div>
-        
         <div id="main_content_6" class="main_content">
             <table>
             </table>
