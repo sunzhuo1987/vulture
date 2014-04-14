@@ -14,7 +14,7 @@ BEGIN {
 
 use Apache2::Reload;
 use Apache2::Log;
-use Apache2::Const -compile => qw(OK FORBIDDEN);
+use Apache2::Const -compile => qw(OK FORBIDDEN HTTP_UNAUTHORIZED);
 use Core::VultureUtils qw(&encrypt &decrypt);
 
 sub checkAuth {
@@ -66,11 +66,12 @@ sub checkAuth {
             my $module_name = "Auth::Auth_" . uc($type);
             $log->debug("Load $module_name");
             Core::VultureUtils::load_module($module_name,'checkAuth');
-            if ( $module_name->checkAuth(
-                $r, $log, $dbh, $app, 
+
+
+            if ($module_name->checkAuth(
+                $r, $log, $dbh, $app,
                 $user, $password, $meth, $session_sso, $class, $csrf_ok
-                ) == Apache2::Const::OK
-            ){
+            ) == Apache2::Const::OK){
                 #Don't do that because it overrides auth_messages like "need change pass..."
                 #$r->pnotes('auth_message' => 'PENDING_LOGIN');
                 $user = $r->pnotes('username');
@@ -78,6 +79,13 @@ sub checkAuth {
                 $session_sso->{$akey} = { login => $user, pwd => Core::VultureUtils::encrypt($r,$password)};
                 $lusr = $user;
                 $lpwd = $password;
+            }
+            #Authentication failure
+            #Special case for NTLM: We need to handle the HTTP_UNAUTHORIZED
+            elsif (uc ($type) eq 'NTLM') 
+            {
+                $r->pnotes('username' => undef);
+                return Apache2::Const::HTTP_UNAUTHORIZED;
             }
         }
         # User is logged in this method:
