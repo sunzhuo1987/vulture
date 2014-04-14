@@ -120,9 +120,13 @@ sub handler {
     my $user = $r->user;
     my $ctx = $f->ctx;
 
-    if ( $r->content_type eq "image/svg+xml" ){
+
+    #We can only rewrite the folowwing content-types
+    if ($r->content_type ne '' and $r->content_type =~ / ^(text\/xml|text\/html|application\/vnd.ogc.wms_xml|text\/css|application\/x-javascript|text\/plain)/){
+        $log->debug("Not rewriting this content-type: " . $r->content_type );
         return Apache2::Const::DECLINED;
     }
+
     unless ( $ctx->{once} ){
         $ctx->{once} = 1;
         $f->ctx($ctx);
@@ -168,27 +172,24 @@ sub handler {
                 $encoding = '';
             }
         }
-        if ( $r->content_type =~
-/(text\/xml|text\/html|application\/vnd.ogc.wms_xml|text\/css|application\/x-javascript)/
-          ){
-            # Replace links if pattern match
-            my $parsed_2 = APR::URI->parse( $f->r->pool, $parsed_uri );
-            &do_rewrite_link( \$ctx->{data}, '//',
-                $parsed_2->scheme . '://', $parsed_uri );
-            foreach my $p ( @{$ctx->{rewrite_link}} ) {
-                my ( $match, $substitute ) = @$p;#split( / => /, $p );
-                $log->debug("LINK : MATCH : $match, SUB : $substitute");
-                &do_rewrite_link( \$ctx->{data}, $match, $substitute,
-                    $parsed_uri );
-            }
 
-            # Rewrite content if pattern match
-            foreach my $p ( @{$ctx->{rewrite_content}} ) {
+        # Replace links if pattern match
+        my $parsed_2 = APR::URI->parse( $f->r->pool, $parsed_uri );
+        &do_rewrite_link( \$ctx->{data}, '//',
+            $parsed_2->scheme . '://', $parsed_uri );
+        foreach my $p ( @{$ctx->{rewrite_link}} ) {
+            my ( $match, $substitute ) = @$p;#split( / => /, $p );
+            $log->debug("LINK : MATCH : $match, SUB : $substitute");
+            &do_rewrite_link( \$ctx->{data}, $match, $substitute,
+                $parsed_uri );
+        }
+
+        # Rewrite content if pattern match
+        foreach my $p ( @{$ctx->{rewrite_content}} ) {
                 my ( $match, $substitute ) = @$p;#split( / => /, $p );
-                $log->debug("CONTENT : MATCH : $match, SUB : $substitute");
+                $log->debug("CONTENT REWRITE: Will replace : \"$match\", with : \"$substitute\"");
                 &do_rewrite_content( \$ctx->{data}, $match, $substitute,
                     $parsed_uri );
-            }
         }
 
         if ( $encoding =~ /gzip|x-gzip/ ) {
