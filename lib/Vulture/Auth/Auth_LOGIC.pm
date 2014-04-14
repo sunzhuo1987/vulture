@@ -71,9 +71,8 @@ sub checkAuth {
                 $user, $password, $meth, $session_sso, $class, $csrf_ok
                 ) == Apache2::Const::OK
             ){
-        
-		#Don't do that because it overrides auth_messages like "need change pass..."
-	        #$r->pnotes('auth_message' => 'PENDING_LOGIN');
+                #Don't do that because it overrides auth_messages like "need change pass..."
+                #$r->pnotes('auth_message' => 'PENDING_LOGIN');
                 $user = $r->pnotes('username');
                 $log->debug("LOGIC : save '$user' in '$akey'");
                 $session_sso->{$akey} = { login => $user, pwd => Core::VultureUtils::encrypt($r,$password)};

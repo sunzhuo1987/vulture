@@ -127,7 +127,7 @@ sub handler : method {
     $ret = $module_name->checkAuth( $r, $log, $dbh, $app, 
         $user, $password,$auth->{id_method}, \%session_SSO, $class,
         Core::AuthenHandler::csrf_ok($token, \%session_SSO, $app, $intf));
-    $log->debug(" Auth gave : " . ($ret==Apache2::Const::OK ? "OK" : "NOK"));
+    $log->debug(" Auth gave : " . ($ret==Apache2::Const::OK ? "OK" : "NOK") . "(RET = ".$ret.")");
 
     #Trigger action when change pass is needed / auth failed
     Core::AuthenHandler::auth_triggers ($r,$ret,$user,$password,$intf,$app);
@@ -182,9 +182,14 @@ sub handler : method {
             return Apache2::Const::HTTP_UNAUTHORIZED;
         }
         else {
-            $log->debug(
-"No user / password ... ask response handler to display the logon form"
-            );
+            #Needed for NTLM
+            if ($ret == Apache2::Const::HTTP_UNAUTHORIZED)
+            {
+                $log->debug("Authentication failed, return HTTP_UNAUTHORIZED (we are probably using NTLM)");
+                return Apache2::Const::HTTP_UNAUTHORIZED;
+            }
+
+            $log->debug("No user / password ... ask response handler to display the logon form");
             return Apache2::Const::OK;
         }
     }
