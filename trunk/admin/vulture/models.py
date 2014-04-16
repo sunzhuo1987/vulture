@@ -614,7 +614,7 @@ class Intf(models.Model):
         """ Write Vulture configuration file and certificates files"""
         self.deploy_all()
         f=open("%s%s.conf" % (settings.CONF_PATH, self.id), 'wb')
-        f.write(str(self.conf()))
+        f.write(self.conf().encode('utf-8'))
         f.close()
         apps = self.app_set.filter(enable_ssl=1)
         ssl_confs = SSL_conf.objects.filter(Q(id__in=[app.ssl_configuration_id for app in apps]) | Q(id=self.ssl_configuration_id))
@@ -685,7 +685,7 @@ class Intf(models.Model):
                 return True
         try:
             f=open("%s%s.conf" % (settings.CONF_PATH, self.id), 'r')
-            content = f.read()
+            content = f.read().decode('utf-8')
             f.close()
             if content != self.conf(): 
                 return True
