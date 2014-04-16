@@ -122,7 +122,7 @@ sub handler {
 
 
     #We can only rewrite the folowwing content-types
-    if ($r->content_type ne '' and $r->content_type =~ / ^(text\/xml|text\/html|application\/vnd.ogc.wms_xml|text\/css|application\/x-javascript|text\/plain)/){
+    if ($r->content_type eq '' or $r->content_type =~ / ^(text\/xml|text\/html|application\/vnd.ogc.wms_xml|text\/css|application\/x-javascript|text\/plain)/){
         $log->debug("Not rewriting this content-type: " . $r->content_type );
         return Apache2::Const::DECLINED;
     }
