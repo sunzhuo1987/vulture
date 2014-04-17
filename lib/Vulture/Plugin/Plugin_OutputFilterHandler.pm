@@ -118,30 +118,35 @@ sub handler {
     my $r    = $f->r;
     my $log  = $r->server->log;
     my $user = $r->user;
-    my $ctx = $f->ctx;
-
-
-    #We can only rewrite the folowwing content-types
-    if ($r->content_type ne '' and $r->content_type !~ /(text\/xml|text\/html|application\/vnd.ogc.wms_xml|text\/css|application\/x-javascript|text\/plain)/){
-        $log->debug("Not rewriting this content-type: " . $r->content_type );
-        return Apache2::Const::DECLINED;
-    }
+    my $ctx  = $f->ctx;
 
     unless ( $ctx->{once} ){
         $ctx->{once} = 1;
         $f->ctx($ctx);
         my $rewrites = $r->pnotes("content_rewrites");
+
         foreach my $conf_row (@$rewrites){
             my ($type, $exp, $opt, $opt1) = @$conf_row;
+
             if (not exists $Plugin::Plugin_OutputFilterHandler::functions{$type}){
                 $log->error("Unknown rewrite function in outputfilter!");
                 next;
             }
+
+    	    #We can only rewrite (Rewrite Content and Rewrite Link) the following content-types 
+	    if ($type eq 'Rewrite Content' or $type eq 'Rewrite Link') {
+    	    	if ($r->content_type ne '' and $r->content_type !~ /(text\/xml|text\/html|application\/vnd.ogc.wms_xml|text\/css|application\/x-javascript|text\/plain)/){
+        		$log->warn("Will not rewrite ($type) this content-type: " . $r->content_type );
+        		return Apache2::Const::DECLINED;
+    	    	}
+	    }
+
             my $ret = &{$Plugin::Plugin_OutputFilterHandler::functions{$type}}(
                 $f, $exp, $opt, $opt1 );
             return $ret if defined $ret and $ret == Apache2::Const::FORBIDDEN;
         }
     }
+
     $ctx = $f->ctx;
     my $content = '';
     while ( $f->read( my $buffer, BUFF_LEN ) ) {
@@ -151,6 +156,7 @@ sub handler {
     $ctx->{data} .= $content;
     $f->ctx($ctx);
     return Apache2::Const::OK unless ($f->seen_eos);
+
     # Thing we do at end
     if ( $ctx->{do_rewrite} ) {
         # Skip content that should not have links
@@ -220,10 +226,6 @@ sub handler {
         && $ctx->{data}
         && $c->keepalives > $ctx->{keepalives} )
     {
-    #unused variable debug
-    #if ($debug) {
-    #	warn "[ModProxyPerlHtml] cleaning context for keep alive request\n";
-    #}
         $ctx->{data}       = '';
         $ctx->{pattern}    = ();
         $ctx->{keepalives} = $c->keepalives;
