@@ -18,7 +18,6 @@ urlpatterns = patterns('',
   (r'^app/$',                                 'vulture.views.vulture_object_list_adm', dict({'queryset': App.objects.all().order_by('name')}, allow_empty=1)),
   (r'^app/(?P<object_id>\d+)/$',              'vulture.views.edit_app'),
   (r'^app/new/$',                             'vulture.views.edit_app'),
-  #(r'^app/(?P<object_id>\d+)/del/$',          'vulture.views.vulture_delete_object_adm', dict({'model': App}, template_name='vulture/generic_confirm_delete.html', extra_context = dict(category='Web Applications', name='App', url='/app'), post_delete_redirect='/app/')),
   (r'^app/(?P<object_id>\d+)/del/$',          'vulture.views.delete_app'),
   (r'^app/(?P<object_id>\d+)/start/$',        'vulture.views.start_app'),
   (r'^app/(?P<object_id>\d+)/stop/$',         'vulture.views.stop_app'),
@@ -31,7 +30,6 @@ urlpatterns = patterns('',
   (r'^intf/$',                                'vulture.views.vulture_object_list_adm', dict({'queryset': Intf.objects.all()}, allow_empty=1)),
   (r'^intf/(?P<object_id>\d+)/$',             'vulture.views.edit_intf'),
   (r'^intf/new/$',                            'vulture.views.edit_intf'),
-  #(r'^intf/(?P<object_id>\d+)/del/$',         'vulture.views.vulture_delete_object_adm', dict({'model': Intf}, template_name='vulture/generic_confirm_delete.html', extra_context = dict(category='System', name='Interfaces', url='/intf'), post_delete_redirect='/intf/')),
   (r'^intf/(?P<object_id>\d+)/del/$',         'vulture.views.delete_intf'),
   (r'^intf/(?P<intf_id>\d+)/start/$',         'vulture.views.start_intf'),
   (r'^intf/(?P<intf_id>\d+)/stop/$',          'vulture.views.stop_intf'),
@@ -86,7 +84,6 @@ urlpatterns = patterns('',
   (r'^configuration/(?P<object_id>\d+)/$',         'vulture.views.edit_security'),
   (r'^configuration/new/$',                        'vulture.views.edit_security'),
   (r'^configuration/update/$',                     'vulture.views.update_security'),
-#  (r'^customrule/generator$',                   'vulture.views.generator'),
   (r'^configuration/(?P<object_id>\d+)/del/$',     'vulture.views.remove_security'),
   
   (r'^policy/?$',                              'vulture.views.vulture_object_list_adm', dict({'queryset': Politique.objects.all()}, template_name='vulture/policy_list.html',extra_context = dict(category='Web Firewall', name='Policy', url='/policy'))),
@@ -94,14 +91,11 @@ urlpatterns = patterns('',
   (r'^policy/(?P<object_id>\d+)/files/?$', 'vulture.views.edit_policy_files'),
   
   (r'^policy/(?P<object_id>\d+)/del/$',        'vulture.views.vulture_delete_object_adm', dict({'model': Politique}, template_name='vulture/generic_confirm_delete.html', extra_context = dict(category='Web Firewall', name='Policy', url='/policy'), post_delete_redirect='/policy/')),
- 
-
 
   (r'^group/?$',                              'vulture.views.vulture_object_list_adm', dict({'queryset': Groupe.objects.all()}, template_name='vulture/generic_list.html',extra_context = dict(category='Web Firewall', name='Rule Set', url='/group'))),
   (r'^group/new/?$',                          'vulture.views.edit_group'),
   (r'^group/(?P<object_id>\d+)/?$',           'vulture.views.view_group'),
   (r'^group/(?P<object_id>\d+)/del/$',        'vulture.views.vulture_delete_object_adm', dict({'model': Groupe}, template_name='vulture/generic_confirm_delete.html', extra_context = dict(category='Web Firewall', name='Rule Set', url='/group'), post_delete_redirect='/group/')),
-
 
   (r'^customrule/?$',                              'vulture.views.vulture_object_list_adm', dict({'queryset': CustomRule.objects.all()}, template_name='vulture/generic_list.html',extra_context = dict(category='Web Firewall', name='Custom Rule', url='/customrule'))),
   (r'^customrule/new/?$',                          'vulture.views.edit_rule'),
@@ -189,6 +183,5 @@ urlpatterns = patterns('',
   (r'^adminstyle/(?P<object_id>\d+)/del/$','vulture.views.vulture_delete_object_adm', dict({'model': AdminStyle}, template_name='vulture/generic_confirm_delete.html', extra_context = dict(category='System', name='AdminStyle', url='/adminstyle'), post_delete_redirect='/adminstyle/')),
   (r'^vulture.css$',                        'vulture.views.view_css'),
   (r'^policy/(?P<object_id>\d+)/(?P<file_name>\S+)/?$', 'vulture.views.file_view'),
-  #(r'^policy/(?P<object_id>\d+)/(?P<file_name>\S+)/?$','vulture.views.vulture_object_list_adm', dict({'queryset': Politique.objects.get(id=object_id).fichierpolitique_set.filter(fichier__name=file_name)[0].fichier}, template_name='vulture/generic_list.html',extra_context = dict(category='Web Firewall', name='Rule Set', url='/policy'))),
 )
 
