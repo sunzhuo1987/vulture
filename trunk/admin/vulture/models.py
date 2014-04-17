@@ -715,9 +715,6 @@ class Intf(models.Model):
             return proc.stdout.read()+proc.stderr.read()
         return "unable to execute "+settings.HTTPD_PATH
  
-    def hasBlackIp (self):
-        return BlackIP.objects.filter(app__isnull = True)
-    
     def __str__(self):
         return self.name
         
@@ -1472,9 +1469,6 @@ class App(models.Model):
     def hasHeaderHost (self):
         return Header.objects.filter(app = self).filter(name__iexact="Host")
 
-    def hasBlackIp (self):
-        return BlackIP.objects.filter(app = self)
-
     def getJKDirective (self):
         return JKDirective.objects.filter(app=self)
 
@@ -1529,13 +1523,6 @@ class Plugin(models.Model):
     class Meta:
         db_table = 'plugin'
 
-class BlackIP(models.Model):
-    app = models.ForeignKey(App,unique=1,null=1,blank=1)
-    ip = models.CharField(max_length=200, null=1, blank=1)
-    def __str__(self):
-        return self.ip
-    class Meta:
-        db_table = 'blackip'
 
 class Header(models.Model):
     HEADER_TYPE = (

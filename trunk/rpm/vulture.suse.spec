@@ -16,8 +16,7 @@ URL: http://www.vultureproject.org
 Buildarch: noarch
 Source0: %{name}-%{version}.tar.bz2
 Patch0: database_path.patch
-Patch1: PreConnectionHandler.patch
-Patch2: vulture-suse.patch
+Patch1: vulture-suse.patch
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildRequires: perl
