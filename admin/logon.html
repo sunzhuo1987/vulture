@@ -14,8 +14,8 @@
                 <div id="main_content_1" class="main_content">
                     <table style="display: block; width:auto; margin: 0 auto;">
                         <tr><th colspan="2">Authentication :</th><td><input type="hidden" name="next" value="{{ next }}" /></td></tr>
-                        <tr><th>Login</th><td><input type="text" name="username" value="" /></td></tr>
-                        <tr><th>Password</th><td><input type="password" name="password" value="" /></td></tr>
+                        <tr><th>Login</th><td><input type="text" name="username" value="" autocomplete="off" /></td></tr>
+                        <tr><th>Password</th><td><input type="password" name="password" value="" autocomplete="off" /></td></tr>
                     </table>
                     <br />
                     <input type='submit' value="{% trans "Logon" %}" />

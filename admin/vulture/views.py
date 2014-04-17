@@ -815,13 +815,6 @@ def edit_policy(request, object_id=None):
 
 
 @login_required
-def generator (request):
-    if request.POST:
-        f.save()
-        return HttpResponseRedirect('vulture/modsecurity_generator.html', {'postedData': request.POST})
-    return render_to_response('vulture/modsecurity_generator.html')
-
-@login_required
 def remove_security(request,object_id=None):
     security = get_object_or_404(ModSecConf, id=object_id)
     if request.method == 'POST':
