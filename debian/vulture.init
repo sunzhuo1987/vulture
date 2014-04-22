@@ -34,49 +34,55 @@ MEMCACHED_PID=/var/www/vulture/admin/memcached.pid
 
 case "$1" in
   start)
-	${Vulture_HOME}/${NAME}/bin/test-perl.sh || exit 1;
-	echo -n "Starting $NAME: ";
-	$MEMCACHED -d -m 512 -l $MEMCACHED_IP -p $MEMCACHED_PORT -u "$APACHE_USER" -P $MEMCACHED_PID
-	sleep 2
-	su -c "python ${Vulture_HOME}/${NAME}/admin/vulture/memcached.py start 2>&1 &"  $VULTURE_USER
-	python "${Vulture_HOME}/${NAME}/conf/vintf_startup.py" up
-	$APACHE -f $Vulture_HOME/$NAME/conf/httpd.conf;
-	for i in `ls $Vulture_HOME/$NAME/conf/*.conf 2> /dev/null | grep -v 'httpd.conf$'`; do 
-		$APACHE -f $i;
-	done
-	echo "." 
-	;;
+    # increase default linux keyring quota for vulture kerberos keyring
+    echo "Prepare keyring.."
+    echo 20000 > /proc/sys/kernel/keys/maxkeys
+    echo 2000000 > /proc/sys/kernel/keys/maxbytes
+    # create the new keyring session
+    /bin/keyctl new_session > /tmp/vulture-keyring
+    ${Vulture_HOME}/${NAME}/bin/test-perl.sh || exit 1;
+    echo -n "Starting $NAME: ";
+    $MEMCACHED -d -m 512 -l $MEMCACHED_IP -p $MEMCACHED_PORT -u "$APACHE_USER" -P $MEMCACHED_PID
+    sleep 2
+    su -c "python ${Vulture_HOME}/${NAME}/admin/vulture/memcached.py start 2>&1 &"  $VULTURE_USER
+    python "${Vulture_HOME}/${NAME}/conf/vintf_startup.py" up
+    $APACHE -f $Vulture_HOME/$NAME/conf/httpd.conf;
+    for i in `ls $Vulture_HOME/$NAME/conf/*.conf 2> /dev/null | grep -v 'httpd.conf$'`; do 
+        $APACHE -f $i;
+    done
+    echo "." 
+    ;;
   stop)
-	echo -n "Stopping $NAME: ";
-	for i in `ls $Vulture_HOME/$NAME/conf/*.pid 2> /dev/null`; do 
-		kill `cat $i` 
-	done;
-	python ${Vulture_HOME}/${NAME}/admin/vulture/memcached.py stop 
+    echo -n "Stopping $NAME: ";
+    for i in `ls $Vulture_HOME/$NAME/conf/*.pid 2> /dev/null`; do 
+        kill `cat $i` 
+    done;
+    python ${Vulture_HOME}/${NAME}/admin/vulture/memcached.py stop 
     if [ -f $MEMCACHED_PID ] ; then 
         kill -12 `cat $MEMCACHED_PID` ; 
         rm $MEMCACHED_PID;
     fi;
-	python "${Vulture_HOME}/${NAME}/conf/vintf_startup.py" down
-	echo "." 
-	;;
+    python "${Vulture_HOME}/${NAME}/conf/vintf_startup.py" down
+    echo "." 
+    ;;
   restart|force-reload)
-	$0 stop
-	sleep 2
-	$0 start
-	;;
+    $0 stop
+    sleep 2
+    $0 start
+    ;;
   reload)
-	echo -n "Reloading ${NAME}: "
-	python "${Vulture_HOME}/${NAME}/conf/vintf_startup.py" up
-	for i in `ls $Vulture_HOME/$NAME/conf/*.conf 2> /dev/null`; do
-		$APACHE -f $i -k graceful;
-	done
-	echo ".";
-	;;
+    echo -n "Reloading ${NAME}: "
+    python "${Vulture_HOME}/${NAME}/conf/vintf_startup.py" up
+    for i in `ls $Vulture_HOME/$NAME/conf/*.conf 2> /dev/null`; do
+        $APACHE -f $i -k graceful;
+    done
+    echo ".";
+    ;;
 *)
-	N=/etc/init.d/$NAME
-	echo "Usage: $N {start|stop|restart|force-reload|reload}" >&2
-	exit 1
-	;;
+    N=/etc/init.d/$NAME
+    echo "Usage: $N {start|stop|restart|force-reload|reload}" >&2
+    exit 1
+    ;;
 esac
 
 exit 0
