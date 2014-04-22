@@ -27,7 +27,6 @@ Vulture Reverse Proxy
 %setup -c -a 0
 %patch0 -p0 -b .old
 %patch1 -p0 -b .old
-%patch2 -p0 -b .old
 
 cd ..
 %build

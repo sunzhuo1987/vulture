@@ -25,7 +25,6 @@ Vulture Reverse Proxy
 %prep
 %setup -c -a 0
 %patch0 -p0 -b .old
-%patch1 -p0 -b .old
 
 %build
 	rm -rf $RPM_BUILD_ROOT
