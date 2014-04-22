@@ -17,9 +17,8 @@ use Apache2::Reload;
 use Apache2::Request;
 use APR::URI;
 use XML::LibXML;
-use Error qw(:try);
 use POSIX;
-
+use TRY::Tiny
 use Core::VultureUtils
   qw(&session &get_memcached &set_memcached &get_cookie &get_app &get_LDAP_field &get_SQL_field);
 
@@ -352,7 +351,7 @@ sub plugin {
                 }
                 else { $badquery = 1; }
             }
-            catch Error with {
+            catch 
                 $status   = "Requester";
                 $badquery = 1;
             };

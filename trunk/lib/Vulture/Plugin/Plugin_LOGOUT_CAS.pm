@@ -17,9 +17,8 @@ use Apache2::Reload;
 use Apache2::Request;
 use APR::URI;
 use XML::LibXML;
-use Error qw(:try);
+use TRY::Tiny
 use POSIX;
-
 use Core::VultureUtils
   qw(&session &get_memcached &set_memcached &get_cookie &get_app &get_LDAP_field &get_SQL_field &get_ua_object &get_http_request);
 
@@ -62,7 +61,7 @@ sub plugin {
         }
     }
 
-    catch Error with {
+    catch {
         $status   = "No valid request. Catch an error";
         $badquery = 1;
     };
