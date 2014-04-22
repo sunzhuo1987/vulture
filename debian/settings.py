@@ -1,6 +1,6 @@
 # Django settings for www project.
 
-DEBUG = False
+DEBUG = False 
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
@@ -81,8 +81,7 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.locale.LocaleMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.middleware.doc.XViewMiddleware',
-)
+    'django.middleware.doc.XViewMiddleware',)
 
 ROOT_URLCONF = 'admin.urls'
 
@@ -95,8 +94,12 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.auth',
     'admin.vulture',
-#    'django_evolution',
+    'django_crontab'
 )
+
+CRONJOBS = [        
+        ('*/1 * * * *', 'vulture.cron.cronJob')
+]
 
 AUTHENTICATION_BACKENDS = (
     'vulture.auth.sql',

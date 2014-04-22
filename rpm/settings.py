@@ -90,8 +90,12 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.auth',
     'admin.vulture',
-#    'django_evolution',
+    'django_crontab',
 )
+
+CRONJOBS = [
+        ('*/1 * * * *', 'vulture.cron.cronJob')
+]
 
 AUTHENTICATION_BACKENDS = (
    'vulture.auth.sql',
