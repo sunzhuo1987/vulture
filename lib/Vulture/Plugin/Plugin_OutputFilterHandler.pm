@@ -133,13 +133,13 @@ sub handler {
                 next;
             }
 
-    	    #We can only rewrite (Rewrite Content and Rewrite Link) the following content-types 
-	    if ($type eq 'Rewrite Content' or $type eq 'Rewrite Link') {
-    	    	if ($r->content_type ne '' and $r->content_type !~ /(text\/xml|text\/html|application\/vnd.ogc.wms_xml|text\/css|application\/x-javascript|text\/plain)/){
-        		$log->warn("Will not rewrite ($type) this content-type: " . $r->content_type );
-        		return Apache2::Const::DECLINED;
-    	    	}
-	    }
+            #We can only rewrite (Rewrite Content and Rewrite Link) the following content-types 
+            if ($type eq 'Rewrite Content' or $type eq 'Rewrite Link') {
+                if ($r->content_type ne '' and $r->content_type !~ /(text\/xml|text\/html|application\/vnd.ogc.wms_xml|text\/css|application\/x-javascript|text\/plain)/){
+                $log->warn("Will not rewrite ($type) this content-type: " . $r->content_type );
+                return Apache2::Const::DECLINED;
+                }
+            }
 
             my $ret = &{$Plugin::Plugin_OutputFilterHandler::functions{$type}}(
                 $f, $exp, $opt, $opt1 );
