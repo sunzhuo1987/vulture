@@ -1454,8 +1454,8 @@ class App(models.Model):
     # SSL Fields
     enable_ssl = models.BooleanField(default=False)
     conf_from_intf = models.BooleanField()
-    ssl_configuration = models.ForeignKey('SSL_conf',null=1,blank=1) 
-    
+    ssl_configuration = models.ForeignKey('SSL_conf',null=1,blank=1, on_delete=models.SET_NULL)     
+
     def isWildCard (self):
         return self.alias.startswith('*')
 
