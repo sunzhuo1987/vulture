@@ -36,6 +36,12 @@ fi
 RETVAL=0
 
 function start() {
+    # increase default linux keyring quota for vulture kerberos keyring
+    echo "Prepare keyring.."
+    echo 20000 > /proc/sys/kernel/keys/maxkeys
+    echo 2000000 > /proc/sys/kernel/keys/maxbytes
+    # create the new keyring session
+    /bin/keyctl new_session > /tmp/vulture-keyring
 	/opt/vulture/bin/test-perl.sh || exit 1;
 	echo -n $"Starting ${NAME}: "
         $MEMCACHED -d -m 512 -l $MEMCACHED_IP -p $MEMCACHED_PORT -u $VULTURE_USER
