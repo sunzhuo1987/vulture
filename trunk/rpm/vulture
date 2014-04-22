@@ -48,8 +48,8 @@ function start() {
 	/opt/vulture/bin/test-perl.sh || exit 1;
 	echo -n $"Starting ${NAME}: "
         daemon $MEMCACHED -d -m 512 -l $MEMCACHED_IP -p $MEMCACHED_PORT -u $APACHE_USER -P $MEMCACHED_PID
-	su -c "python ${VULTURE_HOME}/${NAME}/admin/vulture/memcached.py start >/dev/null 2>&1 &" $VULTURE_USER
-	python "${VULTURE_HOME}/${NAME}/conf/vintf_startup.py" up
+	su -c "python ${Vulture_HOME}/${NAME}/admin/manage.py crontab add" $VULTURE_USER
+    python "${VULTURE_HOME}/${NAME}/conf/vintf_startup.py" up
 	sleep 2
     daemon "$HTTPD_BIN -f ${VULTURE_HOME}/${NAME}/conf/httpd.conf";
     for i in `ls ${VULTURE_HOME}/${NAME}/conf/*.conf 2>/dev/null|grep -v 'httpd.conf$'`; do
@@ -66,7 +66,7 @@ function stop() {
         for i in `ls ${VULTURE_HOME}/${NAME}/conf/*.pid 2> /dev/null`; do
                 kill `cat $i`
         done
-	python ${VULTURE_HOME}/${NAME}/admin/vulture/memcached.py stop 
+    su -c "python ${Vulture_HOME}/${NAME}/admin/manage.py crontab remove" $VULTURE_USER
     if [ -f $MEMCACHED_PID ] ; then 
         kill -12 `cat $MEMCACHED_PID` ; 
         rm $MEMCACHED_PID;

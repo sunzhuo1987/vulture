@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 import sys,os
+
 # set django environment for standalone daemon
 try:
     sys.path.append("/opt/vulture")
@@ -12,21 +14,26 @@ except:
     sys.path.append("/var/www/vulture/admin")
     os.environ["DJANGO_SETTINGS_MODULE"] = "admin.settings"
     from vulture.models import Intf, App, Conf
-from django.conf import settings
-from django.db import connection
+
 # import sqlite driver
 try:
     import sqlite3
 except:
     from pysqlite2 import dbapi2 as sqlite3
-import time
-import signal
-import memcache
-from storable import thaw
+
 try:
     import cPickle as pickle
 except:
     import pickle
+
+import logging
+import time
+import signal
+import memcache
+
+from storable import thaw
+from django.conf import settings
+from django.db import connection
 
 class StorablePickler:
     def __init__(self,fd, protocol=None):
@@ -59,11 +66,14 @@ class KeyList:
     def get_keys(self):
         return self.keys
 
+# Class MC, override some functions of python memcache
+
 class MC:
     LOCKNAME = "vulture_lock"
     MAX_VALUE_LEN = 1000000
     def __init__(self,perl_storable=False):
-        self.mc_servers = [x.strip() for x in Conf.objects.get(var="memcached").value.split(",")]
+        self.mc_servers = [x.strip() for x in Conf.objects.get(
+            var="memcached").value.split(",")]
         if perl_storable:
             self.client = memcache.Client(self.mc_servers,
                     pickler=StorablePickler, unpickler=StorablePickler)
@@ -152,6 +162,10 @@ class MC:
     def unlock(self):
         self.delete(self.LOCKNAME)
 
+# Class SynchroDaemon
+# CheckConf of memcache & local conf
+# Push or pop conf
+
 class SynchroDaemon:
     LOCKFILE = "%s/vulture-daemon.lock"%settings.CONF_PATH
     VERSIONKEY = "vulture_version"
@@ -166,6 +180,7 @@ class SynchroDaemon:
         val=Conf.objects.get(var=key)
         return val and val.value or None
 
+    # check if cluster is activated in conf vulture.
     def cluster_activated(self):
         try:
             useMe = self.getConf("use_cluster")
@@ -174,6 +189,7 @@ class SynchroDaemon:
         except:
             return False
  
+    # check if daemon already Started
     def started(self):
         try:
             f = open(self.LOCKFILE,"rb")
@@ -184,17 +200,19 @@ class SynchroDaemon:
         except:
             return False
 
+    # Start Daemon of memcache
+    # Refresh Daemon every 30s.
     def start(self):
         if self.started():
-            print ("[-] %s: Already started"%time.ctime())
+            logger.info("[-] Already started")
             self.stop()
             if self.started():
-                print ("[-] %s: Unable to stop daemon"%time.ctime())
+                logger.info("[-] Unable to stop daemon")
                 return False
         if not self.cluster_activated():
-            print ("[-] %s: Cluster not activated in conf"%time.ctime())
+            logger.info("[-] Cluster not activated in conf")
             return True
-        print ("[+] %s: Cluster sync daemon starting .. "%time.ctime())
+        logger.info("[+] Cluster sync daemon starting .. ")
         # creating lock file
         f = open(self.LOCKFILE,"wb")
         f.write(str(os.getpid()))
@@ -214,20 +232,21 @@ class SynchroDaemon:
             # wait x seconds
             time.sleep(self.INTERVAL)
 
+    # Stop Daemon
     def stop(self,sig=2, v=0):
         name = self.getConf("name")
         pid = self.started()
         if not pid:
         # daemon is already stopped
-            print ("[-] %s: Daemon not started..."%time.ctime())
+            logger.info("[-] Daemon not started...")
             return True
         if pid != os.getpid():
         # stopping external process
-            print ("[+] %s: Stopping external daemon [%s]"%(time.ctime(),pid))
+            logger.info("[+] Stopping external daemon [%s]"%pid)
             os.kill(pid,2)
             return True
         # stopping this process
-        print ("[+] %s: Stopping daemon [%s]"%(time.ctime(),pid))
+        logger.info("[+] Stopping daemon [%s]"%pid)
         # remove this cluster from memcache
         old = self.mc.get(self.KEYSTORE) or []
         if old:
@@ -236,7 +255,8 @@ class SynchroDaemon:
         # remove lock file
         os.remove(self.LOCKFILE)
         sys.exit(0)
-    
+   
+    # Check_Config of memcache
     def refresh(self):
         self.mc.lock()
         try:
@@ -246,6 +266,9 @@ class SynchroDaemon:
             raise
         self.mc.unlock()
     
+    # check if local version is sup, inf or equal to memcache Version.
+    # Pop or Push conf.
+
     def check_config(self):
         # get database conf vars
         myversion = int(self.getConf("version_conf"))
@@ -254,21 +277,22 @@ class SynchroDaemon:
         mcversion = self.mc.get(self.VERSIONKEY)
         mcversion = mcversion == None and -1 or int(mcversion)
         if myversion == mcversion:
+            logger.info("[-] Conf is up to date, nothing to do")
             pass
         elif myversion > mcversion:
         # push my conf in memcache 
-            print ("[+] %s: Pushing my conf into memcache..."%time.ctime())
+            logger.info("[+] Pushing my conf into memcache...")
             self.push_conf()
             self.mc.set(self.VERSIONKEY, myversion)
-            print ("[+] %s: Push done"%time.ctime())
+            logger.info("[+] Push done")
         else:
         # new config available, update
-            print ("[+] %s: Updating conf..."%time.ctime())
+            logger.info("[+] Updating conf...")
             self.pop_conf()
             myversion = mcversion
             # update my version number in database
             Conf.objects.filter(var="version_conf").update(value=str(myversion))
-            print ("[+] %s: Update done"%time.ctime())
+            logger.info("[+] Update done")
         # put this server name in memcache if not already there
         all_srv = self.mc.get(self.KEYSTORE) or []
         if not name in all_srv:
@@ -339,7 +363,7 @@ class SynchroDaemon:
         except sqlite3.IntegrityError, e:
             if (len(e.args)==1 and 
                 e.args[0]=='columns app_id, intf_id are not unique'):
-                print ("Warning: integrity error, cleaning..")
+                logger.info("Warning: integrity error, cleaning..")
                 self.db.execute("DELETE from app_intf");
                 return self.pop_conf()
             raise
@@ -347,10 +371,11 @@ class SynchroDaemon:
         if self.getConf("auto_restart")=='1':
             self.reload_intfs()
 
+    # pop conf if local conf is lower than version memcache
+    # update table in db with some conf of version memcache 
     def pop_sql_conf(self):
         for table in self.list_tables():
-#todo therse
-            print("[?] %s: checking  %s ..."%(time.ctime(),table))
+            logger.info("[?] checking  %s ...",table)
             db_conf = self.get_SQL_table(table)
             mc_conf = self.mc.get("conf:%s"%table)
             db_ids,mc_ids = {},{}
@@ -365,7 +390,7 @@ class SynchroDaemon:
             if dels:
                 q = "DELETE FROM `%s` WHERE id IN (%s)"%(
                     table,",".join(dels))
-                print("%s: %s"%(time.ctime(),q))
+                logger.info("%s" % q)
                 self.db.execute(q)
             # for all keys in memcache conf, 
             # check if it's present in the db
@@ -384,7 +409,7 @@ class SynchroDaemon:
                         q = "UPDATE `%s` SET %s WHERE id=?"%(table,
                             ",".join(["`%s`=?"%k for k in keys])
                             )
-                        print("%s: UPDATE TABLE %s"%(time.ctime(),table))
+                        logger.info("UPDATE TABLE %s" % table)
                         self.db.execute(q,vals+[mc_k])
                 elif mc_e: 
                     vals = [mc_e[k] for k in mc_e]
@@ -392,12 +417,14 @@ class SynchroDaemon:
                         ",".join(["`%s`"%k for k in mc_e]),
                         ",".join(['?']*len(vals))
                         )
-                    print("%s: INSERT INTO %s"%(time.ctime(),table))
+                    logger.info("INSERT INTO %s" % table)
                     self.db.execute(q,vals)
         self.db.commit()
-   
+  
+    # convert sqlite to dictionnary
     def convert_sqliteRow_to_dict(self,rows):
-        #for easy work, we convert sqliteRow object (return by the query) to table of dictionnary
+        #for easy work, we convert sqliteRow object (return by the query)
+        #to table of dictionnary
         tab=[]
         for row in rows:
             dico={}
@@ -413,6 +440,7 @@ class SynchroDaemon:
         di = self.convert_sqliteRow_to_dict(rows)
         return di
     
+    #list all table in db
     def list_tables(self):
         return [table for table in connection.introspection.table_names()
             # avoid server specific tables
@@ -420,20 +448,15 @@ class SynchroDaemon:
             # avoid django tables
                     or table.startswith("django_")) ]
 
-def usage():
-    sys.stderr.write("usage : vulture-daemon.py {start/stop/status}\n")
-    sys.exit(1)
+# add log from Daemon to /var/www/vulture/log/Vulture-memcachedDaemon.log
+logger = logging.getLogger("DaemonLog")
+logger.setLevel(logging.INFO)
+formatter = logging.Formatter("%(asctime)s %(message)s",
+        "[%a %b %d %H:%M:%S %Y] [info]")
 
-if __name__ == '__main__':
-    daemon = SynchroDaemon()
-    func = {
-            'start':daemon.start,
-            'stop':daemon.stop,
-            'status':daemon.started,
-        }
-    try:
-        f = func[sys.argv[1]]
-    except:
-        usage()
-    sys.exit(not f() and 1 or 0)
+location = "/var/www/vulture/log/Vulture-memcachedDaemon.log"
+handler = logging.FileHandler(location)
+handler.setFormatter(formatter)
 
+logger.addHandler(handler)
+handler.close()
