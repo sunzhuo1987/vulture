@@ -163,8 +163,8 @@ class MC:
         self.delete(self.LOCKNAME)
 
 # Class SynchroDaemon
-# CheckConf of memcache & local conf
-# Push or pop conf
+# CheckConf of memecache & local conf
+# push or pop conf
 
 class SynchroDaemon:
     LOCKFILE = "%s/vulture-daemon.lock"%settings.CONF_PATH
@@ -372,7 +372,7 @@ class SynchroDaemon:
             self.reload_intfs()
 
     # pop conf if local conf is lower than version memcache
-    # update table in db with some conf of version memcache 
+    # update table in db with some conf of Versio memcache 
     def pop_sql_conf(self):
         for table in self.list_tables():
             logger.info("[?] checking  %s ...",table)
@@ -448,13 +448,16 @@ class SynchroDaemon:
             # avoid django tables
                     or table.startswith("django_")) ]
 
-# add log from Daemon to /var/www/vulture/log/Vulture-memcachedDaemon.log
+# add log from Daemon to */log/Vulture-memcachedDaemon.log
 logger = logging.getLogger("DaemonLog")
 logger.setLevel(logging.INFO)
 formatter = logging.Formatter("%(asctime)s %(message)s",
         "[%a %b %d %H:%M:%S %Y] [info]")
 
-location = "/var/www/vulture/log/Vulture-memcachedDaemon.log"
+if (os.path.exists("/var/www/vulture/log/") == True):
+    location = "/var/www/vulture/log/Vulture-memcachedDaemon.log"
+else:
+    location = "/opt/vulture/log/Vulture-memcachedDaemon.log"
 handler = logging.FileHandler(location)
 handler.setFormatter(formatter)
 
