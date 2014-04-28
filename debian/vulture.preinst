@@ -20,6 +20,20 @@ else
 	useradd vulture-admin -G www-data
 fi
 
+if [ -f /var/www/vulture/admin/db ] ; then
+    echo "Backup DataBase"
+    cp -f /var/www/vulture/admin/db /var/www/vulture/admin/db.old
+fi
+
+if [ -f /var/www/vulture/admin/models.py ] ; then
+    echo "Backup Models.py"
+    if [ cp -f /var/www/vulture/admin/models.py /var/www/vulture/admin/models.old ] ; then
+        rm -f /var/www/vulture/admin/models.py
+    fi
+fi
+
+#installing python djangon-crontab
+cd python_modules/
+PYTHONPATH="${PYTHONPATH}/opt/vulture/lib/Python/modules" python setup.py install --home=/opt/vulture/lib/Python --install-purelib='$base/modules' --install-platlib='$base/modules' --install-scripts='$base/scripts' --install-data='$base/data'
+
 exit 0
-
-
