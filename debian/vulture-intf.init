@@ -38,7 +38,7 @@ case "$1" in
     /bin/keyctl new_session > /tmp/vulture-keyring
     ${Vulture_HOME}/${NAME}/bin/test-perl.sh || exit 1;
     echo -n "Starting $NAME: ";
-    python "${Vulture_HOME}/${NAME}/conf/vintf_startup.py" up
+    PYTHONPATH="${PYTHONPATH}/opt/vulture/lib/Python/modules" python "${Vulture_HOME}/${NAME}/conf/vintf_startup.py" up
     $APACHE -f $Vulture_HOME/$NAME/conf/httpd.conf;
     for i in `ls $Vulture_HOME/$NAME/conf/*.conf 2> /dev/null | grep -v 'httpd.conf$'`; do 
         $APACHE -f $i;
@@ -50,7 +50,7 @@ case "$1" in
     for i in `ls $Vulture_HOME/$NAME/conf/*.pid 2> /dev/null`; do 
         kill `cat $i` 
     done;
-    python "${Vulture_HOME}/${NAME}/conf/vintf_startup.py" down
+    PYTHONPATH="${PYTHONPATH}/opt/vulture/lib/Python/modules" python "${Vulture_HOME}/${NAME}/conf/vintf_startup.py" down
     echo "." 
     ;;
   restart|force-reload)
@@ -60,7 +60,7 @@ case "$1" in
     ;;
   reload)
     echo -n "Reloading ${NAME}: "
-    python "${Vulture_HOME}/${NAME}/conf/vintf_startup.py" up
+    PYTHONPATH="${PYTHONPATH}/opt/vulture/lib/Python/modules" python "${Vulture_HOME}/${NAME}/conf/vintf_startup.py" up
     for i in `ls $Vulture_HOME/$NAME/conf/*.conf 2> /dev/null`; do
         $APACHE -f $i -k graceful;
     done
