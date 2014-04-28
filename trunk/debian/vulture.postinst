@@ -17,14 +17,8 @@ fi
 chown -R www-data /var/www/vulture
 chgrp -R www-data /var/www/vulture
 
-#Backup database
-if [ -f /var/www/vulture/admin/db ] ; then
-    echo "Database is here"
-    echo "Backup your old database"
-    mv /var/www/vulture/admin/db /var/www/vulture/admin/db_old
-fi
-
 #Set up database ( call django )
+python /var/www/vulture/admin/vulture/migrate.py
 cd /var/www/vulture/admin && ./manage.py syncdb --noinput
 chown vulture-admin. /var/www/vulture/
 chown -R vulture-admin. /var/www/vulture/bin/
@@ -38,26 +32,16 @@ mkdir /var/www/vulture/conf/security-rules
 chown -R vulture-admin:www-data /var/www/vulture/conf/
 chmod -R 750 /var/www/vulture/conf/
 chmod 0770 /var/www/vulture/conf/security-rules/
-chmod +x /var/www/vulture/bin/test-perl.sh
+chmod 755 /var/www/vulture/bin/test-perl.sh
+mkdir /var/www/vulture/log
+chown vulture-admin. /var/www/vulture/log
 
-#insert data into database
-if [ -f /var/www/vulture/admin/vulture/sql/log.sql ] ; then
-    BASE_RULE=`sqlite3 /var/www/vulture/admin/db "SELECT count(*) from log"`
-    if [ $BASE_RULE = 0 ]; then
-        sqlite3 /var/www/vulture/admin/db < /var/www/vulture/admin/vulture/sql/log.sql
-    fi
-fi
-if [ -f /var/www/vulture/admin/vulture/sql/modsecurity.sql ] ; then
-    BASE_RULE=`sqlite3 /var/www/vulture/admin/db "SELECT count(*) from modsecurity"`
-    if [ $BASE_RULE = 0 ]; then
-        sqlite3 /var/www/vulture/admin/db < /var/www/vulture/admin/vulture/sql/modsecurity.sql
-    fi
-fi
 if grep -E "^vulture-admin ALL=NOPASSWD:.*/usr/sbin/apache2.*/sbin/ifconfig" /etc/sudoers > /dev/null ; then
 	echo "sudo active"
 else
 	echo "vulture-admin ALL=NOPASSWD:/usr/sbin/apache2, /sbin/ifconfig" >> /etc/sudoers
 fi
+
 update-rc.d -f vulture start 90 2 3 4 5 . stop 90 0 1 6 .
 echo "Vulture is now up and running on port 9090!"
 if ! ( python -c '
