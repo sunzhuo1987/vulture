@@ -37,7 +37,6 @@ Vulture Reverse Proxy
      install -m0755 rpm/vulture $RPM_BUILD_ROOT/etc/init.d/vulture
      install -m0755 rpm/vulture $RPM_BUILD_ROOT/etc/init.d/vulture-gui
      install -m0755 rpm/vulture $RPM_BUILD_ROOT/etc/init.d/vulture-intf
-     %endif
      install -d -m0755 $RPM_BUILD_ROOT%{serverroot}/%{name}
      cp -r admin $RPM_BUILD_ROOT%{serverroot}/%{name}
      install -m0644 rpm/settings.py\
@@ -65,7 +64,7 @@ Vulture Reverse Proxy
     if [ -f %{serverroot}/%{name}/admin/db ] ; then
 	echo "Database is here"
 	echo "Backup your old database"
-	cp %{serverroot}/%{name}/admin/db %{serverroot}/%{name}/admin/db_old
+	cp %{serverroot}/%{name}/admin/db %{serverroot}/%{name}/admin/db.old
     fi
     if [ -f %{serverroot}/%{name}/admin/models.py ] ; then
         echo "Models are here"
@@ -93,7 +92,9 @@ Vulture Reverse Proxy
 	PYTHONPATH=$PYTHONPATH:%{serverroot}/%{name}%{python_sitearch}/:%{serverroot}/%{name}%{python_sitelib}/
 	export PYTHONPATH 
     
-    python /opt/vulture/admin/vulture/migrate.py
+    if [ -f /opt/vulture/admin/vulture/models.py.old]; then
+        python /opt/vulture/admin/vulture/migrate.py
+    fi
     echo no | python /opt/vulture/admin/manage.py syncdb
     /etc/init.d/vulture start
     
