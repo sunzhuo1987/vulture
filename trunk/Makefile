@@ -58,9 +58,9 @@ install:
 		for j in `find $$i ! -path '*/.svn/*' !  -path '*/.svn'`; do \
 		if [ -f $$j ]; then \
 			if [ -e /etc/debian_version ]; then \
-				$(INSTALL) $(UID) $(GID) $$j $(DESTDIR)$(PREFIXLIB)/$(NAME)/lib/i386-linux-thread-multi/Vulture/$$j; \
+				$(INSTALL) $(UID) $(GID) $$j $(DESTDIR)$(PREFIXLIB)/$(NAME)/lib/Vulture/$$j; \
 			else \
-				$(INSTALL) $$j $(DESTDIR)$(PREFIXLIB)/$(NAME)/lib/i386-linux-thread-multi/Vulture/$$j; \
+				$(INSTALL) $$j $(DESTDIR)$(PREFIXLIB)/$(NAME)/lib/Vulture/$$j; \
 			fi; \
 		fi; \
 		done; \
