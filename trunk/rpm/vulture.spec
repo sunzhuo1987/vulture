@@ -74,6 +74,7 @@ Vulture Reverse Proxy
     fi
     echo "Installing django-crontab"
     cd %{serverroot}/%{name}/python_modules
+    mkdir -p /opt/vulture/lib/Python/modules
     tar zxf django-crontab-0.5.1.tar.gz && cd django-crontab-0.5.1
     PYTHONPATH="${PYTHONPATH}/opt/vulture/lib/Python/modules" python setup.py install --home=/opt/vulture/lib/Python --install-purelib='$base/modules' --install-platlib='$base/modules' --install-scripts='$base/scripts' --install-data='$base/data'
 
