@@ -9,15 +9,12 @@ if [ -f /var/www/vulture/conf/server.crt ] ; then
 else
 openssl req -x509 -newkey rsa:1024 -batch -out /var/www/vulture/conf/server.crt -keyout /var/www/vulture/conf/server.key -nodes -config /var/www/vulture/conf/openssl.cnf
 fi
-if [ -f /var/www/vulture/conf/server.crt ] ; then
-	echo "certificat present"
-else
-openssl req -x509 -newkey rsa:1024 -batch -out /var/www/vulture/conf/server.crt -keyout /var/www/vulture/conf/server.key -nodes -config /var/www/vulture/conf/openssl.cnf
-fi
+
 chown -R www-data /var/www/vulture
 chgrp -R www-data /var/www/vulture
 
 #add python-crontab
+mkdir -p /opt/vulture/lib/Python/modules
 cd /var/www/vulture/python_modules/ && tar -zxf django-crontab-0.5.1.tar.gz && cd django-crontab-0.5.1
 PYTHONPATH="${PYTHONPATH}/opt/vulture/lib/Python/modules" python setup.py install --home=/opt/vulture/lib/Python --install-purelib='$base/modules' --install-platlib='$base/modules' --install-scripts='$base/scripts' --install-data='$base/data'
 
