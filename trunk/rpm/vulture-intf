@@ -42,7 +42,7 @@ function start() {
     /bin/keyctl new_session > /tmp/vulture-keyring
 	/opt/vulture/bin/test-perl.sh || exit 1;
 	echo -n $"Starting ${NAME}: "
-    python "${VULTURE_HOME}/${NAME}/conf/vintf_startup.py" up
+    PYTHONPATH="${PYTHONPATH}/opt/vulture/lib/Python/modules" python "${VULTURE_HOME}/${NAME}/conf/vintf_startup.py" up
 	sleep 2
     daemon "$HTTPD_BIN -f ${VULTURE_HOME}/${NAME}/conf/httpd.conf";
     for i in `ls ${VULTURE_HOME}/${NAME}/conf/*.conf 2>/dev/null|grep -v 'httpd.conf$'`; do
@@ -59,7 +59,7 @@ function stop() {
         for i in `ls ${VULTURE_HOME}/${NAME}/conf/*.pid 2> /dev/null`; do
                 kill `cat $i`
         done
-	python "${VULTURE_HOME}/${NAME}/conf/vintf_startup.py" down
+	PYTHONPATH="${PYTHONPATH}/opt/vulture/lib/Python/modules" python "${VULTURE_HOME}/${NAME}/conf/vintf_startup.py" down
         [ $RETVAL -eq 0 ] && success || failure
         echo
         [ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/${NAME}
@@ -68,7 +68,7 @@ function stop() {
 
 function reload() {
 	echo -n "Reloading ${NAME}: "
-	python "${VULTURE_HOME}/${NAME}/conf/vintf_startup.py" up
+	PYTHONPATH="${PYTHONPATH}/opt/vulture/lib/Python/modules" python "${VULTURE_HOME}/${NAME}/conf/vintf_startup.py" up
 	for i in `ls ${VULTURE_HOME}/${NAME}/conf/*.conf 2> /dev/null`; do
 		daemon "$HTTPD_BIN -f $i -k graceful"
 	done

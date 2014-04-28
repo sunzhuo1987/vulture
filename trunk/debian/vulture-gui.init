@@ -44,13 +44,13 @@ case "$1" in
     echo -n "Starting $NAME: ";
     $MEMCACHED -d -m 512 -l $MEMCACHED_IP -p $MEMCACHED_PORT -u "$APACHE_USER" -P $MEMCACHED_PID
     sleep 2
-    su -c "python ${Vulture_HOME}/${NAME}/admin/manage.py crontab add" $VULTURE_USER
+    PYTHONPATH="${PYTHONPATH}/opt/vulture/lib/Python/modules" su -c "python ${Vulture_HOME}/${NAME}/admin/manage.py crontab add" $VULTURE_USER
     $APACHE -f $Vulture_HOME/$NAME/conf/httpd.conf;
     echo "." 
     ;;
   stop)
     echo -n "Stopping $NAME: ";
-    su -c "python ${Vulture_HOME}/${NAME}/admin/manage.py crontab remove" $VULTURE_USER
+    PYTHONPATH="${PYTHONPATH}/opt/vulture/lib/Python/modules" su -c "python ${Vulture_HOME}/${NAME}/admin/manage.py crontab remove" $VULTURE_USER
     if [ -f $MEMCACHED_PID ] ; then 
         kill -12 `cat $MEMCACHED_PID` ; 
         rm $MEMCACHED_PID;
