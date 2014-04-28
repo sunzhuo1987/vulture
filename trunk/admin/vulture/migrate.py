@@ -231,8 +231,8 @@ class Migrate():
 
 #Setting up old model and backup old db
 os.system("mv "+VPATH+"vulture/models.py "+VPATH+"vulture/models_final.py")
-os.system("cp "+VPATH+"vulture/models.old "+VPATH+"vulture/models.py")
-os.system("cp "+VPATH+"db "+VPATH+"db_old")
+os.system("cp "+VPATH+"vulture/models.py.old "+VPATH+"vulture/models.py")
+os.system("cp "+VPATH+"db "+VPATH+"db_old_migration_2.0.8")
 
 #Used to fix bug about datatype in sso table
 try:
