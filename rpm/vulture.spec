@@ -34,10 +34,9 @@ Vulture Reverse Proxy
      make PREFIX=$RPM_BUILD_ROOT%{serverroot} PREFIXLIB=$RPM_BUILD_ROOT%{serverroot} UID='-o apache' GID='-g apache' install
      rm -f $RPM_BUILD_ROOT%{serverroot}/%{name}/lib/perllocal.pod
      install -d -m0700 $RPM_BUILD_ROOT/etc/init.d
-     %if 0%{?suse_version}
-     install -m0755 rpm/vulture.suse $RPM_BUILD_ROOT/etc/init.d/vulture
-     %else
      install -m0755 rpm/vulture $RPM_BUILD_ROOT/etc/init.d/vulture
+     install -m0755 rpm/vulture-gui $RPM_BUILD_ROOT/etc/init.d/vulture-gui
+     install -m0755 rpm/vulture-intf $RPM_BUILD_ROOT/etc/init.d/vulture-intf
      %endif
      install -d -m0755 $RPM_BUILD_ROOT%{serverroot}/%{name}
      cp -r admin $RPM_BUILD_ROOT%{serverroot}/%{name}
