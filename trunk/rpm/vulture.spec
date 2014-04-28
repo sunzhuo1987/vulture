@@ -1,9 +1,9 @@
-Requires: sudo make gcc httpd httpd-devel krb5-devel libapreq2 perl-DBD-MySQL libidn libmcrypt libmcrypt-devel libmemcached libmemcached-devel postgresql postgresql-devel memcached memcached-devel mod_perl mod_perl-devel mod_python mod_wsgi mysql mysql-server perl-Apache-Session perl-Authen-Krb5 perl-BSD-Resource perl-Cache-Memcached perl-Class-Accessor perl-Class-Data-Inheritable perl-Convert-ASN1 perl-Crypt-Blowfish perl-Crypt-CBC perl-Crypt-OpenSSL-AES perl-Crypt-PasswdMD5 perl-Crypt-SSLeay perl-DBD-Pg perl-DBD-SQLite perl-DBI perl-Devel-Symdump perl-Digest-SHA1 perl-IO-Socket-SSL perl-IO-Tty perl-IPC-Run perl-LDAP perl-libapreq2 perl-Net-Daemon perl-Net-LibIDN perl-Net-SSLeay perl-NTLM perl-Params-Validate perl-String-CRC32 perl-Sub-Name perl-WWW-Mechanize python python-devel python-ldap python-memcached python-sqlite sqlite sqlite-devel python-imaging python-hashlib pyOpenSSL libxml2 libxml2-devel mod_security mod_ssl python-setuptools python-pip
+Requires: sudo make httpd libapreq2 perl-DBD-MySQL libidn libmcrypt libmemcached postgresql memcached mod_perl mod_wsgi mysql perl-Apache-Session perl-Authen-Krb5 perl-BSD-Resource perl-Cache-Memcached perl-Class-Accessor perl-Class-Data-Inheritable perl-Convert-ASN1 perl-Crypt-Blowfish perl-Crypt-CBC perl-Crypt-OpenSSL-AES perl-Crypt-PasswdMD5 perl-Crypt-SSLeay perl-DBD-Pg perl-DBD-SQLite perl-DBI perl-Devel-Symdump perl-Digest-SHA1 perl-IO-Socket-SSL perl-IO-Tty perl-IPC-Run perl-LDAP perl-libapreq2 perl-Net-Daemon perl-Net-LibIDN perl-Net-SSLeay perl-NTLM perl-Params-Validate perl-String-CRC32 perl-Sub-Name perl-WWW-Mechanize python python-ldap python-memcached python-sqlite sqlite python-imaging python-hashlib pyOpenSSL libxml2 mod_security mod_ssl python-setuptools python-pip perl-YAML perl-namespace-clean perl-MIME-Types perl-Email-MIME perl-String-ShellQuote perl-WWW-Mechanize-GZip perl-Try-Tiny perl-Test-Warn perl-Crypt-Random perl-Any-Moose keyutils Django14 python-sqlite2 
 %define serverroot /opt
 Vendor: Advens
 %define release 0
 %define name vulture
-%define version 2.0.7
+%define version 2.0.8
 AutoReqProv: no
 
 Summary: Vulture Reverse Proxy
@@ -18,7 +18,7 @@ Source0: %{name}-%{version}.tar.bz2
 Patch0: database_path.patch
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
-BuildRequires: perl
+BuildRequires: perl make sudo
 %description
 Vulture Reverse Proxy
 
@@ -27,16 +27,16 @@ Vulture Reverse Proxy
 %patch0 -p0 -b .old
 
 %build
-	rm -rf $RPM_BUILD_ROOT
-
+        
 %install 
      cd %{name}-%{version}
      make PREFIX=$RPM_BUILD_ROOT%{serverroot} PREFIXLIB=$RPM_BUILD_ROOT%{serverroot} UID='-o apache' GID='-g apache' install
-     rm -f $RPM_BUILD_ROOT%{serverroot}/%{name}/lib/perllocal.pod
+     rm -f $RPM_BUILD_ROOT%{serverroot}/%{name}/lib/x86_64-linux-thread-multi/perllocal.pod
+     rm -f $RPM_BUILD_ROOT%{serverroot}/%{name}/lib/i386-linux-thread-multi/perllocal.pod
      install -d -m0700 $RPM_BUILD_ROOT/etc/init.d
      install -m0755 rpm/vulture $RPM_BUILD_ROOT/etc/init.d/vulture
-     install -m0755 rpm/vulture-gui $RPM_BUILD_ROOT/etc/init.d/vulture-gui
-     install -m0755 rpm/vulture-intf $RPM_BUILD_ROOT/etc/init.d/vulture-intf
+     install -m0755 rpm/vulture $RPM_BUILD_ROOT/etc/init.d/vulture-gui
+     install -m0755 rpm/vulture $RPM_BUILD_ROOT/etc/init.d/vulture-intf
      %endif
      install -d -m0755 $RPM_BUILD_ROOT%{serverroot}/%{name}
      cp -r admin $RPM_BUILD_ROOT%{serverroot}/%{name}
@@ -62,13 +62,24 @@ Vulture Reverse Proxy
     else
        	useradd vulture-admin -G apache
     fi
-
+    if [ -f %{serverroot}/%{name}/admin/db ] ; then
+	echo "Database is here"
+	echo "Backup your old database"
+	cp %{serverroot}/%{name}/admin/db %{serverroot}/%{name}/admin/db_old
+    fi
+    if [ -f %{serverroot}/%{name}/admin/models.py ] ; then
+        echo "Models are here"
+        echo "Backup your old models"
+        cp %{serverroot}/%{name}/admin/models.py %{serverroot}/%{name}/admin/models.py.old
+        rm %{serverroot}/%{name}/admin/models.py
+    fi
+    echo "Installing django-crontab"
+    cd %{serverroot}/%{name}/python_modules
+    tar zxf django-crontab-0.5.1.tar.gz && cd django-crontab-0.5.1
+    PYTHONPATH="${PYTHONPATH}/opt/vulture/lib/Python/modules" python setup.py install --home=/opt/vulture/lib/Python --install-purelib='$base/modules' --install-platlib='$base/modules' --install-scripts='$base/scripts' --install-data='$base/data'
 
 %post
      chmod +x %{serverroot}/%{name}/bin/test-perl.sh
-     cd %{serverroot}/%{name}/cpan_modules
-     tar zxf Apache2-AuthenNTLM-*.tar.gz && cd Apache2-AuthenNTLM-*/ && 
-	perl Makefile.PL && make && make install
     if [ ! -f %{serverroot}/%{name}/conf/server.crt ]; then
         PATH=$PATH:%{serverroot}/bin openssl req -x509 -newkey rsa:1024 -batch\
         	-out %{serverroot}/%{name}/conf/server.crt\
@@ -81,14 +92,14 @@ Vulture Reverse Proxy
     /sbin/chkconfig --add vulture
 	PYTHONPATH=$PYTHONPATH:%{serverroot}/%{name}%{python_sitearch}/:%{serverroot}/%{name}%{python_sitelib}/
 	export PYTHONPATH 
-    echo no | python %{serverroot}/%{name}/admin/manage.py syncdb
+    
+    python /opt/vulture/admin/vulture/migrate.py
+    echo no | python /opt/vulture/admin/manage.py syncdb
     /etc/init.d/vulture start
-    if [ -f %{serverroot}/%{name}/admin/vulture/sql/log.sql ] ; then
-        BASE_RULE=`/usr/bin/sqlite3 %{serverroot}/%{name}/admin/db "SELECT count(*) from log"`
-        if [ $BASE_RULE = 0 ]; then
-            /usr/bin/sqlite3 %{serverroot}/%{name}/admin/db < %{serverroot}/%{name}/admin/vulture/sql/log.sql
-        fi
-    fi
+    
+    mkdir -p /opt/vulture/log
+    chown vulture-admin. /opt/vulture/log
+    chmod 775 /opt/vulture/static/img
     chown vulture-admin:apache %{serverroot}/%{name}/admin/db
     chown vulture-admin:apache %{serverroot}/%{name}/admin
     chmod 660 %{serverroot}/%{name}/admin/db
