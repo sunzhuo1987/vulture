@@ -66,11 +66,11 @@ Vulture Reverse Proxy
 	echo "Backup your old database"
 	cp %{serverroot}/%{name}/admin/db %{serverroot}/%{name}/admin/db.old
     fi
-    if [ -f %{serverroot}/%{name}/admin/models.py ] ; then
+    if [ -f %{serverroot}/%{name}/admin/vulture/models.py ] ; then
         echo "Models are here"
         echo "Backup your old models"
-        cp %{serverroot}/%{name}/admin/models.py %{serverroot}/%{name}/admin/models.py.old
-        rm %{serverroot}/%{name}/admin/models.py
+        cp %{serverroot}/%{name}/admin/vulture/models.py %{serverroot}/%{name}/admin/vulture/models.py.old
+        rm %{serverroot}/%{name}/admin/vulture/models.py
     fi
     echo "Installing django-crontab"
     cd %{serverroot}/%{name}/python_modules
@@ -89,7 +89,7 @@ Vulture Reverse Proxy
         cat %{serverroot}/%{name}/conf/server.key %{serverroot}/%{name}/conf/server.crt > %{serverroot}/%{name}/conf/server.pem
     fi
     /sbin/chkconfig --add vulture
-	PYTHONPATH=$PYTHONPATH:%{serverroot}/%{name}%{python_sitearch}/:%{serverroot}/%{name}%{python_sitelib}/
+	PYTHONPATH=$PYTHONPATH:%{serverroot}/%{name}%{python_sitearch}/:%{serverroot}/%{name}%{python_sitelib}/:${PYTHONPATH}/opt/vulture/lib/Python/modules
 	export PYTHONPATH 
     
     if [ -f /opt/vulture/admin/vulture/models.py.old]; then
