@@ -1,21 +1,21 @@
 vulture (2.0.8) stable; urgency=low
- * 2.0.7 patches + several minor bugfixes
- * (NEW) It is now possible to "pipe" logfiles through a script
- * (NEW) "Lost password" functionnality in Authentication form (send an email)
- * (NEW) Default URL in interface
- * (NEW) New plugin REDIRECT_REFERER 
- * (NEW) It is now possible to define custom directives in ProxyPass
- * (NEW) Friendly name support in applications
- * (NEW) Virtual Applications have now dedicated logfiles
- * (NEW) Kerberos SSO FORWARD
- * (NEW) django-crontab is now used to schedule synchronization task (cluster management)
- * (NEW) Automagically update db files (2.0.7 -> 2.0.8 for now)
- * (IMPROVEMENT) TLS: Apache SNI Support (one digital certificate per App, even if there is only one interface)
- * (IMPROVEMENT) TLS: SSLVerifyDepth support
- * (IMPROVEMENT) TLS: It is now possible to ignore remove certificate verification
- * (IMPROVEMENT) TLS: TLSv1.1 and TLSv2.2 support
+  * 2.0.7 patches + several minor bugfixes
+  * (NEW) It is now possible to "pipe" logfiles through a script
+  * (NEW) "Lost password" functionnality in Authentication form (send an email)
+  * (NEW) Default URL in interface
+  * (NEW) New plugin REDIRECT_REFERER 
+  * (NEW) It is now possible to define custom directives in ProxyPass
+  * (NEW) Friendly name support in applications
+  * (NEW) Virtual Applications have now dedicated logfiles
+  * (NEW) Kerberos SSO FORWARD
+  * (NEW) django-crontab is now used to schedule synchronization task (cluster management)
+  * (NEW) Automagically update db files (2.0.7 -> 2.0.8 for now)
+  * (IMPROVEMENT) TLS: Apache SNI Support (one digital certificate per App, even if there is only one interface)
+  * (IMPROVEMENT) TLS: SSLVerifyDepth support
+  * (IMPROVEMENT) TLS: It is now possible to ignore remove certificate verification
+  * (IMPROVEMENT) TLS: TLSv1.1 and TLSv2.2 support
 
--- Jérémie Jourdin <jeremie.jourdin@gmail.com>  Mon, 28 Apr 2014 11:36:00 +0200
+ -- Jérémie Jourdin <jeremie.jourdin@gmail.com>  Mon, 28 Apr 2014 11:36:00 +0200
 
 vulture (2.0.7) stable; urgency=low
   * add new mod_security configuration interface
