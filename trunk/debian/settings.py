@@ -34,7 +34,6 @@ SESSION_COOKIE_SECURE = True
 SESSION_COOKIE_HTTPONLY = True
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
-
 WWW_USER = 'www-data'
 WWW_GROUP = 'www-data'
 
@@ -67,7 +66,7 @@ MEDIA_URL = '/static/'
 ADMIN_MEDIA_PREFIX = '/media/'
 
 # Make this unique, and don't share it with anybody.
-SECRET_KEY = ''
+SECRET_KEY = '(fk$)9xg!#3y@!j)y9u!nn)zm(u-zqbdbb6_s!urdb%8v^cv9m'
 
 # List of callables that know how to import templates from various sources.
 TEMPLATE_LOADERS = (

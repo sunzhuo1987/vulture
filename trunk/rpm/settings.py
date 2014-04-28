@@ -30,6 +30,10 @@ DATABASE_PATH = '/opt/vulture/admin/'
 SERVERROOT = '/etc/httpd'
 HTTPD_CUSTOM = ""
 
+SESSION_COOKIE_SECURE = True
+SESSION_COOKIE_HTTPONLY = True
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
 WWW_USER='apache'
 WWW_GROUP='apache'
 
