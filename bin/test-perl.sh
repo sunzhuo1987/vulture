@@ -1,11 +1,11 @@
 #!/bin/bash
-# check-perls.sh
 # Checks all perl dependencies for vulture and eventually install them with cpan
 # this script must be updated each time we add/remove perl deps to vulture
 
 perl_deps="
 YAML
 namespace::clean
+Apache::SSLLookup
 Apache2::Access
 Apache2::Connection
 Apache2::Const
@@ -24,32 +24,45 @@ Apache::Session::Generate::MD5
 APR::SockAddr
 APR::Table
 APR::URI
+Authen::Krb5
 Authen::Radius
 Authen::Simple::Kerberos
 Apache::Session::Store::Memcached
 Authen::Smb
 Cache::Memcached
+CGI
 Crypt::CBC
 Crypt::OpenSSL::AES
 Cwd
 Data::Dumper
+DBI
 Digest::MD5
 Digest::SHA1
+Encode
+Email::MIME
+Email::Sender::Simple
+Exporter
 Getopt::Std
+GSSAPI
 HTML::Entities
 HTML::Form
 HTTP::Date
 HTTP::Request
+IPC::Semaphore
+IPC::SysV
+LWP
 LWP::Debug
 LWP::UserAgent
 Math::Random::Secure
 MIME::Base64
 MIME::Types
-Net::IP::Match::Regexp
 Net::LDAP
 Net::LDAP::Util
+POSIX
+Socket
 String::ShellQuote
 Sys::Hostname
+Try::Tiny
 List::Util
 URI
 URI::Escape
@@ -57,33 +70,24 @@ XML::LibXML
 WWW::Mechanize
 WWW::Mechanize::GZip
 "
-
+RED="\\033[1;31m"
+GREEN="\\033[1;32m"
+WHITE="\\033[0;39m"
 if ( [ `id -u` -ne 0 ] ) ; then 
-       	echo "[-] this script must must be run as root" ; 
-	exit 1 ;
+        echo "[-] This script must must be run as root" ; 
+    exit 1 ;
 fi;
-install_all=0;
-exit_st=0
 for mod in $perl_deps ; do 
-	got_dep=1
-	if ! ( perl -e "use $mod"  2>/dev/null ); then (
-		got_dep=0;
-		install_it=0;
-		if ( [ $install_all -ne 1 ] ) ; then
-
-			echo -n "[-] Module \"$mod\" missing, try to install it ?[all|yes|no] (yes) : ";
-			read opt;
-			case $opt in
-				all) install_all=1 ;;
-				no);;
-				yes) install_it=1;;
-				*) install_it=1 ;;
-			esac;
-		fi;
-		[ $install_all -eq 1 ] && install_it=1;
-		[ $install_it -eq 1 ] && ( ( cpan -fi $mod && got_dep=1 ) || ( echo "[-] Failed to install module $mod" && mod_ok=0 ) );
-	)
-	[ $got_dep -ne 1 ] && exit_st=1
-	fi;
+    got_dep=0
+    if ! ( perl -e "use $mod"  2>/dev/null ); then (
+        echo -e "$RED[FAIL]$WHITE - Module \"$mod\" is missing. Please install it before using Vulture"          
+    )
+    else
+        echo -e "$GREEN[OK]$WHITE - Module \"$mod\" is present"         
+        got_dep=1
+    fi
+    if [ $got_dep -ne 1 ]; then
+        exit_st=1
+    fi 
 done;
 exit $exit_st
