@@ -7,12 +7,14 @@ import django
 try:
     sys.path.append("/opt/vulture")
     sys.path.append("/opt/vulture/admin")
+    sys.path.append("/opt/vulture/lib/Python/modules")
     VPATH = "/opt/vulture/admin/"
     os.environ["DJANGO_SETTINGS_MODULE"] = "admin.settings"
     from vulture.migrations import *
 except:
     sys.path.append("/var/www/vulture")
     sys.path.append("/var/www/vulture/admin")
+    sys.path.append("/opt/vulture/lib/Python/modules")
     VPATH = "/var/www/vulture/admin/"
     os.environ["DJANGO_SETTINGS_MODULE"] = "admin.settings"
 from django.db.models import get_app, get_models
