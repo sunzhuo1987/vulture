@@ -17,9 +17,20 @@ fi
 chown -R www-data /var/www/vulture
 chgrp -R www-data /var/www/vulture
 
+#add python-crontab
+cd /var/www/vulture/python_modules/ && tar -zxf django-crontab-0.5.1.tar.gz && cd django-crontab-0.5.1
+PYTHONPATH="${PYTHONPATH}/opt/vulture/lib/Python/modules" python setup.py install --home=/opt/vulture/lib/Python --install-purelib='$base/modules' --install-platlib='$base/modules' --install-scripts='$base/scripts' --install-data='$base/data'
+
+chown -R vulture-admin. /opt/vulture/lib/Python/modules
+
+
 #Set up database ( call django )
-python /var/www/vulture/admin/vulture/migrate.py
-cd /var/www/vulture/admin && ./manage.py syncdb --noinput
+if [ -f /var/www/vulture/admin/vulture/models.py.old ] ; then
+    PYTHONPATH="${PYTHONPATH}/opt/vulture/lib/Python/modules" python /var/www/vulture/admin/vulture/migrate.py
+fi
+
+cd /var/www/vulture/admin
+PYTHONPATH="${PYTHONPATH}/opt/vulture/lib/Python/modules" python manage.py syncdb --noinput
 chown vulture-admin. /var/www/vulture/
 chown -R vulture-admin. /var/www/vulture/bin/
 chown -R vulture-admin. /var/www/vulture/admin/*
@@ -28,12 +39,12 @@ chmod 660 /var/www/vulture/admin/db
 chown root. /var/www/vulture/conf/httpd.conf
 chown vulture-admin:www-data /var/www/vulture/admin/
 chmod g+w /var/www/vulture/admin/
-mkdir /var/www/vulture/conf/security-rules
+mkdir -p /var/www/vulture/conf/security-rules
 chown -R vulture-admin:www-data /var/www/vulture/conf/
 chmod -R 750 /var/www/vulture/conf/
 chmod 0770 /var/www/vulture/conf/security-rules/
 chmod 755 /var/www/vulture/bin/test-perl.sh
-mkdir /var/www/vulture/log
+mkdir -p /var/www/vulture/log
 chown vulture-admin. /var/www/vulture/log
 
 if grep -E "^vulture-admin ALL=NOPASSWD:.*/usr/sbin/apache2.*/sbin/ifconfig" /etc/sudoers > /dev/null ; then
