@@ -1,0 +1,130 @@
+#!/bin/sh
+#
+# Vulture GUI -- Reverse Proxy SSO -- !!! GUI ONLY !!!
+#
+# chkconfig:   345 90 15
+# description: Reverse Proxy SSO
+# processname: 
+# pidfile: /opt/vulture/conf/Vulture.pid
+
+# Install this file in /etc/init.d and run "chkconfig vulture-gui on" and
+# "chkconfig --add vulture-gui".
+
+# Source function library.
+if [ ! -r /etc/SuSE-release ]; then
+          . /etc/init.d/functions
+else
+	daemon() {
+		$1	
+	}
+fi
+
+export VULTURE_HOME="/opt"
+export NAME="vulture"
+export TMPDIR="/tmp"
+export HTTPD_BIN="/usr/sbin/httpd"
+export MEMCACHED="/usr/bin/memcached"
+export MEMCACHED_IP="127.0.0.1"
+export MEMCACHED_PORT="9091"
+export MEMCACHED_PID="/opt/vulture/admin/mc.pid"
+export MEMCACHED_PID="/opt/vulture/admin/memcached.pid"
+export APACHE_USER="apache"
+export VULTURE_USER="vulture-admin"
+
+# Source an auxiliary options file if we have one, and pick up OPTIONS,
+if [ -r /etc/sysconfig/${NAME} ] ; then
+	. /etc/sysconfig/${NAME}
+fi
+
+RETVAL=0
+
+function start() {
+    # increase default linux keyring quota for vulture kerberos keyring
+    echo "Prepare keyring.."
+    echo 20000 > /proc/sys/kernel/keys/maxkeys
+    echo 2000000 > /proc/sys/kernel/keys/maxbytes
+    # create the new keyring session
+    /bin/keyctl new_session > /tmp/vulture-keyring
+	/opt/vulture/bin/test-perl.sh || exit 1;
+	echo -n $"Starting ${NAME}: "
+        daemon $MEMCACHED -d -m 512 -l $MEMCACHED_IP -p $MEMCACHED_PORT -u $APACHE_USER -P $MEMCACHED_PID
+	su -c "python ${Vulture_HOME}/${NAME}/admin/manage.py crontab add" $VULTURE_USER
+    daemon "$HTTPD_BIN -f ${VULTURE_HOME}/${NAME}/conf/httpd.conf";
+    echo
+	[ $RETVAL -eq 0 ] && touch /var/lock/subsys/${NAME}
+	return $RETVAL
+}
+
+function stop() {
+        # Stop daemons.
+        echo -n $"Stopping ${NAME}: "
+    su -c "python ${Vulture_HOME}/${NAME}/admin/manage.py crontab remove" $VULTURE_USER
+    if [ -f $MEMCACHED_PID ] ; then 
+        kill -12 `cat $MEMCACHED_PID` ; 
+        rm $MEMCACHED_PID;
+    fi;
+        [ $RETVAL -eq 0 ] && success || failure
+        echo
+        [ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/${NAME}
+        return $RETVAL
+}
+
+function reload() {
+	echo -n "Reloading ${NAME}: "
+	python "${VULTURE_HOME}/${NAME}/conf/vintf_startup.py" up
+	[ $RETVAL -eq 0 ] && success || failure
+	echo
+}
+
+function status() {
+        pidfile="${VULTURE_HOME}/${NAME}/conf/vulture.pid"
+        if [ -s $pidfile ]; then
+                pid=`cat $pidfile`
+                kill -0 $pid >/dev/null 2>&1
+                if [ "$?" = "0" ]; then
+                        echo "${NAME} (pid $pid) is running"
+                        RETVAL=0
+                else
+                        echo "${NAME} is stopped"
+                        RETVAL=1
+                fi
+        else
+                echo "${NAME} is stopped"
+                RETVAL=1
+        fi
+	return $RETVAL
+}
+
+restart() {
+	stop
+	start
+}
+
+# See how we were called.
+case "$1" in
+	start)
+		start
+	;;
+	stop)
+		stop
+	;;
+	restart)
+		restart
+	;;
+	condrestart)
+		# Only restart if it is already running.
+		status >/dev/null 2>&1 && restart
+	;;
+	reload)
+		reload
+	;;
+	status)
+		status
+	;;
+	*)
+		echo "Usage: ${NAME} {start|stop|restart|reload|status}"
+		exit 1
+	;;
+esac
+
+exit $RETVAL

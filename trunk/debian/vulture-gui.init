@@ -1,0 +1,76 @@
+### BEGIN INIT INFO
+# Provides: vulture
+# Required-Start: $local_fs $network $named 
+# Required-Stop: $local_fs $remote_fs $named
+# Default-Start: 2 3 4 5
+# Default-Stop: 0 1 6
+# Short-Description: Web SSO Reverse Proxy
+# Description: Vulture is an HTTP reverse proxy. It does many security checks
+# (authentication, rewriting, filtering) before proxying request
+# from Internet to your web applications. With authentication
+# enabled, vulture will open flows only to authenticated users.
+# It also allows to your users to use only one password to access
+# many different applications by learning and forwarding their
+# different accounts.
+### END INIT INFO
+#!/bin/bash
+#
+# Vulture
+#
+# chkconfig:   345 90 15
+# description: Vulture
+
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+Vulture_HOME=/var/www
+NAME=vulture
+RETVAL=0
+APACHE=/usr/sbin/apache2
+APACHE_USER=www-data
+VULTURE_USER=vulture-admin
+MEMCACHED=/usr/bin/memcached
+MEMCACHED_IP=127.0.0.1
+MEMCACHED_PORT=9091
+MEMCACHED_PID=/var/www/vulture/admin/memcached.pid
+
+case "$1" in
+  start)
+    # increase default linux keyring quota for vulture kerberos keyring
+    echo "Prepare keyring.."
+    echo 20000 > /proc/sys/kernel/keys/maxkeys
+    echo 2000000 > /proc/sys/kernel/keys/maxbytes
+    # create the new keyring session
+    /bin/keyctl new_session > /tmp/vulture-keyring
+    ${Vulture_HOME}/${NAME}/bin/test-perl.sh || exit 1;
+    echo -n "Starting $NAME: ";
+    $MEMCACHED -d -m 512 -l $MEMCACHED_IP -p $MEMCACHED_PORT -u "$APACHE_USER" -P $MEMCACHED_PID
+    sleep 2
+    su -c "python ${Vulture_HOME}/${NAME}/admin/manage.py crontab add" $VULTURE_USER
+    $APACHE -f $Vulture_HOME/$NAME/conf/httpd.conf;
+    echo "." 
+    ;;
+  stop)
+    echo -n "Stopping $NAME: ";
+    su -c "python ${Vulture_HOME}/${NAME}/admin/manage.py crontab remove" $VULTURE_USER
+    if [ -f $MEMCACHED_PID ] ; then 
+        kill -12 `cat $MEMCACHED_PID` ; 
+        rm $MEMCACHED_PID;
+    fi;
+    echo "." 
+    ;;
+  restart|force-reload)
+    $0 stop
+    sleep 2
+    $0 start
+    ;;
+  reload)
+    echo -n "Reloading ${NAME}: "
+    echo ".";
+    ;;
+*)
+    N=/etc/init.d/$NAME
+    echo "Usage: $N {start|stop|restart|force-reload|reload}" >&2
+    exit 1
+    ;;
+esac
+
+exit 0
