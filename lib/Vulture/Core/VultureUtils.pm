@@ -6,7 +6,7 @@ package Core::VultureUtils;
 use strict;
 use warnings;
 
-our $VERSION = '2.0.7';
+our $VERSION = '2.0.8';
 
 BEGIN {
     use Exporter ();
