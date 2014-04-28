@@ -32,8 +32,7 @@ Vulture Reverse Proxy
 %install 
      cd %{name}-%{version}
      make PREFIX=$RPM_BUILD_ROOT%{serverroot} PREFIXLIB=$RPM_BUILD_ROOT%{serverroot} UID='-o apache' GID='-g apache' install
-     rm -f $RPM_BUILD_ROOT%{serverroot}/%{name}/lib/x86_64-linux-thread-multi/perllocal.pod
-     rm -f $RPM_BUILD_ROOT%{serverroot}/%{name}/lib/i386-linux-thread-multi/perllocal.pod
+     rm -f $RPM_BUILD_ROOT%{serverroot}/%{name}/lib/perllocal.pod
      install -d -m0700 $RPM_BUILD_ROOT/etc/init.d
      %if 0%{?suse_version}
      install -m0755 rpm/vulture.suse $RPM_BUILD_ROOT/etc/init.d/vulture
@@ -68,14 +67,7 @@ Vulture Reverse Proxy
 
 %post
      chmod +x %{serverroot}/%{name}/bin/test-perl.sh
-     cd %{serverroot}/%{name}/rpm
-     tar zxf Django-*.tar.gz && cd Django-*/ && python setup.py install
-     cd %{serverroot}/%{name}/rpm
-     tar zxf Apache-SSLLookup-*.tar.gz && cd Apache-SSLLookup-*/ &&
-	perl Makefile.PL CCFLAGS="-I/usr/include/apr-1" && make && make install
-     cd %{serverroot}/%{name}/rpm
-     tar zxf pysqlite-*.tar.gz && cd pysqlite-* && python setup.py install
-     cd %{serverroot}/%{name}/rpm
+     cd %{serverroot}/%{name}/cpan_modules
      tar zxf Apache2-AuthenNTLM-*.tar.gz && cd Apache2-AuthenNTLM-*/ && 
 	perl Makefile.PL && make && make install
     if [ ! -f %{serverroot}/%{name}/conf/server.crt ]; then
