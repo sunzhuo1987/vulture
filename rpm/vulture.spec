@@ -72,13 +72,13 @@ Vulture Reverse Proxy
         cp %{serverroot}/%{name}/admin/vulture/models.py %{serverroot}/%{name}/admin/vulture/models.py.old
         rm %{serverroot}/%{name}/admin/vulture/models.py
     fi
+
+%post
     echo "Installing django-crontab"
     cd %{serverroot}/%{name}/python_modules
     mkdir -p /opt/vulture/lib/Python/modules
     tar zxf django-crontab-0.5.1.tar.gz && cd django-crontab-0.5.1
     PYTHONPATH="${PYTHONPATH}/opt/vulture/lib/Python/modules" python setup.py install --home=/opt/vulture/lib/Python --install-purelib='$base/modules' --install-platlib='$base/modules' --install-scripts='$base/scripts' --install-data='$base/data'
-
-%post
      chmod +x %{serverroot}/%{name}/bin/test-perl.sh
     if [ ! -f %{serverroot}/%{name}/conf/server.crt ]; then
         PATH=$PATH:%{serverroot}/bin openssl req -x509 -newkey rsa:1024 -batch\
@@ -99,6 +99,9 @@ Vulture Reverse Proxy
     echo no | python /opt/vulture/admin/manage.py syncdb
     /etc/init.d/vulture start
     
+    mkdir -p /opt/vulture/log
+    chown vulture-admin. /opt/vulture/log
+    chmod 775 /opt/vulture/static/img
     mkdir -p /opt/vulture/log
     chown vulture-admin. /opt/vulture/log
     chmod 775 /opt/vulture/static/img
@@ -169,14 +172,16 @@ o.write(B.b64encode(f.read(128))[:32])' > %{serverroot}/%{name}/conf/aes-encrypt
 %{serverroot}/%{name}/rpm
 %defattr(-,vulture-admin,apache,-)
 %config(noreplace) %{serverroot}/%{name}/conf
-%defattr(-,vulture-admin,apache)
-%config(noreplace) %{serverroot}/%{name}/conf/security-rules
 %defattr(-,vulture-admin,vulture-admin,-)
 %{serverroot}/%{name}/bin
 %{serverroot}/%{name}/admin
+%{serverroot}/%{name}/cpan_modules
+%{serverroot}/%{name}/python_modules
 %defattr(-,root,root)
 %{serverroot}/%{name}/lib
 /etc/init.d/%{name}
+/etc/init.d/%{name}-gui
+/etc/init.d/%{name}-intf
 
 
 %changelog
