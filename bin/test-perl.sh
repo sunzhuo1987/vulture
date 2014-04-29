@@ -79,7 +79,7 @@ if ( [ `id -u` -ne 0 ] ) ; then
 fi;
 for mod in $perl_deps ; do 
     got_dep=0
-    if ! ( perl -I/opt/vulture/lib/ -I/opt/vulture/lib/Vulture -I/opt/vulture/lib/x86_64-linux-gnu-thread-multi -e "use $mod"  2>/dev/null ); then (
+    if ! ( perl -I/opt/vulture/lib/ -I/opt/vulture/lib/Vulture -I/opt/vulture/lib/x86_64-linux-gnu-thread-multi -I/opt/vulture/lib/x86_64-linux-thread-multi/ -e "use $mod"  2>/dev/null ); then (
         echo -e "$RED[FAIL]$WHITE - Module \"$mod\" is missing. Please install it before using Vulture"          
     )
     else
@@ -91,7 +91,7 @@ for mod in $perl_deps ; do
     fi 
 done;
 
-if [ ! -f /opt/vulture/lib/x86_64-linux-gnu-thread-multi/Apache/SSLLookup.pm ]; then
+if [ ! -f /opt/vulture/lib/x86_64-linux-gnu-thread-multi/Apache/SSLLookup.pm ] && [ ! -f /opt/vulture/lib/x86_64-linux-thread-multi/Apache/SSLLookup.pm ]; then
     echo -e "$RED[FAIL]$WHITE - Module \"Apache::SSLLookup\" is missing. Please install it before using Vulture"  
     exit_st=1
 else
