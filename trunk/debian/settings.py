@@ -37,7 +37,7 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 WWW_USER = 'www-data'
 WWW_GROUP = 'www-data'
 
-PERL_SWITCHES = '-I/opt/vulture/lib/ -I/opt/vulture/lib/Vulture -I/opt/vulture/lib/x86_64-linux-gnu-thread-multi'
+PERL_SWITCHES = '-I/opt/vulture/lib/ -I/opt/vulture/lib/Vulture -I/opt/vulture/lib/x86_64-linux-gnu-thread-multi -I/opt/vulture/lib/x86_64-linux-thread-multi/'
 
 
 # Local time zone for this installation. All choices can be found here:
