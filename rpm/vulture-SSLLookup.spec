@@ -11,6 +11,7 @@ Source0: Apache-SSLLookup-2.00_04.tar.gz
 
 BuildRequires: make 
 %define _binaries_in_noarch_packages_terminate_build 0
+%define _unpackaged_files_terminate_build 0
 %description
 Hooks for various mod_ssl functions
 
@@ -27,14 +28,16 @@ cd Apache-SSLLookup-2.00_04
 %clean
 
 %pre
-if [ `getent passwd vulture-admin >/dev/null 2>/dev/null` ]; then
-	adduser vulture-admin
-fi
 
 %post
 
 %preun
 
+%define _rpmfilename %%{ARCH}/%%{NAME}-%%{VERSION}-%%{RELEASE}.%%{ARCH}.rpm
+
 %files
-%defattr(-,vulture-admin,root,-)
-/opt/vulture/lib
+%defattr(-,root,root,-)
+/opt/vulture/lib/share
+/opt/vulture/lib/x86_64-linux-thread-multi/Apache
+/opt/vulture/lib/x86_64-linux-thread-multi/auto
+

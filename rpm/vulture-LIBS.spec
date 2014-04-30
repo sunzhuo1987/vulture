@@ -1,4 +1,4 @@
-Requires: sudo
+Requires: sudo perl-Capture-Tiny perl-Devel-GlobalDestruction perl-Email-Address perl-MRO-Compat perl-Module-Find perl-Module-Runtime perl-Class-C3
 
 Summary: Vulture LIBS
 Name: vulture-LIBS
@@ -7,6 +7,7 @@ Release: 0
 License: GPL
 Group: System/Servers
 Buildarch: noarch
+AutoReqProv: no
 Source0: Apache2-AuthenNTLM-0.02.tar.gz
 Source1: Apache-Session-Memcached-0.03.tar.gz
 Source2: Authen-Krb5-Simple-0.43.tar.gz
@@ -21,9 +22,13 @@ Source10: Math-Random-ISAAC-1.004.tar.gz
 Source11: Math-Random-Secure-0.06.tar.gz
 Source12: Moo-1.004002.tar.gz
 Source13: Apache-Reload-0.10.tar.gz
+Source14: strictures-1.005004.tar.gz
+Source15: Role-Tiny-1.003003.tar.gz
+Source16: Import-Into-1.002001.tar.gz
 
 BuildRequires: make 
 %define _binaries_in_noarch_packages_terminate_build 0
+%define _unpackaged_files_terminate_build 0
 %description
 Vulture Libs
 
@@ -42,6 +47,9 @@ Vulture Libs
 %setup -D -a 11
 %setup -D -a 12
 %setup -D -a 13
+%setup -D -a 14
+%setup -D -a 15
+%setup -D -a 16
 
 cd Apache2-AuthenNTLM-0.02
 perl Makefile.PL PREFIX=/opt/vulture/lib LIB=/opt/vulture/lib
@@ -91,6 +99,18 @@ cd Math-Random-Secure-0.06
 perl Makefile.PL PREFIX=/opt/vulture/lib LIB=/opt/vulture/lib
 make PREFIX=/opt/vulture/lib LIB=/opt/vulture/lib
 cd ..
+cd strictures-1.005004
+perl Makefile.PL PREFIX=/opt/vulture/lib LIB=/opt/vulture/lib
+make PREFIX=/opt/vulture/lib LIB=/opt/vulture/lib
+cd ..
+cd Role-Tiny-1.003003
+perl Makefile.PL PREFIX=/opt/vulture/lib LIB=/opt/vulture/lib
+make PREFIX=/opt/vulture/lib LIB=/opt/vulture/lib
+cd ..
+cd Import-Into-1.002001
+perl Makefile.PL PREFIX=/opt/vulture/lib LIB=/opt/vulture/lib
+make PREFIX=/opt/vulture/lib LIB=/opt/vulture/lib
+cd .. 
 cd Moo-1.004002
 perl Makefile.PL PREFIX=/opt/vulture/lib LIB=/opt/vulture/lib
 make PREFIX=/opt/vulture/lib LIB=/opt/vulture/lib
@@ -99,7 +119,6 @@ cd MooX-Types-MooseLike-0.25
 perl Makefile.PL PREFIX=/opt/vulture/lib LIB=/opt/vulture/lib
 make PREFIX=/opt/vulture/lib LIB=/opt/vulture/lib
 cd ..
-
 
 %install
 cd Apache2-AuthenNTLM-0.02
@@ -135,6 +154,15 @@ cd ..
 cd Math-Random-Secure-0.06
 %make_install
 cd ..
+cd strictures-1.005004
+%make_install
+cd ..
+cd Role-Tiny-1.003003
+%make_install
+cd ..
+cd Import-Into-1.002001
+%make_install
+cd ..
 cd Moo-1.004002
 %make_install
 cd ..
@@ -145,13 +173,9 @@ cd Apache-Reload-0.10
 %make_install
 cd ..
 
-
 %clean
 
 %pre
-if [ `getent passwd vulture-admin >/dev/null 2>/dev/null` ]; then
-	adduser vulture-admin
-fi
 
 %post
 
@@ -160,5 +184,24 @@ fi
 %define _rpmfilename %%{ARCH}/%%{NAME}-%%{VERSION}-%%{RELEASE}.%%{ARCH}.rpm
 
 %files
-%defattr(-,vulture-admin,root,-)
-/opt/vulture/lib
+%defattr(-,root,root,-)
+/opt/vulture/lib/Apache/
+/opt/vulture/lib/Apache2/
+/opt/vulture/lib/Authen
+/opt/vulture/lib/Crypt
+/opt/vulture/lib/Data
+/opt/vulture/lib/Email
+/opt/vulture/lib/Import
+/opt/vulture/lib/Math
+/opt/vulture/lib/Method
+/opt/vulture/lib/*.pm
+/opt/vulture/lib/Moo/
+/opt/vulture/lib/MooX
+/opt/vulture/lib/Role
+/opt/vulture/lib/Sub
+/opt/vulture/lib/bin
+/opt/vulture/lib/share
+/opt/vulture/lib/x86_64-linux-thread-multi/Apache2
+/opt/vulture/lib/x86_64-linux-thread-multi/Authen
+/opt/vulture/lib/x86_64-linux-thread-multi/auto
+
