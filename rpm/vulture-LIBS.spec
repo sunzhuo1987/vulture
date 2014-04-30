@@ -25,6 +25,9 @@ Source13: Apache-Reload-0.10.tar.gz
 Source14: strictures-1.005004.tar.gz
 Source15: Role-Tiny-1.003003.tar.gz
 Source16: Import-Into-1.002001.tar.gz
+Source17: Authen-Simple-0.5.tar.gz
+Source18: Throwable-0.200011.tar.gz
+Source19: Test-Simple-1.001003.tar.gz
 
 BuildRequires: make 
 %define _binaries_in_noarch_packages_terminate_build 0
@@ -50,6 +53,9 @@ Vulture Libs
 %setup -D -a 14
 %setup -D -a 15
 %setup -D -a 16
+%setup -D -a 17
+%setup -D -a 18
+%setup -D -a 19
 
 cd Apache2-AuthenNTLM-0.02
 perl Makefile.PL PREFIX=/opt/vulture/lib LIB=/opt/vulture/lib
@@ -71,6 +77,10 @@ cd Authen-Radius-0.24
 perl Makefile.PL PREFIX=/opt/vulture/lib LIB=/opt/vulture/lib
 make PREFIX=/opt/vulture/lib LIB=/opt/vulture/lib
 cd ..
+cd Authen-Simple-0.5
+perl Makefile.PL PREFIX=/opt/vulture/lib LIB=/opt/vulture/lib
+make PREFIX=/opt/vulture/lib LIB=/opt/vulture/lib
+cd ..
 cd Authen-Simple-Kerberos-0.1
 perl Makefile.PL PREFIX=/opt/vulture/lib LIB=/opt/vulture/lib
 make PREFIX=/opt/vulture/lib LIB=/opt/vulture/lib
@@ -84,6 +94,14 @@ perl Makefile.PL PREFIX=/opt/vulture/lib LIB=/opt/vulture/lib
 make PREFIX=/opt/vulture/lib LIB=/opt/vulture/lib
 cd ..
 cd Email-Abstract-3.007
+perl Makefile.PL PREFIX=/opt/vulture/lib LIB=/opt/vulture/lib
+make PREFIX=/opt/vulture/lib LIB=/opt/vulture/lib
+cd ..
+cd Test-Simple-1.001003
+perl Makefile.PL PREFIX=/opt/vulture/lib LIB=/opt/vulture/lib
+make PREFIX=/opt/vulture/lib LIB=/opt/vulture/lib
+cd ..
+cd Throwable-0.200011
 perl Makefile.PL PREFIX=/opt/vulture/lib LIB=/opt/vulture/lib
 make PREFIX=/opt/vulture/lib LIB=/opt/vulture/lib
 cd ..
@@ -131,6 +149,15 @@ cd Authen-Krb5-Simple-0.43
 %make_install
 cd ..
 cd Authen-Radius-0.24
+%make_install
+cd ..
+cd Authen-Simple-0.5
+%make_install
+cd ..
+cd Throwable-0.200011
+%make_install
+cd ..
+cd Test-Simple-1.001003
 %make_install
 cd ..
 cd Authen-Simple-Kerberos-0.1
@@ -201,6 +228,9 @@ cd ..
 /opt/vulture/lib/Sub
 /opt/vulture/lib/bin
 /opt/vulture/lib/share
+/opt/vulture/lib/StackTrace
+/opt/vulture/lib/Test
+/opt/vulture/lib/Throwable
 /opt/vulture/lib/x86_64-linux-thread-multi/Apache2
 /opt/vulture/lib/x86_64-linux-thread-multi/Authen
 /opt/vulture/lib/x86_64-linux-thread-multi/auto
