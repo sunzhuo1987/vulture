@@ -43,6 +43,7 @@ chmod 0770 /var/www/vulture/conf/security-rules/
 chmod 755 /var/www/vulture/bin/test-perl.sh
 mkdir -p /var/www/vulture/log
 chown -R vulture-admin. /var/www/vulture/log
+chown vulture-admin /var/www/vulture/static/img
 
 if grep -E "^vulture-admin ALL=NOPASSWD:.*/usr/sbin/apache2.*/sbin/ifconfig" /etc/sudoers > /dev/null ; then
 	echo "sudo active"
