@@ -64,35 +64,6 @@
                     $('#tbl1body').append(tr);
                 });
                 
-                //Display input when required by select
-                $("#main_content_5 table tr").each(function() {
-                    var tr = $(this);
-                    tr.find(":input:last").hide();
-                    var input = tr.find("select");
-                    //Initial state
-                    switch(input.attr('value')){
-                            case "message":
-                            case "redirect":
-                                tr.find(":input:last").show();
-                                break;
-                            default:
-                                tr.find(":input:last").hide().val('');
-                                break;
-                        }
-                    //On select change
-                    input.change(function(){
-                        switch($(this).attr('value')){
-                            case "message":
-                            case "redirect":
-                                tr.find(":input:last").show();
-                                break;
-                            default:
-                                tr.find(":input:last").hide().val('');
-                                break;
-                        }
-                    });
-                });
-                
                 $('#sso').submit(function() {
                     $('#nbfields').attr('value', nbfields);
                 });
