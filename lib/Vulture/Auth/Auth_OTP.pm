@@ -82,7 +82,7 @@ sub checkAuth {
         # check auth
         unless (
             &{ $auth->{auth_f} }( $auth_type, $r, $log, $dbh, $app, $user,
-                $password, $auth_id ) == Apache2::Const::OK )
+                $password, $auth_id, $session, $class, $csrf_ok ) == Apache2::Const::OK )
         {
             return Apache2::Const::FORBIDDEN;
         }
