@@ -93,7 +93,7 @@ Vulture Reverse Proxy
 	PYTHONPATH=$PYTHONPATH:%{serverroot}/%{name}%{python_sitearch}/:%{serverroot}/%{name}%{python_sitelib}/:${PYTHONPATH}/opt/vulture/lib/Python/modules
 	export PYTHONPATH 
    
-    if [ -f /opt/vulture/admin/vulture/models.py.old]; then         
+    if [ -f /opt/vulture/admin/vulture/models.py.old ]; then         
         python /opt/vulture/admin/vulture/migrate.py        
     fi
  
