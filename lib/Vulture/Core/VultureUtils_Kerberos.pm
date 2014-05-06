@@ -21,6 +21,9 @@ sub getKerberosTgt {
     Authen::Krb5::init_context() or die "::getKerberosTgt : no context: $@\n";
     Authen::Krb5::init_ets();
 
+    #Delete '@' from the username, because realm is passed as an argument
+    $user =~ s/@.*//;
+
     # setup krb5 credential cache name environnement variable for the GSSAPI infra.
     $ENV{'KRB5CCNAME'}="KEYRING:krb5cc_".$user;
 
