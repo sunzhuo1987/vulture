@@ -25,10 +25,10 @@ if [ -f /var/www/vulture/admin/db ] ; then
     cp -f /var/www/vulture/admin/db /var/www/vulture/admin/db.old
 fi
 
-if [ -f /var/www/vulture/admin/models.py ] ; then
+if [ -f /var/www/vulture/admin/vulture/models.py ] ; then
     echo "Backup Models.py"
-    if [ cp -f /var/www/vulture/admin/models.py /var/www/vulture/admin/models.py.old ] ; then
-        rm -f /var/www/vulture/admin/models.py
+    if [ cp -f /var/www/vulture/admin/vulture/models.py /var/www/vulture/admin/vulture/models.py.old ] ; then
+        rm -f /var/www/vulture/admin/vulture/models.py
     fi
 fi
 
