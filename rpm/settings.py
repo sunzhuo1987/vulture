@@ -62,8 +62,8 @@ MEDIA_URL = '/static/'
 # URL prefix for admin media -- CSS, JavaScript and images. Make sure to use a
 # trailing slash.
 # Examples: "http://foo.com/media/", "/media/".
-ADMIN_MEDIA_PREFIX = '/media/'
-
+STATIC_URL = '/static/'
+LOCALE_PATHS='/opt/vulture/locale'
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = '(fk$)9xg!#3y@!j)y9u!nn)zm(u-zqbdbb6_s!urdb%8v^cv9m'
 
