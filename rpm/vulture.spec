@@ -179,6 +179,7 @@ semodule -i vulture.pp
 %{serverroot}/%{name}/admin
 %{serverroot}/%{name}/cpan_modules
 %{serverroot}/%{name}/python_modules
+%{serverroot}/%{name}/locale
 %defattr(-,root,root)
 %{serverroot}/%{name}/lib
 /etc/init.d/%{name}
