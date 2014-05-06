@@ -21,11 +21,6 @@ PYTHONPATH="${PYTHONPATH}/opt/vulture/lib/Python/modules" python setup.py instal
 chown -R vulture-admin. /opt/vulture/lib/Python/modules
 
 
-#Set up database ( call django )
-if [ -f /var/www/vulture/admin/vulture/models.py.old ] ; then
-    PYTHONPATH="${PYTHONPATH}/opt/vulture/lib/Python/modules" python /var/www/vulture/admin/vulture/migrate.py
-fi
-
 cd /var/www/vulture/admin
 PYTHONPATH="${PYTHONPATH}/opt/vulture/lib/Python/modules" python manage.py syncdb --noinput
 chown vulture-admin. /var/www/vulture/
