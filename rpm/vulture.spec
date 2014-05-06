@@ -160,9 +160,6 @@ o.write(B.b64encode(f.read(128))[:32])' > %{serverroot}/%{name}/conf/aes-encrypt
 	echo "This should be changed"  > %{serverroot}/%{name}/conf/aes-encrypt-key.key
 	echo "[Warning] : AES key must be configured manually in" %{serverroot}/%{name}/conf/aes-encrypt-key.key
     fi
-setsebool -P httpd_read_user_content 1
-grep httpd /var/log/audit/audit.log | audit2allow -M vulture
-semodule -i vulture.pp
 
 %preun
     /etc/init.d/vulture stop
