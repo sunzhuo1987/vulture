@@ -737,23 +737,15 @@ class SSL_conf(models.Model):
         ('4758cca',  'IBM 4758 CCA'),
     )
 
-    SSL_OPTIONS = (
-        ('+StdEnvVars','StdEnvVars'),
-        ('+ExportCertData','ExportCertData'),
-        ('+FakeBasicAuth','FakeBasicAuth'),
-        ('+StrictRequire','StrictRequire'),
-        ('+OptRenegotiate','OptRenegotiate'),
-        ('+LegacyDNStringFormat','LegacyDNStringFormat'),
-    )    
 
     cert = models.TextField(blank=1,null=True)
     key = models.TextField(blank=1,null=True)
     ca = models.TextField(blank=1,null=True)
     cacert = models.TextField(blank=1,null=True)
     ssl_engine = models.CharField(max_length=10,blank=1,choices=SSL_ENGINES, null=True)
-    ssl_options = models.CharField(max_length=21,blank=1,choices=SSL_OPTIONS, null=True)
-    ssl_protocol = models.TextField(blank=1,null=1)
-    ssl_cipher_suite = models.TextField(blank=1,null=True)
+    ssl_options = models.TextField(max_length=21,blank=1, default='+StdEnvVars', null=True)    
+    ssl_protocol = models.TextField(blank=1,default='-ALL +SSLv3 +TLSv1',null=True)
+    ssl_cipher_suite = models.TextField(blank=1,default='ALL:!ADH:RC4+RSA:+HIGH:+MEDIUM:!LOW:!SSLv2:!EXPORT',null=True)
 
     def is_uptodate(self):
         """ Check similarity between files and database """
