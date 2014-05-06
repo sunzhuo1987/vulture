@@ -10,5 +10,7 @@ if [ -x "/etc/init.d/vulture" ]; then
 fi
 
 #backup models.py for migration
-cp -f /var/www/vulture/admin/vulture/models.py /var/www/vulture/admin/vulture/models.py.old
+if [ -f "/var/www/vulture/admin/vulture/models.py" ]; then
+    cp -f /var/www/vulture/admin/vulture/models.py /var/www/vulture/admin/vulture/models.py.old
+fi
 # End automatically added section
