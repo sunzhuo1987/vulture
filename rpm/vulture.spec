@@ -69,8 +69,8 @@ Vulture Reverse Proxy
     if [ -f %{serverroot}/%{name}/admin/vulture/models.py ] ; then
         echo "Models are here"
         echo "Backup your old models"
-        cp %{serverroot}/%{name}/admin/vulture/models.py %{serverroot}/%{name}/admin/vulture/models.py.old
-        rm %{serverroot}/%{name}/admin/vulture/models.py
+        cp -f %{serverroot}/%{name}/admin/vulture/models.py %{serverroot}/%{name}/admin/vulture/models.py.old
+        rm -f %{serverroot}/%{name}/admin/vulture/models.py
     fi
 
 %post

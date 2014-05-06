@@ -27,9 +27,8 @@ fi
 
 if [ -f /var/www/vulture/admin/vulture/models.py ] ; then
     echo "Backup Models.py"
-    if [ cp -f /var/www/vulture/admin/vulture/models.py /var/www/vulture/admin/vulture/models.py.old ] ; then
-        rm -f /var/www/vulture/admin/vulture/models.py
-    fi
+    cp -f /var/www/vulture/admin/vulture/models.py /var/www/vulture/admin/vulture/models.py.old
+    rm -f /var/www/vulture/admin/vulture/models.py
 fi
 
 
