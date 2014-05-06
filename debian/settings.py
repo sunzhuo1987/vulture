@@ -64,7 +64,7 @@ MEDIA_URL = '/static/'
 # trailing slash.
 # Examples: "http://foo.com/media/", "/media/".
 STATIC_URL = '/static/'
-LOCALE_PATHS='/var/www/vulture/locale'
+LOCALE_PATHS='/var/www/vulture/admin/vulture/locale'
 
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = '(fk$)9xg!#3y@!j)y9u!nn)zm(u-zqbdbb6_s!urdb%8v^cv9m'
