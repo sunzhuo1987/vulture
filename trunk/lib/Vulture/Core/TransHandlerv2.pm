@@ -69,10 +69,10 @@ sub handler {
     if ( $r->unparsed_uri =~ /$cookie_app_name=([a-zA-Z0-9]+)/ ){
         $id_sap = $1;
     }
-    #else{
-        # Setting pnotes
-        $r->pnotes( 'app' => $app );
-    #}
+    $r->pnotes( 'app' => $app );
+    
+    #Call header rewrite plugins
+    Core::TransHandlerv2::header_input($log,$r,$dbh,$app,$intf);
 
     #Plugin or Rewrite (according to URI)
     my $ret = Core::TransHandlerv2::plugins_th ($log,$r,$dbh,$app,$intf,$r->unparsed_uri);
@@ -80,9 +80,6 @@ sub handler {
     
     #Call content rewrite plugins
     Core::TransHandlerv2::rewrite_content($log,$r,$dbh,$app,$intf);
-
-    #Call header rewrite plugins
-    Core::TransHandlerv2::header_input($log,$r,$dbh,$app,$intf);
 
     #Get sso url for this query:
     my $sso_url = ((defined $intf->{sso_portal} and $intf->{sso_portal}) 
