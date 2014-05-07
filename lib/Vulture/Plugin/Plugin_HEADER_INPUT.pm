@@ -38,11 +38,11 @@ sub plugin {
         foreach $headval (@valhead) {
             if ( $headval && $headval =~ /$value/x ) {
                 $log->debug(
-                    "Plugin_OutputFilterHandler RH Rule substitution OLDVAL=",
+                    "Plugin_InputFilterHandler RH Rule substitution OLDVAL=",
                     $headval );
                 $headval =~ s/$value/$replacementheader/ig;
                 $log->debug(
-                    "Plugin_OutputFilterHandler RH Rule substitution NEWVAL=",
+                    "Plugin_InputFilterHandler RH Rule substitution NEWVAL=",
                     $headval );
                 $r->headers_in->unset($header);
                 $r->headers_in->set( $header => $headval );

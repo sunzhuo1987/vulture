@@ -97,6 +97,7 @@ INSTALLED_APPS = (
     'django_crontab'
 )
 
+CRONTAB_COMMAND_PREFIX='PYTHONPATH=/opt/vulture/lib/Python/modules'
 CRONJOBS = [        
         ('*/1 * * * *', 'vulture.cron.cronJob')
 ]
