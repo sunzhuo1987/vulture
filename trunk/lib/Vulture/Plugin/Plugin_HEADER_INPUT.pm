@@ -23,12 +23,6 @@ sub plugin {
     if ( $type eq "Header Add" ) {
         $r->headers_in->add( $header => $options );
     }
-    if ( $type eq "Header Modify" ) {
-        if ( $r->content_type =~ m/$header/i ) {
-            $r->headers_in->unset($options);
-            $r->headers_in->set( $options => $options1 );
-        }
-    }
     if ( $type eq "Header Replacement" ) {
         $log->debug("Header Replacement");
         my @valhead           = $r->headers_in->get($header);
