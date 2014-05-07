@@ -1667,7 +1667,7 @@ class Plugincontent(models.Model):
 
 class Pluginheader(models.Model):
     PLUGIN_TYPES = (
-    ('Header Modify', 'Header Modify'),
+    ('Header Add', 'Header Add'),
     ('Header Replacement', 'Header Replacement'),
     ('Header Unset','Header Unset'),
     ('Header Concat','Header Concat'),
