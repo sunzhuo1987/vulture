@@ -351,7 +351,7 @@ sub plugin {
                 }
                 else { $badquery = 1; }
             }
-            catch 
+            catch {
                 $status   = "Requester";
                 $badquery = 1;
             };
