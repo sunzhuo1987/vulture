@@ -41,6 +41,8 @@ use APR::SockAddr;
 use URI::Escape;
 use List::Util;
 
+use Try::Tiny;
+
 sub rewrite_uri {    # Rewrite uri for being valid
     my ( $r, $app, $uri, $real_post_url, $log ) = @_;
     my $hostname = $app->{name};
@@ -383,13 +385,16 @@ sub forward {
             }
 
             #Try to push custom headers
-            eval {
+            try {
 			$request->remove_header($name);
 			$request->push_header($name => $value);
 			$mech->delete_header($name);
 			$mech->add_header($name => $value);
 			$log->debug("Pushing custom header $name => $value");
-            };
+            }
+	    catch {
+		$log->debug("Unable to push custom header $name => $value");
+	    }
         }
         $sth->finish();
 
@@ -546,11 +551,14 @@ sub forward {
         }
 
         #Try to push custom headers
-        eval {
+        try {
             $request->remove_header($name);
             $request->push_header( $name => $value );
             $log->debug("Pushing custom header $name => $value");
-        };
+        }
+	catch {
+		$log->debug("Unable to push custom header $name => $value");
+	}
     }
     $sth->finish();
     $request->remove_header('Cookie');
@@ -565,26 +573,29 @@ sub forward {
     our %cookies_app = ();
 	if ((int($sso_is_post) != 1)) {
 		$post_response = $mech->request($request);
-#	$log->debug($mech->cookie_jar->as_string);
+		#$log->debug($mech->cookie_jar->as_string);
 		$mech->cookie_jar->scan( \&SSO::SSO_FORWARD::callback );
 	} else {	
 		my $ua = LWP::UserAgent->new;
-        while ( my ($k,$v) = each %ssl_opts){
-            eval{
-                $ua->ssl_opts ( $k => $v );
-            };
-        }
+        	while ( my ($k,$v) = each %ssl_opts){
+            		try{
+                		$ua->ssl_opts ( $k => $v );
+            		}
+	    		catch {
+
+	    		}
+        	}
 		$post_response = $ua->request($request);
 		foreach ($post_response->headers->header('Set-Cookie')) {
-           if (/([^,; ]+)=([^,; ]*)/) {
-                $cookies_app{$1} = $2;		# ajout/remplacement
-                $log->debug("ADD/REPLACE ".$1."=".$2);
-           }
-       }
+           		if (/([^,; ]+)=([^,; ]*)/) {
+                		$cookies_app{$1} = $2;		# ajout/remplacement
+                		$log->debug("ADD/REPLACE ".$1."=".$2);
+           		}
+       		}
 	}
 
-#Keep cookies to be able to log out
-#$session_app{cookie} = join('; ', map { "'$_'=\"${cookies_app{$_}}\"" } keys %cookies_app), "\n";
+	#Keep cookies to be able to log out
+	#$session_app{cookie} = join('; ', map { "'$_'=\"${cookies_app{$_}}\"" } keys %cookies_app), "\n";
 
 	foreach my $pr (split("\n",$post_response->content())) {
 		if ($pr =~ /document\.cookie='(.*);path=(.*)'/) {

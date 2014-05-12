@@ -27,6 +27,8 @@ use APR::SockAddr;
 
 use DBI ;
 
+use Try::Tiny;
+
 sub handler {
 
     my $r            = Apache::SSLLookup->new(shift);
@@ -348,10 +350,12 @@ sub forward_headers{
             $value = $r->ssl_lookup($type);
         }
         #Try to push custom headers
-        eval {
+        try {
             $r->headers_in->set( $name => $value );
             $log->debug("Pushing custom header $name => $value");
-        };
+        }
+	catch {
+	}
     }
     $sth->finish();
 }

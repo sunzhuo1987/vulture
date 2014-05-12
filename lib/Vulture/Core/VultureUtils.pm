@@ -39,6 +39,7 @@ use MIME::Base64;
 use HTTP::Request;
 use LWP::UserAgent;
 use Apache::SSLLookup;
+use Try::Tiny;
 
 our ($memd);
 
@@ -126,8 +127,7 @@ sub session {
             Servers   => $mc,
           };
     }
-      or session( $session, $timeout, undef, $log, $mc, $update_access_time,
-        int $n + 1 );
+    or session( $session, $timeout, undef, $log, $mc, $update_access_time, int $n + 1 );
 
     #Session starting this time or previous session connection time was valid
     if (
@@ -737,16 +737,17 @@ sub get_LDAP_field {
 }
 sub load_module{
     my ($module_name,$func)= @_;
-#load function from module
-    eval {
-    ( my $file = $module_name ) =~ s|::|/|g;
+    #load function from module
+    try {
+    	( my $file = $module_name ) =~ s|::|/|g;
         require $file . '.pm';
         $module_name->import($func);
         1;
-    } or do {
+    } 
+    catch {
         my $error = $@;
         return $error;
-    };
+    }
 }
 sub parse_set_cookie {
         my $sc = shift;
@@ -864,12 +865,14 @@ sub get_ua_object {
     if ( $remote_proxy ne '' ) {
         $ua->proxy( [ 'http', 'https' ], $remote_proxy );
     }
-    eval{
+    try {
         $ua->ssl_opts ( verify_hostname => 1 );
-    };
+    }
+    catch {
+    }    
     my $SSL_ca_file = $config->get_key('SSL_ca_file')||'';
     if ($SSL_ca_file){
-        eval{
+        try{
             $ua->ssl_opts(SSL_ca_file => $SSL_ca_file);
         };
     }
@@ -923,10 +926,12 @@ sub get_http_request{
               if ( exists $ssl_headers{$h_type} );
         }
         #Try to push custom headers
-        eval {
+        try {
             $http_req->remove_header($h_name);
             $http_req->push_header($h_name => $h_value);
-        };
+        }
+	catch {
+	}
     }
     return $http_req;
 }

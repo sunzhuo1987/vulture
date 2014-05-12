@@ -17,9 +17,9 @@ use Authen::Smb;
 
 use Apache2::Const -compile => qw(OK HTTP_UNAUTHORIZED FORBIDDEN);
 
-use Core::VultureUtils
-  qw(&session &get_memcached &set_memcached &generate_random_string &notify &load_module);
+use Core::VultureUtils qw(&session &get_memcached &set_memcached &generate_random_string &notify &load_module);
 use Core::ActionManager qw(&handle_action);
+use Try::Tiny;
 
 #USED FOR NTLM
 sub get_nonce {
@@ -29,20 +29,20 @@ sub get_nonce {
     $self->{semtimeout} = 2;
 
     if ( $self->{semkey} ) {
-        $log->debug("We are going to lock if needed");
-        eval {
+        $log->debug("[$$] AuthenNTLM: We are going to lock if needed");
+        try {
             $log->debug("Locking ...");
-            local $SIG{ALRM} = sub {
-                $log->debug( "[$$] AuthenNTLM: timed out"
-                      . "while waiting for lock (key = $self->{semkey})\n" );
+            local $SIG{ALRM} = sub { 
+		$log->debug( "[$$] AuthenNTLM: timed out while waiting for lock (key = $self->{semkey})\n" );
                 die;
             };
-
             alarm $self->{semtimeout};
-            $self->{lock} =
-              Lock->lock( $self->{semkey}, $log );
+            $self->{lock} = Lock->lock( $self->{semkey}, $log );
             alarm 0;
-        };
+        }
+	catch {
+		$log->debug("[$$] AuthenNTLM: Problem during lock");
+	}
     }
     if ( $self->{nonce} ) {
         $log->debug( "Auth_NTLM: get_nonce -> Reuse " . $self->{nonce} );
