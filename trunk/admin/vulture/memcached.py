@@ -82,7 +82,7 @@ class MC:
         else:
             self.client = memcache.Client(self.mc_servers,
                     pickler=NopPickler, unpickler=NopPickler)
-        
+
     def split_put(self, key, value, func):
         """
         split_put pickle the value, and return a list of objects to add/set, 
@@ -172,7 +172,7 @@ class SynchroDaemon:
     LOCKFILE = "%s/vulture-daemon.lock"%settings.CONF_PATH
     VERSIONKEY = "vulture_version"
     KEYSTORE = "vulture_instances"
-    INTERVAL = 30
+    INTERVAL = 60
     def __init__(self):
         self.db = sqlite3.connect(settings.DATABASES['default']['NAME'])
         self.db.row_factory=sqlite3.Row
@@ -290,10 +290,10 @@ class SynchroDaemon:
         else:
         # new config available, update
             logger.info("[+] Updating conf...")
-            self.pop_conf()
             myversion = mcversion
             # update my version number in database
-            Conf.objects.filter(var="version_conf").update(value=str(myversion))
+            Conf.objects.filter(var="version_conf").update(value=str(myversion)) 
+            self.pop_conf()
             logger.info("[+] Update done")
         # put this server name in memcache if not already there
         all_srv = self.mc.get(self.KEYSTORE) or []
@@ -400,13 +400,14 @@ class SynchroDaemon:
                 mc_e=mc_ids[mc_k]
                 # line present, eventually update
                 if mc_k in db_ids:
+                
                     db_e = db_ids[mc_k]
                     # get keys to update
                     keys,vals=[],[]
-                    for k in mc_e:
-                        if mc_e[k]!=db_e[k]:
-                            keys +=[k]
-                            vals+=[mc_e[k]]
+                    for k in mc_e:  
+                        if mc_e[k] != db_e[k]:
+                            keys += [k]
+                            vals += [mc_e[k]]
                     if vals:
                         q = "UPDATE `%s` SET %s WHERE id=?"%(table,
                             ",".join(["`%s`=?"%k for k in keys])
@@ -422,7 +423,8 @@ class SynchroDaemon:
                     logger.info("INSERT INTO %s" % table)
                     self.db.execute(q,vals)
         self.db.commit()
-  
+        self.check_config()
+
     # convert sqlite to dictionnary
     def convert_sqliteRow_to_dict(self,rows):
         #for easy work, we convert sqliteRow object (return by the query)
