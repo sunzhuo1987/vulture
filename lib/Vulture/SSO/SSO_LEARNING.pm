@@ -61,7 +61,7 @@ sub forward {
     #Adding data to post variable
     my $head =
       "<h3>To access to this app, you must specify the following fields</h3>";
-    my $form .= "<form method=\"POST\" name='app_form' action=\"\">";
+    my $form .= "<div id=\"custom_learning\"><form method=\"POST\" name='app_form' action=\"\">";
     $form    .= "<input type=hidden name=vulture_learning value=1>";
     $form    .= "<table>";
     foreach my $field (@fields) {
@@ -82,7 +82,7 @@ sub forward {
         }
     }
     $form .= "<tr><td></td><td><input type=\"submit\"></td></tr>";
-    $form .= "</form></table>";
+    $form .= "</table></form></div>";
     my $translations =
       Core::VultureUtils::get_translations( $r, $log, $dbh, "SSO_LEARNING" );
 
