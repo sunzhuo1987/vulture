@@ -50,7 +50,6 @@ Vulture Reverse Proxy
      install -m0644 conf/openssl.cnf\
      $RPM_BUILD_ROOT%{serverroot}/%{name}/conf/openssl.cnf
      install -d -m0755 rpm $RPM_BUILD_ROOT%{serverroot}/%{name}/rpm/
-     install -m0755 rpm/*.gz $RPM_BUILD_ROOT%{serverroot}/%{name}/rpm/
 
 %clean
      rm -rf $RPM_BUILD_ROOT

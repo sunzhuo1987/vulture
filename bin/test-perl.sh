@@ -40,7 +40,7 @@ Digest::MD5
 Digest::SHA1
 Encode
 Email::MIME
-Email::Sender::Simple
+Email::Sender
 Exporter
 Getopt::Std
 GSSAPI
