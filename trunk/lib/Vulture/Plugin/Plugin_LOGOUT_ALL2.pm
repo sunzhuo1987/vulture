@@ -115,6 +115,12 @@ function start(ifr){
 </head>
 <body>
     <iframe id="ifr" style="visibility:hidden" onload="start(this)" src="/static/empty.html"></iframe>
+	Please wait, you will be redirected ...
+	<script>
+		setTimeout(function() {
+			window.location = "$final_url";
+		}, 3000);
+	</script>
 </body>
 </html>
 RESP_BODY
