@@ -481,6 +481,7 @@ class Intf(models.Model):
                      "app_list" : dirapp,
                      "intf" : self,
                      "MS_path" : MS_path,
+                     "debian" : ('Debian' in uname[3]),
                      "arch64" : (uname[4] == 'x86_64')
                      })
         return t.render(c)
