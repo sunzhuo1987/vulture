@@ -17,7 +17,7 @@ use Authen::Smb;
 
 use Apache2::Const -compile => qw(OK HTTP_UNAUTHORIZED FORBIDDEN);
 
-use Core::VultureUtils qw(&session &get_memcached &set_memcached &generate_random_string &notify &load_module);
+use Core::VultureUtils qw(&session &get_memcached &set_memcached &generate_random_string &log_auth_event &load_module);
 use Core::ActionManager qw(&handle_action);
 use Try::Tiny;
 
@@ -155,8 +155,8 @@ sub handler : method {
               or {}
           };
 
-        Core::VultureUtils::notify( $dbh, undef, $user, 'connection_failed',
-            scalar( keys %users ) );
+        Core::VultureUtils::log_auth_event($log, $app ? $app->{friendly_name} : '-', $user, 'connection_failed',
+        "AuthenHandler" );
 
         $r->user('');
         $r->pnotes('username'=>undef);
@@ -236,7 +236,9 @@ sub cas_set_ticket{
 sub validate_auth{
     my ($r,$user,$password,$service,$session_SSO,$notify) = @_;
     my $dbh     = $r->pnotes('dbh');
+    my $log = $r->pnotes('log');
     my $mc_conf = $r->pnotes('mc_conf');
+    my $app = $r->pnotes('app');
     $r->pnotes( 'username' => $user );
     $r->pnotes( 'password' => $password );
 
@@ -254,8 +256,8 @@ sub validate_auth{
     $users{ $user } = { 'SSO' => $r->pnotes('id_session_SSO') };
 
     # log connection to app if required
-    Core::VultureUtils::notify( $dbh, undef, $user, 'connection',
-        scalar( keys %users ) ) if ($notify);
+    Core::VultureUtils::log_auth_event($log, $app ? $app->{friendly_name} : '-', $user, 'connection',
+    "AuthenHandler" ) if ($notify);
 
     #Generate new service ticket if needed
     if ( defined $service ) {

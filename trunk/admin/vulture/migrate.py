@@ -23,15 +23,22 @@ from django.core.management import call_command
 import sqlite3
 
 class Migrate():
-    def __init__(self):
+    def __init__(self, dest_version=None):
         self.model_list = list()
         app = get_app('vulture')
         for model in get_models(app):
             model_name = "vulture." + model.__name__
             self.model_list.append(model_name)
-    
-        import_name    = 'changes_2_0_8'
-        self.model_changes = __import__('migrations.' + import_name, fromlist=[import_name])
+        if dest_version:
+            import_name = dest_version
+        else :    
+            import_name    = 'changes_2_0_8'
+        try:
+            self.model_changes = __import__('migrations.' + import_name, fromlist=[import_name])
+        except ImportError:
+            print "Wrong update parameter"
+            sys.exit(0)
+
         self.changes_queue = list()
         
     def prepare_migration(self):
@@ -210,6 +217,8 @@ class Migrate():
                 cur = con.cursor()
                 tmp = model.split('.')
                 table_name = tmp[1].lower()
+                if table_name == 'appearance':#handle model divergency
+                    table_name = 'style_style'
                 cur.executescript(unicode("drop table "+table_name+";"))
                 cur.close() 
             except sqlite3.OperationalError: 
@@ -231,24 +240,33 @@ class Migrate():
         except:
             pass
 
-#Setting up old model and backup old db
-os.system("mv "+VPATH+"vulture/models.py "+VPATH+"vulture/models_final.py")
-os.system("cp "+VPATH+"vulture/models.py.old "+VPATH+"vulture/models.py")
-os.system("cp "+VPATH+"db "+VPATH+"db_old_migration_2.0.8")
+""" Migration 2.0.7 ==> 2.0.8 """
+if len(sys.argv) == 1: 
+    #Setting up old model and backup old db
+    os.system("mv "+VPATH+"vulture/models.py "+VPATH+"vulture/models_final.py")
+    os.system("cp "+VPATH+"vulture/models.py.old "+VPATH+"vulture/models.py")
+    os.system("cp "+VPATH+"db "+VPATH+"db_old_migration")
 
-#Used to fix bug about datatype in sso table
-try:
-    con = sqlite3.connect(VPATH+"db")
-    cur = con.cursor()
-    cur.execute("DELETE FROM sso where id=1")
-    cur.execute("INSERT INTO sso VALUES(1,'Htaccess','sso_forward_htaccess',NULL,NULL,NULL,NULL,NULL,0,'1',NULL,NULL,'',NULL,'',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0)")
-    con.commit()
-    con.close()
-except:
-    pass
+    #Used to fix bug about datatype in sso table
+    try:
+        con = sqlite3.connect(VPATH+"db")
+        cur = con.cursor()
+        cur.execute("DELETE FROM sso where id=1")
+        cur.execute("INSERT INTO sso VALUES(1,'Htaccess','sso_forward_htaccess',NULL,NULL,NULL,NULL,NULL,0,'1',NULL,NULL,'',NULL,'',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0)")
+        con.commit()
+        con.close()
+    except:
+        pass
 
-#Migration
-a = Migrate()
-a.process_migration()
-
-os.system("cp "+VPATH+"vulture/models_final.py "+VPATH+"vulture/models.py")#restore model in case of error
+    #Migration
+    a = Migrate()
+    a.process_migration()
+    os.system("cp "+VPATH+"vulture/models_final.py "+VPATH+"vulture/models.py")#restore model in case of error
+    """Apply a patch"""
+else :
+    dest_version = sys.argv[1]
+    os.system("cp "+VPATH+"db "+VPATH+"db_old_migration_"+dest_version)
+    os.system("mv "+VPATH+"vulture/models.py "+VPATH+"vulture/models_final.py")
+    os.system("cp "+VPATH+"vulture/models.py.old "+VPATH+"vulture/models.py")
+    a = Migrate(dest_version)
+    a.process_migration()

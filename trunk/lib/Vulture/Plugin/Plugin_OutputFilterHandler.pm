@@ -5,6 +5,7 @@ package Plugin::Plugin_OutputFilterHandler;
 use strict;
 use warnings;
 
+use Core::VultureUtils qw(&get_cookie);
 use base qw(Apache2::Filter);
 use Apache2::Const qw(OK DECLINED FORBIDDEN :conn_keepalive);
 use Apache2::Connection ();
@@ -193,6 +194,12 @@ sub handler {
         # Rewrite content if pattern match
         foreach my $p ( @{$ctx->{rewrite_content}} ) {
                 my ( $match, $substitute ) = @$p;#split( / => /, $p );
+		if ($substitute =~ /^(.*)%Cookie:(.*)%(.*)/) {
+			my $cookie_value = get_cookie($r->headers_in->{Cookie}, "$2=([^;]*)");
+			$log->debug("Cookie : $2=$cookie_value");
+			$log->debug("uri: $parsed_uri");
+			$substitute = $1 . $cookie_value . $3;
+		}
                 $log->debug("CONTENT REWRITE: Will replace : \"$match\", with : \"$substitute\"");
                 &do_rewrite_content( \$ctx->{data}, $match, $substitute,
                     $parsed_uri );

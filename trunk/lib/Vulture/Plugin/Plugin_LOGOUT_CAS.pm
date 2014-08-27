@@ -99,8 +99,7 @@ sub plugin {
                 my ( $app_id, $host, $url, $remote_proxy, $logout_url ) =
                   $sth->fetchrow_array;
 
-                Core::VultureUtils::notify( $dbh, $app_id, $session_SSO{username}, 'deconnection',
-                    scalar( keys %users ) );
+                Core::VultureUtils::log_auth_event($log, $app_id, $session_SSO{username}, 'deconnection', 'LOGOUT_CAS');
                 if ( $url and $logout_url ) {
 
                     #Setting fake user agent

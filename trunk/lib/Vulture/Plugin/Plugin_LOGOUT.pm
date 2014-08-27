@@ -16,7 +16,7 @@ use Apache2::Log;
 use Apache2::Reload;
 
 use Core::VultureUtils
-  qw(&get_cookie &session &get_memcached &set_memcached &notify &get_translations &get_style &parse_set_cookie);
+  qw(&get_cookie &session &get_memcached &set_memcached &log_auth_event &get_translations &get_style &parse_set_cookie);
 
 use Apache2::Const -compile => qw(OK FORBIDDEN REDIRECT);
 
@@ -38,7 +38,7 @@ sub plugin {
     return Apache2::Const::FORBIDDEN unless $session_app{is_auth};
 
     $session_app{'is_auth'} = undef;
-    notify( $dbh, $app->{id}, $session_app{username}, 'deconnection', 0);
+    log_auth_event($log, $app->{id}, $session_app{username}, 'deconnection', "LOGOUT");
 
     #Destroy useless handlers
     $r->set_handlers( PerlAccessHandler => undef );

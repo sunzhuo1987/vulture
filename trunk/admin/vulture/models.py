@@ -10,15 +10,16 @@ try:
     import sqlite3
 except:
     from pysqlite2 import dbapi2 as sqlite3
+import datetime
 from datetime import date
 import ldap
 import operator
-import os, time
 import os
 import subprocess
 import re
 from django.contrib.auth.models import User as DjangoUser, UserManager as DjangoUserManager
 from django.db.models.signals import post_save
+from django.contrib.auth.signals import user_logged_in, user_logged_out
 from django.db.models import Q
 from django import forms
 import base64
@@ -27,6 +28,7 @@ import tarfile,zipfile
 import urllib2
 import tempfile
 import shutil
+import inspect
 
 class Groupe(models.Model):
     name = models.CharField(max_length = 255,blank=False,null=True)
@@ -425,7 +427,7 @@ class Intf(models.Model):
     need_change_pass_action = models.CharField(max_length=128, blank=1, null=1, choices=ACTIONS, default='nothing')
     need_change_pass_options = models.CharField(max_length=128, blank=1, null=1)
     # ssl fields
-    ssl_configuration = models.ForeignKey('SSL_conf',null=1,blank=1)
+    ssl_configuration = models.ForeignKey('SSL_conf',null=1,blank=1, on_delete=models.SET_NULL)
     # apache server setting
     srv_timeout = models.IntegerField(blank=0,default=300)
     srv_startsrv = models.IntegerField(blank=0,default=5)
@@ -813,21 +815,6 @@ class Conf(models.Model):
         return self.var
     class Meta:
         db_table = 'conf'
-
-class EventLogger(models.Model):
-    EVENT_TYPE = (
-        ('connection', 'connection'),
-        ('connection_failed', 'connection_failed'),
-        ('deconnection', 'deconnection'),
-        ('active_sessions', 'active_sessions'),
-    )
-    app = models.ForeignKey('App', blank=1, null=1)
-    user = models.CharField(max_length = 256, null=1, blank=1)
-    event_type = models.CharField(max_length=64,choices=EVENT_TYPE)
-    timestamp = models.DateTimeField(auto_now_add=True, null=1, blank=1)
-    info = models.CharField(max_length = 256, null=1, blank=1)
-    class Meta:
-        db_table = 'event_logger'
    
 # Authentification classes
 class SQL(models.Model):
@@ -1485,7 +1472,7 @@ class App(models.Model):
         return " "
  
     def __str__(self):
-        return self.friendly_name# + " : " + ", ".join([i.name for i in self.intf.all()])
+        return (self.friendly_name).encode('utf-8')
     class Meta:
         db_table = 'app'
         permissions = (
@@ -1569,6 +1556,8 @@ class Template(models.Model):
         ('LEARNING', 'Learning'),
         ('LOGOUT', 'Logout'),
         ('SSO_LOGIN', 'SSO Login'),
+        ('ACCOUNT_LOCKED', 'Account locked'),
+        ('NEED_CHANGE_PASS', 'Need change pass'),
         )
     name = models.CharField(max_length=128,unique=1)    
     type = models.CharField(max_length=50, choices=TEMPLATE_TYPES)
@@ -1638,6 +1627,8 @@ class Appearance(models.Model):
     sso_learning_tpl = models.ForeignKey('Template', related_name='sso_learning_tpl', blank=1, null=1, limit_choices_to = {'type__exact' : 'LEARNING'})
     logout_tpl = models.ForeignKey('Template', related_name='logout_tpl', blank=1, null=1, limit_choices_to = {'type__exact' : 'LOGOUT'})
     sso_login_tpl = models.ForeignKey('Template', related_name='sso_login_tpl', blank=1, null=1, limit_choices_to = {'type__exact' : 'SSO_LOGIN'})
+    account_locked_tpl = models.ForeignKey('Template', related_name='account_locked_tpl', blank=1, null=1, limit_choices_to = {'type__exact' : 'ACCOUNT_LOCKED'})
+    need_change_pass_tpl = models.ForeignKey('Template', related_name='need_change_pass_tpl', blank=1, null=1, limit_choices_to = {'type__exact' : 'NEED_CHANGE_PASS'})
     image = models.ForeignKey('Image',blank=1,null=1)
     
     def __str__(self):
@@ -1908,6 +1899,23 @@ class AdminStyle(models.Model):
 class UserProfile(models.Model):
     user=models.OneToOneField(DjangoUser)
     style=models.ForeignKey('AdminStyle', null=1)
+    
+    def log_auth(sender, user, request, **kwargs):
+        """Log user's authentication to Vulture Admin App"""
+        datestring = datetime.datetime.utcnow().strftime("%c")
+        """Inspecting stack trace to identify if auth event is log in or log out"""
+        callerfunc = str(inspect.stack()[2][4][0])
+        if re.search('user_logged_in', callerfunc):
+            msg = "connection"
+        elif re.search('user_logged_out', callerfunc):
+            msg = "deconnection"
+        """Appending event in file"""
+        with open("/var/log/Vulture-authentication", "a") as auth_log_file:
+            auth_log_file.write("["+datestring+"] \"Vulture-admin\" "+str(user)+" "+msg+" VultureLogon\n")
+        
+    """Binding auth event to log_auth function"""
+    user_logged_in.connect(log_auth)
+    user_logged_out.connect(log_auth)
     class Meta:
         db_table = 'user_profile'
     def __unicode__(self):

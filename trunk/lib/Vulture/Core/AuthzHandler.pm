@@ -16,7 +16,7 @@ use DBI;
 
 use Apache2::Const -compile => qw(OK HTTP_UNAUTHORIZED);
 
-use Core::VultureUtils qw(&session &get_memcached &notify &load_module);
+use Core::VultureUtils qw(&session &get_memcached &log_auth_event &load_module);
 use Core::ActionManager qw(&handle_action);
 use Core::VultureUtils qw(&encrypt);
 sub handler {
@@ -115,8 +115,9 @@ sub handler {
 }
 sub invalidate_auth{
     my ($r, $dbh, $app, $user, $users, $session_app, $session_sso) = @_;
-    Core::VultureUtils::notify( $dbh, $app ? $app->{id} : undef, $user,
-        'connection_failed', scalar( keys %$users ) );
+    my $log = $r->pnotes('log');
+    Core::VultureUtils::log_auth_event($log, $app ? $app->{friendly_name} : '-', $user,
+        'connection_failed', "AuthzHandler" );
     $session_app->{is_auth}=0 if $session_app;
     
     undef $session_sso->{ $app->{name} } if ($app and exists $session_sso->{$app->{name}});
@@ -127,8 +128,9 @@ sub invalidate_auth{
 sub validate_auth{
     my ($r,$dbh,$app,$user,$password,$users,  
         $session_SSO,$session_app) = @_;
-    Core::VultureUtils::notify( $dbh, $app->{id}, $user,
-        'connection', scalar( keys %$users ) );
+    my $log = $r->pnotes('log');
+    Core::VultureUtils::log_auth_event($log, $app->{friendly_name}, $user,
+    'connection', "AuthzHandler" );
     #Setting app session
     $session_app->{is_auth}  = 1;
     $session_app->{username} = $user;
