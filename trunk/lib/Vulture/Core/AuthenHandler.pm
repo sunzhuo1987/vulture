@@ -244,6 +244,7 @@ sub validate_auth{
 
     # set credentials for this session
     $session_SSO->{username} = $user;
+    $session_SSO->{is_auth} = 1;
     $r->user($user);
     
     #Setting Memcached table
