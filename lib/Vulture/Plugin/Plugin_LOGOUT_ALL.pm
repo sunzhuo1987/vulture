@@ -17,7 +17,7 @@ BEGIN {
 use Apache2::Log;
 use Apache2::Reload;
 use Core::VultureUtils
-  qw(&get_cookie &session &get_memcached &set_memcached &notify &get_translations &get_style &parse_set_cookie &get_ua_object &get_http_request);
+  qw(&get_cookie &session &get_memcached &set_memcached &log_auth_event &get_translations &get_style &parse_set_cookie &get_ua_object &get_http_request);
 use Apache2::Const -compile => qw(OK FORBIDDEN REDIRECT);
 
 sub plugin {
@@ -50,8 +50,7 @@ sub plugin {
     delete $users{ $session_SSO{username} };
     set_memcached( 'vulture_users_in', \%users, undef, $mc_conf );
 
-    notify( $dbh, undef, $session_SSO{username}, 'deconnection',
-        scalar( keys %users ) );
+    log_auth_event($log, '-', $session_SSO{username}, 'deconnection', 'LOGOUT_ALL');
 
     #Foreach app where user is currently logged in
     foreach my $key ( keys %session_SSO ) {
@@ -77,8 +76,7 @@ sub plugin {
             my ( $host, $app_id, $url, $remote_proxy, $logout_url ) =
               $sth->fetchrow_array;
 
-            notify( $dbh, $app_id, $session_SSO{username}, 'deconnection',
-                scalar( keys %users ) );
+            log_auth_event($log, $app_id, $session_SSO{username}, 'deconnection', 'LOGOUT_ALL');
 
             if ( $url and $logout_url ) {
                 #Setting fake user agent

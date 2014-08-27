@@ -17,7 +17,7 @@ BEGIN {
 use Apache2::Log;
 use Apache2::Reload;
 use Core::VultureUtils
-  qw(&get_cookie &session &notify &parse_cookies &get_ua_object &get_http_request);
+  qw(&get_cookie &session &log_auth_event &parse_cookies &get_ua_object &get_http_request);
 use Apache2::Const -compile => qw(OK FORBIDDEN REDIRECT);
 
 sub plugin {
@@ -51,7 +51,7 @@ sub plugin {
         $ua->request($request);
     }
 
-    notify( $dbh, $app->{id}, $session_app{username}, 'deconnection', 0);
+    log_auth_event($log, $app->{id}, $session_app{username}, 'deconnection', 'LOGOUT_BROWSER');
     $session_app{is_auth} = 0;
 
     my $path = "/";

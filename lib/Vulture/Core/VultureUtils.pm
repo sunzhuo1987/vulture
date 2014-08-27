@@ -15,7 +15,7 @@ BEGIN {
       qw(&get_memcached_conf &version_check &get_app &get_intf &session 
       &get_cookie &get_memcached &set_memcached &get_DB_object
       &get_LDAP_object &get_style &get_translations &generate_random_string 
-      &notify &get_LDAP_field &get_SQL_field &load_module &is_JK &parse_set_cookie &parse_cookies
+      &log_auth_event &get_LDAP_field &get_SQL_field &load_module &is_JK &parse_set_cookie &parse_cookies
       &encrypt &decrypt &get_ua_object &get_http_request &get_app_cookies &get_mech_object);
 }
 
@@ -185,7 +185,7 @@ sub get_app {
     unless (defined $apps){
 #Getting app and wildcardsv
         $query =
-    'SELECT app.id, app.name, app.alias, app.url, app.log_id, app.sso_forward_id AS sso_forward, app.logon_url, app.logout_url, intf.port, app.remote_proxy, app.up, app.auth_url,app.auth_basic, app.display_portal,app.check_csrf , app.canonicalise_url, app.timeout, app.update_access_time, app.sso_learning_ext, app.secondary_authentification_failure_options,app.Balancer_Activated, app.Balancer_Node,app.Balancer_Stickyness FROM app JOIN app_intf ON app.id = app_intf.app_id JOIN intf ON app_intf.intf_id = intf.id WHERE intf.id = ? ORDER BY app.name ASC';
+    'SELECT app.id, app.friendly_name, app.name, app.alias, app.url, app.log_id, app.sso_forward_id AS sso_forward, app.logon_url, app.logout_url, intf.port, app.remote_proxy, app.up, app.auth_url,app.auth_basic, app.display_portal,app.check_csrf , app.canonicalise_url, app.timeout, app.update_access_time, app.sso_learning_ext, app.secondary_authentification_failure_options,app.Balancer_Activated, app.Balancer_Node,app.Balancer_Stickyness FROM app JOIN app_intf ON app.id = app_intf.app_id JOIN intf ON app_intf.intf_id = intf.id WHERE intf.id = ? ORDER BY app.name ASC';
         $log->debug($query);
         $sth = $dbh->prepare($query);
         $sth->execute($intf);
@@ -462,7 +462,9 @@ sub get_style {
         DISPLAY_PORTAL=>"sso_portal_tpl_id",
         LEARNING=>"sso_learning_tpl_id",
         LOGOUT=>"logout_tpl_id",
-        SSO_LOGIN=>"sso_login_tpl_id"
+        SSO_LOGIN=>"sso_login_tpl_id",
+        ACCOUNT_LOCKED=>"account_locked_tpl_id",
+        NEED_CHANGE_PASS=>"need_change_pass_tpl_id"
         };
     my $tpl_type = $tpl_types->{uc($type)}||'';
     unless ($tpl_type) {
@@ -652,26 +654,20 @@ sub generate_random_string {
     return $random_string;
 }
 
-sub notify {
-    my ( $dbh, $app_id, $user, $type, $info ) = @_;
-    my ( $sec, $min, $hour, $mday, $mon, $year, $wday, $yday, $isdst ) =
-      localtime();
-    $year += 1900;
-    $mon += 1;
-    my $e_ts = "$year-$mon-$mday $hour:$min:$sec.0";
-
-    #Filling database
-    my $query =
-"INSERT INTO event_logger ('app_id', 'user', 'event_type', 'timestamp', 'info') VALUES (?,?,?,?,?)";
-    my $sth = $dbh->prepare($query);
-
-    #Notify event to db
-    $sth->execute( $app_id, $user, $type, $e_ts, undef );
-
-    #Log active users
-    $sth->execute( $app_id, $user, 'active_sessions', $e_ts, $info );
-    $sth->finish();
+#Log users connexion event into a file
+sub log_auth_event {
+ my ($log, $app_name, $user, $type, $src ) = @_;
+ my $filename = '/var/log/Vulture-authentication';
+ my $datestring = localtime();
+ try { # Appending auth event in log file
+    open(my $log_auth, '>>', $filename) or die();
+    print $log_auth "[$datestring] \"$app_name\" $user $type $src\n";
+    close $log_auth;
+ } catch {
+    $log->warn("IO Error : Unable to write auth event in file");
+ };
 }
+
 sub get_SQL_field {
     my ($log,$dbh,$sql_id,$login,$field) = @_;
     my ( $new_dbh, $ref ) = get_DB_object( $log, $dbh, $sql_id );
@@ -948,6 +944,11 @@ sub get_app_cookies{
                     $cleaned_cookies .= $1 . "=" . $2 . ";";
                 }
             }
+        }
+        #Delete last semi-colon in cookie string 
+        if (substr($cleaned_cookies, 0, -1) == ';'){
+            my $str_length = length($cleaned_cookies);
+            $cleaned_cookies = substr($cleaned_cookies, 0, $str_length-1);
         }
     }
     return $cleaned_cookies;

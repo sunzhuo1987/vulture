@@ -56,7 +56,7 @@ sub handle_action {
 '<html><head><meta http-equiv="Content-type" content="text/html; charset=utf-8"/></head><body>'
               . $options
               . '</body></html>';
-        }
+          }
         elsif ( $action eq 'log' ) {
             $log->debug( 'Message : ' . $type );
         }
@@ -68,7 +68,7 @@ sub handle_action {
         }
         elsif ( $action eq 'script' ) {
             #Get evaluation of script
-	    #FIXME: Security issue
+        #FIXME: Security issue
             eval $options;
         }
         else {
@@ -80,20 +80,20 @@ sub handle_action {
             $r->print($html);
             $r->content_type('text/html');
         }
-	catch {
-            	$r->set_handlers( PerlAccessHandler => undef );
-            	$r->set_handlers( PerlAuthenHandler => undef );
-            	$r->set_handlers( PerlAuthzHandler  => undef );
-            	$r->set_handlers( PerlFixupHandler  => undef );
-            	$log->debug($html);
-            	$r->pnotes( 'response_content'      => $html );
-            	$r->pnotes( 'response_content_type' => 'text/html' );
+    catch {
+                $r->set_handlers( PerlAccessHandler => undef );
+                $r->set_handlers( PerlAuthenHandler => undef );
+                $r->set_handlers( PerlAuthzHandler  => undef );
+                $r->set_handlers( PerlFixupHandler  => undef );
+                $r->pnotes( 'response_content'      => $html );
+                $r->pnotes( 'response_content_type' => 'text/html' );
 
-            	if ( $type eq "ACL_FAILED" ) {
-               		$r->custom_response( Apache2::Const::HTTP_UNAUTHORIZED, $html );
-        	}
-	}
+                if ( $type eq "ACL_FAILED" ) {
+                    $r->custom_response( Apache2::Const::HTTP_UNAUTHORIZED, $html );
+            }
+    };
         return Apache2::Const::OK;
     }
 }
 1;
+

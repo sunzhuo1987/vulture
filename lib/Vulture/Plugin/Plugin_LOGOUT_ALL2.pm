@@ -18,7 +18,7 @@ use Apache2::Log;
 use Apache2::Reload;
 
 use Core::VultureUtils
-  qw(&get_cookie &session &get_memcached &set_memcached &notify);
+  qw(&get_cookie &session &get_memcached &set_memcached &log_auth_event);
 
 use Apache2::Const -compile => qw(OK FORBIDDEN REDIRECT);
 
@@ -74,7 +74,7 @@ sub plugin {
         %users = %{ get_memcached( 'vulture_users_in', $mc_conf ) || {} };
         delete $users{ $session_SSO{username} };
         set_memcached( 'vulture_users_in', \%users, undef, $mc_conf );
-        notify( $dbh, undef, $session_SSO{username}, 'deconnection', scalar( keys %users ) );
+        log_auth_event($log, '-', $session_SSO{username}, 'deconnection', 'LOGOUT_ALL2');
         #Logout from SSO
         tied(%session_SSO)->delete();
         $options ||= "/";
