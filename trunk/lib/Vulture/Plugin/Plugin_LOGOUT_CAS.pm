@@ -17,7 +17,7 @@ use Apache2::Reload;
 use Apache2::Request;
 use APR::URI;
 use XML::LibXML;
-use Try::Tiny
+use Try::Tiny;
 use POSIX;
 use Core::VultureUtils
   qw(&session &get_memcached &set_memcached &get_cookie &get_app &get_LDAP_field &get_SQL_field &get_ua_object &get_http_request);
