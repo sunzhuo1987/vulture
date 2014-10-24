@@ -40,6 +40,7 @@ use HTTP::Request;
 use LWP::UserAgent;
 use Apache::SSLLookup;
 use Try::Tiny;
+use Net::LDAP;
 
 our ($memd);
 
