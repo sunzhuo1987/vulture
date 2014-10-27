@@ -275,7 +275,7 @@ sub display_auth_form {
     }
     #Get style
     my $form =
-"<div id=\"form_vulture\"><form method=\"POST\" name=\"auth_form\" action=\""
+"<div id=\"form_vulture\"><form method=\"POST\" autocomplete=\"off\" name=\"auth_form\" action=\""
       . HTML::Entities::encode_entities($uri)
       . "\"><table>";
     $form .=
@@ -300,7 +300,7 @@ FOO
     $form .=<<FOO
 <tr class="row">
     <td class="input">$translations->{'PASSWORD'}{'translation'}</td>
-    <td><input type="password" autocomplete="off" name="vulture_password"></td>
+    <td><input type="password" name="vulture_password"></td>
 </tr>
 <tr class="row">
     <td></td><td colspan="2" style="align:right"><input type="submit" value="$translations->{'SUBMIT'}{'translation'}"></td></tr>
