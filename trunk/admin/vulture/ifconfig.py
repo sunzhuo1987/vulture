@@ -4,16 +4,17 @@ import re
 import subprocess
 
 ifpath = "/sbin/ifconfig"
+ippath = "/bin/ip"
 
 #get infos about running interfaces
 def getIntfs():
     regex = re.compile(
-        "^([\w\d:]+)\s.*\n\s*inet\s+[a-z]+:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})",
+        "inet (\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}).*\s([\w\d:]+)$",
         re.MULTILINE|re.IGNORECASE
         )
     intf={}
     for k,v in [x.groups() for x in regex.finditer(callIfconfig())]:
-        intf[k]=v
+        intf[v]=k
     return intf
 
 # add a virtual interface to existing interface
@@ -47,3 +48,9 @@ def callIfconfig(args=[]):
         raise Exception("failed to call ifconfig")
     return proc.stdout.read()
 
+#call ip addr
+def callIpaddr():
+    proc = subprocess.Popen([ippath] + ["addr"] ,0 , None, None , subprocess.PIPE)
+    if proc.wait():
+        raise Exception("failed to call ip addr")
+    return proc.stdout.read()

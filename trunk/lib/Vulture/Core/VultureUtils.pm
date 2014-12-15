@@ -137,6 +137,7 @@ sub session {
             and $timeout
             and $timeout > 0
             and ( time() - $session->{last_access_time} < $timeout )
+       and (defined $session->{'SSO_Forwarding'})
             and ( $session->{'SSO_Forwarding'} ne 'FORWARD' )
             and ( $session->{'SSO_Forwarding'} ne 'LEARNING' ) )
       )
