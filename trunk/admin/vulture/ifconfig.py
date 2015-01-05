@@ -4,17 +4,40 @@ import re
 import subprocess
 
 ifpath = "/sbin/ifconfig"
-ippath = "/bin/ip"
+ippath = "/sbin/ip"
 
 #get infos about running interfaces
 def getIntfs():
-    regex = re.compile(
-        "inet (\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}).*\s([\w\d:]+)$",
-        re.MULTILINE|re.IGNORECASE
-        )
+    #ifconfig part
+    regex_ifcfg = re.compile(
+                  "^([\w\d:]+)\s.*\n\s*inet\s+[a-z]+:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})",
+                  re.MULTILINE|re.IGNORECASE
+                  )
     intf={}
-    for k,v in [x.groups() for x in regex.finditer(callIfconfig())]:
-        intf[v]=k
+    for k,v in [x.groups() for x in regex_ifcfg.finditer(callIfconfig())]:
+        intf[k]=v
+
+    #ip addr part
+    regex_ipaddr = re.compile(
+              "^\s+inet ([0-9.]+).* ([\w+:]+)$",
+                   re.MULTILINE|re.IGNORECASE
+                   )
+    tmp_intfs = dict()
+    for k,v in [x.groups() for x in regex_ipaddr.finditer(callIpaddr())]:
+        try:
+            tmp_intfs[v].append(k)
+        except:
+            tmp_intfs[v] = list()
+            tmp_intfs[v].append(k)
+
+    for tmp_intf, ips in tmp_intfs.items():
+        for ip in ips:
+            if ips.index(ip) != 0:
+                tmp_intf = tmp_intf + ':' +  str(ips.index(ip)-1)#Creating interface alias name (ex: eth0:0)
+            #We add interface which ifconfig doesn't saw
+            if intf.get(tmp_intf) is None:
+                intf[tmp_intf] = ip
+
     return intf
 
 # add a virtual interface to existing interface
@@ -41,7 +64,7 @@ def startIntf(intf, ip, netmask=None, broadcast=None):
         args += ["broadcast",broadcast]
     return callIfconfig(args) and True or False
 
-#call ifconfig 
+#call ifconfig
 def callIfconfig(args=[]):
     proc = subprocess.Popen(["/usr/bin/sudo",ifpath] + args ,0 , "/usr/bin/sudo" , None , subprocess.PIPE)
     if proc.wait():
@@ -54,3 +77,4 @@ def callIpaddr():
     if proc.wait():
         raise Exception("failed to call ip addr")
     return proc.stdout.read()
+
