@@ -456,7 +456,7 @@ class Intf(models.Model):
     def conf(self):
         t = get_template("vulture_httpd.conf")
         dirapp = {}
-        allapp = App.objects.filter(intf=self.id).order_by('name', '-alias')
+        allapp = App.objects.filter(intf=self.id).order_by('-name', '-alias')
         for app in allapp:
             split=app.name.split("/",1)
             host=split[0]
