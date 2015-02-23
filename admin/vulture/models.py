@@ -593,24 +593,21 @@ class Intf(models.Model):
             return fail_msg
 
     def delete(self,*args,**kwargs):
-        for ext in ("conf","crt","key","chain","cacrt"):
-            fname = "%s%s.%s"%(settings.CONF_PATH,self.pk,ext)
-            if os.path.exists(fname):
-                os.remove(fname)
- 
-        apps = self.app_set.filter(enable_ssl=1)
-        ssl_confs = SSL_conf.objects.filter(Q(id__in=[app.ssl_configuration_id for app in apps]) | Q(id=self.ssl_configuration_id))
-        for ssl_conf in ssl_confs:
-            todos = (
-                    ("crt",ssl_conf.cert),
-                    ("key",ssl_conf.key),
-                    ("chain",ssl_conf.ca),
-                    ("cacrt",ssl_conf.cacert),
-                )
-            for (ext,file_) in todos:
-                fname = "%s%s.%s" % (settings.CONF_PATH, ssl_conf.id,ext)
-                if os.path.exists(fname):
-                    os.remove(fname)
+        fname = "%s%s.conf"%(settings.CONF_PATH,self.pk)
+        if os.path.exists(fname):
+            os.remove(fname)
+
+        #Delete unused cert files
+        for ssl_conf in SSL_conf.objects.all():
+            related_apps = App.objects.filter(ssl_configuration__in = [ssl_conf]).count()
+            related_intfs = Intf.objects.filter(ssl_configuration__in = [ssl_conf]).count()
+            if related_apps == 0 and related_intfs == 0:
+                todos = ("crt", "key", "chain", "cacrt")
+                for ext in todos:
+                    fname = "%s%s.%s" % (settings.CONF_PATH, ssl_conf.id,ext)
+                    if os.path.exists(fname):
+                        os.remove(fname)
+                ssl_conf.delete()
         super(Intf,self).delete(*args,**kwargs)
         
     def write(self):
