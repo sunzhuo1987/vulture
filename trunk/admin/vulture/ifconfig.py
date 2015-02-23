@@ -31,9 +31,10 @@ def getIntfs():
             tmp_intfs[v].append(k)
 
     for tmp_intf, ips in tmp_intfs.items():
+        intf_name = tmp_intf
         for ip in ips:
             if ips.index(ip) != 0:
-                tmp_intf = tmp_intf + ':' +  str(ips.index(ip)-1)#Creating interface alias name (ex: eth0:0)
+                tmp_intf = intf_name + ':' +  str(ips.index(ip)-1)#Creating interface alias name (ex: eth0:0)
             #We add interface which ifconfig doesn't saw
             if intf.get(tmp_intf) is None:
                 intf[tmp_intf] = ip
