@@ -1498,7 +1498,7 @@ class Plugin(models.Model):
     app = models.ForeignKey(App,null=1,blank=1)
     uri_pattern = models.CharField(max_length=200)
     type = models.CharField(max_length=20, choices=PLUGIN_TYPES)
-    options = models.CharField(max_length=200, null=1, blank=1)
+    options = models.CharField(max_length=1200, null=1, blank=1)
     def __str__(self):
         return self.type + ' - ' + self.uri_pattern
     class Meta:
