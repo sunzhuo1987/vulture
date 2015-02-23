@@ -134,7 +134,6 @@ def edit_intf(request,object_id=None):
 def delete_intf(request,object_id=None):
     inst = object_id and Intf.objects.get(id=object_id)
     if request.method == 'POST':
-        SSL_conf.objects.get(id = inst.ssl_configuration_id).delete()
         inst.delete()
         return HttpResponseRedirect("/intf")
     else: 
