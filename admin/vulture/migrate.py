@@ -37,6 +37,7 @@ class Migrate():
             self.model_changes = __import__('migrations.' + import_name, fromlist=[import_name])
         except ImportError:
             print "Wrong update parameter"
+            os.system("cp "+VPATH+"vulture/models_final.py "+VPATH+"vulture/models.py")
             sys.exit(0)
 
         self.changes_queue = list()

@@ -74,7 +74,7 @@ sub handle_action {
 
     my ( $query, $type, $options );
     $query =
-'SELECT is_in_url, is_in_url_action, is_in_url_options, is_in_page, is_in_page_action, is_in_page_options, is_in_url_redirect, is_in_url_redirect_action, is_in_url_redirect_options FROM sso, app WHERE app.id = ? AND sso.id = app.sso_forward_id';
+'SELECT is_in_url, is_in_url_action, is_in_url_options, is_in_page, is_in_page_action, is_in_page_options, is_in_url_redirect, is_in_url_redirect_action, is_in_url_redirect_options, post_response FROM sso, app WHERE app.id = ? AND sso.id = app.sso_forward_id';
     my $sth = $dbh->prepare($query);
     $sth->execute( $app->{id} );
     my (
@@ -82,7 +82,7 @@ sub handle_action {
         $is_in_url_options,  $is_in_page,
         $is_in_page_action,  $is_in_page_options,
         $is_in_url_redirect, $is_in_url_redirect_action,
-        $is_in_url_redirect_options
+        $is_in_url_redirect_options, $show_post_response
     ) = $sth->fetchrow;
     $sth->finish();
 
@@ -161,16 +161,16 @@ sub handle_action {
             SSO::ProfileManager::delete_profile( $r, $log, $dbh, $app, $user );
             $log->debug(
                 'Pattern detected, deleting profile and relearning credentials'
-            );
+                );
             $r->pnotes( 'SSO_Forwarding' => 'LEARNING' );
-	    my $redir = $r->hostname . $r->unparsed_uri;
-	    if ($r->is_https) {
-	    	$redir = 'https://'.$redir; 
-	    }
-	    else {
-		$redir = 'http://'.$redir;
-	    }
-	    $log->debug('Redirecting to ' .$redir );
+            my $redir = $r->hostname . $r->unparsed_uri;
+            if ($r->is_https) {
+              $redir = 'https://'.$redir; 
+          }
+          else {
+              $redir = 'http://'.$redir;
+          }
+          $log->debug('Redirecting to ' .$redir );
 	    #$r->headers_out->add( 'Location' => $r->unparsed_uri );
 	    $r->headers_out->add( 'Location' => $redir );
 
@@ -181,7 +181,6 @@ sub handle_action {
         elsif ( $type eq 'nofollowredirect' ) {
             $followredirect=0;
         }
-
     }
 
 #If no action defined, redirect client to Location header (if defined) or to the /
@@ -204,10 +203,28 @@ sub handle_action {
     }
 
     $log->debug("Ending SSO Forward");
-    $r->pnotes( 'SSO_Forwarding' => undef );
-    $r->headers_out->add( 'Location' => $redirect );
-    $r->status(302);
-    return Apache2::Const::REDIRECT;
+    #Returning content of response at POST request
+    if ($show_post_response == 1){
+        $log->debug("Content of response to Vulture SSO POST");
+        $log->debug($response->content);  
+        $r->content_type("".$response->content_type);
+        if (defined($response->decoded_content)){
+            $r->print($response->decoded_content);    
+        }
+        else {
+            $r->print($response->content);
+        }
+        $r->pnotes( 'SSO_Forwarding' => undef );
+        $r->status($response->code);
+        return Apache2::Const::OK;
+    }
+    #Redirecting client to Location address
+    else {
+        $r->pnotes( 'SSO_Forwarding' => undef );
+        $r->headers_out->add( 'Location' => $redirect );
+        $r->status(302);
+        return Apache2::Const::REDIRECT;
+    }
 }
 
 sub forward {

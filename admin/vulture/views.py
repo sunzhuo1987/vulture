@@ -389,7 +389,7 @@ def edit_app(request,object_id=None):
         if form.cleaned_data['conf_from_intf']:
              inst        = Intf.objects.get(id=form.cleaned_data['intf'])
              ssl_conf_id = inst.ssl_configuration
-             if hasattr(app_inst,'ssl_configuration'):#delete unused ssl_configuration
+             if hasattr(app_inst,'ssl_configuration') and app_inst.ssl_configuration != inst.ssl_configuration:#delete unused ssl_configuration
                 try:
                     app_inst.ssl_configuration.delete()
                 except AttributeError:

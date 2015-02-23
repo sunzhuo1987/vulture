@@ -952,6 +952,11 @@ sub get_app_cookies{
             my $str_length = length($cleaned_cookies);
             $cleaned_cookies = substr($cleaned_cookies, 0, $str_length-1);
         }
+        #Delete last semi-colon in cookie string 
+        my $str_length = length($cleaned_cookies);
+        if ($str_length > 0 && substr($cleaned_cookies, 0, -1) eq ';'){
+            $cleaned_cookies = substr($cleaned_cookies, 0, $str_length-1);
+        }
     }
     return $cleaned_cookies;
 }

@@ -1268,6 +1268,7 @@ class SSO(models.Model):
     is_in_url_redirect_options = models.CharField(max_length=128, blank=1, null=1)
     is_post = models.BooleanField(default=0)
     verify_mech_cert = models.BooleanField(default=1)
+    post_response = models.BooleanField(default=0)#Return POST response instead of redirecting to Location of POST response
     def __unicode__(self):
         return self.name
     class Meta:
