@@ -22,6 +22,7 @@ from django.db.models.signals import post_save
 from django.contrib.auth.signals import user_logged_in, user_logged_out
 from django.db.models import Q
 from django import forms
+from django.utils.datastructures import SortedDict
 import base64
 import ifconfig
 import tarfile,zipfile
@@ -455,7 +456,7 @@ class Intf(models.Model):
 
     def conf(self):
         t = get_template("vulture_httpd.conf")
-        dirapp = {}
+        dirapp = SortedDict()
         allapp = App.objects.filter(intf=self.id).order_by('-name', '-alias')
         for app in allapp:
             split=app.name.split("/",1)
@@ -692,7 +693,7 @@ class Intf(models.Model):
         except:
             return True
         
-        if intf.ssl_configuration and not intf.ssl_configuration.is_uptodate():
+        if self.ssl_configuration and not self.ssl_configuration.is_uptodate():
             return True
 
         for app in App.objects.filter(intf=self.id).all():
