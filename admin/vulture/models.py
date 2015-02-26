@@ -1791,6 +1791,11 @@ class ModSecConf(models.Model):
         ('redirect', 'redirect'),
         ('script', 'script'),
         )
+    AUDIT_ENGINES = (
+        ('On', 'On'),
+        ('Off', 'Off'),
+        ('RelevantOnly', 'RelevantOnly'),
+    )
     RESTRICTED_ACTIONS = (
         ('message', 'message'),
         ('redirect', 'redirect'),
@@ -1828,6 +1833,7 @@ class ModSecConf(models.Model):
     
     name = models.CharField(max_length=128, blank=False, null=False)
     action = models.CharField(max_length=128, choices=MS_ACTIONS, default='Log_Block')
+    auditengine = models.CharField(max_length=128, choices=AUDIT_ENGINES, default='RelevantOnly')
     allowed_content_type = models.TextField(blank=1, null=1,default='application/x-www-form-urlencoded multipart/form-data text/xml application/xml application/x-amf')
     allowed_http = models.TextField(blank=1, null=1,default='GET HEAD POST OPTIONS')
     allowed_http_version = models.TextField(blank=1, null=1,default='HTTP/1.0 HTTP/1.1')
