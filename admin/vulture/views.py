@@ -429,7 +429,12 @@ def copy_app(request,object_id=None):
     form = AppCopy(request.POST or None)
     if request.method == 'POST' and form.is_valid():
         a1 = App.objects.get(friendly_name=form.cleaned_data['app'])
+        ssl_conf = SSL_conf()
+        ssl_conf.save()
         a1.pk = None
+        a1.ssl_configuration_id = ssl_conf.id
+        a1.enable_ssl = False
+        a1.conf_from_intf = False
         a1.friendly_name = form.cleaned_data['friendly_name']
         a1.name = form.cleaned_data['name']
         try:
