@@ -386,9 +386,15 @@ def edit_app(request,object_id=None):
         #SSL Configuration
         fssl_conf = SSLConfForm(request.POST, instance = object_id and app_inst.ssl_configuration, prefix='ssl_conf')
         if form.cleaned_data['conf_from_intf']:
-             inst        = Intf.objects.get(id=form.cleaned_data['intf'])
-             ssl_conf_id = inst.ssl_configuration
-             if hasattr(app_inst,'ssl_configuration') and app_inst.ssl_configuration != inst.ssl_configuration:#delete unused ssl_configuration
+             inst        = Intf.objects.filter(id__in=form.cleaned_data['intf'])
+             #Searching for SSL intf
+             ssl_conf_id = None
+             for intf in inst:
+                  if intf.ssl_configuration and intf.ssl_configuration.cert:
+                      ssl_conf_id = intf.ssl_configuration
+                  else:
+                      continue
+             if hasattr(app_inst,'ssl_configuration') and app_inst.ssl_configuration != ssl_conf_id:#delete unused ssl_configuration
                 try:
                     app_inst.ssl_configuration.delete()
                 except AttributeError:
