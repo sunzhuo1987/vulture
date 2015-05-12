@@ -526,8 +526,10 @@ class Intf(models.Model):
         return False
 
     def is_ssl(self):
-        return self.ssl_configuration.cert and True or False
-
+        try:
+            return self.ssl_configuration.cert and True or False
+        except AttributeError as e:
+            return False
     def backupConf(self):
         """ Backup actual configuration files """
         backpath="%s%s_backup/"%(settings.CONF_PATH,self.id)
