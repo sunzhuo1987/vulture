@@ -394,8 +394,10 @@ def edit_app(request,object_id=None):
                       ssl_conf_id = intf.ssl_configuration
                   else:
                       continue
-             if hasattr(app_inst,'ssl_configuration') and app_inst.ssl_configuration != ssl_conf_id:#delete unused ssl_configuration
+             if hasattr(app_inst,'ssl_configuration') and app_inst.ssl_configuration != ssl_conf_id and not app_inst.conf_from_intf:#delete unused ssl_configuration
                 try:
+                    app_inst.enable_ssl = False
+                    app_inst.save()
                     app_inst.ssl_configuration.delete()
                 except AttributeError:
                     pass
