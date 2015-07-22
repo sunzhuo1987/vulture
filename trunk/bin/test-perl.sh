@@ -91,7 +91,7 @@ for mod in $perl_deps ; do
     fi 
 done;
 
-if [ ! -f /opt/vulture/lib/x86_64-linux-gnu-thread-multi/Apache/SSLLookup.pm ] && [ ! -f /opt/vulture/lib/x86_64-linux-thread-multi/Apache/SSLLookup.pm ]; then
+if [ ! -f /usr/local/lib/x86_64-linux-gnu/perl/5.20.2/Apache/SSLLookup.pm ]; then
     echo -e "$RED[FAIL]$WHITE - Module \"Apache::SSLLookup\" is missing. Please install it before using Vulture"  
     exit_st=1
 else
