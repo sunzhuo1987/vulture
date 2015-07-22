@@ -1,3 +1,4 @@
+#!/bin/bash
 ### BEGIN INIT INFO
 # Provides: vulture
 # Required-Start: $local_fs $network $named 
@@ -13,12 +14,6 @@
 # many different applications by learning and forwarding their
 # different accounts.
 ### END INIT INFO
-#!/bin/bash
-#
-# Vulture
-#
-# chkconfig:   345 90 15
-# description: Vulture
 
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 Vulture_HOME=/var/www
