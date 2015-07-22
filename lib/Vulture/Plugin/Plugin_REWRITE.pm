@@ -26,7 +26,7 @@ sub plugin {
     #Mod proxy
     if ( @$options[2] =~ /(.+)\s\[P\]/ ) {
         my $rewrite = $1;
-        my (@replace) = $r->uri =~ /@$options[0]/;
+        my (@replace) = $r->unparsed_uri =~ /@$options[0]/;
         my $i = 1;
         foreach (@replace) {
             $rewrite =~ s/\$$i/$_/ig;
@@ -47,7 +47,7 @@ sub plugin {
         my $rewrite = $1;
         # return custom code if option matches [R=>nnn]
         my $http_code = $2 ? $3 : Apache2::Const::REDIRECT;
-        my (@replace) = $r->uri =~ /@$options[0]/;
+        my (@replace) = $r->unparsed_uri =~ /@$options[0]/;
         my $i = 1;
         foreach (@replace) {
             $rewrite =~ s/\$$i/$_/ig;
